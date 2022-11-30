@@ -1,0 +1,11 @@
+packages: .
+
+package monad-effects
+  ghc-options:
+    -Wall -Wcompat -Werror -Widentities
+    -Wincomplete-record-updates -Wincomplete-uni-patterns
+    -Wmissing-home-modules -Wmissing-export-lists -Wpartial-fields
+    -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
+
+optimization: 2
+test-show-details: direct

@@ -1,0 +1,22 @@
+- ghc-options in cabal file w/ new cabal now?
+  - requires cabal 3.8 which isn't even in nixpkgs yet
+  - hold off for now
+
+- ghc 9.4 when it's in nixpkgs
+
+makefile
+--------
+* gnumake as flake dep
+* aliases for build, repl, ghcid, format
+* would like to support hlint w/ apply but might be too hard...
+
+todo
+----
+- add external repo example
+- maybe more docs about commands, upgrading, etc.?
+
+CI Redux
+--------
+- how to handle stack? we still need to update lock file
+- either add this to flake.nix
+- or maybe have nix/cabal nix/stack that gives the tools / whatever

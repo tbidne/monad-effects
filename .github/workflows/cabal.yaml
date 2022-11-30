@@ -1,0 +1,33 @@
+name: "cabal"
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+jobs:
+  cabal:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ghc:
+          - 8.10.7
+          - 9.0.2
+          - 9.2.4
+          - 9.4.2
+    steps:
+      - uses: actions/checkout@v3.0.2
+
+      - uses: haskell/actions/setup@v2.0.0
+        with:
+          ghc-version: ${{ matrix.ghc }}
+      
+      - name: Compile
+        run: cabal build
