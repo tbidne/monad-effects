@@ -12,6 +12,10 @@ module Effects.MonadTime
     -- * Formatting
     formatLocalTime,
     formatZonedTime,
+
+    -- * Parsing
+    parseLocalTime,
+    parseZonedTime,
   )
 where
 
@@ -77,14 +81,36 @@ withTiming_ = fmap fst . withTiming
 --
 -- @since 0.1
 formatZonedTime :: ZonedTime -> String
-formatZonedTime = Format.formatTime Format.defaultTimeLocale format
-  where
-    format = "%Y-%m-%d %H:%M:%S %Z"
+formatZonedTime = Format.formatTime Format.defaultTimeLocale zonedTimeFormat
 
 -- | Formats the 'LocalTime' to @YYYY-MM-DD HH:MM:SS@.
 --
 -- @since 0.1
 formatLocalTime :: LocalTime -> String
-formatLocalTime = Format.formatTime Format.defaultTimeLocale format
-  where
-    format = "%Y-%m-%d %H:%M:%S"
+formatLocalTime = Format.formatTime Format.defaultTimeLocale localTimeFormat
+
+-- | Parses the 'LocalTime' from @YYYY-MM-DD HH:MM:SS@.
+--
+-- @since 0.1
+parseLocalTime :: MonadFail f => String -> f LocalTime
+parseLocalTime =
+  Format.parseTimeM
+    True
+    Format.defaultTimeLocale
+    localTimeFormat
+
+-- | Parses the 'ZonedTime' from @YYYY-MM-DD HH:MM:SS Z@.
+--
+-- @since 0.1
+parseZonedTime :: MonadFail f => String -> f ZonedTime
+parseZonedTime =
+  Format.parseTimeM
+    True
+    Format.defaultTimeLocale
+    localTimeFormat
+
+localTimeFormat :: String
+localTimeFormat = "%Y-%m-%d %H:%M:%S"
+
+zonedTimeFormat :: String
+zonedTimeFormat = "%Y-%m-%d %H:%M:%S %Z"
