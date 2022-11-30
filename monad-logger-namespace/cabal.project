@@ -1,13 +1,12 @@
-resolver: lts-19.28
-packages:
-- monad-logger-namespace
-- monad-time
-ghc-options:
-  "$locals":
+packages: .
+
+package monad-logger-namespace
+  ghc-options:
     -Wall -Wcompat -Werror -Widentities
     -Wincomplete-record-updates -Wincomplete-uni-patterns
     -Wmissing-home-modules -Wmissing-export-lists -Wpartial-fields
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
     -Wprepositive-qualified-module
-nix:
-  shell-file: nix/stack.nix
+
+optimization: 2
+test-show-details: direct

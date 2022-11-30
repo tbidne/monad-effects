@@ -27,21 +27,23 @@
           ];
           ghc-version = "ghc924";
           compiler = pkgs.haskell.packages."${ghc-version}";
-          mkPkg = returnShellEnv: withDevTools:
-            compiler.developPackage {
-              inherit returnShellEnv;
-              name = "monad-effects";
-              root = ./.;
-              modifier = drv:
-                pkgs.haskell.lib.addBuildTools drv
-                  (buildTools compiler ++
-                    (if withDevTools then devTools compiler else [ ]));
-            };
+          hsOverlay =
+            (pkgs.haskellPackages.extend (pkgs.haskell.lib.compose.packageSourceOverrides {
+              monad-logger-namespace = ./monad-logger-namespace;
+              monad-time = ./monad-time;
+            }));
         in
         {
-          packages.default = mkPkg false false;
-          devShells.default = mkPkg true true;
-          devShells.ci = mkPkg true false;
+          devShells.default = hsOverlay.shellFor {
+            packages = p: [ p.monad-logger-namespace p.monad-time ];
+            withHoogle = true;
+            buildInputs = (buildTools compiler) ++ (devTools compiler);
+          };
+          devShells.ci = hsOverlay.shellFor {
+            packages = p: [ p.monad-logger-namespace p.monad-time ];
+            withHoogle = true;
+            buildInputs = (buildTools compiler);
+          };
         };
       systems = [
         "x86_64-linux"

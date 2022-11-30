@@ -30,4 +30,4 @@ jobs:
           ghc-version: ${{ matrix.ghc }}
       
       - name: Compile
-        run: cabal build
+        run: cabal build all
