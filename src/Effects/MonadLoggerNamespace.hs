@@ -11,7 +11,7 @@ module Effects.MonadLoggerNamespace
     addNamespace,
 
     -- * Formatting
-    LogFormatter,
+    LogFormatter (..),
     defaultLogFormatter,
     LocStrategy (..),
     formatLog,
