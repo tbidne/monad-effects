@@ -12,8 +12,7 @@ bug-reports:        https://github.com/tbidne/monad-effects/issues
 synopsis:           Template
 description:        Template
 category:           Template
-extra-source-files:
-  CHANGELOG.md
+extra-source-files: CHANGELOG.md
 
 source-repository head
   type:     git

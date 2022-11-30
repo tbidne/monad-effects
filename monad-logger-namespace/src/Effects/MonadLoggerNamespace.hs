@@ -24,6 +24,10 @@ module Effects.MonadLoggerNamespace
     _LocPartial,
     _LocStable,
     _LocNone,
+
+    -- * Reexports
+    MonadLogger (..),
+    LogStr,
   )
 where
 
@@ -31,7 +35,7 @@ import Control.DeepSeq (NFData)
 import Control.Monad.Logger
   ( LogLevel (LevelDebug, LevelError, LevelInfo, LevelOther, LevelWarn),
     LogStr,
-    MonadLogger,
+    MonadLogger (monadLoggerLog),
     ToLogStr (toLogStr),
   )
 import Data.ByteString (ByteString)

@@ -16,16 +16,24 @@ module Effects.MonadTime
     -- * Parsing
     parseLocalTime,
     parseZonedTime,
+
+    -- * Reexports
+    LocalTime (..),
+    ZonedTime (..),
+    TimeSpec (..),
   )
 where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.Time.Format qualified as Format
-import Data.Time.LocalTime (LocalTime, ZonedTime)
+import Data.Time.LocalTime
+  ( LocalTime (LocalTime, localDay, localTimeOfDay),
+    ZonedTime (ZonedTime, zonedTimeToLocalTime, zonedTimeZone),
+  )
 import Data.Time.LocalTime qualified as Local
 import GHC.Stack (HasCallStack)
-import System.Clock (Clock (Monotonic), TimeSpec)
+import System.Clock (Clock (Monotonic), TimeSpec (..))
 import System.Clock qualified as C
 
 -- | Time effect.
