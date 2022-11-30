@@ -1,5 +1,4 @@
 .PHONY: build clean repl watch ;\
-	test ;\
 	cic ci formatc format lint lintc haddockc ;\
 	haddock hackage
 
@@ -16,13 +15,6 @@ build:
 
 clean:
 	cabal clean
-
-test:
-	if [ -z "$(ARGS)" ]; then \
-		cabal test; \
-	else \
-		cabal test $(ARGS); \
-	fi
 
 repl:
 	if [ -z "$(ARGS)" ]; then \

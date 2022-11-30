@@ -21,53 +21,16 @@ source-repository head
   location: https://github.com/tbidne/monad-effects
 
 common common-exts
-  default-extensions:
-    BangPatterns
-    ConstraintKinds
-    DataKinds
-    DeriveAnyClass
-    DeriveFunctor
-    DeriveGeneric
-    DeriveTraversable
-    DerivingStrategies
-    DerivingVia
-    FlexibleContexts
-    FlexibleInstances
-    FunctionalDependencies
-    GADTs
-    GeneralizedNewtypeDeriving
-    ImportQualifiedPost
-    InstanceSigs
-    LambdaCase
-    MultiParamTypeClasses
-    MultiWayIf
-    NamedFieldPuns
-    NumericUnderscores
-    OverloadedStrings
-    PatternSynonyms
-    RankNTypes
-    ScopedTypeVariables
-    StandaloneDeriving
-    StandaloneKindSignatures
-    TupleSections
-    TypeApplications
-    TypeFamilyDependencies
-    TypeOperators
+  default-extensions: ImportQualifiedPost
 
 library
   import:           common-exts
-  exposed-modules:  Lib
-  build-depends:    base >=4.14.0.0 && <4.18
-  hs-source-dirs:   src
-  default-language: Haskell2010
-
-executable monad-effects
-  import:           common-exts
-  main-is:          Main.hs
+  exposed-modules:  Effects.MonadTime
   build-depends:
-    , base
-    , monad-effects
+    , base          >=4.14.0.0 && <4.18
+    , clock         >=0.7.2    && <0.9
+    , time          >=1.9.3    && <1.14
+    , transformers  >=0.5.6.2  && <0.7
 
-  hs-source-dirs:   app
-  ghc-options:      -threaded -with-rtsopts=-N
+  hs-source-dirs:   src
   default-language: Haskell2010
