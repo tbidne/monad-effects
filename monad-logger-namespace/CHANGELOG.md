@@ -1,4 +1,4 @@
-# Revision history for monad-effects
+# Revision history for monad-logger-namespace
 
 ## 0.1 -- YYYY-mm-dd
 

@@ -1,7 +1,4 @@
 cradle:
   cabal:
     - path: "./src"
-      component: "lib:monad-effects"
-
-    - path: "./app/Main.hs"
-      component: "monad-effects:exe:monad-effects"
+      component: "lib:monad-time"
