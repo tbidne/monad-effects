@@ -232,9 +232,9 @@ formatLog formatter lvl msg = do
   where
     timeFn
       | formatter ^. #timezone =
-          toLogStr . MonadTime.formatLocalTime <$> getSystemTime
-      | otherwise =
           toLogStr . MonadTime.formatZonedTime <$> getSystemZonedTime
+      | otherwise =
+          toLogStr . MonadTime.formatLocalTime <$> getSystemTime
 
 partialLoc :: Loc -> Builder
 partialLoc loc =
