@@ -19,6 +19,7 @@ jobs:
       matrix:
         stack_yaml:
           - stack_lts-18.yaml
+          - stack_lts-19.yaml
           - stack.yaml
           - stack_nightly.yaml
     steps:
