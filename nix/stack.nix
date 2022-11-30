@@ -12,8 +12,9 @@ let
 
   stack-map = {
     lts-18 = { ghc = "ghc8107"; yaml = "stack_lts-18.yaml"; };
-    default = { ghc = "ghc902"; yaml = "stack.yaml"; };
-    nightly = { ghc = "ghc924"; yaml = "stack_nightly.yaml"; };
+    lts-19 = { ghc = "ghc902"; yaml = "stack_lts-19.yaml"; };
+    default = { ghc = "ghc925"; yaml = "stack.yaml"; };
+    nightly = { ghc = "ghc943"; yaml = "stack_nightly.yaml"; };
   };
   val =
     if stack-map ? ${stack-vers}

@@ -25,7 +25,7 @@
             ghcid
             haskell-language-server
           ];
-          ghc-version = "ghc924";
+          ghc-version = "ghc925";
           compiler = pkgs.haskell.packages."${ghc-version}";
           hsOverlay =
             (pkgs.haskellPackages.extend (pkgs.haskell.lib.compose.packageSourceOverrides {

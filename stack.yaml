@@ -1,4 +1,4 @@
-resolver: lts-19.28
+resolver: lts-20.2
 packages:
 - monad-logger-namespace
 - monad-time

@@ -1,6 +1,7 @@
 resolver: lts-18.28
 packages:
-- .
+- monad-logger-namespace
+- monad-time
 ghc-options:
   "$locals":
     -Wall -Wcompat -Werror -Widentities
