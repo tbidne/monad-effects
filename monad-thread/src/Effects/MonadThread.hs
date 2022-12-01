@@ -50,8 +50,8 @@ natToInts n
     maxIntAsNat :: Natural
     maxIntAsNat = i2n maxInt
 
-n2i :: HasCallStack => Natural -> Int
+n2i :: Natural -> Int
 n2i = fromIntegral
 
-i2n :: HasCallStack => Int -> Natural
+i2n :: Int -> Natural
 i2n = fromIntegral

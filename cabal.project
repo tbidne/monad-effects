@@ -5,3 +5,13 @@ packages:
   ./monad-terminal
   ./monad-thread
   ./monad-time
+
+package *
+  ghc-options:
+    -Wall -Wcompat -Werror -Widentities
+    -Wincomplete-record-updates -Wincomplete-uni-patterns
+    -Wmissing-home-modules -Wmissing-export-lists -Wpartial-fields
+    -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
+    -Wprepositive-qualified-module
+
+test-show-details: direct

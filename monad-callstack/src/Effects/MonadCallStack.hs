@@ -17,7 +17,7 @@ where
 import Control.Exception.Annotated.UnliftIO (Exception)
 import Control.Exception.Annotated.UnliftIO qualified as Annotated
 import Control.Monad.Trans.Class (MonadTrans (lift))
-import Control.Monad.Trans.Reader (ReaderT (ReaderT), ask, runReaderT)
+import Control.Monad.Trans.Reader (ReaderT (ReaderT), ask)
 import GHC.Stack (CallStack, HasCallStack)
 
 -- | Typeclass for 'CallStack' effects. The 'IO' instance uses the machinery

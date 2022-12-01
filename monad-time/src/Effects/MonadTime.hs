@@ -15,7 +15,9 @@ module Effects.MonadTime
 
     -- * Parsing
     parseLocalTime,
+    parseLocalTimeCS,
     parseZonedTime,
+    parseZonedTimeCS,
 
     -- * Reexports
     LocalTime (..),
@@ -129,16 +131,18 @@ parseLocalTime =
 -- @since 0.1
 parseLocalTimeCS ::
   ( HasCallStack,
-    MonadCallStack f,
-    MonadFail f
+    MonadCallStack m,
+    MonadFail m
   ) =>
   String ->
-  f LocalTime
+  m LocalTime
 parseLocalTimeCS =
-  Format.parseTimeM
-    True
-    Format.defaultTimeLocale
-    localTimeFormat
+  checkpointCallStack
+    . Format.parseTimeM
+      True
+      Format.defaultTimeLocale
+      localTimeFormat
+
 
 -- | Parses the 'ZonedTime' from @YYYY-MM-DD HH:MM:SS Z@. If the 'MonadFail'
 -- instance throws an 'Exception' consider 'parseZonedTimeCS'.
@@ -157,16 +161,17 @@ parseZonedTime =
 -- @since 0.1
 parseZonedTimeCS ::
   ( HasCallStack,
-    MonadCallStack f,
-    MonadFail f
+    MonadCallStack m,
+    MonadFail m
   ) =>
   String ->
-  f ZonedTime
+  m ZonedTime
 parseZonedTimeCS =
-  Format.parseTimeM
-    True
-    Format.defaultTimeLocale
-    localTimeFormat
+  checkpointCallStack
+    . Format.parseTimeM
+        True
+        Format.defaultTimeLocale
+        localTimeFormat
 
 localTimeFormat :: String
 localTimeFormat = "%Y-%m-%d %H:%M:%S"

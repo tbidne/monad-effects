@@ -6,7 +6,6 @@ module Effects.MonadFsReader
   )
 where
 
-import Control.Monad (unless)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.ByteString (ByteString)

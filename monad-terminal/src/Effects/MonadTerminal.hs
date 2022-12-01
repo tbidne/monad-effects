@@ -25,7 +25,7 @@ import Effects.MonadCallStack
     throwWithCallStack,
   )
 import GHC.Natural (Natural)
-import GHC.Stack (CallStack, HasCallStack)
+import GHC.Stack (HasCallStack)
 import System.Console.Terminal.Size (Window (..), size)
 import System.IO qualified as IO
 import Prelude hiding (getChar)
