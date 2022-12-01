@@ -13,6 +13,7 @@ ghc-options:
     -Wmissing-home-modules -Wmissing-export-lists -Wpartial-fields
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
 extra-deps:
+- annotated-exception-0.2.0.4@sha256:3d499515d64d64ecc1a43a8ebbc70b24020e1ed2cbf8726039d282d87d8cb0ed,1785
 - optics-core-0.4.1@sha256:b163d1a8f392536c645cbd728c3e29d9f35864b25b1e3cef3a29806ee8a21c6b,5545
 - optics-th-0.4.1@sha256:7fb1fcdc77634f78af654fd16113db5802d920b4aa6a710d51e8017df00982ba,3089
 nix:

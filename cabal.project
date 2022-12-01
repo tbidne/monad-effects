@@ -6,7 +6,7 @@ packages:
   ./monad-thread
   ./monad-time
 
-package *
+program-options
   ghc-options:
     -Wall -Wcompat -Werror -Widentities
     -Wincomplete-record-updates -Wincomplete-uni-patterns
