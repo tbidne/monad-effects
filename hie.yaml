@@ -1,0 +1,14 @@
+cradle:
+  cabal:
+    - path: "./monad-callstack/src"
+      component: "lib:monad-callstack"
+    - path: "./monad-fs-reader/src"
+      component: "lib:monad-fs-reader"
+    - path: "./monad-logger-namespace/src"
+      component: "lib:monad-logger-namespace"
+    - path: "./monad-terminal/src"
+      component: "lib:monad-terminal"
+    - path: "./monad-thread/src"
+      component: "lib:monad-thread"
+    - path: "./monad-time/src"
+      component: "lib:monad-time"
