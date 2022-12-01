@@ -1,0 +1,51 @@
+cabal-version:      2.4
+name:               monad-fs-writer
+version:            0.1
+license:            MIT
+license-file:       LICENSE
+tested-with:        GHC ==8.10.7 || ==9.0.2 || ==9.2.4 || ==9.4.2
+copyright:          2022 Thomas Bidne
+author:             Thomas Bidne
+maintainer:         tbidne@protonmail.com
+homepage:           https://github.com/tbidne/monad-effects/
+bug-reports:        https://github.com/tbidne/monad-effects/issues
+synopsis:           FileSystem writer effects
+description:        FileSystem writer effects
+category:           Effects
+extra-source-files: CHANGELOG.md
+
+source-repository head
+  type:     git
+  location: https://github.com/tbidne/monad-effects
+
+common common
+  default-extensions:
+    DataKinds
+    DeriveAnyClass
+    DeriveGeneric
+    DerivingStrategies
+    DerivingVia
+    FlexibleInstances
+    ImportQualifiedPost
+    LambdaCase
+    MultiParamTypeClasses
+    NumericUnderscores
+    OverloadedLabels
+    OverloadedStrings
+    ScopedTypeVariables
+    TypeApplications
+    TypeFamilies
+    TypeOperators
+
+library
+  import:           common
+  exposed-modules:  Effects.MonadFsWriter
+  build-depends:
+    , base             >=4.14.0.0  && <4.18
+    , bytestring       >=0.10.12.0 && <0.12
+    , directory        ^>=1.3.5.0
+    , monad-callstack  ^>=0.1
+    , transformers     >=0.5.6.2   && <0.7
+
+  hs-source-dirs:   src
+  default-language: Haskell2010

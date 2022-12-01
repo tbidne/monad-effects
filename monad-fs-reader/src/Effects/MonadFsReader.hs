@@ -17,7 +17,7 @@ import System.Directory (XdgDirectory (XdgConfig))
 import System.Directory qualified as Dir
 import Prelude hiding (readFile)
 
--- | Represents thread effects.
+-- | Represents file-system reader effects.
 --
 -- @since 0.1
 class Monad m => MonadFsReader m where

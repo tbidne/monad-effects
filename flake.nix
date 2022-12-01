@@ -37,6 +37,7 @@
               # add sources here
               monad-callstack = ./monad-callstack;
               monad-fs-reader = ./monad-fs-reader;
+              monad-fs-writer = ./monad-fs-writer;
               monad-logger-namespace = ./monad-logger-namespace;
               monad-terminal = ./monad-terminal;
               monad-thread = ./monad-thread;
@@ -45,6 +46,7 @@
           packages = p: [
             p.monad-callstack
             p.monad-fs-reader
+            p.monad-fs-writer
             p.monad-logger-namespace
             p.monad-terminal
             p.monad-thread

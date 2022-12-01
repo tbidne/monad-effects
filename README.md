@@ -20,6 +20,7 @@
 * [Effects](#effects)
   * [MonadCallStack](#monadcallstack)
   * [MonadFsReader](#monadfsreader)
+  * [MonadFsWriter](#monadfswriter)
   * [MonadLoggerNamespace](#monadloggernamespace)
   * [MonadThread](#monadthread)
   * [MonadTerminal](#monadterminal)
@@ -38,6 +39,10 @@ The `MonadCallStack` effect integrates `Exception` with `CallStack`.
 ## [MonadFsReader](./monad-fs-reader/)
 
 The `MonadFsReader` effect emulates a file-system reader.
+
+## [MonadFsWriter](./monad-fs-writer/)
+
+The `MonadFsWriter` effect emulates a file-system writer.
 
 ## [MonadLoggerNamespace](./monad-logger-namespace/)
 

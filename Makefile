@@ -4,23 +4,23 @@
 
 # core
 
-ARGS = ""
+T = ""
 
 build:
-	if [ -z "$(ARGS)" ]; then \
+	if [ -z "$(T)" ]; then \
 		cabal build all; \
 	else \
-		cabal build $(ARGS); \
+		cabal build $(T); \
 	fi
 
 clean:
 	cabal clean
 
 repl:
-	cabal repl $(ARGS)
+	cabal repl $(T)
 
 watch:
-	ghcid --command "cabal repl $(ARGS)"
+	ghcid --command "cabal repl $(T)"
 
 # ci
 

@@ -4,6 +4,8 @@ cradle:
       component: "lib:monad-callstack"
     - path: "./monad-fs-reader/src"
       component: "lib:monad-fs-reader"
+    - path: "./monad-fs-writer/src"
+      component: "lib:monad-fs-writer"
     - path: "./monad-logger-namespace/src"
       component: "lib:monad-logger-namespace"
     - path: "./monad-terminal/src"

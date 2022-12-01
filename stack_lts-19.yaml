@@ -2,6 +2,7 @@ resolver: lts-19.28
 packages:
 - monad-callstack
 - monad-fs-reader
+- monad-fs-writer
 - monad-logger-namespace
 - monad-terminal
 - monad-thread
