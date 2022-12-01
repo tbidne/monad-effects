@@ -1,6 +1,10 @@
 resolver: lts-19.28
 packages:
+- monad-callstack
+- monad-fs-reader
 - monad-logger-namespace
+- monad-terminal
+- monad-thread
 - monad-time
 ghc-options:
   "$locals":

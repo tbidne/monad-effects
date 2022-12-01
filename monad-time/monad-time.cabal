@@ -9,9 +9,9 @@ author:             Thomas Bidne
 maintainer:         tbidne@protonmail.com
 homepage:           https://github.com/tbidne/monad-effects/
 bug-reports:        https://github.com/tbidne/monad-effects/issues
-synopsis:           Template
-description:        Template
-category:           Template
+synopsis:           Time effects
+description:        Time effects
+category:           Effects
 extra-source-files: CHANGELOG.md
 
 source-repository head
@@ -27,7 +27,9 @@ common common
     DerivingVia
     FlexibleInstances
     ImportQualifiedPost
+    LambdaCase
     MultiParamTypeClasses
+    NumericUnderscores
     OverloadedLabels
     OverloadedStrings
     TypeApplications
@@ -37,10 +39,11 @@ library
   import:           common
   exposed-modules:  Effects.MonadTime
   build-depends:
-    , base          >=4.14.0.0 && <4.18
-    , clock         >=0.7.2    && <0.9
-    , time          >=1.9.3    && <1.14
-    , transformers  >=0.5.6.2  && <0.7
+    , base             >=4.14.0.0 && <4.18
+    , clock            >=0.7.2    && <0.9
+    , monad-callstack  ^>=0.1
+    , time             >=1.9.3    && <1.14
+    , transformers     >=0.5.6.2  && <0.7
 
   hs-source-dirs:   src
   default-language: Haskell2010

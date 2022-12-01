@@ -32,6 +32,7 @@ import Data.Time.LocalTime
     ZonedTime (ZonedTime, zonedTimeToLocalTime, zonedTimeZone),
   )
 import Data.Time.LocalTime qualified as Local
+import Effects.MonadCallStack (MonadCallStack, checkpointCallStack)
 import GHC.Stack (HasCallStack)
 import System.Clock (Clock (Monotonic), TimeSpec (..))
 import System.Clock qualified as C
@@ -54,13 +55,15 @@ class Monad m => MonadTime m where
   -- nanosecond level.
   --
   -- @since 0.5
-  getTimeSpec :: m TimeSpec
+  getTimeSpec :: HasCallStack => m TimeSpec
 
 -- | @since 0.1
 instance MonadTime IO where
-  getSystemTime = Local.zonedTimeToLocalTime <$> Local.getZonedTime
-  getSystemZonedTime = Local.getZonedTime
-  getTimeSpec = C.getTime Monotonic
+  getSystemTime =
+    checkpointCallStack
+      (Local.zonedTimeToLocalTime <$> Local.getZonedTime)
+  getSystemZonedTime = checkpointCallStack Local.getZonedTime
+  getTimeSpec = checkpointCallStack (C.getTime Monotonic)
 
 -- | @since 0.1
 instance MonadTime m => MonadTime (ReaderT e m) where
@@ -71,8 +74,14 @@ instance MonadTime m => MonadTime (ReaderT e m) where
 -- | Runs an action, returning the elapsed time.
 --
 -- @since 0.1
-withTiming :: MonadTime m => m a -> m (TimeSpec, a)
-withTiming m = do
+withTiming ::
+  ( HasCallStack,
+    MonadCallStack m,
+    MonadTime m
+  ) =>
+  m a ->
+  m (TimeSpec, a)
+withTiming m = checkpointCallStack $ do
   start <- getTimeSpec
   res <- m
   end <- getTimeSpec
@@ -82,8 +91,14 @@ withTiming m = do
 -- | 'withTiming' but ignores the result value.
 --
 -- @since 0.1
-withTiming_ :: MonadTime m => m a -> m TimeSpec
-withTiming_ = fmap fst . withTiming
+withTiming_ ::
+  ( HasCallStack,
+    MonadCallStack m,
+    MonadTime m
+  ) =>
+  m a ->
+  m TimeSpec
+withTiming_ = checkpointCallStack . fmap fst . withTiming
 
 -- | Formats the 'ZonedTime' to @YYYY-MM-DD HH:MM:SS Z@.
 --
@@ -97,7 +112,8 @@ formatZonedTime = Format.formatTime Format.defaultTimeLocale zonedTimeFormat
 formatLocalTime :: LocalTime -> String
 formatLocalTime = Format.formatTime Format.defaultTimeLocale localTimeFormat
 
--- | Parses the 'LocalTime' from @YYYY-MM-DD HH:MM:SS@.
+-- | Parses the 'LocalTime' from @YYYY-MM-DD HH:MM:SS@. If the 'MonadFail'
+-- instance throws an 'Exception' consider 'parseLocalTimeCS'.
 --
 -- @since 0.1
 parseLocalTime :: MonadFail f => String -> f LocalTime
@@ -107,11 +123,46 @@ parseLocalTime =
     Format.defaultTimeLocale
     localTimeFormat
 
--- | Parses the 'ZonedTime' from @YYYY-MM-DD HH:MM:SS Z@.
+-- | 'parseLocalTime' that includes 'CallStack' information in thrown
+-- exceptions.
+--
+-- @since 0.1
+parseLocalTimeCS ::
+  ( HasCallStack,
+    MonadCallStack f,
+    MonadFail f
+  ) =>
+  String ->
+  f LocalTime
+parseLocalTimeCS =
+  Format.parseTimeM
+    True
+    Format.defaultTimeLocale
+    localTimeFormat
+
+-- | Parses the 'ZonedTime' from @YYYY-MM-DD HH:MM:SS Z@. If the 'MonadFail'
+-- instance throws an 'Exception' consider 'parseZonedTimeCS'.
 --
 -- @since 0.1
 parseZonedTime :: MonadFail f => String -> f ZonedTime
 parseZonedTime =
+  Format.parseTimeM
+    True
+    Format.defaultTimeLocale
+    localTimeFormat
+
+-- | 'parseZonedTime' that includes 'CallStack' information in thrown
+-- exceptions.
+--
+-- @since 0.1
+parseZonedTimeCS ::
+  ( HasCallStack,
+    MonadCallStack f,
+    MonadFail f
+  ) =>
+  String ->
+  f ZonedTime
+parseZonedTimeCS =
   Format.parseTimeM
     True
     Format.defaultTimeLocale

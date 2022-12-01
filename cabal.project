@@ -1,3 +1,7 @@
 packages:
+  ./monad-callstack
+  ./monad-fs-reader
   ./monad-logger-namespace
+  ./monad-terminal
+  ./monad-thread
   ./monad-time
