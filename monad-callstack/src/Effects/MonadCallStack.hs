@@ -7,18 +7,28 @@ module Effects.MonadCallStack
   ( -- * Class
     MonadCallStack (..),
 
+    -- * Utils
+    prettyAnnotated,
+
     -- * Reexports
-    Annotated.throw,
-    Annotated.try,
-    Annotated.catch,
+    Ann.throw,
+    Ann.try,
+    Ann.catch,
   )
 where
 
-import Control.Exception.Annotated.UnliftIO (Exception)
-import Control.Exception.Annotated.UnliftIO qualified as Annotated
+import Control.Exception.Annotated.UnliftIO
+  ( AnnotatedException (AnnotatedException),
+    Annotation (Annotation),
+    Exception (displayException, fromException, toException),
+    SomeException,
+  )
+import Control.Exception.Annotated.UnliftIO qualified as Ann
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (ReaderT), ask)
-import GHC.Stack (CallStack, HasCallStack)
+import Data.Foldable (Foldable (foldMap'))
+import Data.Typeable (cast)
+import GHC.Stack (CallStack, HasCallStack, prettyCallStack)
 
 -- | Typeclass for 'CallStack' effects. The 'IO' instance uses the machinery
 -- from @annotated-exception@. Note that this means the try/catch/etc.
@@ -45,11 +55,30 @@ class Monad m => MonadCallStack m where
 -- | @since 0.1
 instance MonadCallStack IO where
   getCallStack = pure ?callStack
-  throwWithCallStack = Annotated.throwWithCallStack
-  checkpointCallStack = Annotated.checkpointCallStack
+  throwWithCallStack = Ann.throwWithCallStack
+  checkpointCallStack = Ann.checkpointCallStack
 
 -- | @since 0.1
 instance MonadCallStack m => MonadCallStack (ReaderT e m) where
   getCallStack = lift getCallStack
   throwWithCallStack = lift . throwWithCallStack
   checkpointCallStack (ReaderT r) = ask >>= lift . checkpointCallStack . r
+
+-- | Attempts to cast the exception to an 'AnnotatedException'. If successful,
+-- adds the annotations to the string. Falls back to 'displayException'.
+--
+-- @since 0.1
+prettyAnnotated :: forall e. Exception e => e -> String
+prettyAnnotated ex = case fromException @(AnnotatedException SomeException)
+  (toException ex) of
+  Nothing -> displayException ex
+  Just (AnnotatedException anns anEx) ->
+    mconcat
+      [ displayException anEx,
+        foldMap' (\a -> "\n" <> prettyAnn a) anns
+      ]
+  where
+    prettyAnn :: Annotation -> String
+    prettyAnn (Annotation x) = case cast x of
+      Just cs -> prettyCallStack cs
+      Nothing -> show x

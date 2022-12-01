@@ -31,6 +31,7 @@ common common
     NumericUnderscores
     OverloadedLabels
     OverloadedStrings
+    ScopedTypeVariables
     TypeApplications
     TypeFamilies
     TypeOperators
