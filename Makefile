@@ -8,7 +8,7 @@ ARGS = ""
 
 build:
 	if [ -z "$(ARGS)" ]; then \
-		cabal build; \
+		cabal build all; \
 	else \
 		cabal build $(ARGS); \
 	fi
@@ -17,18 +17,10 @@ clean:
 	cabal clean
 
 repl:
-	if [ -z "$(ARGS)" ]; then \
-		cabal repl monad-effects; \
-	else \
-		cabal repl $(ARGS); \
-	fi
+	cabal repl $(ARGS)
 
 watch:
-	if [ -z "$(ARGS)" ]; then \
-		ghcid --command "cabal repl monad-effects"; \
-	else \
-		ghcid --command "cabal repl $(ARGS)"; \
-	fi
+	ghcid --command "cabal repl $(ARGS)"
 
 # ci
 

@@ -33,6 +33,7 @@ common common
     OverloadedStrings
     TypeApplications
     TypeFamilies
+    TypeOperators
 
 library
   import:           common

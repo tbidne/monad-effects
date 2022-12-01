@@ -143,7 +143,6 @@ parseLocalTimeCS =
       Format.defaultTimeLocale
       localTimeFormat
 
-
 -- | Parses the 'ZonedTime' from @YYYY-MM-DD HH:MM:SS Z@. If the 'MonadFail'
 -- instance throws an 'Exception' consider 'parseZonedTimeCS'.
 --
@@ -169,9 +168,9 @@ parseZonedTimeCS ::
 parseZonedTimeCS =
   checkpointCallStack
     . Format.parseTimeM
-        True
-        Format.defaultTimeLocale
-        localTimeFormat
+      True
+      Format.defaultTimeLocale
+      localTimeFormat
 
 localTimeFormat :: String
 localTimeFormat = "%Y-%m-%d %H:%M:%S"
