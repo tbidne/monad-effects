@@ -1,5 +1,5 @@
 {
-  description = "A Template for Haskell Packages";
+  description = "A Collection of Monadic Effects";
   inputs.flake-compat = {
     url = "github:edolstra/flake-compat";
     flake = false;
