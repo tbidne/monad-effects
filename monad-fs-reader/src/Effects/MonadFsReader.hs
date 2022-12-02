@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 -- | Provides the 'MonadFsReader' typeclass.
 --
 -- @since 0.1
@@ -12,6 +14,7 @@ module Effects.MonadFsReader
     decodeUtf8,
     decodeUtf8Lenient,
     decodeUtf8M,
+    encodeUtf8,
   )
 where
 
@@ -24,12 +27,32 @@ import Data.Text (Text)
 import Data.Text.Encoding qualified as TEnc
 import Data.Text.Encoding.Error (UnicodeException)
 import Data.Text.Encoding.Error qualified as TEncError
-import Effects.MonadCallStack (MonadCallStack (throwWithCallStack), checkpointCallStack)
+import Effects.MonadCallStack (MonadCallStack (throwWithCallStack),
+  checkpointCallStack)
 import GHC.Natural (Natural)
 import GHC.Stack (HasCallStack)
 import System.Directory (XdgDirectory (XdgConfig))
+#if MIN_VERSION_directory(1,3,8)
+import System.Directory.OsPath (OsPath)
+import System.Directory.OsPath qualified as Dir
+#else
 import System.Directory qualified as Dir
+#endif
 import Prelude hiding (readFile)
+
+#if MIN_VERSION_directory(1,3,8)
+-- | For @directory >= 1.3.8@, 'Path' = 'OsPath'. Below that it is a
+-- 'FilePath'.
+--
+-- @since 0.1
+type Path = OsPath
+#else
+-- | For @directory >= 1.3.8@, 'Path' = 'OsPath'. Below that it is a
+-- 'FilePath'.
+--
+-- @since 0.1
+type Path = FilePath
+#endif
 
 -- | Represents file-system reader effects.
 --
@@ -38,47 +61,47 @@ class Monad m => MonadFsReader m where
   -- | Retrieves the file size in bytes.
   --
   -- @since 0.1
-  getFileSize :: HasCallStack => FilePath -> m Natural
+  getFileSize :: HasCallStack => Path -> m Natural
 
   -- | Returns the home directory.
   --
   -- @since 0.1
-  getHomeDirectory :: HasCallStack => m FilePath
+  getHomeDirectory :: HasCallStack => m Path
 
   -- | Returns the Xdg config dir.
   --
   -- @since 0.1
-  getXdgConfig :: HasCallStack => FilePath -> m FilePath
+  getXdgConfig :: HasCallStack => Path -> m Path
 
   -- | Reads a file.
   --
   -- @since 0.1
-  readFile :: HasCallStack => FilePath -> m ByteString
+  readFile :: HasCallStack => Path -> m ByteString
 
   -- | Tests a file's existence.
   --
   -- @since 0.1
-  doesFileExist :: HasCallStack => FilePath -> m Bool
+  doesFileExist :: HasCallStack => Path -> m Bool
 
   -- | Tests a directory's existence.
   --
   -- @since 0.1
-  doesDirectoryExist :: HasCallStack => FilePath -> m Bool
+  doesDirectoryExist :: HasCallStack => Path -> m Bool
 
   -- | Tests a path's existence.
   --
   -- @since 0.1
-  doesPathExist :: HasCallStack => FilePath -> m Bool
+  doesPathExist :: HasCallStack => Path -> m Bool
 
   -- | Canonicalize a path.
   --
   -- @since 0.1
-  canonicalizePath :: HasCallStack => FilePath -> m FilePath
+  canonicalizePath :: HasCallStack => Path -> m Path
 
   -- | Lists a directory.
   --
   -- @since 0.1
-  listDirectory :: HasCallStack => FilePath -> m [FilePath]
+  listDirectory :: HasCallStack => Path -> m [Path]
 
 -- | @since 0.1
 instance MonadFsReader IO where
@@ -110,6 +133,12 @@ instance MonadFsReader m => MonadFsReader (ReaderT e m) where
 decodeUtf8 :: ByteString -> Either UnicodeException Text
 decodeUtf8 = TEnc.decodeUtf8'
 
+-- | Encodes a 'Text' to 'ByteString'.
+--
+-- @since 0.1
+encodeUtf8 :: Text -> ByteString
+encodeUtf8 = TEnc.encodeUtf8
+
 -- | Leniently decodes a 'ByteString' to UTF-8.
 --
 -- @since 0.1
@@ -138,7 +167,7 @@ readFileUtf8 ::
     MonadCallStack m,
     MonadFsReader m
   ) =>
-  FilePath ->
+  Path ->
   m (Either UnicodeException Text)
 readFileUtf8 = fmap decodeUtf8 . readFile
 
@@ -150,7 +179,7 @@ readFileUtf8Lenient ::
     MonadCallStack m,
     MonadFsReader m
   ) =>
-  FilePath ->
+  Path ->
   m Text
 readFileUtf8Lenient = fmap decodeUtf8Lenient . readFile
 
@@ -162,7 +191,7 @@ readFileUtf8M ::
     MonadCallStack m,
     MonadFsReader m
   ) =>
-  FilePath ->
+  Path ->
   m Text
 readFileUtf8M = readFile >=> decodeUtf8M
 

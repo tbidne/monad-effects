@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 -- | Provides the 'MonadFsWriter' typeclass.
 --
 -- @since 0.1
@@ -12,10 +14,29 @@ import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Effects.MonadCallStack (checkpointCallStack)
 import GHC.Stack (HasCallStack)
+#if MIN_VERSION_directory(1,3,8)
+import System.Directory.OsPath (OsPath)
+import System.Directory.OsPath qualified as Dir
+#else
 import System.Directory qualified as Dir
+#endif
 import System.IO (Handle, IOMode)
 import System.IO qualified as IO
 import Prelude hiding (appendFile, writeFile)
+
+#if MIN_VERSION_directory(1,3,8)
+-- | For @directory >= 1.3.8@, 'Path' = 'OsPath'. Below that it is a
+-- 'FilePath'.
+--
+-- @since 0.1
+type Path = OsPath
+#else
+-- | For @directory >= 1.3.8@, 'Path' = 'OsPath'. Below that it is a
+-- 'FilePath'.
+--
+-- @since 0.1
+type Path = FilePath
+#endif
 
 -- | Represents file-system writer effects.
 --
@@ -24,17 +45,17 @@ class Monad m => MonadFsWriter m where
   -- | Writes to a file.
   --
   -- @since 0.1
-  writeFile :: HasCallStack => FilePath -> ByteString -> m ()
+  writeFile :: HasCallStack => Path -> ByteString -> m ()
 
   -- | Appends to a file.
   --
   -- @since 0.1
-  appendFile :: HasCallStack => FilePath -> ByteString -> m ()
+  appendFile :: HasCallStack => Path -> ByteString -> m ()
 
   -- | Opens a file.
   --
   -- @since 0.1
-  openFile :: HasCallStack => FilePath -> IOMode -> m Handle
+  openFile :: HasCallStack => Path -> IOMode -> m Handle
 
   -- | Writes to the handle.
   --
@@ -54,32 +75,32 @@ class Monad m => MonadFsWriter m where
   -- | Renames a file.
   --
   -- @since 0.1
-  renameFile :: HasCallStack => FilePath -> FilePath -> m ()
+  renameFile :: HasCallStack => Path -> Path -> m ()
 
   -- | Removes a file.
   --
   -- @since 0.1
-  removeFile :: HasCallStack => FilePath -> m ()
+  removeFile :: HasCallStack => Path -> m ()
 
   -- | Renames a directory.
   --
   -- @since 0.1
-  renameDirectory :: HasCallStack => FilePath -> FilePath -> m ()
+  renameDirectory :: HasCallStack => Path -> Path -> m ()
 
   -- | Removes a path.
   --
   -- @since 0.1
-  removePathForcibly :: HasCallStack => FilePath -> m ()
+  removePathForcibly :: HasCallStack => Path -> m ()
 
   -- | Removes a directory.
   --
   -- @since 0.1
-  removeDirectoryRecursive :: HasCallStack => FilePath -> m ()
+  removeDirectoryRecursive :: HasCallStack => Path -> m ()
 
   -- | Creates a directory.
   --
   -- @since 0.1
-  createDirectoryIfMissing :: HasCallStack => Bool -> FilePath -> m ()
+  createDirectoryIfMissing :: HasCallStack => Bool -> Path -> m ()
 
 -- | @since 0.1
 instance MonadFsWriter IO where
