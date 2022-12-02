@@ -6,6 +6,12 @@ module Effects.MonadTerminal
     MonadTerminal (..),
 
     -- * Functions
+
+    -- ** Text
+    putText,
+    putTextLn,
+
+    -- ** Window
     getTerminalWidth,
     getTerminalHeight,
 
@@ -28,7 +34,7 @@ import GHC.Natural (Natural)
 import GHC.Stack (HasCallStack)
 import System.Console.Terminal.Size (Window (..), size)
 import System.IO qualified as IO
-import Prelude hiding (getChar)
+import Prelude hiding (getChar, putStr, putStrLn)
 
 -- | @since 0.1
 data TermSizeException = MkTermSizeException
@@ -50,13 +56,13 @@ class Monad m => MonadTerminal m where
   -- | Simple print function.
   --
   -- @since 0.1
-  putText :: HasCallStack => Text -> m ()
+  putStr :: HasCallStack => String -> m ()
 
   -- | Simple print function with newline.
   --
   -- @since 0.1
-  putTextLn :: HasCallStack => Text -> m ()
-  putTextLn = putText . (<> "\n")
+  putStrLn :: HasCallStack => String -> m ()
+  putStrLn = putStr . (<> "\n")
 
   -- | Retrieves a 'Char'.
   --
@@ -70,8 +76,8 @@ class Monad m => MonadTerminal m where
 
 -- | @since 0.1
 instance MonadTerminal IO where
-  putText = checkpointCallStack . putStr . T.unpack
-  putTextLn = checkpointCallStack . putStrLn . T.unpack
+  putStr = checkpointCallStack . IO.putStr
+  putStrLn = checkpointCallStack . IO.putStrLn
   getChar = IO.getChar
   getTerminalSize =
     size >>= \case
@@ -80,10 +86,22 @@ instance MonadTerminal IO where
 
 -- | @since 0.1
 instance MonadTerminal m => MonadTerminal (ReaderT e m) where
-  putText = lift . putText
-  putTextLn = lift . putTextLn
+  putStr = lift . putStr
+  putStrLn = lift . putStrLn
   getChar = lift getChar
   getTerminalSize = lift getTerminalSize
+
+-- | 'Text' version of 'putStr'.
+--
+-- @since 0.1
+putText :: MonadTerminal m => Text -> m ()
+putText = putStr . T.unpack
+
+-- | 'Text' version of 'putStrLn'.
+--
+-- @since 0.1
+putTextLn :: MonadTerminal m => Text -> m ()
+putTextLn = putStrLn . T.unpack
 
 -- | Retrieves the terminal width.
 --
