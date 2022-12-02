@@ -26,8 +26,7 @@ import Control.Monad.Trans.Reader (ReaderT)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Effects.MonadCallStack
-  ( MonadCallStack,
-    checkpointCallStack,
+  ( checkpointCallStack,
     throwWithCallStack,
   )
 import GHC.Natural (Natural)
@@ -78,7 +77,7 @@ class Monad m => MonadTerminal m where
 instance MonadTerminal IO where
   putStr = checkpointCallStack . IO.putStr
   putStrLn = checkpointCallStack . IO.putStrLn
-  getChar = IO.getChar
+  getChar = checkpointCallStack IO.getChar
   getTerminalSize =
     size >>= \case
       Just h -> pure h
@@ -106,11 +105,11 @@ putTextLn = putStrLn . T.unpack
 -- | Retrieves the terminal width.
 --
 -- @since 0.1
-getTerminalWidth :: (HasCallStack, MonadCallStack m, MonadTerminal m) => m Natural
-getTerminalWidth = checkpointCallStack (width <$> getTerminalSize)
+getTerminalWidth :: (HasCallStack, MonadTerminal m) => m Natural
+getTerminalWidth = width <$> getTerminalSize
 
 -- | Retrieves the terminal height.
 --
 -- @since 0.1
-getTerminalHeight :: (HasCallStack, MonadCallStack m, MonadTerminal m) => m Natural
-getTerminalHeight = checkpointCallStack (height <$> getTerminalSize)
+getTerminalHeight :: (HasCallStack, MonadTerminal m) => m Natural
+getTerminalHeight = height <$> getTerminalSize

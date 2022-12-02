@@ -48,7 +48,6 @@ import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TEnc
 import Data.Text.Encoding.Error qualified as TEncError
-import Effects.MonadCallStack (MonadCallStack, checkpointCallStack)
 import Effects.MonadTime (MonadTime (getSystemTime, getSystemZonedTime))
 import Effects.MonadTime qualified as MonadTime
 import GHC.Generics (Generic)
@@ -116,15 +115,12 @@ class MonadLogger m => MonadLoggerNamespace m where
 --
 -- @since 0.1
 addNamespace ::
-  ( HasCallStack,
-    MonadCallStack m,
-    MonadLoggerNamespace m
+  ( MonadLoggerNamespace m
   ) =>
   Text ->
   m a ->
   m a
-addNamespace txt =
-  checkpointCallStack . localNamespace (over' #unNamespace (|> txt))
+addNamespace txt = localNamespace (over' #unNamespace (|> txt))
 
 -- | Determines how we log location data.
 --
@@ -205,7 +201,6 @@ defaultLogFormatter loc =
 -- @since 0.1
 formatLog ::
   ( HasCallStack,
-    MonadCallStack m,
     MonadLoggerNamespace m,
     MonadTime m,
     ToLogStr msg
@@ -214,7 +209,7 @@ formatLog ::
   LogLevel ->
   msg ->
   m LogStr
-formatLog formatter lvl msg = checkpointCallStack $ do
+formatLog formatter lvl msg = do
   timestampTxt <- timeFn
   namespace <- getNamespace
   let locTxt = case formatter ^. #locStrategy of

@@ -15,9 +15,7 @@ module Effects.MonadTime
 
     -- * Parsing
     parseLocalTime,
-    parseLocalTimeCS,
     parseZonedTime,
-    parseZonedTimeCS,
 
     -- * Reexports
     LocalTime (..),
@@ -34,7 +32,7 @@ import Data.Time.LocalTime
     ZonedTime (ZonedTime, zonedTimeToLocalTime, zonedTimeZone),
   )
 import Data.Time.LocalTime qualified as Local
-import Effects.MonadCallStack (MonadCallStack, checkpointCallStack)
+import Effects.MonadCallStack (checkpointCallStack)
 import GHC.Stack (HasCallStack)
 import System.Clock (Clock (Monotonic), TimeSpec (..))
 import System.Clock qualified as C
@@ -78,12 +76,11 @@ instance MonadTime m => MonadTime (ReaderT e m) where
 -- @since 0.1
 withTiming ::
   ( HasCallStack,
-    MonadCallStack m,
     MonadTime m
   ) =>
   m a ->
   m (TimeSpec, a)
-withTiming m = checkpointCallStack $ do
+withTiming m = do
   start <- getTimeSpec
   res <- m
   end <- getTimeSpec
@@ -95,12 +92,11 @@ withTiming m = checkpointCallStack $ do
 -- @since 0.1
 withTiming_ ::
   ( HasCallStack,
-    MonadCallStack m,
     MonadTime m
   ) =>
   m a ->
   m TimeSpec
-withTiming_ = checkpointCallStack . fmap fst . withTiming
+withTiming_ = fmap fst . withTiming
 
 -- | Formats the 'ZonedTime' to @YYYY-MM-DD HH:MM:SS Z@.
 --
@@ -125,24 +121,6 @@ parseLocalTime =
     Format.defaultTimeLocale
     localTimeFormat
 
--- | 'parseLocalTime' that includes 'CallStack' information in thrown
--- exceptions.
---
--- @since 0.1
-parseLocalTimeCS ::
-  ( HasCallStack,
-    MonadCallStack m,
-    MonadFail m
-  ) =>
-  String ->
-  m LocalTime
-parseLocalTimeCS =
-  checkpointCallStack
-    . Format.parseTimeM
-      True
-      Format.defaultTimeLocale
-      localTimeFormat
-
 -- | Parses the 'ZonedTime' from @YYYY-MM-DD HH:MM:SS Z@. If the 'MonadFail'
 -- instance throws an 'Exception' consider 'parseZonedTimeCS'.
 --
@@ -153,24 +131,6 @@ parseZonedTime =
     True
     Format.defaultTimeLocale
     localTimeFormat
-
--- | 'parseZonedTime' that includes 'CallStack' information in thrown
--- exceptions.
---
--- @since 0.1
-parseZonedTimeCS ::
-  ( HasCallStack,
-    MonadCallStack m,
-    MonadFail m
-  ) =>
-  String ->
-  m ZonedTime
-parseZonedTimeCS =
-  checkpointCallStack
-    . Format.parseTimeM
-      True
-      Format.defaultTimeLocale
-      localTimeFormat
 
 localTimeFormat :: String
 localTimeFormat = "%Y-%m-%d %H:%M:%S"
