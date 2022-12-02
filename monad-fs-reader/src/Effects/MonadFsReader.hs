@@ -26,12 +26,12 @@ class Monad m => MonadFsReader m where
   -- @since 0.1
   getFileSize :: HasCallStack => FilePath -> m Natural
 
-  -- | Retrieves the file size in bytes.
+  -- | Returns the home directory.
   --
   -- @since 0.1
-  -- getPathSize :: HasCallStack => FilePath -> m
+  getHomeDirectory :: HasCallStack => m FilePath
 
-  -- | Returns the default directory e.g. Xdg config dir.
+  -- | Returns the Xdg config dir.
   --
   -- @since 0.1
   getXdgConfig :: HasCallStack => FilePath -> m FilePath
@@ -69,9 +69,7 @@ class Monad m => MonadFsReader m where
 -- | @since 0.1
 instance MonadFsReader IO where
   getFileSize = checkpointCallStack . fmap fromIntegral . Dir.getFileSize
-
-  -- getPathSize f = getPathSize f
-
+  getHomeDirectory = checkpointCallStack Dir.getHomeDirectory
   getXdgConfig = checkpointCallStack . Dir.getXdgDirectory XdgConfig
   readFile = checkpointCallStack . BS.readFile
   doesFileExist = checkpointCallStack . Dir.doesFileExist
@@ -83,6 +81,7 @@ instance MonadFsReader IO where
 -- | @since 0.1
 instance MonadFsReader m => MonadFsReader (ReaderT e m) where
   getFileSize = lift . getFileSize
+  getHomeDirectory = lift getHomeDirectory
   getXdgConfig = lift . getXdgConfig
   readFile = lift . readFile
   doesFileExist = lift . doesFileExist
