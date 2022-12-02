@@ -30,7 +30,7 @@ import Numeric.Natural (Natural)
 --
 -- @since 0.1
 class Monad m => MonadSTM m where
-  -- | Returns the local system time.
+  -- | Lifts an 'STM'.
   --
   -- @since 0.1
   atomically :: HasCallStack => STM a -> m a
@@ -81,7 +81,7 @@ instance MonadTVar m => MonadTVar (ReaderT e m) where
   writeTVarM r = lift . writeTVarM r
   modifyTVarM' r = lift . modifyTVarM' r
 
--- | 'TVar' effect.
+-- | 'TBQueue' effect.
 --
 -- @since 0.1
 class Monad m => MonadTBQueue m where
@@ -105,7 +105,7 @@ class Monad m => MonadTBQueue m where
   -- @since 0.1
   writeTBQueueM :: TBQueue a -> a -> m ()
 
-  -- | Strictly Modifies a 'TBQueue' in @m@.
+  -- | Strictly modifies a 'TBQueue' in @m@.
   --
   -- @since 0.1
   flushTBQueueM :: TBQueue a -> m [a]
