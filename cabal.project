@@ -1,7 +1,6 @@
 packages:
   ./monad-callstack
-  ./monad-fs-reader
-  ./monad-fs-writer
+  ./monad-fs
   ./monad-ioref
   ./monad-logger-namespace
   ./monad-stm
@@ -21,15 +20,7 @@ package monad-callstack
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
     -Wprepositive-qualified-module
 
-package monad-fs-reader
-  ghc-options:
-    -Wall -Wcompat -Werror -Widentities
-    -Wincomplete-record-updates -Wincomplete-uni-patterns
-    -Wmissing-home-modules -Wmissing-export-lists -Wpartial-fields
-    -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
-    -Wprepositive-qualified-module
-
-package monad-fs-writer
+package monad-fs
   ghc-options:
     -Wall -Wcompat -Werror -Widentities
     -Wincomplete-record-updates -Wincomplete-uni-patterns

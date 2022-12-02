@@ -1,8 +1,7 @@
 resolver: lts-20.2
 packages:
 - monad-callstack
-- monad-fs-reader
-- monad-fs-writer
+- monad-fs
 - monad-ioref
 - monad-logger-namespace
 - monad-stm

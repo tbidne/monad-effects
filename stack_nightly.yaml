@@ -1,8 +1,7 @@
 resolver: nightly-2022-11-30
 packages:
 - monad-callstack
-- monad-fs-reader
-- monad-fs-writer
+- monad-fs
 - monad-logger-namespace
 - monad-terminal
 - monad-thread

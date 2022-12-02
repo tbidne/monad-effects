@@ -19,8 +19,7 @@
 * [Introduction](#introduction)
 * [Effects](#effects)
   * [MonadCallStack](#monadcallstack)
-  * [MonadFsReader](#monadfsreader)
-  * [MonadFsWriter](#monadfswriter)
+  * [MonadFs](#monadfs)
   * [MonadIORef](#monadioref)
   * [MonadLoggerNamespace](#monadloggernamespace)
   * [MonadSTM](#monadstm)
@@ -38,13 +37,9 @@ This repository provides typeclasses representing common "effects". The intentio
 
 The `MonadCallStack` effect integrates `Exception` with `CallStack`.
 
-## [MonadFsReader](./monad-fs-reader/)
+## [MonadFs](./monad-fs/)
 
-The `MonadFsReader` effect emulates a file-system reader.
-
-## [MonadFsWriter](./monad-fs-writer/)
-
-The `MonadFsWriter` effect emulates a file-system writer.
+FileSystem effects.
 
 ## [MonadIORef](./monad-ioref/)
 

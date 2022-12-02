@@ -1,4 +1,4 @@
-# Revision history for monad-fs-reader
+# Revision history for monad-fs
 
 ## 0.1 -- YYYY-mm-dd
 

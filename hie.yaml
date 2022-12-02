@@ -2,10 +2,8 @@ cradle:
   cabal:
     - path: "./monad-callstack/src"
       component: "lib:monad-callstack"
-    - path: "./monad-fs-reader/src"
-      component: "lib:monad-fs-reader"
-    - path: "./monad-fs-writer/src"
-      component: "lib:monad-fs-writer"
+    - path: "./monad-fs/src"
+      component: "lib:monad-fs"
     - path: "./monad-ioref/src"
       component: "lib:monad-ioref"
     - path: "./monad-logger-namespace/src"

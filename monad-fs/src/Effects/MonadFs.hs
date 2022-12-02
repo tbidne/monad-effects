@@ -1,14 +1,13 @@
 {-# LANGUAGE CPP #-}
 
--- | Provides the 'MonadFsReader' typeclass.
+-- | Provides the FileSystem typeclass.
 --
 -- @since 0.1
-module Effects.MonadFsReader
-  ( -- * Class
+module Effects.MonadFs
+  ( -- * FileSystem Reader
     MonadFsReader (..),
-    Path,
 
-    -- * UTF-8 Utils
+    -- ** UTF-8 Utils
     readFileUtf8,
     readFileUtf8Lenient,
     readFileUtf8M,
@@ -16,10 +15,26 @@ module Effects.MonadFsReader
     decodeUtf8Lenient,
     decodeUtf8M,
 
-    -- * Reexports
+    -- ** Reexports
     ByteString,
     Text,
     UnicodeException,
+
+    -- * FileSystem Writer
+    MonadFsWriter (..),
+
+    -- ** UTF-8 Utils
+    writeFileUtf8,
+    appendFileUtf8,
+    hPutUtf8,
+    encodeUtf8,
+
+    -- ** Reexports
+    IOMode (..),
+    Handle,
+
+    -- * Misc
+    Path,
   )
 where
 
@@ -45,7 +60,9 @@ import System.Directory.OsPath qualified as Dir
 #else
 import System.Directory qualified as Dir
 #endif
-import Prelude hiding (readFile)
+import System.IO (Handle, IOMode (..))
+import System.IO qualified as IO
+import Prelude hiding (appendFile, readFile, writeFile)
 
 #if MIN_VERSION_directory(1,3,8)
 -- | For @directory >= 1.3.8@, 'Path' = 'OsPath'. Below that it is a
@@ -134,6 +151,100 @@ instance MonadFsReader m => MonadFsReader (ReaderT e m) where
   canonicalizePath = lift . canonicalizePath
   listDirectory = lift . listDirectory
 
+-- | Represents file-system writer effects.
+--
+-- @since 0.1
+class Monad m => MonadFsWriter m where
+  -- | Writes to a file.
+  --
+  -- @since 0.1
+  writeFile :: HasCallStack => Path -> ByteString -> m ()
+
+  -- | Appends to a file.
+  --
+  -- @since 0.1
+  appendFile :: HasCallStack => Path -> ByteString -> m ()
+
+  -- | Opens a file.
+  --
+  -- @since 0.1
+  openFile :: HasCallStack => Path -> IOMode -> m Handle
+
+  -- | Writes to the handle.
+  --
+  -- @since 0.1
+  hPut :: HasCallStack => Handle -> ByteString -> m ()
+
+  -- | Closes a handle.
+  --
+  -- @since 0.1
+  hClose :: HasCallStack => Handle -> m ()
+
+  -- | Flushes a handle.
+  --
+  -- @since 0.1
+  hFlush :: HasCallStack => Handle -> m ()
+
+  -- | Renames a file.
+  --
+  -- @since 0.1
+  renameFile :: HasCallStack => Path -> Path -> m ()
+
+  -- | Removes a file.
+  --
+  -- @since 0.1
+  removeFile :: HasCallStack => Path -> m ()
+
+  -- | Renames a directory.
+  --
+  -- @since 0.1
+  renameDirectory :: HasCallStack => Path -> Path -> m ()
+
+  -- | Removes a path.
+  --
+  -- @since 0.1
+  removePathForcibly :: HasCallStack => Path -> m ()
+
+  -- | Removes a directory.
+  --
+  -- @since 0.1
+  removeDirectoryRecursive :: HasCallStack => Path -> m ()
+
+  -- | Creates a directory.
+  --
+  -- @since 0.1
+  createDirectoryIfMissing :: HasCallStack => Bool -> Path -> m ()
+
+-- | @since 0.1
+instance MonadFsWriter IO where
+  writeFile f = checkpointCallStack . BS.writeFile f
+  appendFile f = checkpointCallStack . BS.appendFile f
+  openFile f = checkpointCallStack . IO.openFile f
+  hPut h = checkpointCallStack . BS.hPut h
+  hClose = checkpointCallStack . IO.hClose
+  hFlush = checkpointCallStack . IO.hFlush
+  renameFile f = checkpointCallStack . Dir.renameFile f
+  removeFile = checkpointCallStack . Dir.removeFile
+  renameDirectory f = checkpointCallStack . Dir.renameDirectory f
+  removePathForcibly = checkpointCallStack . Dir.removePathForcibly
+  removeDirectoryRecursive = checkpointCallStack . Dir.removeDirectoryRecursive
+  createDirectoryIfMissing b = checkpointCallStack . Dir.createDirectoryIfMissing b
+
+-- | @since 0.1
+instance MonadFsWriter m => MonadFsWriter (ReaderT env m) where
+  writeFile f = lift . writeFile f
+  appendFile f = lift . appendFile f
+  openFile f = lift . openFile f
+  hPut f = lift . hPut f
+  hClose = lift . hClose
+  hFlush = lift . hFlush
+  renameFile f = lift . renameFile f
+  removeFile = lift . removeFile
+  renameDirectory f = lift . renameDirectory f
+  removePathForcibly = lift . removePathForcibly
+  removeDirectoryRecursive = lift . removeDirectoryRecursive
+  createDirectoryIfMissing b = lift . createDirectoryIfMissing b
+
 -- | Decodes a 'ByteString' to UTF-8.
 --
 -- @since 0.1
@@ -195,6 +306,30 @@ readFileUtf8M ::
   Path ->
   m Text
 readFileUtf8M = readFile >=> decodeUtf8M
+
+-- | Encodes a 'Text' to 'ByteString'.
+--
+-- @since 0.1
+encodeUtf8 :: Text -> ByteString
+encodeUtf8 = TEnc.encodeUtf8
+
+-- | Writes to a file.
+--
+-- @since 0.1
+writeFileUtf8 :: (HasCallStack, MonadFsWriter m) => Path -> Text -> m ()
+writeFileUtf8 f = writeFile f . encodeUtf8
+
+-- | Appends to a file.
+--
+-- @since 0.1
+appendFileUtf8 :: (HasCallStack, MonadFsWriter m) => Path -> Text -> m ()
+appendFileUtf8 f = appendFile f . encodeUtf8
+
+-- | Appends to a file.
+--
+-- @since 0.1
+hPutUtf8 :: (HasCallStack, MonadFsWriter m) => Handle -> Text -> m ()
+hPutUtf8 h = hPut h . encodeUtf8
 
 (>.>) :: (a -> b) -> (b -> c) -> a -> c
 (>.>) = flip (.)
