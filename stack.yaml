@@ -5,6 +5,7 @@ packages:
 - monad-fs-writer
 - monad-ioref
 - monad-logger-namespace
+- monad-stm
 - monad-terminal
 - monad-thread
 - monad-time

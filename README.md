@@ -23,6 +23,7 @@
   * [MonadFsWriter](#monadfswriter)
   * [MonadIORef](#monadioref)
   * [MonadLoggerNamespace](#monadloggernamespace)
+  * [MonadSTM](#monadstm)
   * [MonadThread](#monadthread)
   * [MonadTerminal](#monadterminal)
   * [MonadTime](#monadtime)
@@ -52,6 +53,10 @@ Effect for `IORef`.
 ## [MonadLoggerNamespace](./monad-logger-namespace/)
 
 The `MonadLoggerNamespace` effect builds on top of the popular `MonadLogger` effect by providing namespace functionality. Additionally, helpful formatters are provided.
+
+## [MonadSTM](./monad-stm/)
+
+Effects for `STM`.
 
 ## [MonadThread](./monad-thread/)
 
