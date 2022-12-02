@@ -56,6 +56,11 @@ class Monad m => MonadFsWriter m where
   -- @since 0.1
   renameFile :: HasCallStack => FilePath -> FilePath -> m ()
 
+  -- | Removes a file.
+  --
+  -- @since 0.1
+  removeFile :: HasCallStack => FilePath -> m ()
+
   -- | Renames a directory.
   --
   -- @since 0.1
@@ -85,6 +90,7 @@ instance MonadFsWriter IO where
   hClose = checkpointCallStack . IO.hClose
   hFlush = checkpointCallStack . IO.hFlush
   renameFile f = checkpointCallStack . Dir.renameFile f
+  removeFile = checkpointCallStack . Dir.removeFile
   renameDirectory f = checkpointCallStack . Dir.renameDirectory f
   removePathForcibly = checkpointCallStack . Dir.removePathForcibly
   removeDirectoryRecursive = checkpointCallStack . Dir.removeDirectoryRecursive
@@ -99,6 +105,7 @@ instance MonadFsWriter m => MonadFsWriter (ReaderT env m) where
   hClose = lift . hClose
   hFlush = lift . hFlush
   renameFile f = lift . renameFile f
+  removeFile = lift . removeFile
   renameDirectory f = lift . renameDirectory f
   removePathForcibly = lift . removePathForcibly
   removeDirectoryRecursive = lift . removeDirectoryRecursive
