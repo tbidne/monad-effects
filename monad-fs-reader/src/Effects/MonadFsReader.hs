@@ -6,6 +6,7 @@
 module Effects.MonadFsReader
   ( -- * Class
     MonadFsReader (..),
+    Path,
 
     -- * UTF-8 Utils
     readFileUtf8,
@@ -15,6 +16,11 @@ module Effects.MonadFsReader
     decodeUtf8Lenient,
     decodeUtf8M,
     encodeUtf8,
+
+    -- * Reexports
+    ByteString,
+    Text,
+    UnicodeException,
   )
 where
 
@@ -27,8 +33,10 @@ import Data.Text (Text)
 import Data.Text.Encoding qualified as TEnc
 import Data.Text.Encoding.Error (UnicodeException)
 import Data.Text.Encoding.Error qualified as TEncError
-import Effects.MonadCallStack (MonadCallStack (throwWithCallStack),
-  checkpointCallStack)
+import Effects.MonadCallStack
+  ( MonadCallStack (throwWithCallStack),
+    checkpointCallStack,
+  )
 import GHC.Natural (Natural)
 import GHC.Stack (HasCallStack)
 import System.Directory (XdgDirectory (XdgConfig))

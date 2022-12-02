@@ -28,6 +28,7 @@ module Effects.MonadLoggerNamespace
     -- * Reexports
     MonadLogger (..),
     LogStr,
+    Loc,
   )
 where
 

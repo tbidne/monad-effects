@@ -11,6 +11,7 @@ module Effects.MonadSTM
     STM,
     TVar,
     TBQueue,
+    Natural,
   )
 where
 

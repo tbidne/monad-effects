@@ -1,5 +1,3 @@
-{-# LANGUAGE ImplicitParams #-}
-
 -- | Provides an effect for handling exceptions with callstacks.
 --
 -- @since 0.1
@@ -11,6 +9,8 @@ module Effects.MonadCallStack
     prettyAnnotated,
 
     -- * Reexports
+    CallStack,
+    HasCallStack,
     Ann.throw,
     Ann.try,
     Ann.catch,
@@ -28,7 +28,7 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (ReaderT), ask)
 import Data.Foldable (Foldable (foldMap'))
 import Data.Typeable (cast)
-import GHC.Stack (CallStack, HasCallStack, prettyCallStack)
+import GHC.Stack (CallStack, HasCallStack, callStack, prettyCallStack)
 
 -- | Typeclass for 'CallStack' effects. The 'IO' instance uses the machinery
 -- from @annotated-exception@. Note that this means the try/catch/etc.
@@ -54,7 +54,7 @@ class Monad m => MonadCallStack m where
 
 -- | @since 0.1
 instance MonadCallStack IO where
-  getCallStack = pure ?callStack
+  getCallStack = pure callStack
   throwWithCallStack = Ann.throwWithCallStack
   checkpointCallStack = Ann.checkpointCallStack
 

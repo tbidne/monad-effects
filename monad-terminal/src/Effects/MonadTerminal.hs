@@ -4,6 +4,7 @@
 module Effects.MonadTerminal
   ( -- * Class
     MonadTerminal (..),
+    TermSizeException (..),
 
     -- * Functions
 
@@ -16,7 +17,9 @@ module Effects.MonadTerminal
     getTerminalHeight,
 
     -- * Reexports
+    Natural,
     Window (..),
+    Text,
   )
 where
 

@@ -2,8 +2,12 @@
 --
 -- @since 0.1
 module Effects.MonadThread
-  ( MonadThread (..),
+  ( -- * Class
+    MonadThread (..),
     sleep,
+
+    -- * Reexports
+    Natural,
   )
 where
 

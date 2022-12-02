@@ -4,7 +4,14 @@
 --
 -- @since 0.1
 module Effects.MonadFsWriter
-  ( MonadFsWriter (..),
+  ( -- * Class
+    MonadFsWriter (..),
+    Path,
+
+    -- * Reexports
+    ByteString,
+    IOMode (..),
+    Handle,
   )
 where
 
@@ -20,7 +27,7 @@ import System.Directory.OsPath qualified as Dir
 #else
 import System.Directory qualified as Dir
 #endif
-import System.IO (Handle, IOMode)
+import System.IO (Handle, IOMode (..))
 import System.IO qualified as IO
 import Prelude hiding (appendFile, writeFile)
 
