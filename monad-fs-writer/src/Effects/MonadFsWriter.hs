@@ -8,6 +8,12 @@ module Effects.MonadFsWriter
     MonadFsWriter (..),
     Path,
 
+    -- * UTF-8 Utils
+    writeFileUtf8,
+    appendFileUtf8,
+    hPutUtf8,
+    encodeUtf8,
+
     -- * Reexports
     ByteString,
     IOMode (..),
@@ -20,6 +26,8 @@ import Control.Monad.Trans.Reader (ReaderT)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Effects.MonadCallStack (checkpointCallStack)
+import Data.Text (Text)
+import Data.Text.Encoding qualified as TEnc
 import GHC.Stack (HasCallStack)
 #if MIN_VERSION_directory(1,3,8)
 import System.Directory.OsPath (OsPath)
@@ -138,3 +146,27 @@ instance MonadFsWriter m => MonadFsWriter (ReaderT env m) where
   removePathForcibly = lift . removePathForcibly
   removeDirectoryRecursive = lift . removeDirectoryRecursive
   createDirectoryIfMissing b = lift . createDirectoryIfMissing b
+
+-- | Encodes a 'Text' to 'ByteString'.
+--
+-- @since 0.1
+encodeUtf8 :: Text -> ByteString
+encodeUtf8 = TEnc.encodeUtf8
+
+-- | Writes to a file.
+--
+-- @since 0.1
+writeFileUtf8 :: (HasCallStack, MonadFsWriter m) => Path -> Text -> m ()
+writeFileUtf8 f = writeFile f . encodeUtf8
+
+-- | Appends to a file.
+--
+-- @since 0.1
+appendFileUtf8 :: (HasCallStack, MonadFsWriter m) => Path -> Text -> m ()
+appendFileUtf8 f = appendFile f . encodeUtf8
+
+-- | Appends to a file.
+--
+-- @since 0.1
+hPutUtf8 :: (HasCallStack, MonadFsWriter m) => Handle -> Text -> m ()
+hPutUtf8 h = hPut h . encodeUtf8

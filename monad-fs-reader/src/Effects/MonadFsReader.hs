@@ -15,7 +15,6 @@ module Effects.MonadFsReader
     decodeUtf8,
     decodeUtf8Lenient,
     decodeUtf8M,
-    encodeUtf8,
 
     -- * Reexports
     ByteString,
@@ -140,12 +139,6 @@ instance MonadFsReader m => MonadFsReader (ReaderT e m) where
 -- @since 0.1
 decodeUtf8 :: ByteString -> Either UnicodeException Text
 decodeUtf8 = TEnc.decodeUtf8'
-
--- | Encodes a 'Text' to 'ByteString'.
---
--- @since 0.1
-encodeUtf8 :: Text -> ByteString
-encodeUtf8 = TEnc.encodeUtf8
 
 -- | Leniently decodes a 'ByteString' to UTF-8.
 --
