@@ -4,6 +4,9 @@
 module Effects.MonadIORef
   ( -- * Class
     MonadIORef (..),
+
+    -- * Reexports
+    IORef,
   )
 where
 
