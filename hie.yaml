@@ -6,6 +6,8 @@ cradle:
       component: "lib:monad-fs-reader"
     - path: "./monad-fs-writer/src"
       component: "lib:monad-fs-writer"
+    - path: "./monad-ioref/src"
+      component: "lib:monad-ioref"
     - path: "./monad-logger-namespace/src"
       component: "lib:monad-logger-namespace"
     - path: "./monad-terminal/src"

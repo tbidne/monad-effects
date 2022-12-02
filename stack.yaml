@@ -3,6 +3,7 @@ packages:
 - monad-callstack
 - monad-fs-reader
 - monad-fs-writer
+- monad-ioref
 - monad-logger-namespace
 - monad-terminal
 - monad-thread

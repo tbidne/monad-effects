@@ -38,6 +38,7 @@
               monad-callstack = ./monad-callstack;
               monad-fs-reader = ./monad-fs-reader;
               monad-fs-writer = ./monad-fs-writer;
+              monad-ioref = ./monad-ioref;
               monad-logger-namespace = ./monad-logger-namespace;
               monad-terminal = ./monad-terminal;
               monad-thread = ./monad-thread;
@@ -47,6 +48,7 @@
             p.monad-callstack
             p.monad-fs-reader
             p.monad-fs-writer
+            p.monad-ioref
             p.monad-logger-namespace
             p.monad-terminal
             p.monad-thread

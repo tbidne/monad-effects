@@ -21,6 +21,7 @@
   * [MonadCallStack](#monadcallstack)
   * [MonadFsReader](#monadfsreader)
   * [MonadFsWriter](#monadfswriter)
+  * [MonadIORef](#monadioref)
   * [MonadLoggerNamespace](#monadloggernamespace)
   * [MonadThread](#monadthread)
   * [MonadTerminal](#monadterminal)
@@ -43,6 +44,10 @@ The `MonadFsReader` effect emulates a file-system reader.
 ## [MonadFsWriter](./monad-fs-writer/)
 
 The `MonadFsWriter` effect emulates a file-system writer.
+
+## [MonadIORef](./monad-ioref/)
+
+Effect for `IORef`.
 
 ## [MonadLoggerNamespace](./monad-logger-namespace/)
 
