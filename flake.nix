@@ -35,8 +35,7 @@
           hsOverlay =
             (pkgs.haskellPackages.extend (hlib.compose.packageSourceOverrides {
               monad-callstack = ./monad-callstack;
-              monad-fs-reader = ./monad-fs-reader;
-              monad-fs-writer = ./monad-fs-writer;
+              monad-fs = ./monad-fs;
               monad-ioref = ./monad-ioref;
               monad-logger-namespace = ./monad-logger-namespace;
               monad-stm = ./monad-stm;
@@ -46,8 +45,7 @@
             }));
           packages = p: [
             p.monad-callstack
-            p.monad-fs-reader
-            p.monad-fs-writer
+            p.monad-fs
             p.monad-ioref
             p.monad-logger-namespace
             p.monad-stm
