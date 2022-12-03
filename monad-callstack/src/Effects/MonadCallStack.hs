@@ -11,6 +11,8 @@ module Effects.MonadCallStack
     -- * Reexports
     CallStack,
     HasCallStack,
+    AnnotatedException (..),
+    Annotation (..),
     Ann.throw,
     Ann.try,
     Ann.catch,
@@ -18,8 +20,8 @@ module Effects.MonadCallStack
 where
 
 import Control.Exception.Annotated.UnliftIO
-  ( AnnotatedException (AnnotatedException),
-    Annotation (Annotation),
+  ( AnnotatedException (..),
+    Annotation (..),
     Exception (displayException, fromException, toException),
     SomeException,
   )
