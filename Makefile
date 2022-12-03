@@ -50,10 +50,10 @@ lintc:
 
 # generate docs for main package, copy to docs/
 haddock:
-	cabal haddock --haddock-hyperlink-source --haddock-quickjump ;\
+	cabal haddock all --haddock-hyperlink-source --haddock-quickjump ;\
 	mkdir -p docs/ ;\
 	find docs/ -type f | xargs -I % sh -c "rm -r %" ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.4/monad-effects-0.1/opt/doc/html/monad-effects/* docs/
+	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-effects-0.1/opt/doc/html/monad-effects/* docs/
 
 haddockc:
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- \

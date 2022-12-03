@@ -113,7 +113,8 @@ formatLocalTime :: LocalTime -> String
 formatLocalTime = Format.formatTime Format.defaultTimeLocale localTimeFormat
 
 -- | Parses the 'LocalTime' from @YYYY-MM-DD HH:MM:SS@. If the 'MonadFail'
--- instance throws an 'Exception' consider 'parseLocalTimeCallStack'.
+-- instance throws an 'Control.Exception.Exception' consider
+-- 'parseLocalTimeCallStack'.
 --
 -- @since 0.1
 parseLocalTime :: MonadFail f => String -> f LocalTime
@@ -137,7 +138,8 @@ parseLocalTimeCallStack ::
 parseLocalTimeCallStack = checkpointCallStack . parseLocalTime
 
 -- | Parses the 'ZonedTime' from @YYYY-MM-DD HH:MM:SS Z@. If the 'MonadFail'
--- instance throws an 'Exception' consider 'parseZonedTimeCallStack'.
+-- instance throws an 'Control.Exception.' consider
+-- 'parseZonedTimeCallStack'.
 --
 -- @since 0.1
 parseZonedTime :: MonadFail f => String -> f ZonedTime

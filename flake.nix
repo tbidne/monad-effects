@@ -23,7 +23,7 @@
             ghcid
             haskell-language-server
           ];
-          ghc-version = "ghc902";
+          ghc-version = "ghc925";
           hlib = pkgs.haskell.lib;
           compiler = pkgs.haskell.packages."${ghc-version}".override {
             overrides = final: prev: {
