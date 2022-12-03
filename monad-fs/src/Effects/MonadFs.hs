@@ -10,10 +10,10 @@ module Effects.MonadFs
     -- ** UTF-8 Utils
     readFileUtf8,
     readFileUtf8Lenient,
-    readFileUtf8M,
+    readFileUtf8ThrowM,
     decodeUtf8,
     decodeUtf8Lenient,
-    decodeUtf8M,
+    decodeUtf8ThrowM,
 
     -- ** Reexports
     ByteString,
@@ -271,13 +271,13 @@ decodeUtf8Lenient = TEnc.decodeUtf8With TEncError.lenientDecode
 -- | Decodes a 'ByteString' to UTF-8. Can throw 'UnicodeException'.
 --
 -- @since 0.1
-decodeUtf8M ::
+decodeUtf8ThrowM ::
   ( HasCallStack,
     MonadCallStack m
   ) =>
   ByteString ->
   m Text
-decodeUtf8M =
+decodeUtf8ThrowM =
   TEnc.decodeUtf8' >.> \case
     Right txt -> pure txt
     Left ex -> throwWithCallStack ex
@@ -309,14 +309,14 @@ readFileUtf8Lenient = fmap decodeUtf8Lenient . readFile
 -- | Decodes a file as UTF-8. Can throw 'UnicodeException'.
 --
 -- @since 0.1
-readFileUtf8M ::
+readFileUtf8ThrowM ::
   ( HasCallStack,
     MonadCallStack m,
     MonadFsReader m
   ) =>
   Path ->
   m Text
-readFileUtf8M = readFile >=> decodeUtf8M
+readFileUtf8ThrowM = readFile >=> decodeUtf8ThrowM
 
 -- | Encodes a 'Text' to 'ByteString'.
 --

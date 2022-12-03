@@ -69,14 +69,14 @@ instance MonadCallStack m => MonadCallStack (ReaderT e m) where
 --
 -- @since 0.1
 prettyAnnotated :: forall e. Exception e => e -> String
-prettyAnnotated ex = case fromException @(AnnotatedException SomeException)
-  (toException ex) of
-  Nothing -> displayException ex
-  Just (AnnotatedException anns anEx) ->
-    mconcat
-      [ displayException anEx,
-        foldMap' (\a -> "\n" <> prettyAnn a) anns
-      ]
+prettyAnnotated ex =
+  case fromException @(AnnotatedException SomeException) (toException ex) of
+    Nothing -> displayException ex
+    Just (AnnotatedException anns anEx) ->
+      mconcat
+        [ displayException anEx,
+          foldMap' (\a -> "\n" <> prettyAnn a) anns
+        ]
   where
     prettyAnn :: Annotation -> String
     prettyAnn (Annotation x) = case cast x of
