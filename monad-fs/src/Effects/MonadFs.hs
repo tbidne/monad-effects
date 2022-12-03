@@ -35,10 +35,14 @@ module Effects.MonadFs
 
     -- * Misc
     Path,
+    removeFileIfExists,
+    removeDirectoryIfExists,
+    removeDirectoryRecursiveIfExists,
+    removePathForciblyIfExists,
   )
 where
 
-import Control.Monad ((>=>))
+import Control.Monad (when, (>=>))
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.ByteString (ByteString)
@@ -200,15 +204,20 @@ class Monad m => MonadFsWriter m where
   -- @since 0.1
   renameDirectory :: HasCallStack => Path -> Path -> m ()
 
+  -- | Removes a directory.
+  --
+  -- @since 0.1
+  removeDirectory :: HasCallStack => Path -> m ()
+
+  -- | Removes a directory recursively.
+  --
+  -- @since 0.1
+  removeDirectoryRecursive :: HasCallStack => Path -> m ()
+
   -- | Removes a path.
   --
   -- @since 0.1
   removePathForcibly :: HasCallStack => Path -> m ()
-
-  -- | Removes a directory.
-  --
-  -- @since 0.1
-  removeDirectoryRecursive :: HasCallStack => Path -> m ()
 
   -- | Creates a directory.
   --
@@ -226,8 +235,9 @@ instance MonadFsWriter IO where
   renameFile f = checkpointCallStack . Dir.renameFile f
   removeFile = checkpointCallStack . Dir.removeFile
   renameDirectory f = checkpointCallStack . Dir.renameDirectory f
-  removePathForcibly = checkpointCallStack . Dir.removePathForcibly
+  removeDirectory = checkpointCallStack . Dir.removeDirectory
   removeDirectoryRecursive = checkpointCallStack . Dir.removeDirectoryRecursive
+  removePathForcibly = checkpointCallStack . Dir.removePathForcibly
   createDirectoryIfMissing b = checkpointCallStack . Dir.createDirectoryIfMissing b
 
 -- | @since 0.1
@@ -241,8 +251,9 @@ instance MonadFsWriter m => MonadFsWriter (ReaderT env m) where
   renameFile f = lift . renameFile f
   removeFile = lift . removeFile
   renameDirectory f = lift . renameDirectory f
-  removePathForcibly = lift . removePathForcibly
+  removeDirectory = lift . removeDirectory
   removeDirectoryRecursive = lift . removeDirectoryRecursive
+  removePathForcibly = lift . removePathForcibly
   createDirectoryIfMissing b = lift . createDirectoryIfMissing b
 
 -- | Decodes a 'ByteString' to UTF-8.
@@ -330,6 +341,60 @@ appendFileUtf8 f = appendFile f . encodeUtf8
 -- @since 0.1
 hPutUtf8 :: (HasCallStack, MonadFsWriter m) => Handle -> Text -> m ()
 hPutUtf8 h = hPut h . encodeUtf8
+
+-- | Calls 'removeFile' if 'doesFileExist' is 'True'.
+--
+-- @since 0.1
+removeFileIfExists ::
+  ( HasCallStack,
+    MonadFsReader m,
+    MonadFsWriter m
+  ) =>
+  Path ->
+  m ()
+removeFileIfExists = removeIfExists doesFileExist removeFile
+
+-- | Calls 'removeDirectory' if 'doesDirectoryExist' is 'True'.
+--
+-- @since 0.1
+removeDirectoryIfExists ::
+  ( HasCallStack,
+    MonadFsReader m,
+    MonadFsWriter m
+  ) =>
+  Path ->
+  m ()
+removeDirectoryIfExists = removeIfExists doesDirectoryExist removeDirectory
+
+-- | Calls 'removeDirectoryRecursive' if 'doesDirectoryExist' is 'True'.
+--
+-- @since 0.1
+removeDirectoryRecursiveIfExists ::
+  ( HasCallStack,
+    MonadFsReader m,
+    MonadFsWriter m
+  ) =>
+  Path ->
+  m ()
+removeDirectoryRecursiveIfExists =
+  removeIfExists doesDirectoryExist removeDirectoryRecursive
+
+-- | Calls 'removePathForcibly' if 'doesPathExist' is 'True'.
+--
+-- @since 0.1
+removePathForciblyIfExists ::
+  ( HasCallStack,
+    MonadFsReader m,
+    MonadFsWriter m
+  ) =>
+  Path ->
+  m ()
+removePathForciblyIfExists =
+  removeIfExists doesPathExist removePathForcibly
+
+removeIfExists :: Monad m => (t -> m Bool) -> (t -> m ()) -> t -> m ()
+removeIfExists existsFn deleteFn f =
+  existsFn f >>= \b -> when b (deleteFn f)
 
 (>.>) :: (a -> b) -> (b -> c) -> a -> c
 (>.>) = flip (.)
