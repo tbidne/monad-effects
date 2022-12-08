@@ -196,11 +196,11 @@ toNanoSeconds (MkTimeSpec s n) = (s * 1_000_000_000) + n
 -- @since 0.1
 diffTimeSpec :: TimeSpec -> TimeSpec -> TimeSpec
 diffTimeSpec t1 t2
-  | t1' >= t2' = fromDouble (t1' - t2')
-  | otherwise = fromDouble (t2' - t1')
+  | t1' >= t2' = fromNanoSeconds (t1' - t2')
+  | otherwise = fromNanoSeconds (t2' - t1')
   where
-    t1' = toDouble t1
-    t2' = toDouble t2
+    t1' = toNanoSeconds t1
+    t2' = toNanoSeconds t2
 
 -- | Normalizes nanoseconds < 1 second.
 --
