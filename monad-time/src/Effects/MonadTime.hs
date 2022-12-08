@@ -88,11 +88,11 @@ data TimeSpec = MkTimeSpec
   { -- | Seconds.
     --
     -- @since 0.1
-    sec :: {-# UNPACK #-} !Natural,
+    sec :: !Natural,
     -- | Nanoseconds.
     --
     -- @since 0.1
-    nsec :: {-# UNPACK #-} !Natural
+    nsec :: !Natural
   }
   deriving stock
     ( -- | @since 0.1
