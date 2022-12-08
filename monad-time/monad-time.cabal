@@ -42,7 +42,6 @@ library
   exposed-modules:  Effects.MonadTime
   build-depends:
     , base             >=4.14.0.0 && <4.18
-    , clock            >=0.7.2    && <0.9
     , monad-callstack  ^>=0.1
     , time             >=1.9.3    && <1.14
     , transformers     >=0.5.6.2  && <0.7

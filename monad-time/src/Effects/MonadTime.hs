@@ -22,7 +22,6 @@ module Effects.MonadTime
     -- * Reexports
     LocalTime (..),
     ZonedTime (..),
-    TimeSpec (..),
   )
 where
 
@@ -35,9 +34,9 @@ import Data.Time.LocalTime
   )
 import Data.Time.LocalTime qualified as Local
 import Effects.MonadCallStack (MonadCallStack, checkpointCallStack)
+import GHC.Clock qualified as C
+import GHC.Natural (Natural)
 import GHC.Stack (HasCallStack)
-import System.Clock (Clock (Monotonic), TimeSpec (..))
-import System.Clock qualified as C
 
 -- | Time effect.
 --
@@ -53,11 +52,11 @@ class Monad m => MonadTime m where
   -- @since 0.1
   getSystemZonedTime :: HasCallStack => m ZonedTime
 
-  -- | Retrieves the current 'TimeSpec', used for easy timing at the
-  -- nanosecond level.
+  -- | Return monotonic time in seconds, since some unspecified starting
+  -- point.
   --
-  -- @since 0.5
-  getTimeSpec :: HasCallStack => m TimeSpec
+  -- @since 0.1
+  getMonotonicTime :: HasCallStack => m Natural
 
 -- | @since 0.1
 instance MonadTime IO where
@@ -65,15 +64,15 @@ instance MonadTime IO where
     checkpointCallStack
       (Local.zonedTimeToLocalTime <$> Local.getZonedTime)
   getSystemZonedTime = checkpointCallStack Local.getZonedTime
-  getTimeSpec = checkpointCallStack (C.getTime Monotonic)
+  getMonotonicTime = checkpointCallStack $ floor <$> C.getMonotonicTime
 
 -- | @since 0.1
 instance MonadTime m => MonadTime (ReaderT e m) where
   getSystemTime = lift getSystemTime
   getSystemZonedTime = lift getSystemZonedTime
-  getTimeSpec = lift getTimeSpec
+  getMonotonicTime = lift getMonotonicTime
 
--- | Runs an action, returning the elapsed time.
+-- | Runs an action, returning the elapsed seconds.
 --
 -- @since 0.1
 withTiming ::
@@ -81,13 +80,12 @@ withTiming ::
     MonadTime m
   ) =>
   m a ->
-  m (TimeSpec, a)
+  m (Natural, a)
 withTiming m = do
-  start <- getTimeSpec
+  start <- getMonotonicTime
   res <- m
-  end <- getTimeSpec
-  let diff = C.diffTimeSpec start end
-  pure (diff, res)
+  end <- getMonotonicTime
+  pure (end - start, res)
 
 -- | 'withTiming' but ignores the result value.
 --
@@ -97,7 +95,7 @@ withTiming_ ::
     MonadTime m
   ) =>
   m a ->
-  m TimeSpec
+  m Natural
 withTiming_ = fmap fst . withTiming
 
 -- | Formats the 'ZonedTime' to @YYYY-MM-DD HH:MM:SS Z@.
