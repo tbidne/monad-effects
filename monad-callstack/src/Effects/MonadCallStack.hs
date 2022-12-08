@@ -6,7 +6,7 @@ module Effects.MonadCallStack
     MonadCallStack (..),
 
     -- * Utils
-    prettyAnnotated,
+    displayCallStack,
 
     -- * Reexports
     CallStack,
@@ -66,12 +66,12 @@ instance MonadCallStack m => MonadCallStack (ReaderT e m) where
   throwWithCallStack = lift . throwWithCallStack
   checkpointCallStack (ReaderT r) = ask >>= lift . checkpointCallStack . r
 
--- | Attempts to cast the exception to an 'AnnotatedException'. If successful,
--- adds the annotations to the string. Falls back to 'displayException'.
+-- | Like 'displayException', except it has extra logic that attempts to
+-- display any found 'CallStack's in a pretty way.
 --
 -- @since 0.1
-prettyAnnotated :: forall e. Exception e => e -> String
-prettyAnnotated ex =
+displayCallStack :: forall e. Exception e => e -> String
+displayCallStack ex =
   case fromException @(AnnotatedException SomeException) (toException ex) of
     Nothing -> displayException ex
     Just (AnnotatedException anns anEx) ->
