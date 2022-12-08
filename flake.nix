@@ -33,7 +33,7 @@
             };
           };
           hsOverlay =
-            (pkgs.haskellPackages.extend (hlib.compose.packageSourceOverrides {
+            (compiler.extend (hlib.compose.packageSourceOverrides {
               monad-callstack = ./monad-callstack;
               monad-fs = ./monad-fs;
               monad-ioref = ./monad-ioref;
