@@ -11,6 +11,8 @@ packages:
 -- Supposedly 'program-options' (cabal 3.8) obviates the following workaround
 -- for not running ghc-options on dependencies, but it seems to be having
 -- trouble on CI. See: https://github.com/haskell/cabal/pull/7973
+--
+-- Might be due to CI having a cabal that is too old?
 
 package monad-callstack
   ghc-options:
@@ -75,5 +77,15 @@ package monad-time
     -Wmissing-home-modules -Wmissing-export-lists -Wpartial-fields
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
     -Wprepositive-qualified-module
+
+source-repository-package
+    type: git
+    location: https://github.com/tbidne/algebra-simple.git
+    tag: 2c8a79e8d3bf67c99e4851c557bf68a44c512307
+
+source-repository-package
+    type: git
+    location: https://github.com/tbidne/bounds.git
+    tag: 004f03aec46f29069fd0bf5115a384cd2b3141b3
 
 test-show-details: direct

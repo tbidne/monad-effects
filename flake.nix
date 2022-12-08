@@ -1,13 +1,31 @@
 {
   description = "A Collection of Monadic Effects";
+
+  # nix
   inputs.flake-compat = {
     url = "github:edolstra/flake-compat";
     flake = false;
   };
   inputs.flake-parts.url = "github:hercules-ci/flake-parts";
   inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+
+  # haskell
+  inputs.algebra-simple = {
+    url = "github:tbidne/algebra-simple";
+    inputs.flake-compat.follows = "flake-compat";
+    inputs.flake-parts.follows = "flake-parts";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+  inputs.bounds = {
+    url = "github:tbidne/bounds";
+    inputs.flake-compat.follows = "flake-compat";
+    inputs.flake-parts.follows = "flake-parts";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
   outputs =
-    { flake-parts
+    { algebra-simple
+    , bounds
+    , flake-parts
     , self
     , ...
     }:
@@ -27,6 +45,8 @@
           hlib = pkgs.haskell.lib;
           compiler = pkgs.haskell.packages."${ghc-version}".override {
             overrides = final: prev: {
+              algebra-simple = final.callCabal2nix "algebra-simple" algebra-simple { };
+              bounds = final.callCabal2nix "bounds" bounds { };
               # These tests seems to hang, see:
               # https://github.com/ddssff/listlike/issues/23
               ListLike = hlib.dontCheck prev.ListLike;

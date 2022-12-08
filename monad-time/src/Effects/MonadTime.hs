@@ -10,11 +10,23 @@ module Effects.MonadTime
     MonadTime (..),
 
     -- * Timing
-    TimeSpec (..),
-    toTimeSpec,
-    fromTimeSpec,
     withTiming,
     withTiming_,
+
+    -- ** TimeSpec
+    TimeSpec (..),
+
+    -- *** Creation
+    fromDouble,
+    fromNanoSeconds,
+
+    -- *** Elimination
+    toDouble,
+    toNanoSeconds,
+
+    -- *** Operations
+    diffTimeSpec,
+    normalizeTimeSpec,
 
     -- * Formatting
     formatLocalTime,
@@ -35,6 +47,7 @@ where
 import Control.DeepSeq (NFData)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
+import Data.Bounds (LowerBounded (lowerBound), UpperBoundless)
 import Data.Time.Format qualified as Format
 import Data.Time.LocalTime
   ( LocalTime (LocalTime, localDay, localTimeOfDay),
@@ -49,9 +62,26 @@ import GHC.Float (properFractionDouble)
 import GHC.Generics (Generic)
 import GHC.Natural (Natural)
 import GHC.Stack (HasCallStack)
+import Numeric.Algebra
+  ( AMonoid (zero),
+    ASemigroup ((.+.)),
+    MSemiSpace ((.*)),
+    MSpace ((.%)),
+    NonZero (MkNonZero),
+    Normed (norm),
+    Semimodule,
+    SemivectorSpace,
+  )
+import Numeric.Literal.Integer (FromInteger (afromInteger))
+import Numeric.Literal.Rational (FromRational (afromRational))
 import Optics.TH (makeFieldLabelsNoPrefix)
 
--- | Structure for holding time data.
+-- | Structure for holding time data. 'Eq' and 'Ord' are defined in terms of
+-- an equivalence class e.g.
+--
+-- @
+-- MkTimeSpec s n === MkTimeSpec 0 (s * 1_000_000_000 + n)
+-- @
 --
 -- @since 0.1
 data TimeSpec = MkTimeSpec
@@ -66,8 +96,6 @@ data TimeSpec = MkTimeSpec
   }
   deriving stock
     ( -- | @since 0.1
-      Eq,
-      -- | @since 0.1
       Generic,
       -- | @since 0.1
       Show
@@ -80,11 +108,60 @@ data TimeSpec = MkTimeSpec
 -- | @since 0.1
 makeFieldLabelsNoPrefix ''TimeSpec
 
+-- | @since 0.1
+instance Eq TimeSpec where
+  l == r = toNanoSeconds l == toNanoSeconds r
+
+-- | @since 0.1
+instance Ord TimeSpec where
+  l <= r = toNanoSeconds l <= toNanoSeconds r
+
+-- | @since 0.1
+instance LowerBounded TimeSpec where
+  lowerBound = MkTimeSpec 0 0
+
+-- | @since 0.1
+instance UpperBoundless TimeSpec
+
+-- | @since 0.1
+instance FromInteger TimeSpec where
+  afromInteger = fromNanoSeconds . fromInteger
+
+-- | @since 0.1
+instance FromRational TimeSpec where
+  afromRational = fromDouble . fromRational
+
+-- | @since 0.1
+instance ASemigroup TimeSpec where
+  MkTimeSpec ls ln .+. MkTimeSpec rs rn = MkTimeSpec (ls + rs) (ln + rn)
+
+-- | @since 0.1
+instance AMonoid TimeSpec where
+  zero = MkTimeSpec 0 0
+
+-- | @since 0.1
+instance MSemiSpace TimeSpec Natural where
+  MkTimeSpec s n .* k = MkTimeSpec (s * k) (n * k)
+
+-- | @since 0.1
+instance MSpace TimeSpec Natural where
+  ts .% MkNonZero k = fromDouble (toDouble ts / fromIntegral k)
+
+-- | @since 0.1
+instance Semimodule TimeSpec Natural
+
+-- | @since 0.1
+instance SemivectorSpace TimeSpec Natural
+
+-- | @since 0.1
+instance Normed TimeSpec where
+  norm = id
+
 -- | Converts a 'Double' to a 'TimeSpec'.
 --
 -- @since 0.1
-toTimeSpec :: Double -> TimeSpec
-toTimeSpec d =
+fromDouble :: Double -> TimeSpec
+fromDouble d =
   MkTimeSpec
     { sec = seconds,
       nsec = nanoseconds
@@ -93,12 +170,43 @@ toTimeSpec d =
     (seconds, remainder) = properFractionDouble d
     nanoseconds = floor $ remainder * 1_000_000_000
 
+-- | Converts 'Natural' nanoseconds to a 'TimeSpec'.
+--
+-- @since 0.1
+fromNanoSeconds :: Natural -> TimeSpec
+fromNanoSeconds nanoseconds = MkTimeSpec s ns
+  where
+    (s, ns) = quotRem nanoseconds 1_000_000_000
+
 -- | Converts a 'TimeSpec' to a 'Double'.
 --
 -- @since 0.1
-fromTimeSpec :: TimeSpec -> Double
-fromTimeSpec (MkTimeSpec s n) =
+toDouble :: TimeSpec -> Double
+toDouble (MkTimeSpec s n) =
   fromIntegral s + (fromIntegral n / 1_000_000_000)
+
+-- | Converts a 'TimeSpec' into 'Natural' nanoseconds.
+--
+-- @since 0.1
+toNanoSeconds :: TimeSpec -> Natural
+toNanoSeconds (MkTimeSpec s n) = (s * 1_000_000_000) + n
+
+-- | Returns the absolute difference of two 'TimeSpec's.
+--
+-- @since 0.1
+diffTimeSpec :: TimeSpec -> TimeSpec -> TimeSpec
+diffTimeSpec t1 t2
+  | t1' >= t2' = fromDouble (t1' - t2')
+  | otherwise = fromDouble (t2' - t1')
+  where
+    t1' = toDouble t1
+    t2' = toDouble t2
+
+-- | Normalizes nanoseconds < 1 second.
+--
+-- @since 0.1
+normalizeTimeSpec :: TimeSpec -> TimeSpec
+normalizeTimeSpec = fromNanoSeconds . toNanoSeconds
 
 -- | Time effect.
 --
@@ -147,7 +255,7 @@ withTiming m = do
   start <- getMonotonicTime
   res <- m
   end <- getMonotonicTime
-  pure (toTimeSpec (end - start), res)
+  pure (fromDouble (end - start), res)
 
 -- | 'withTiming' but ignores the result value.
 --

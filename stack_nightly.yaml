@@ -12,6 +12,11 @@ ghc-options:
     -Wincomplete-record-updates -Wincomplete-uni-patterns
     -Wmissing-home-modules -Wmissing-export-lists -Wpartial-fields
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
+extra-deps:
+- git: https://github.com/tbidne/algebra-simple.git
+  commit: 2c8a79e8d3bf67c99e4851c557bf68a44c512307
+- git: https://github.com/tbidne/bounds.git
+  commit: 004f03aec46f29069fd0bf5115a384cd2b3141b3
 nix:
   shell-file: nix/stack.nix
   nix-shell-options: [--argstr, stack-vers, nightly]
