@@ -1,3 +1,7 @@
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 -- | Provides the 'MonadTime' class.
 --
 -- @since 0.1
@@ -6,6 +10,9 @@ module Effects.MonadTime
     MonadTime (..),
 
     -- * Timing
+    TimeSpec (..),
+    toTimeSpec,
+    fromTimeSpec,
     withTiming,
     withTiming_,
 
@@ -25,6 +32,7 @@ module Effects.MonadTime
   )
 where
 
+import Control.DeepSeq (NFData)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.Time.Format qualified as Format
@@ -35,8 +43,62 @@ import Data.Time.LocalTime
 import Data.Time.LocalTime qualified as Local
 import Effects.MonadCallStack (MonadCallStack, checkpointCallStack)
 import GHC.Clock qualified as C
+#if MIN_VERSION_base(4,17,0)
+import GHC.Float (properFractionDouble)
+#endif
+import GHC.Generics (Generic)
 import GHC.Natural (Natural)
 import GHC.Stack (HasCallStack)
+import Optics.TH (makeFieldLabelsNoPrefix)
+
+-- | Structure for holding time data.
+--
+-- @since 0.1
+data TimeSpec = MkTimeSpec
+  { -- | Seconds.
+    --
+    -- @since 0.1
+    sec :: {-# UNPACK #-} !Natural,
+    -- | Nanoseconds.
+    --
+    -- @since 0.1
+    nsec :: {-# UNPACK #-} !Natural
+  }
+  deriving stock
+    ( -- | @since 0.1
+      Eq,
+      -- | @since 0.1
+      Generic,
+      -- | @since 0.1
+      Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
+    )
+
+-- | @since 0.1
+makeFieldLabelsNoPrefix ''TimeSpec
+
+-- | Converts a 'Double' to a 'TimeSpec'.
+--
+-- @since 0.1
+toTimeSpec :: Double -> TimeSpec
+toTimeSpec d =
+  MkTimeSpec
+    { sec = seconds,
+      nsec = nanoseconds
+    }
+  where
+    (seconds, remainder) = properFractionDouble d
+    nanoseconds = floor $ remainder * 1_000_000_000
+
+-- | Converts a 'TimeSpec' to a 'Double'.
+--
+-- @since 0.1
+fromTimeSpec :: TimeSpec -> Double
+fromTimeSpec (MkTimeSpec s n) =
+  fromIntegral s + (fromIntegral n / 1_000_000_000)
 
 -- | Time effect.
 --
@@ -56,7 +118,7 @@ class Monad m => MonadTime m where
   -- point.
   --
   -- @since 0.1
-  getMonotonicTime :: HasCallStack => m Natural
+  getMonotonicTime :: HasCallStack => m Double
 
 -- | @since 0.1
 instance MonadTime IO where
@@ -64,7 +126,7 @@ instance MonadTime IO where
     checkpointCallStack
       (Local.zonedTimeToLocalTime <$> Local.getZonedTime)
   getSystemZonedTime = checkpointCallStack Local.getZonedTime
-  getMonotonicTime = checkpointCallStack $ floor <$> C.getMonotonicTime
+  getMonotonicTime = checkpointCallStack C.getMonotonicTime
 
 -- | @since 0.1
 instance MonadTime m => MonadTime (ReaderT e m) where
@@ -72,7 +134,7 @@ instance MonadTime m => MonadTime (ReaderT e m) where
   getSystemZonedTime = lift getSystemZonedTime
   getMonotonicTime = lift getMonotonicTime
 
--- | Runs an action, returning the elapsed seconds.
+-- | Runs an action, returning the elapsed time.
 --
 -- @since 0.1
 withTiming ::
@@ -80,12 +142,12 @@ withTiming ::
     MonadTime m
   ) =>
   m a ->
-  m (Natural, a)
+  m (TimeSpec, a)
 withTiming m = do
   start <- getMonotonicTime
   res <- m
   end <- getMonotonicTime
-  pure (end - start, res)
+  pure (toTimeSpec (end - start), res)
 
 -- | 'withTiming' but ignores the result value.
 --
@@ -95,7 +157,7 @@ withTiming_ ::
     MonadTime m
   ) =>
   m a ->
-  m Natural
+  m TimeSpec
 withTiming_ = fmap fst . withTiming
 
 -- | Formats the 'ZonedTime' to @YYYY-MM-DD HH:MM:SS Z@.
@@ -165,3 +227,16 @@ localTimeFormat = "%Y-%m-%d %H:%M:%S"
 
 zonedTimeFormat :: String
 zonedTimeFormat = "%Y-%m-%d %H:%M:%S %Z"
+
+#if !MIN_VERSION_base(4,17,0)
+properFractionDouble :: Integral b => Double -> (b, Double)
+{-# NOINLINE [1] properFractionDouble #-}
+properFractionDouble x =
+  case decodeFloat x of
+    (m, n) ->
+      if n >= 0
+        then (fromInteger m * 2 ^ n, 0.0)
+        else case quotRem m (2 ^ negate n) of
+          (w, r) ->
+            (fromInteger w, encodeFloat r n)
+#endif
