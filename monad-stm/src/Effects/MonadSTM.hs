@@ -51,22 +51,22 @@ class Monad m => MonadTVar m where
   -- | Creates a new 'TVar' in @m@.
   --
   -- @since 0.1
-  newTVarM :: a -> m (TVar a)
+  newTVarM :: HasCallStack => a -> m (TVar a)
 
   -- | Reads a 'TVar' in @m@.
   --
   -- @since 0.1
-  readTVarM :: TVar a -> m a
+  readTVarM :: HasCallStack => TVar a -> m a
 
   -- | Writes to a 'TVar' in @m@.
   --
   -- @since 0.1
-  writeTVarM :: TVar a -> a -> m ()
+  writeTVarM :: HasCallStack => TVar a -> a -> m ()
 
-  -- | Strictly Modifies a 'TVar' in @m@.
+  -- | Strictly modifies a 'TVar' in @m@.
   --
   -- @since 0.1
-  modifyTVarM' :: TVar a -> (a -> a) -> m ()
+  modifyTVarM' :: HasCallStack => TVar a -> (a -> a) -> m ()
 
 -- | @since 0.1
 instance MonadTVar IO where
@@ -89,27 +89,27 @@ class Monad m => MonadTBQueue m where
   -- | Creates a new 'TBQueue' in @m@.
   --
   -- @since 0.1
-  newTBQueueM :: Natural -> m (TBQueue a)
+  newTBQueueM :: HasCallStack => Natural -> m (TBQueue a)
 
-  -- | Reads a 'TBQueue' in @m@.
+  -- | Reads a 'TBQueue' in @m@ with retry logic.
   --
   -- @since 0.1
-  readTBQueueM :: TBQueue a -> m a
+  readTBQueueM :: HasCallStack => TBQueue a -> m a
 
-  -- | Reads a 'TBQueue' in @m@.
+  -- | Attempts to read a 'TBQueue' in @m@ w/o retry logic.
   --
   -- @since 0.1
-  tryReadTBQueueM :: TBQueue a -> m (Maybe a)
+  tryReadTBQueueM :: HasCallStack => TBQueue a -> m (Maybe a)
 
   -- | Writes to a 'TBQueue' in @m@.
   --
   -- @since 0.1
-  writeTBQueueM :: TBQueue a -> a -> m ()
+  writeTBQueueM :: HasCallStack => TBQueue a -> a -> m ()
 
   -- | Strictly modifies a 'TBQueue' in @m@.
   --
   -- @since 0.1
-  flushTBQueueM :: TBQueue a -> m [a]
+  flushTBQueueM :: HasCallStack => TBQueue a -> m [a]
 
   -- | @since 0.1
 
