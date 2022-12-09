@@ -315,7 +315,7 @@ parseZonedTime =
   Format.parseTimeM
     True
     Format.defaultTimeLocale
-    localTimeFormat
+    zonedTimeFormat
 
 -- | Variant of 'parseZonedTime' that includes CallStack for thrown
 -- exceptions.
