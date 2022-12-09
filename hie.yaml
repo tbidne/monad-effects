@@ -2,6 +2,8 @@ cradle:
   cabal:
     - path: "./monad-callstack/src"
       component: "lib:monad-callstack"
+    - path: "./monad-callstack/test/unit"
+      component: "monad-callstack:test:unit"
     - path: "./monad-fs/src"
       component: "lib:monad-fs"
     - path: "./monad-ioref/src"

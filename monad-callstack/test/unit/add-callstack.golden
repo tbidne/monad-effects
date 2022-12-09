@@ -1,0 +1,4 @@
+MkEx
+CallStack (from HasCallStack):
+  checkpointCallStack, called at src/Effects/MonadCallStack.hs:61:18 in monad-callstack-0.1-inplace:Effects.MonadCallStack
+  addCallStack, called at test/unit/Main.hs:47:23 in main:Main
