@@ -1,0 +1,5 @@
+user error (parseTimeM: no parse of "2022-02-08 10:20:05 UTC")
+CallStack (from HasCallStack):
+  checkpointCallStack, called at src/Effects/MonadCallStack.hs:61:18 in monad-callstack-0.1-inplace:Effects.MonadCallStack
+  addCallStack, called at src/Effects/MonadTime.hs:296:27 in monad-time-0.1-inplace:Effects.MonadTime
+  parseLocalTimeCallStack, called at test/unit/Main.hs:294:19 in main:Main

@@ -18,3 +18,5 @@ cradle:
       component: "lib:monad-thread"
     - path: "./monad-time/src"
       component: "lib:monad-time"
+    - path: "./monad-time/test/unit"
+      component: "monad-time:test:unit"

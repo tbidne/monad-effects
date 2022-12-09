@@ -72,8 +72,6 @@ import Numeric.Algebra
     Semimodule,
     SemivectorSpace,
   )
-import Numeric.Literal.Integer (FromInteger (afromInteger))
-import Numeric.Literal.Rational (FromRational (afromRational))
 import Optics.TH (makeFieldLabelsNoPrefix)
 
 -- | Structure for holding time data. 'Eq' and 'Ord' are defined in terms of
@@ -122,14 +120,6 @@ instance LowerBounded TimeSpec where
 
 -- | @since 0.1
 instance UpperBoundless TimeSpec
-
--- | @since 0.1
-instance FromInteger TimeSpec where
-  afromInteger = fromNanoSeconds . fromInteger
-
--- | @since 0.1
-instance FromRational TimeSpec where
-  afromRational = fromDouble . fromRational
 
 -- | @since 0.1
 instance ASemigroup TimeSpec where
@@ -331,10 +321,10 @@ parseZonedTimeCallStack ::
 parseZonedTimeCallStack = addCallStack . parseZonedTime
 
 localTimeFormat :: String
-localTimeFormat = "%Y-%m-%d %H:%M:%S"
+localTimeFormat = "%0Y-%m-%d %H:%M:%S"
 
 zonedTimeFormat :: String
-zonedTimeFormat = "%Y-%m-%d %H:%M:%S %Z"
+zonedTimeFormat = "%0Y-%m-%d %H:%M:%S %Z"
 
 #if !MIN_VERSION_base(4,17,0)
 properFractionDouble :: Integral b => Double -> (b, Double)
