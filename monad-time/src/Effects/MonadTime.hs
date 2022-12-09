@@ -54,7 +54,7 @@ import Data.Time.LocalTime
     ZonedTime (ZonedTime, zonedTimeToLocalTime, zonedTimeZone),
   )
 import Data.Time.LocalTime qualified as Local
-import Effects.MonadCallStack (MonadCallStack, checkpointCallStack)
+import Effects.MonadCallStack (MonadCallStack, addCallStack)
 import GHC.Clock qualified as C
 #if MIN_VERSION_base(4,17,0)
 import GHC.Float (properFractionDouble)
@@ -231,10 +231,10 @@ class Monad m => MonadTime m where
 -- | @since 0.1
 instance MonadTime IO where
   getSystemTime =
-    checkpointCallStack
+    addCallStack
       (Local.zonedTimeToLocalTime <$> Local.getZonedTime)
-  getSystemZonedTime = checkpointCallStack Local.getZonedTime
-  getMonotonicTime = checkpointCallStack C.getMonotonicTime
+  getSystemZonedTime = addCallStack Local.getZonedTime
+  getMonotonicTime = addCallStack C.getMonotonicTime
 
 -- | @since 0.1
 instance MonadTime m => MonadTime (ReaderT e m) where
@@ -303,7 +303,7 @@ parseLocalTimeCallStack ::
   ) =>
   String ->
   m LocalTime
-parseLocalTimeCallStack = checkpointCallStack . parseLocalTime
+parseLocalTimeCallStack = addCallStack . parseLocalTime
 
 -- | Parses the 'ZonedTime' from @YYYY-MM-DD HH:MM:SS Z@. If the 'MonadFail'
 -- instance throws an 'Control.Exception.' consider
@@ -328,7 +328,7 @@ parseZonedTimeCallStack ::
   ) =>
   String ->
   m ZonedTime
-parseZonedTimeCallStack = checkpointCallStack . parseZonedTime
+parseZonedTimeCallStack = addCallStack . parseZonedTime
 
 localTimeFormat :: String
 localTimeFormat = "%Y-%m-%d %H:%M:%S"

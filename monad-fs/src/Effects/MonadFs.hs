@@ -52,8 +52,7 @@ import Data.Text.Encoding qualified as TEnc
 import Data.Text.Encoding.Error (UnicodeException)
 import Data.Text.Encoding.Error qualified as TEncError
 import Effects.MonadCallStack
-  ( MonadCallStack (throwWithCallStack),
-    checkpointCallStack,
+  ( MonadCallStack (addCallStack, throwWithCallStack),
   )
 import GHC.Natural (Natural)
 import GHC.Stack (HasCallStack)
@@ -133,15 +132,15 @@ class Monad m => MonadFsReader m where
 
 -- | @since 0.1
 instance MonadFsReader IO where
-  getFileSize = checkpointCallStack . fmap fromIntegral . Dir.getFileSize
-  getHomeDirectory = checkpointCallStack Dir.getHomeDirectory
-  getXdgConfig = checkpointCallStack . Dir.getXdgDirectory XdgConfig
-  readFile = checkpointCallStack . BS.readFile
-  doesFileExist = checkpointCallStack . Dir.doesFileExist
-  doesDirectoryExist = checkpointCallStack . Dir.doesDirectoryExist
-  doesPathExist = checkpointCallStack . Dir.doesPathExist
-  canonicalizePath = checkpointCallStack . Dir.canonicalizePath
-  listDirectory = checkpointCallStack . Dir.listDirectory
+  getFileSize = addCallStack . fmap fromIntegral . Dir.getFileSize
+  getHomeDirectory = addCallStack Dir.getHomeDirectory
+  getXdgConfig = addCallStack . Dir.getXdgDirectory XdgConfig
+  readFile = addCallStack . BS.readFile
+  doesFileExist = addCallStack . Dir.doesFileExist
+  doesDirectoryExist = addCallStack . Dir.doesDirectoryExist
+  doesPathExist = addCallStack . Dir.doesPathExist
+  canonicalizePath = addCallStack . Dir.canonicalizePath
+  listDirectory = addCallStack . Dir.listDirectory
 
 -- | @since 0.1
 instance MonadFsReader m => MonadFsReader (ReaderT e m) where
@@ -226,19 +225,19 @@ class Monad m => MonadFsWriter m where
 
 -- | @since 0.1
 instance MonadFsWriter IO where
-  writeFile f = checkpointCallStack . BS.writeFile f
-  appendFile f = checkpointCallStack . BS.appendFile f
-  openFile f = checkpointCallStack . IO.openFile f
-  hPut h = checkpointCallStack . BS.hPut h
-  hClose = checkpointCallStack . IO.hClose
-  hFlush = checkpointCallStack . IO.hFlush
-  renameFile f = checkpointCallStack . Dir.renameFile f
-  removeFile = checkpointCallStack . Dir.removeFile
-  renameDirectory f = checkpointCallStack . Dir.renameDirectory f
-  removeDirectory = checkpointCallStack . Dir.removeDirectory
-  removeDirectoryRecursive = checkpointCallStack . Dir.removeDirectoryRecursive
-  removePathForcibly = checkpointCallStack . Dir.removePathForcibly
-  createDirectoryIfMissing b = checkpointCallStack . Dir.createDirectoryIfMissing b
+  writeFile f = addCallStack . BS.writeFile f
+  appendFile f = addCallStack . BS.appendFile f
+  openFile f = addCallStack . IO.openFile f
+  hPut h = addCallStack . BS.hPut h
+  hClose = addCallStack . IO.hClose
+  hFlush = addCallStack . IO.hFlush
+  renameFile f = addCallStack . Dir.renameFile f
+  removeFile = addCallStack . Dir.removeFile
+  renameDirectory f = addCallStack . Dir.renameDirectory f
+  removeDirectory = addCallStack . Dir.removeDirectory
+  removeDirectoryRecursive = addCallStack . Dir.removeDirectoryRecursive
+  removePathForcibly = addCallStack . Dir.removePathForcibly
+  createDirectoryIfMissing b = addCallStack . Dir.createDirectoryIfMissing b
 
 -- | @since 0.1
 instance MonadFsWriter m => MonadFsWriter (ReaderT env m) where

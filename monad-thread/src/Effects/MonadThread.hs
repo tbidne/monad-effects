@@ -15,7 +15,7 @@ import Control.Concurrent (threadDelay)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.Foldable (for_)
-import Effects.MonadCallStack (checkpointCallStack)
+import Effects.MonadCallStack (addCallStack)
 import GHC.Natural (Natural)
 import GHC.Stack (HasCallStack)
 
@@ -31,7 +31,7 @@ class Monad m => MonadThread m where
 
 -- | @since 0.1
 instance MonadThread IO where
-  microsleep n = checkpointCallStack $ for_ (natToInts n) threadDelay
+  microsleep n = addCallStack $ for_ (natToInts n) threadDelay
 
 -- | @since 0.1
 instance MonadThread m => MonadThread (ReaderT e m) where

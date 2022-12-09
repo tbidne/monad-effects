@@ -23,7 +23,7 @@ import Control.Concurrent.STM.TVar (TVar)
 import Control.Concurrent.STM.TVar qualified as TVar
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
-import Effects.MonadCallStack (checkpointCallStack)
+import Effects.MonadCallStack (addCallStack)
 import GHC.Stack (HasCallStack)
 import Numeric.Natural (Natural)
 
@@ -38,7 +38,7 @@ class Monad m => MonadSTM m where
 
 -- | @since 0.1
 instance MonadSTM IO where
-  atomically = checkpointCallStack . STM.atomically
+  atomically = addCallStack . STM.atomically
 
 -- | @since 0.1
 instance MonadSTM m => MonadSTM (ReaderT e m) where
@@ -70,10 +70,10 @@ class Monad m => MonadTVar m where
 
 -- | @since 0.1
 instance MonadTVar IO where
-  newTVarM = checkpointCallStack . STM.atomically . TVar.newTVar
-  readTVarM = checkpointCallStack . STM.atomically . TVar.readTVar
-  writeTVarM r = checkpointCallStack . STM.atomically . TVar.writeTVar r
-  modifyTVarM' r = checkpointCallStack . STM.atomically . TVar.modifyTVar' r
+  newTVarM = addCallStack . STM.atomically . TVar.newTVar
+  readTVarM = addCallStack . STM.atomically . TVar.readTVar
+  writeTVarM r = addCallStack . STM.atomically . TVar.writeTVar r
+  modifyTVarM' r = addCallStack . STM.atomically . TVar.modifyTVar' r
 
 -- | @since 0.1
 instance MonadTVar m => MonadTVar (ReaderT e m) where
@@ -114,11 +114,11 @@ class Monad m => MonadTBQueue m where
   -- | @since 0.1
 
 instance MonadTBQueue IO where
-  newTBQueueM = checkpointCallStack . STM.atomically . TBQueue.newTBQueue
-  readTBQueueM = checkpointCallStack . STM.atomically . TBQueue.readTBQueue
-  tryReadTBQueueM = checkpointCallStack . STM.atomically . TBQueue.tryReadTBQueue
-  writeTBQueueM q = checkpointCallStack . STM.atomically . TBQueue.writeTBQueue q
-  flushTBQueueM = checkpointCallStack . STM.atomically . TBQueue.flushTBQueue
+  newTBQueueM = addCallStack . STM.atomically . TBQueue.newTBQueue
+  readTBQueueM = addCallStack . STM.atomically . TBQueue.readTBQueue
+  tryReadTBQueueM = addCallStack . STM.atomically . TBQueue.tryReadTBQueue
+  writeTBQueueM q = addCallStack . STM.atomically . TBQueue.writeTBQueue q
+  flushTBQueueM = addCallStack . STM.atomically . TBQueue.flushTBQueue
 
 -- \| @since 0.1
 instance MonadTBQueue m => MonadTBQueue (ReaderT e m) where

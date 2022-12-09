@@ -29,7 +29,7 @@ import Control.Monad.Trans.Reader (ReaderT)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Effects.MonadCallStack
-  ( checkpointCallStack,
+  ( addCallStack,
     throwWithCallStack,
   )
 import GHC.Natural (Natural)
@@ -78,9 +78,9 @@ class Monad m => MonadTerminal m where
 
 -- | @since 0.1
 instance MonadTerminal IO where
-  putStr = checkpointCallStack . IO.putStr
-  putStrLn = checkpointCallStack . IO.putStrLn
-  getChar = checkpointCallStack IO.getChar
+  putStr = addCallStack . IO.putStr
+  putStrLn = addCallStack . IO.putStrLn
+  getChar = addCallStack IO.getChar
   getTerminalSize =
     size >>= \case
       Just h -> pure h

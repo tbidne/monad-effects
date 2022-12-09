@@ -14,7 +14,7 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.IORef (IORef)
 import Data.IORef qualified as IORef
-import Effects.MonadCallStack (checkpointCallStack)
+import Effects.MonadCallStack (addCallStack)
 import GHC.Stack (HasCallStack)
 
 -- | 'IORef' effect.
@@ -43,10 +43,10 @@ class Monad m => MonadIORef m where
 
 -- | @since 0.1
 instance MonadIORef IO where
-  newIORef = checkpointCallStack . IORef.newIORef
-  readIORef = checkpointCallStack . IORef.readIORef
-  writeIORef r = checkpointCallStack . IORef.writeIORef r
-  modifyIORef' r = checkpointCallStack . IORef.modifyIORef' r
+  newIORef = addCallStack . IORef.newIORef
+  readIORef = addCallStack . IORef.readIORef
+  writeIORef r = addCallStack . IORef.writeIORef r
+  modifyIORef' r = addCallStack . IORef.modifyIORef' r
 
 -- | @since 0.1
 instance MonadIORef m => MonadIORef (ReaderT e m) where

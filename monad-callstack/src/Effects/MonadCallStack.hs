@@ -52,19 +52,19 @@ class Monad m => MonadCallStack m where
   -- | Adds the 'CallStack' to any thrown exceptions.
   --
   -- @since 0.1
-  checkpointCallStack :: HasCallStack => m a -> m a
+  addCallStack :: HasCallStack => m a -> m a
 
 -- | @since 0.1
 instance MonadCallStack IO where
   getCallStack = pure callStack
   throwWithCallStack = Ann.throwWithCallStack
-  checkpointCallStack = Ann.checkpointCallStack
+  addCallStack = Ann.checkpointCallStack
 
 -- | @since 0.1
 instance MonadCallStack m => MonadCallStack (ReaderT e m) where
   getCallStack = lift getCallStack
   throwWithCallStack = lift . throwWithCallStack
-  checkpointCallStack (ReaderT r) = ask >>= lift . checkpointCallStack . r
+  addCallStack (ReaderT r) = ask >>= lift . addCallStack . r
 
 -- | Like 'displayException', except it has extra logic that attempts to
 -- display any found 'CallStack's in a pretty way.
