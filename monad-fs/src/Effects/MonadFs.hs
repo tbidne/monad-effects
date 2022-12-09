@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP #-}
 
--- | Provides the FileSystem typeclass.
+-- | Provides the FileSystem effect.
 --
 -- @since 0.1
 module Effects.MonadFs
@@ -306,7 +306,7 @@ readFileUtf8Lenient ::
   m Text
 readFileUtf8Lenient = fmap decodeUtf8Lenient . readFile
 
--- | Decodes a file as UTF-8. Can throw 'UnicodeException'.
+-- | Decodes a file as UTF-8. Throws 'UnicodeException' for decode errors.
 --
 -- @since 0.1
 readFileUtf8ThrowM ::
@@ -336,7 +336,7 @@ writeFileUtf8 f = writeFile f . encodeUtf8
 appendFileUtf8 :: (HasCallStack, MonadFsWriter m) => Path -> Text -> m ()
 appendFileUtf8 f = appendFile f . encodeUtf8
 
--- | Appends to a file.
+-- | Writes to a handle.
 --
 -- @since 0.1
 hPutUtf8 :: (HasCallStack, MonadFsWriter m) => Handle -> Text -> m ()
