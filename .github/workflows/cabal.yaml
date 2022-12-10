@@ -28,6 +28,15 @@ jobs:
       - uses: haskell/actions/setup@v2.0.0
         with:
           ghc-version: ${{ matrix.ghc }}
-      
+
+      - name: Configure
+        run: cabal configure --enable-tests
+
       - name: Compile
         run: cabal build all
+
+      - name: Test monad-callstack
+        run: cabal test monad-callstack
+
+      - name: Test monad-time
+        run: cabal test monad-time --test-options '--hedgehog-tests 100000'

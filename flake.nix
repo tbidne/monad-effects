@@ -50,6 +50,8 @@
               # These tests seems to hang, see:
               # https://github.com/ddssff/listlike/issues/23
               ListLike = hlib.dontCheck prev.ListLike;
+              hedgehog = prev.hedgehog_1_2;
+              tasty-hedgehog = prev.tasty-hedgehog_1_4_0_0;
             };
           };
           hsOverlay =
@@ -73,8 +75,29 @@
             p.monad-thread
             p.monad-time
           ];
+
+          mkPkg = name: root: source-overrides: compiler.developPackage {
+            inherit name root source-overrides;
+            returnShellEnv = false;
+          };
+          mkPkgsCallStack = name: root: mkPkg name root {
+            monad-callstack = ./monad-callstack;
+          };
         in
         {
+          packages.monad-callstack = mkPkg "monad-callstack" ./monad-callstack { };
+          packages.monad-fs = mkPkgsCallStack "monad-fs" ./monad-fs;
+          packages.monad-ioref = mkPkgsCallStack "monad-ioref" ./monad-ioref;
+          packages.monad-logger-namespace =
+            mkPkg "monad-logger-namespace" ./monad-logger-namespace {
+              monad-callstack = ./monad-callstack;
+              monad-time = ./monad-time;
+            };
+          packages.monad-stm = mkPkgsCallStack "monad-stm" ./monad-stm;
+          packages.monad-terminal = mkPkgsCallStack "monad-terminal" ./monad-terminal;
+          packages.monad-thread = mkPkgsCallStack "monad-thread" ./monad-thread;
+          packages.monad-time = mkPkgsCallStack "monad-time" ./monad-time;
+
           devShells.default = hsOverlay.shellFor {
             inherit packages;
             withHoogle = true;
