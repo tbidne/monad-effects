@@ -1,4 +1,2 @@
 MkEx
 CallStack (from HasCallStack):
-  throwWithCallStack, called at src/Effects/MonadCallStack.hs:60:24 in monad-callstack-0.1-inplace:Effects.MonadCallStack
-  throwWithCallStack, called at test/unit/Main.hs:38:23 in main:Main

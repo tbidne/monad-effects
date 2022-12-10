@@ -38,7 +38,7 @@ throwsCallStack :: TestTree
 throwsCallStack =
   goldenVsStringDiff desc diff gpath $
     try @SomeException (throwWithCallStack MkEx) <&> \case
-      Left e -> fromString $ displayCallStack e
+      Left e -> fromString $ stableCallStack e
       Right _ -> "Error: did not catch expected exception."
   where
     desc = "Throws with callstack"
@@ -48,7 +48,7 @@ addsCallStack :: TestTree
 addsCallStack =
   goldenVsStringDiff desc diff gpath $
     try @SomeException (addCallStack $ throwIO MkEx) <&> \case
-      Left e -> fromString $ displayCallStack e
+      Left e -> fromString $ stableCallStack e
       Right _ -> "Error: did not catch expected exception."
   where
     desc = "Adds callstack"
@@ -59,3 +59,6 @@ goldenPath = "test/unit/"
 
 diff :: FilePath -> FilePath -> [FilePath]
 diff ref new = ["diff", "-u", ref, new]
+
+stableCallStack :: Exception e => e -> String
+stableCallStack = unlines . take 2 . lines . displayCallStack
