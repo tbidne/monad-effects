@@ -39,8 +39,20 @@ module Effects.MonadTime
     parseZonedTimeCallStack,
 
     -- * Reexports
+    -- ** Time
     LocalTime (..),
     ZonedTime (..),
+
+    -- ** Algebra
+    ASemigroup (..),
+    AMonoid (..),
+    MSemiSpace (..),
+    MSpace (..),
+    Semimodule,
+    SemivectorSpace,
+    Normed,
+    LowerBounded (..),
+    UpperBoundless
   )
 where
 
@@ -298,8 +310,23 @@ parseLocalTimeCallStack ::
 parseLocalTimeCallStack = addCallStack . parseLocalTime
 
 -- | Parses the 'ZonedTime' from @YYYY-MM-DD HH:MM:SS Z@. If the 'MonadFail'
--- instance throws an 'Control.Exception.' consider
+-- instance throws an 'Control.Exception.Exception' consider
 -- 'parseZonedTimeCallStack'.
+--
+-- ==== __Known Timezones__
+--
+-- * UTC
+-- * UT
+-- * GMT
+-- * EST
+-- * EDT
+-- * CST
+-- * CDT
+-- * MST
+-- * MDT
+-- * PST
+-- * PDT
+-- * +HHMM (e.g. +1300)
 --
 -- @since 0.1
 parseZonedTime :: MonadFail f => String -> f ZonedTime

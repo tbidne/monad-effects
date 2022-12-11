@@ -72,7 +72,8 @@ timeSpecTests :: TestTree
 timeSpecTests =
   testGroup
     "TimeSpec"
-    [ createFromDouble,
+    [ eqEquivClass,
+      createFromDouble,
       elimToDouble,
       toFromDoubleEpsilon,
       fromToDoubleEpsilon,
@@ -86,6 +87,15 @@ timeSpecTests =
       normalizeInvariant,
       timesAction
     ]
+
+eqEquivClass :: TestTree
+eqEquivClass = testPropertyNamed desc "eqEquivClass" $
+  property $ do
+    ts@(MkTimeSpec s ns) <- forAll genTimeSpec
+    let ts' = MkTimeSpec 0 (s * 1_000_000_000 + ns)
+    ts === ts'
+  where
+    desc = "Eq equivalence class"
 
 createFromDouble :: TestTree
 createFromDouble =
@@ -458,9 +468,17 @@ genZonedTimeString =
     <$> genLocalTimeString
     <*> Gen.element
       [ " UTC",
+        " UT",
+        " GMT",
         " EST",
+        " EDT",
         " CST",
-        " PST"
+        " CDT",
+        " MST",
+        " MDT",
+        " PST",
+        " PDT",
+        " +1300"
       ]
 
 genNanoSeconds :: Gen Natural
