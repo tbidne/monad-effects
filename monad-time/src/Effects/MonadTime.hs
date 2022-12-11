@@ -258,6 +258,8 @@ withTiming_ ::
   m TimeSpec
 withTiming_ = fmap fst . withTiming
 
+-- TODO: handle more time zones?
+
 -- | Formats the 'ZonedTime' to @YYYY-MM-DD HH:MM:SS Z@.
 --
 -- @since 0.1
