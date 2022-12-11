@@ -51,6 +51,7 @@ import Data.Text.Encoding qualified as TEnc
 import Data.Text.Encoding.Error qualified as TEncError
 import Effects.MonadTime (MonadTime (getSystemTime, getSystemZonedTime))
 import Effects.MonadTime qualified as MonadTime
+import GHC.Exts (IsList (Item, fromList, toList))
 import GHC.Generics (Generic)
 import GHC.Stack (HasCallStack)
 import Language.Haskell.TH (Loc (loc_filename, loc_start))
@@ -91,6 +92,12 @@ makeFieldLabelsNoPrefix ''Namespace
 -- | @since 0.1
 instance IsString Namespace where
   fromString = MkNamespace . Seq.singleton . T.pack
+
+-- | @since 0.1
+instance IsList Namespace where
+  type Item Namespace = Text
+  fromList = MkNamespace . fromList
+  toList = toList . unNamespace
 
 displayNamespace :: Namespace -> Text
 displayNamespace =

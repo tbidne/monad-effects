@@ -10,6 +10,8 @@ cradle:
       component: "lib:monad-ioref"
     - path: "./monad-logger-namespace/src"
       component: "lib:monad-logger-namespace"
+    - path: "./monad-logger-namespace/test/unit"
+      component: "monad-logger-namespace:test:unit"
     - path: "./monad-stm/src"
       component: "lib:monad-stm"
     - path: "./monad-terminal/src"
