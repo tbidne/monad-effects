@@ -52,7 +52,14 @@ lintc:
 haddock:
 	cabal haddock all --haddock-hyperlink-source --haddock-quickjump ;\
 	mkdir -p docs/ ;\
-	rm -rf docs/* ;\
+	rm -rf docs/monad-callstack* ;\
+	rm -rf docs/monad-fs* ;\
+	rm -rf docs/monad-ioref* ;\
+	rm -rf docs/monad-logger-namespace* ;\
+	rm -rf docs/monad-stm* ;\
+	rm -rf docs/monad-terminal* ;\
+	rm -rf docs/monad-thread* ;\
+	rm -rf docs/monad-time* ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-callstack-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-fs-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-ioref-0.1/doc/html/* docs/ ;\

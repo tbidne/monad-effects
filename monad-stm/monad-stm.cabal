@@ -9,8 +9,8 @@ author:             Thomas Bidne
 maintainer:         tbidne@protonmail.com
 homepage:           https://github.com/tbidne/monad-effects/
 bug-reports:        https://github.com/tbidne/monad-effects/issues
-synopsis:           Time effects
-description:        Time effects
+synopsis:           STM effects
+description:        STM effects
 category:           Effects
 extra-source-files: CHANGELOG.md
 
