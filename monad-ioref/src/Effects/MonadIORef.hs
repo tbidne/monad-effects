@@ -5,6 +5,9 @@ module Effects.MonadIORef
   ( -- * Class
     MonadIORef (..),
 
+    -- * Functions
+    atomicModifyIORef'_,
+
     -- * Reexports
     IORef,
   )
@@ -41,12 +44,18 @@ class Monad m => MonadIORef m where
   -- @since 0.1
   modifyIORef' :: HasCallStack => IORef a -> (a -> a) -> m ()
 
+  -- | Atomically modifies an 'IORef'.
+  --
+  -- @since 0.1
+  atomicModifyIORef' :: HasCallStack => IORef a -> (a -> (a, b)) -> m b
+
 -- | @since 0.1
 instance MonadIORef IO where
   newIORef = addCallStack . IORef.newIORef
   readIORef = addCallStack . IORef.readIORef
   writeIORef r = addCallStack . IORef.writeIORef r
   modifyIORef' r = addCallStack . IORef.modifyIORef' r
+  atomicModifyIORef' r = addCallStack . IORef.atomicModifyIORef' r
 
 -- | @since 0.1
 instance MonadIORef m => MonadIORef (ReaderT e m) where
@@ -54,3 +63,8 @@ instance MonadIORef m => MonadIORef (ReaderT e m) where
   readIORef = lift . readIORef
   writeIORef r = lift . writeIORef r
   modifyIORef' r = lift . modifyIORef' r
+  atomicModifyIORef' r = lift . atomicModifyIORef' r
+
+-- | Variant of 'atomicModifyIORef'' which ignores the return value
+atomicModifyIORef'_ :: MonadIORef m => IORef a -> (a -> a) -> m ()
+atomicModifyIORef'_ ref f = atomicModifyIORef' ref $ \a -> (f a, ())
