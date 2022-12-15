@@ -2,9 +2,12 @@
 --
 -- @since 0.1
 module Effects.MonadThread
-  ( -- * Class
+  ( -- * Threads
     MonadThread (..),
     sleep,
+
+    -- * Semaphores
+    MonadQSem (..),
 
     -- * Reexports
     Natural,
@@ -12,6 +15,10 @@ module Effects.MonadThread
 where
 
 import Control.Concurrent (threadDelay)
+import Control.Concurrent.QSem (QSem)
+import Control.Concurrent.QSem qualified as QSem
+import Control.Concurrent.QSemN (QSemN)
+import Control.Concurrent.QSemN qualified as QSemN
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.Foldable (for_)
@@ -59,3 +66,45 @@ n2i = fromIntegral
 
 i2n :: Int -> Natural
 i2n = fromIntegral
+
+-- | Effect for simple semaphores.
+--
+-- @since 0.1
+class Monad m => MonadQSem m where
+  -- | Creates a 'QSem'.
+  --
+  -- @since 0.1
+  newQSem :: Int -> m QSem
+
+  -- | Waits for a 'QSem'.
+  --
+  -- @since 0.1
+  waitQSem :: QSem -> m ()
+
+  -- | Signals a 'QSem'.
+  --
+  -- @since 0.1
+  signalQSem :: QSem -> m ()
+
+  -- | Creates a 'QSemN'.
+  --
+  -- @since 0.1
+  newQSemN :: Int -> m QSemN
+
+  -- | Waits for a 'QSemN'.
+  --
+  -- @since 0.1
+  waitQSemN :: QSemN -> Int -> m ()
+
+  -- | Signals a 'QSemN'.
+  --
+  -- @since 0.1
+  signalQSemN :: QSemN -> Int -> m ()
+
+instance MonadQSem IO where
+  newQSem = QSem.newQSem
+  waitQSem = QSem.waitQSem
+  signalQSem = QSem.signalQSem
+  newQSemN = QSemN.newQSemN
+  waitQSemN = QSemN.waitQSemN
+  signalQSemN = QSemN.signalQSemN
