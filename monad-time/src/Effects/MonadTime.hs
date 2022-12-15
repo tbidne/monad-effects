@@ -39,6 +39,7 @@ module Effects.MonadTime
     parseZonedTimeCallStack,
 
     -- * Reexports
+
     -- ** Time
     LocalTime (..),
     ZonedTime (..),
@@ -52,7 +53,7 @@ module Effects.MonadTime
     SemivectorSpace,
     Normed,
     LowerBounded (..),
-    UpperBoundless
+    UpperBoundless,
   )
 where
 
