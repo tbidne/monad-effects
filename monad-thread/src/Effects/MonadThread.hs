@@ -101,6 +101,7 @@ class Monad m => MonadQSem m where
   -- @since 0.1
   signalQSemN :: QSemN -> Int -> m ()
 
+-- | @since 0.1
 instance MonadQSem IO where
   newQSem = QSem.newQSem
   waitQSem = QSem.waitQSem
@@ -108,3 +109,12 @@ instance MonadQSem IO where
   newQSemN = QSemN.newQSemN
   waitQSemN = QSemN.waitQSemN
   signalQSemN = QSemN.signalQSemN
+
+-- | @since 0.1
+instance MonadQSem m => MonadQSem (ReaderT e m) where
+  newQSem = lift . newQSem
+  waitQSem = lift . waitQSem
+  signalQSem = lift . signalQSem
+  newQSemN = lift . newQSemN
+  waitQSemN q = lift . waitQSemN q
+  signalQSemN q = lift . signalQSemN q
