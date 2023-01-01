@@ -39,7 +39,9 @@ common common
 
 library
   import:           common
-  exposed-modules:  Effects.MonadFs
+  exposed-modules:
+    Effects.MonadFsReader
+    Effects.MonadFsWriter
   build-depends:
     , base             >=4.14.0.0  && <4.18
     , bytestring       >=0.10.12.0 && <0.12
