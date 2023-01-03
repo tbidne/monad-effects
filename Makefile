@@ -70,12 +70,18 @@ haddock:
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-thread-0.1/doc/html/* docs/ ;\
 
 haddockc:
-	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- \
-		./monad-logger-namespace \
+	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-callstack ;\
+	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-fs \
+		-m Effects.FileSystem.MonadPathReader 85 \
+		-m Effects.FileSystem.MonadPathWriter 85 ;\
+	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-ioref ;\
+	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-logger-namespace \
 		-m Effects.MonadLoggerNamespace 85 ;\
-
-	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- \
-		./monad-time \
+	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-stm ;\
+	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-system-time \
+		-m Effects.MonadTime 75 ;\
+	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-terminal ;\
+	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-thread
 
 .PHONY: hackage
 hackage:

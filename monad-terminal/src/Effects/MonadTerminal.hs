@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 -- | Provides the 'MonadTerminal' typeclass.
 --
 -- @since 0.1
@@ -12,7 +14,9 @@ module Effects.MonadTerminal
     putText,
     putTextLn,
     getTextLine,
+#if MIN_VERSION_base(4,15,0)
     getTextContents',
+#endif
 
     -- ** Window
     getTerminalWidth,
@@ -76,8 +80,10 @@ class Monad m => MonadTerminal m where
   -- | @since 0.1
   getLine :: HasCallStack => m String
 
+#if MIN_VERSION_base(4,15,0)
   -- | @since 0.1
   getContents' :: HasCallStack => m String
+#endif
 
   -- | Retrieves the terminal size.
   --
@@ -90,7 +96,9 @@ instance MonadTerminal IO where
   putStrLn = addCallStack . IO.putStrLn
   getChar = addCallStack IO.getChar
   getLine = addCallStack IO.getLine
+#if MIN_VERSION_base(4,15,0)
   getContents' = addCallStack IO.getContents'
+#endif
   getTerminalSize =
     size >>= \case
       Just h -> pure h
@@ -102,7 +110,9 @@ instance MonadTerminal m => MonadTerminal (ReaderT e m) where
   putStrLn = lift . putStrLn
   getChar = lift getChar
   getLine = lift getLine
+#if MIN_VERSION_base(4,15,0)
   getContents' = lift getContents'
+#endif
   getTerminalSize = lift getTerminalSize
 
 -- | 'Text' version of 'putStr'.
@@ -121,9 +131,11 @@ putTextLn = putStrLn . T.unpack
 getTextLine :: (HasCallStack, MonadTerminal m) => m Text
 getTextLine = T.pack <$> getLine
 
+#if MIN_VERSION_base(4,15,0)
 -- | @since 0.1
 getTextContents' :: (HasCallStack, MonadTerminal m) => m Text
 getTextContents' = T.pack <$> getContents'
+#endif
 
 -- | Retrieves the terminal width.
 --

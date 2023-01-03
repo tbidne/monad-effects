@@ -41,5 +41,5 @@ jobs:
       - name: Test monad-logger-namespace
         run: cabal test monad-logger-namespace
 
-      - name: Test monad-time
-        run: cabal test monad-time --test-options '--hedgehog-tests 100000'
+      - name: Test monad-system-time
+        run: cabal test monad-system-time --test-options '--hedgehog-tests 100000'

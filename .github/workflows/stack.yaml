@@ -28,8 +28,23 @@ jobs:
       - uses: haskell/actions/setup@v2.0.0
         with:
           enable-stack: true
-      
+
       - name: Compile
         env:
           STACK_YAML: ${{ matrix.stack_yaml }}
         run: stack build
+
+      - name: Test monad-callstack
+        env:
+          STACK_YAML: ${{ matrix.stack_yaml }}
+        run: stack test monad-callstack
+
+      - name: Test monad-logger-namespace
+        env:
+          STACK_YAML: ${{ matrix.stack_yaml }}
+        run: stack test monad-logger-namespace
+
+      - name: Test monad-system-time
+        env:
+          STACK_YAML: ${{ matrix.stack_yaml }}
+        run: stack test monad-system-time --test-arguments '--hedgehog-tests 100000'
