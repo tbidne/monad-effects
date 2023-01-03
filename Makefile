@@ -57,17 +57,17 @@ haddock:
 	rm -rf docs/monad-ioref* ;\
 	rm -rf docs/monad-logger-namespace* ;\
 	rm -rf docs/monad-stm* ;\
+	rm -rf docs/monad-system-time* ;\
 	rm -rf docs/monad-terminal* ;\
 	rm -rf docs/monad-thread* ;\
-	rm -rf docs/monad-time* ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-callstack-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-fs-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-ioref-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-logger-namespace-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-stm-0.1/doc/html/* docs/ ;\
+	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-system-time-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-terminal-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-thread-0.1/doc/html/* docs/ ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-time-0.1/doc/html/* docs/ ;\
 
 haddockc:
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- \
