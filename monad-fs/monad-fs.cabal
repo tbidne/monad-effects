@@ -46,8 +46,6 @@ library
     Effects.FileSystem.IO.MonadHandleWriter
     Effects.FileSystem.MonadPathReader
     Effects.FileSystem.MonadPathWriter
-    Effects.MonadFsReader
-    Effects.MonadFsWriter
 
   build-depends:
     , base             >=4.14.0.0  && <4.18

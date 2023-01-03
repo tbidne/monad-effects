@@ -1,6 +1,4 @@
-{-# LANGUAGE CPP #-}
-
--- | Provides the FileSystem effect.
+-- | Provides the MonadPathWriter effect.
 --
 -- @since 0.1
 module Effects.FileSystem.MonadPathWriter
@@ -8,15 +6,15 @@ module Effects.FileSystem.MonadPathWriter
     MonadPathWriter (..),
     Path,
 
-    -- * Reexports
-    Permissions (..),
-    UTCTime (..),
-
     -- * Misc
     removeFileIfExists,
     removeDirectoryIfExists,
     removeDirectoryRecursiveIfExists,
     removePathForciblyIfExists,
+
+    -- * Reexports
+    Permissions (..),
+    UTCTime (..),
   )
 where
 
