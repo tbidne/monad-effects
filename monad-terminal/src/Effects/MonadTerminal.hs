@@ -11,6 +11,8 @@ module Effects.MonadTerminal
     -- ** Text
     putText,
     putTextLn,
+    getTextLine,
+    getTextContents',
 
     -- ** Window
     getTerminalWidth,
@@ -36,7 +38,7 @@ import GHC.Natural (Natural)
 import GHC.Stack (HasCallStack)
 import System.Console.Terminal.Size (Window (..), size)
 import System.IO qualified as IO
-import Prelude hiding (getChar, putStr, putStrLn)
+import Prelude hiding (getChar, getLine, putStr, putStrLn)
 
 -- | @since 0.1
 data TermSizeException = MkTermSizeException
@@ -71,6 +73,12 @@ class Monad m => MonadTerminal m where
   -- @since 0.1
   getChar :: HasCallStack => m Char
 
+  -- | @since 0.1
+  getLine :: HasCallStack => m String
+
+  -- | @since 0.1
+  getContents' :: HasCallStack => m String
+
   -- | Retrieves the terminal size.
   --
   -- @since 0.1
@@ -81,6 +89,8 @@ instance MonadTerminal IO where
   putStr = addCallStack . IO.putStr
   putStrLn = addCallStack . IO.putStrLn
   getChar = addCallStack IO.getChar
+  getLine = addCallStack IO.getLine
+  getContents' = addCallStack IO.getContents'
   getTerminalSize =
     size >>= \case
       Just h -> pure h
@@ -91,19 +101,29 @@ instance MonadTerminal m => MonadTerminal (ReaderT e m) where
   putStr = lift . putStr
   putStrLn = lift . putStrLn
   getChar = lift getChar
+  getLine = lift getLine
+  getContents' = lift getContents'
   getTerminalSize = lift getTerminalSize
 
 -- | 'Text' version of 'putStr'.
 --
 -- @since 0.1
-putText :: MonadTerminal m => Text -> m ()
+putText :: (HasCallStack, MonadTerminal m) => Text -> m ()
 putText = putStr . T.unpack
 
 -- | 'Text' version of 'putStrLn'.
 --
 -- @since 0.1
-putTextLn :: MonadTerminal m => Text -> m ()
+putTextLn :: (HasCallStack, MonadTerminal m) => Text -> m ()
 putTextLn = putStrLn . T.unpack
+
+-- | @since 0.1
+getTextLine :: (HasCallStack, MonadTerminal m) => m Text
+getTextLine = T.pack <$> getLine
+
+-- | @since 0.1
+getTextContents' :: (HasCallStack, MonadTerminal m) => m Text
+getTextContents' = T.pack <$> getContents'
 
 -- | Retrieves the terminal width.
 --
