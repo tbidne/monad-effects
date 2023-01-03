@@ -35,10 +35,11 @@ import Effects.MonadCallStack
   ( MonadCallStack (addCallStack),
   )
 import Effects.MonadFsReader
-    ( Text,
-      ByteString,
-      MonadFsReader(doesPathExist, doesFileExist, doesDirectoryExist),
-      Path )
+  ( ByteString,
+    MonadFsReader (doesDirectoryExist, doesFileExist, doesPathExist),
+    Path,
+    Text,
+  )
 import GHC.Stack (HasCallStack)
 #if MIN_VERSION_directory(1,3,8)
 import System.Directory.OsPath (OsPath)
