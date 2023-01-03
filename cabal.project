@@ -4,9 +4,9 @@ packages:
   ./monad-ioref
   ./monad-logger-namespace
   ./monad-stm
+  ./monad-system-time
   ./monad-terminal
   ./monad-thread
-  ./monad-time
 
 -- Supposedly 'program-options' (cabal 3.8) obviates the following workaround
 -- for not running ghc-options on dependencies, but it seems to be having
@@ -54,6 +54,14 @@ package monad-stm
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
     -Wprepositive-qualified-module
 
+package monad-system-time
+  ghc-options:
+    -Wall -Wcompat -Werror -Widentities
+    -Wincomplete-record-updates -Wincomplete-uni-patterns
+    -Wmissing-home-modules -Wmissing-export-lists -Wpartial-fields
+    -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
+    -Wprepositive-qualified-module
+
 package monad-terminal
   ghc-options:
     -Wall -Wcompat -Werror -Widentities
@@ -63,14 +71,6 @@ package monad-terminal
     -Wprepositive-qualified-module
 
 package monad-thread
-  ghc-options:
-    -Wall -Wcompat -Werror -Widentities
-    -Wincomplete-record-updates -Wincomplete-uni-patterns
-    -Wmissing-home-modules -Wmissing-export-lists -Wpartial-fields
-    -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
-    -Wprepositive-qualified-module
-
-package monad-time
   ghc-options:
     -Wall -Wcompat -Werror -Widentities
     -Wincomplete-record-updates -Wincomplete-uni-patterns

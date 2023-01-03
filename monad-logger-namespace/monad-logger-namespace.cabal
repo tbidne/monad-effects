@@ -41,17 +41,17 @@ library
   import:           common
   exposed-modules:  Effects.MonadLoggerNamespace
   build-depends:
-    , base              >=4.14.0.0  && <4.18
-    , bytestring        >=0.10.12.0 && <0.12
-    , containers        ^>=0.6.3.1
-    , deepseq           ^>=1.4.4.0
-    , fast-logger       >=2.1       && <3.2
-    , monad-logger      ^>=0.3.30
-    , monad-time        ^>=0.1
-    , optics-core       ^>=0.4
-    , optics-th         ^>=0.4
-    , template-haskell  >=2.16.0.0  && <2.20
-    , text              >=1.2.4.0   && <2.1
+    , base               >=4.14.0.0  && <4.18
+    , bytestring         >=0.10.12.0 && <0.12
+    , containers         ^>=0.6.3.1
+    , deepseq            ^>=1.4.4.0
+    , fast-logger        >=2.1       && <3.2
+    , monad-logger       ^>=0.3.30
+    , monad-system-time  ^>=0.1
+    , optics-core        ^>=0.4
+    , optics-th          ^>=0.4
+    , template-haskell   >=2.16.0.0  && <2.20
+    , text               >=1.2.4.0   && <2.1
 
   hs-source-dirs:   src
   default-language: Haskell2010
@@ -66,7 +66,7 @@ test-suite unit
     , filepath                ^>=1.4.2.1
     , monad-logger
     , monad-logger-namespace
-    , monad-time
+    , monad-system-time
     , tasty                   >=1.1.0.3  && <1.5
     , tasty-golden            ^>=2.3.1.1
     , text

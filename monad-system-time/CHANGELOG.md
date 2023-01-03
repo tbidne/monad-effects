@@ -1,4 +1,4 @@
-# Revision history for monad-time
+# Revision history for monad-system-time
 
 ## 0.1 -- YYYY-mm-dd
 

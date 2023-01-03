@@ -61,9 +61,9 @@
               monad-ioref = ./monad-ioref;
               monad-logger-namespace = ./monad-logger-namespace;
               monad-stm = ./monad-stm;
+              monad-system-time = ./monad-system-time;
               monad-terminal = ./monad-terminal;
               monad-thread = ./monad-thread;
-              monad-time = ./monad-time;
             }));
           packages = p: [
             p.monad-callstack
@@ -71,9 +71,9 @@
             p.monad-ioref
             p.monad-logger-namespace
             p.monad-stm
+            p.monad-system-time
             p.monad-terminal
             p.monad-thread
-            p.monad-time
           ];
 
           mkPkg = name: root: source-overrides: compiler.developPackage {
@@ -91,12 +91,12 @@
           packages.monad-logger-namespace =
             mkPkg "monad-logger-namespace" ./monad-logger-namespace {
               monad-callstack = ./monad-callstack;
-              monad-time = ./monad-time;
+              monad-system-time = ./monad-system-time;
             };
           packages.monad-stm = mkPkgsCallStack "monad-stm" ./monad-stm;
+          packages.monad-system-time = mkPkgsCallStack "monad-system-time" ./monad-system-time;
           packages.monad-terminal = mkPkgsCallStack "monad-terminal" ./monad-terminal;
           packages.monad-thread = mkPkgsCallStack "monad-thread" ./monad-thread;
-          packages.monad-time = mkPkgsCallStack "monad-time" ./monad-time;
 
           devShells.default = hsOverlay.shellFor {
             inherit packages;

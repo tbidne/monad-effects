@@ -2,10 +2,12 @@ resolver: nightly-2022-11-30
 packages:
 - monad-callstack
 - monad-fs
+- monad-ioref
 - monad-logger-namespace
+- monad-stm
+- monad-system-time
 - monad-terminal
 - monad-thread
-- monad-time
 ghc-options:
   "$locals":
     -Wall -Wcompat -Werror -Widentities

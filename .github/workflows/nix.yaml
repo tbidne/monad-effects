@@ -23,9 +23,9 @@ jobs:
           - monad-ioref
           - monad-logger-namespace
           - monad-stm
+          - monad-system-time
           - monad-terminal
           - monad-thread
-          - monad-time
     steps:
       - uses: actions/checkout@v3.0.2
 

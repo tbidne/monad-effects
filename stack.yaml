@@ -5,9 +5,9 @@ packages:
 - monad-ioref
 - monad-logger-namespace
 - monad-stm
+- monad-system-time
 - monad-terminal
 - monad-thread
-- monad-time
 ghc-options:
   "$locals":
     -Wall -Wcompat -Werror -Widentities
