@@ -38,6 +38,10 @@ module Effects.MonadTime
     parseZonedTime,
     parseZonedTimeCallStack,
 
+    -- * Misc
+    getSystemTimeString,
+    getSystemZonedTimeString,
+
     -- * Reexports
 
     -- ** Time
@@ -279,11 +283,23 @@ withTiming_ = fmap fst . withTiming
 formatZonedTime :: ZonedTime -> String
 formatZonedTime = Format.formatTime Format.defaultTimeLocale zonedTimeFormat
 
+-- | Retrieves the formatted 'LocalTime'.
+--
+-- @since 0.1
+getSystemTimeString :: (HasCallStack, MonadTime m) => m String
+getSystemTimeString = fmap formatLocalTime getSystemTime
+
 -- | Formats the 'LocalTime' to @YYYY-MM-DD HH:MM:SS@.
 --
 -- @since 0.1
 formatLocalTime :: LocalTime -> String
 formatLocalTime = Format.formatTime Format.defaultTimeLocale localTimeFormat
+
+-- | Retrieves the formatted 'ZonedTime'.
+--
+-- @since 0.1
+getSystemZonedTimeString :: (HasCallStack, MonadTime m) => m String
+getSystemZonedTimeString = fmap formatZonedTime getSystemZonedTime
 
 -- | Parses the 'LocalTime' from @YYYY-MM-DD HH:MM:SS@. If the 'MonadFail'
 -- instance throws an 'Control.Exception.Exception' consider
