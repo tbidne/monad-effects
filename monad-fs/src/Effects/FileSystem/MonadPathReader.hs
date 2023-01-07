@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 -- | Provides the MonadPathReader effect.
 --
 -- @since 0.1
@@ -20,7 +22,7 @@ where
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Data.Time (UTCTime (..))
-import Effects.FileSystem.IO.File.MonadFileReader (Path)
+import Effects.FileSystem.Types (Path)
 import Effects.MonadCallStack
   ( MonadCallStack (addCallStack),
   )
@@ -31,7 +33,11 @@ import System.Directory
     XdgDirectory (..),
     XdgDirectoryList (..),
   )
+#if MIN_VERSION_directory(1,3,8)
+import System.Directory.OsPath qualified as Dir
+#else
 import System.Directory qualified as Dir
+#endif
 
 -- | Represents file-system reader effects.
 --

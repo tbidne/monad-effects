@@ -1,7 +1,7 @@
 -- | Provides the MonadHandleReader effect.
 --
 -- @since 0.1
-module Effects.FileSystem.IO.MonadHandleReader
+module Effects.FileSystem.MonadHandleReader
   ( -- * Class
     MonadHandleReader (..),
     Path,
@@ -38,12 +38,12 @@ import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.Text (Text)
 import Data.Text.Encoding.Error (UnicodeException)
-import Effects.FileSystem.IO.File.MonadFileReader
-  ( Path,
-    decodeUtf8,
+import Effects.FileSystem.MonadFileReader
+  ( decodeUtf8,
     decodeUtf8Lenient,
     decodeUtf8ThrowM,
   )
+import Effects.FileSystem.Types (Path)
 import Effects.MonadCallStack
   ( MonadCallStack (addCallStack),
   )

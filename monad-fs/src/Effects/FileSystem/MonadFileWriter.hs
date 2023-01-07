@@ -1,7 +1,7 @@
 -- | Provides the MonadFileWriter effect.
 --
 -- @since 0.1
-module Effects.FileSystem.IO.File.MonadFileWriter
+module Effects.FileSystem.MonadFileWriter
   ( -- * Class
     MonadFileWriter (..),
     Path,
@@ -19,13 +19,11 @@ where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
+import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
+import Data.Text (Text)
 import Data.Text.Encoding qualified as TEnc
-import Effects.FileSystem.IO.File.MonadFileReader
-  ( ByteString,
-    Path,
-    Text,
-  )
+import Effects.FileSystem.Types (Path)
 import Effects.MonadCallStack
   ( MonadCallStack (addCallStack),
   )

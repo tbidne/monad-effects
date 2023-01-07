@@ -29,7 +29,7 @@ module Effects.MonadTerminal
   )
 where
 
-import Control.Exception
+import Control.Exception ( Exception(displayException) )
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.Text (Text)

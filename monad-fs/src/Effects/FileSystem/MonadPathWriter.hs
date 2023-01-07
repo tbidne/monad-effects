@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 -- | Provides the MonadPathWriter effect.
 --
 -- @since 0.1
@@ -22,14 +24,24 @@ import Control.Monad (when)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Data.Time (UTCTime (..))
-import Effects.FileSystem.IO.File.MonadFileReader (Path)
-import Effects.FileSystem.MonadPathReader (MonadPathReader (doesDirectoryExist, doesFileExist, doesPathExist))
+import Effects.FileSystem.MonadPathReader
+  ( MonadPathReader
+      ( doesDirectoryExist,
+        doesFileExist,
+        doesPathExist
+      ),
+  )
+import Effects.FileSystem.Types (Path)
 import Effects.MonadCallStack
   ( MonadCallStack (addCallStack),
   )
 import GHC.Stack (HasCallStack)
 import System.Directory (Permissions (..))
+#if MIN_VERSION_directory(1,3,8)
+import System.Directory.OsPath qualified as Dir
+#else
 import System.Directory qualified as Dir
+#endif
 
 -- | Represents file-system writer effects.
 --

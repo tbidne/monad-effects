@@ -1,9 +1,7 @@
-{-# LANGUAGE CPP #-}
-
 -- | Provides the MonadFileReader effect.
 --
 -- @since 0.1
-module Effects.FileSystem.IO.File.MonadFileReader
+module Effects.FileSystem.MonadFileReader
   ( -- * Class
     MonadFileReader (..),
     Path,
@@ -32,24 +30,11 @@ import Data.Text (Text)
 import Data.Text.Encoding qualified as TEnc
 import Data.Text.Encoding.Error (UnicodeException)
 import Data.Text.Encoding.Error qualified as TEncError
+import Effects.FileSystem.Types (Path)
 import Effects.MonadCallStack
   ( MonadCallStack (addCallStack, throwWithCallStack),
   )
 import GHC.Stack (HasCallStack)
-
-#if MIN_VERSION_directory(1,3,8)
--- | For @directory >= 1.3.8@, 'Path' = 'OsPath'. Below that it is a
--- 'FilePath'.
---
--- @since 0.1
-type Path = OsPath
-#else
--- | For @directory >= 1.3.8@, 'Path' = 'OsPath'. Below that it is a
--- 'FilePath'.
---
--- @since 0.1
-type Path = FilePath
-#endif
 
 -- | Represents file-system reader effects.
 --
