@@ -30,7 +30,7 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (ReaderT), ask)
 import Data.Foldable (Foldable (foldMap'))
 import Data.Typeable (cast)
-import GHC.Stack (CallStack, HasCallStack, callStack, prettyCallStack)
+import GHC.Stack (CallStack, HasCallStack, prettyCallStack)
 
 -- | Typeclass for 'CallStack' effects. The 'IO' instance uses the machinery
 -- from @annotated-exception@. Note that this means the try/catch/etc.
@@ -39,11 +39,6 @@ import GHC.Stack (CallStack, HasCallStack, callStack, prettyCallStack)
 --
 -- @since 0.1
 class Monad m => MonadCallStack m where
-  -- | Retrieves the 'CallStack'.
-  --
-  -- @since 0.1
-  getCallStack :: HasCallStack => m CallStack
-
   -- | Throws an exception with the 'CallStack'.
   --
   -- @since 0.1
@@ -56,13 +51,11 @@ class Monad m => MonadCallStack m where
 
 -- | @since 0.1
 instance MonadCallStack IO where
-  getCallStack = pure callStack
   throwWithCallStack = Ann.throwWithCallStack
   addCallStack = Ann.checkpointCallStack
 
 -- | @since 0.1
 instance MonadCallStack m => MonadCallStack (ReaderT e m) where
-  getCallStack = lift getCallStack
   throwWithCallStack = lift . throwWithCallStack
   addCallStack (ReaderT r) = ask >>= lift . addCallStack . r
 

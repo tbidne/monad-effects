@@ -4,10 +4,9 @@ import Control.Exception (Exception, SomeException, throwIO, try)
 import Data.Functor ((<&>))
 import Data.String (IsString (fromString))
 import Effects.MonadCallStack
-  ( MonadCallStack (addCallStack, getCallStack, throwWithCallStack),
+  ( MonadCallStack (addCallStack, throwWithCallStack),
     displayCallStack,
   )
-import GHC.Stack (prettyCallStack)
 import System.FilePath ((</>))
 import Test.Tasty (TestTree, defaultMain, testGroup)
 import Test.Tasty.Golden (goldenVsStringDiff)
@@ -17,18 +16,9 @@ main =
   defaultMain $
     testGroup
       "Unit Tests"
-      [ getsCallStack,
-        throwsCallStack,
+      [ throwsCallStack,
         addsCallStack
       ]
-
-getsCallStack :: TestTree
-getsCallStack =
-  goldenVsStringDiff desc diff gpath $
-    fromString . prettyCallStack <$> getCallStack
-  where
-    desc = "Retrieves callstack"
-    gpath = goldenPath </> "get-callstack.golden"
 
 data Ex = MkEx
   deriving stock (Eq, Show)
