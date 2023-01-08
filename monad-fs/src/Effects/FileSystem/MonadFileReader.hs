@@ -25,12 +25,11 @@ import Control.Monad ((>=>))
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.ByteString (ByteString)
-import Data.ByteString qualified as BS
 import Data.Text (Text)
 import Data.Text.Encoding qualified as TEnc
 import Data.Text.Encoding.Error (UnicodeException)
 import Data.Text.Encoding.Error qualified as TEncError
-import Effects.FileSystem.Types (Path)
+import Effects.FileSystem.Path (Path, readBinaryFileIO)
 import Effects.MonadCallStack
   ( MonadCallStack (addCallStack, throwWithCallStack),
   )
@@ -47,7 +46,7 @@ class Monad m => MonadFileReader m where
 
 -- | @since 0.1
 instance MonadFileReader IO where
-  readBinaryFile = addCallStack . BS.readFile
+  readBinaryFile = addCallStack . readBinaryFileIO
 
 -- | @since 0.1
 instance MonadFileReader m => MonadFileReader (ReaderT e m) where

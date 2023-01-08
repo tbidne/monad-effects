@@ -20,10 +20,9 @@ where
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.ByteString (ByteString)
-import Data.ByteString qualified as BS
 import Data.Text (Text)
 import Data.Text.Encoding qualified as TEnc
-import Effects.FileSystem.Types (Path)
+import Effects.FileSystem.Path (Path, appendBinaryFileIO, writeBinaryFileIO)
 import Effects.MonadCallStack
   ( MonadCallStack (addCallStack),
   )
@@ -45,13 +44,13 @@ class Monad m => MonadFileWriter m where
 
 -- | @since 0.1
 instance MonadFileWriter IO where
-  writeBinaryFile f = addCallStack . BS.writeFile f
-  appendBinaryFile f = addCallStack . BS.appendFile f
+  writeBinaryFile p = addCallStack . writeBinaryFileIO p
+  appendBinaryFile p = addCallStack . appendBinaryFileIO p
 
 -- | @since 0.1
 instance MonadFileWriter m => MonadFileWriter (ReaderT env m) where
-  writeBinaryFile f = lift . writeBinaryFile f
-  appendBinaryFile f = lift . appendBinaryFile f
+  writeBinaryFile p = lift . writeBinaryFile p
+  appendBinaryFile p = lift . appendBinaryFile p
 
 -- | Encodes a 'Text' to 'ByteString'.
 --
@@ -63,10 +62,10 @@ encodeUtf8 = TEnc.encodeUtf8
 --
 -- @since 0.1
 writeFileUtf8 :: (HasCallStack, MonadFileWriter m) => Path -> Text -> m ()
-writeFileUtf8 f = writeBinaryFile f . encodeUtf8
+writeFileUtf8 p = writeBinaryFile p . encodeUtf8
 
 -- | Appends to a file.
 --
 -- @since 0.1
 appendFileUtf8 :: (HasCallStack, MonadFileWriter m) => Path -> Text -> m ()
-appendFileUtf8 f = appendBinaryFile f . encodeUtf8
+appendFileUtf8 p = appendBinaryFile p . encodeUtf8

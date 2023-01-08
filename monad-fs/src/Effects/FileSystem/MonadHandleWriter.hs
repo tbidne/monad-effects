@@ -36,7 +36,7 @@ import Effects.FileSystem.MonadFileReader
     decodeUtf8ThrowM,
   )
 import Effects.FileSystem.MonadFileWriter (encodeUtf8)
-import Effects.FileSystem.Types (Path)
+import Effects.FileSystem.Path (Path, openBinaryFileIO, withBinaryFileIO)
 import Effects.MonadCallStack
   ( MonadCallStack (addCallStack),
   )
@@ -83,8 +83,8 @@ class Monad m => MonadHandleWriter m where
 
 -- | @since 0.1
 instance MonadHandleWriter IO where
-  openBinaryFile f = addCallStack . IO.openBinaryFile f
-  withBinaryFile f m = addCallStack . IO.withBinaryFile f m
+  openBinaryFile f = addCallStack . openBinaryFileIO f
+  withBinaryFile f m = addCallStack . withBinaryFileIO f m
   hClose = addCallStack . IO.hClose
   hFlush = addCallStack . IO.hFlush
   hSetFileSize h = addCallStack . IO.hSetFileSize h

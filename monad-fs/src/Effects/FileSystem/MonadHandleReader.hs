@@ -4,7 +4,6 @@
 module Effects.FileSystem.MonadHandleReader
   ( -- * Class
     MonadHandleReader (..),
-    Path,
 
     -- * UTF-8 Utils
     hGetLineUtf8,
@@ -43,7 +42,6 @@ import Effects.FileSystem.MonadFileReader
     decodeUtf8Lenient,
     decodeUtf8ThrowM,
   )
-import Effects.FileSystem.Types (Path)
 import Effects.MonadCallStack
   ( MonadCallStack (addCallStack),
   )
