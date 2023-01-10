@@ -45,12 +45,16 @@ class Monad m => MonadFileWriter m where
 -- | @since 0.1
 instance MonadFileWriter IO where
   writeBinaryFile p = addCallStack . writeBinaryFileIO p
+  {-# INLINEABLE writeBinaryFile #-}
   appendBinaryFile p = addCallStack . appendBinaryFileIO p
+  {-# INLINEABLE appendBinaryFile #-}
 
 -- | @since 0.1
 instance MonadFileWriter m => MonadFileWriter (ReaderT env m) where
   writeBinaryFile p = lift . writeBinaryFile p
+  {-# INLINEABLE writeBinaryFile #-}
   appendBinaryFile p = lift . appendBinaryFile p
+  {-# INLINEABLE appendBinaryFile #-}
 
 -- | Encodes a 'Text' to 'ByteString'.
 --
@@ -63,9 +67,11 @@ encodeUtf8 = TEnc.encodeUtf8
 -- @since 0.1
 writeFileUtf8 :: (HasCallStack, MonadFileWriter m) => Path -> Text -> m ()
 writeFileUtf8 p = writeBinaryFile p . encodeUtf8
+{-# INLINEABLE writeFileUtf8 #-}
 
 -- | Appends to a file.
 --
 -- @since 0.1
 appendFileUtf8 :: (HasCallStack, MonadFileWriter m) => Path -> Text -> m ()
 appendFileUtf8 p = appendBinaryFile p . encodeUtf8
+{-# INLINEABLE appendFileUtf8 #-}

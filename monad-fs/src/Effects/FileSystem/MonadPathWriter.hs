@@ -110,49 +110,89 @@ class Monad m => MonadPathWriter m where
 -- | @since 0.1
 instance MonadPathWriter IO where
   createDirectory = addCallStack . Dir.createDirectory
+  {-# INLINEABLE createDirectory #-}
   createDirectoryIfMissing b = addCallStack . Dir.createDirectoryIfMissing b
+  {-# INLINEABLE createDirectoryIfMissing #-}
   removeDirectory = addCallStack . Dir.removeDirectory
+  {-# INLINEABLE removeDirectory #-}
   removeDirectoryRecursive = addCallStack . Dir.removeDirectoryRecursive
+  {-# INLINEABLE removeDirectoryRecursive #-}
   removePathForcibly = addCallStack . Dir.removePathForcibly
+  {-# INLINEABLE removePathForcibly #-}
   renameDirectory p = addCallStack . Dir.renameDirectory p
+  {-# INLINEABLE renameDirectory #-}
   setCurrentDirectory = addCallStack . Dir.setCurrentDirectory
+  {-# INLINEABLE setCurrentDirectory #-}
   withCurrentDirectory p = addCallStack . Dir.withCurrentDirectory p
+  {-# INLINEABLE withCurrentDirectory #-}
   removeFile = addCallStack . Dir.removeFile
+  {-# INLINEABLE removeFile #-}
   renameFile p = addCallStack . Dir.renameFile p
+  {-# INLINEABLE renameFile #-}
   renamePath p = addCallStack . Dir.renamePath p
+  {-# INLINEABLE renamePath #-}
   copyFile p = addCallStack . Dir.copyFile p
+  {-# INLINEABLE copyFile #-}
   copyFileWithMetadata p = addCallStack . Dir.copyFileWithMetadata p
+  {-# INLINEABLE copyFileWithMetadata #-}
   createFileLink p = addCallStack . Dir.createFileLink p
+  {-# INLINEABLE createFileLink #-}
   createDirectoryLink p = addCallStack . Dir.createDirectoryLink p
+  {-# INLINEABLE createDirectoryLink #-}
   removeDirectoryLink = addCallStack . Dir.removeDirectoryLink
+  {-# INLINEABLE removeDirectoryLink #-}
   setPermissions p = addCallStack . Dir.setPermissions p
+  {-# INLINEABLE setPermissions #-}
   copyPermissions p = addCallStack . Dir.copyPermissions p
+  {-# INLINEABLE copyPermissions #-}
   setAccessTime p = addCallStack . Dir.setAccessTime p
+  {-# INLINEABLE setAccessTime #-}
   setModificationTime p = addCallStack . Dir.setModificationTime p
+  {-# INLINEABLE setModificationTime #-}
 
 -- | @since 0.1
 instance MonadPathWriter m => MonadPathWriter (ReaderT env m) where
   createDirectory = lift . createDirectory
+  {-# INLINEABLE createDirectory #-}
   createDirectoryIfMissing b = lift . createDirectoryIfMissing b
+  {-# INLINEABLE createDirectoryIfMissing #-}
   removeDirectory = lift . removeDirectory
+  {-# INLINEABLE removeDirectory #-}
   removeDirectoryRecursive = lift . removeDirectoryRecursive
+  {-# INLINEABLE removeDirectoryRecursive #-}
   removePathForcibly = lift . removePathForcibly
+  {-# INLINEABLE removePathForcibly #-}
   renameDirectory p = lift . renameDirectory p
+  {-# INLINEABLE renameDirectory #-}
   setCurrentDirectory = lift . setCurrentDirectory
+  {-# INLINEABLE setCurrentDirectory #-}
   withCurrentDirectory p action =
     ask >>= lift . \e -> withCurrentDirectory p (runReaderT action e)
+  {-# INLINEABLE withCurrentDirectory #-}
   removeFile = lift . removeFile
+  {-# INLINEABLE removeFile #-}
   renameFile p = lift . renameFile p
+  {-# INLINEABLE renameFile #-}
   renamePath p = lift . renamePath p
+  {-# INLINEABLE renamePath #-}
   copyFile p = lift . copyFile p
+  {-# INLINEABLE copyFile #-}
   copyFileWithMetadata p = lift . copyFileWithMetadata p
+  {-# INLINEABLE copyFileWithMetadata #-}
   createFileLink p = lift . createFileLink p
+  {-# INLINEABLE createFileLink #-}
   createDirectoryLink p = lift . createDirectoryLink p
+  {-# INLINEABLE createDirectoryLink #-}
   removeDirectoryLink = lift . removeDirectoryLink
+  {-# INLINEABLE removeDirectoryLink #-}
   setPermissions p = lift . setPermissions p
+  {-# INLINEABLE setPermissions #-}
   copyPermissions p = lift . copyPermissions p
+  {-# INLINEABLE copyPermissions #-}
   setAccessTime p = lift . setAccessTime p
+  {-# INLINEABLE setAccessTime #-}
   setModificationTime p = lift . setModificationTime p
+  {-# INLINEABLE setModificationTime #-}
 
 -- | Calls 'removeFile' if 'doesFileExist' is 'True'.
 --
@@ -165,6 +205,7 @@ removeFileIfExists ::
   Path ->
   m ()
 removeFileIfExists = removeIfExists doesFileExist removeFile
+{-# INLINEABLE removeFileIfExists #-}
 
 -- | Calls 'removeDirectory' if 'doesDirectoryExist' is 'True'.
 --
@@ -177,6 +218,7 @@ removeDirectoryIfExists ::
   Path ->
   m ()
 removeDirectoryIfExists = removeIfExists doesDirectoryExist removeDirectory
+{-# INLINEABLE removeDirectoryIfExists #-}
 
 -- | Calls 'removeDirectoryRecursive' if 'doesDirectoryExist' is 'True'.
 --
@@ -190,6 +232,7 @@ removeDirectoryRecursiveIfExists ::
   m ()
 removeDirectoryRecursiveIfExists =
   removeIfExists doesDirectoryExist removeDirectoryRecursive
+{-# INLINEABLE removeDirectoryRecursiveIfExists #-}
 
 -- | Calls 'removePathForcibly' if 'doesPathExist' is 'True'.
 --
@@ -203,7 +246,9 @@ removePathForciblyIfExists ::
   m ()
 removePathForciblyIfExists =
   removeIfExists doesPathExist removePathForcibly
+{-# INLINEABLE removePathForciblyIfExists #-}
 
 removeIfExists :: Monad m => (t -> m Bool) -> (t -> m ()) -> t -> m ()
 removeIfExists existsFn deleteFn f =
   existsFn f >>= \b -> when b (deleteFn f)
+{-# INLINEABLE removeIfExists #-}

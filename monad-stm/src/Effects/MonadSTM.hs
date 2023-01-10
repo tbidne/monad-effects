@@ -39,10 +39,12 @@ class Monad m => MonadSTM m where
 -- | @since 0.1
 instance MonadSTM IO where
   atomically = addCallStack . STM.atomically
+  {-# INLINEABLE atomically #-}
 
 -- | @since 0.1
 instance MonadSTM m => MonadSTM (ReaderT e m) where
   atomically = lift . atomically
+  {-# INLINEABLE atomically #-}
 
 -- | 'TVar' effect.
 --
@@ -71,16 +73,24 @@ class Monad m => MonadTVar m where
 -- | @since 0.1
 instance MonadTVar IO where
   newTVarM = addCallStack . STM.atomically . TVar.newTVar
+  {-# INLINEABLE newTVarM #-}
   readTVarM = addCallStack . STM.atomically . TVar.readTVar
+  {-# INLINEABLE readTVarM #-}
   writeTVarM r = addCallStack . STM.atomically . TVar.writeTVar r
+  {-# INLINEABLE writeTVarM #-}
   modifyTVarM' r = addCallStack . STM.atomically . TVar.modifyTVar' r
+  {-# INLINEABLE modifyTVarM' #-}
 
 -- | @since 0.1
 instance MonadTVar m => MonadTVar (ReaderT e m) where
   newTVarM = lift . newTVarM
+  {-# INLINEABLE newTVarM #-}
   readTVarM = lift . readTVarM
+  {-# INLINEABLE readTVarM #-}
   writeTVarM r = lift . writeTVarM r
+  {-# INLINEABLE writeTVarM #-}
   modifyTVarM' r = lift . modifyTVarM' r
+  {-# INLINEABLE modifyTVarM' #-}
 
 -- | 'TBQueue' effect.
 --
@@ -115,15 +125,25 @@ class Monad m => MonadTBQueue m where
 
 instance MonadTBQueue IO where
   newTBQueueM = addCallStack . STM.atomically . TBQueue.newTBQueue
+  {-# INLINEABLE newTBQueueM #-}
   readTBQueueM = addCallStack . STM.atomically . TBQueue.readTBQueue
+  {-# INLINEABLE readTBQueueM #-}
   tryReadTBQueueM = addCallStack . STM.atomically . TBQueue.tryReadTBQueue
+  {-# INLINEABLE tryReadTBQueueM #-}
   writeTBQueueM q = addCallStack . STM.atomically . TBQueue.writeTBQueue q
+  {-# INLINEABLE writeTBQueueM #-}
   flushTBQueueM = addCallStack . STM.atomically . TBQueue.flushTBQueue
+  {-# INLINEABLE flushTBQueueM #-}
 
 -- \| @since 0.1
 instance MonadTBQueue m => MonadTBQueue (ReaderT e m) where
   newTBQueueM = lift . newTBQueueM
+  {-# INLINEABLE newTBQueueM #-}
   readTBQueueM = lift . readTBQueueM
+  {-# INLINEABLE readTBQueueM #-}
   tryReadTBQueueM = lift . tryReadTBQueueM
+  {-# INLINEABLE tryReadTBQueueM #-}
   writeTBQueueM q = lift . writeTBQueueM q
+  {-# INLINEABLE writeTBQueueM #-}
   flushTBQueueM = lift . flushTBQueueM
+  {-# INLINEABLE flushTBQueueM #-}

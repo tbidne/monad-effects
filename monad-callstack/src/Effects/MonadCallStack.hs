@@ -52,12 +52,16 @@ class Monad m => MonadCallStack m where
 -- | @since 0.1
 instance MonadCallStack IO where
   throwWithCallStack = Ann.throwWithCallStack
+  {-# INLINEABLE throwWithCallStack #-}
   addCallStack = Ann.checkpointCallStack
+  {-# INLINEABLE addCallStack #-}
 
 -- | @since 0.1
 instance MonadCallStack m => MonadCallStack (ReaderT e m) where
   throwWithCallStack = lift . throwWithCallStack
+  {-# INLINEABLE throwWithCallStack #-}
   addCallStack (ReaderT r) = ask >>= lift . addCallStack . r
+  {-# INLINEABLE addCallStack #-}
 
 -- | Like 'displayException', except it has extra logic that attempts to
 -- display any found 'CallStack's in a pretty way.

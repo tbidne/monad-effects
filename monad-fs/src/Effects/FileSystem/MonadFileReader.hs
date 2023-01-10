@@ -47,10 +47,12 @@ class Monad m => MonadFileReader m where
 -- | @since 0.1
 instance MonadFileReader IO where
   readBinaryFile = addCallStack . readBinaryFileIO
+  {-# INLINEABLE readBinaryFile #-}
 
 -- | @since 0.1
 instance MonadFileReader m => MonadFileReader (ReaderT e m) where
   readBinaryFile = lift . readBinaryFile
+  {-# INLINEABLE readBinaryFile #-}
 
 -- | Decodes a 'ByteString' to UTF-8.
 --
@@ -77,6 +79,7 @@ decodeUtf8ThrowM =
   TEnc.decodeUtf8' >.> \case
     Right txt -> pure txt
     Left ex -> throwWithCallStack ex
+{-# INLINEABLE decodeUtf8ThrowM #-}
 
 -- | Reads a file as UTF-8.
 --
@@ -89,6 +92,7 @@ readFileUtf8 ::
   Path ->
   m (Either UnicodeException Text)
 readFileUtf8 = fmap decodeUtf8 . readBinaryFile
+{-# INLINEABLE readFileUtf8 #-}
 
 -- | Reads a file as UTF-8 in lenient mode.
 --
@@ -101,6 +105,7 @@ readFileUtf8Lenient ::
   Path ->
   m Text
 readFileUtf8Lenient = fmap decodeUtf8Lenient . readBinaryFile
+{-# INLINEABLE readFileUtf8Lenient #-}
 
 -- | Decodes a file as UTF-8. Throws 'UnicodeException' for decode errors.
 --
@@ -113,8 +118,11 @@ readFileUtf8ThrowM ::
   Path ->
   m Text
 readFileUtf8ThrowM = readBinaryFile >=> decodeUtf8ThrowM
+{-# INLINEABLE readFileUtf8ThrowM #-}
 
 (>.>) :: (a -> b) -> (b -> c) -> a -> c
 (>.>) = flip (.)
 
 infixl 9 >.>
+
+{-# INLINEABLE (>.>) #-}

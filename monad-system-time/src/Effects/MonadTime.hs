@@ -126,14 +126,17 @@ makeFieldLabelsNoPrefix ''TimeSpec
 -- | @since 0.1
 instance Eq TimeSpec where
   l == r = toNanoSeconds l == toNanoSeconds r
+  {-# INLINEABLE (==) #-}
 
 -- | @since 0.1
 instance Ord TimeSpec where
   l <= r = toNanoSeconds l <= toNanoSeconds r
+  {-# INLINEABLE (<=) #-}
 
 -- | @since 0.1
 instance LowerBounded TimeSpec where
   lowerBound = MkTimeSpec 0 0
+  {-# INLINEABLE lowerBound #-}
 
 -- | @since 0.1
 instance UpperBoundless TimeSpec
@@ -141,18 +144,22 @@ instance UpperBoundless TimeSpec
 -- | @since 0.1
 instance ASemigroup TimeSpec where
   MkTimeSpec ls ln .+. MkTimeSpec rs rn = MkTimeSpec (ls + rs) (ln + rn)
+  {-# INLINEABLE (.+.) #-}
 
 -- | @since 0.1
 instance AMonoid TimeSpec where
   zero = MkTimeSpec 0 0
+  {-# INLINEABLE zero #-}
 
 -- | @since 0.1
 instance MSemiSpace TimeSpec Natural where
   MkTimeSpec s n .* k = MkTimeSpec (s * k) (n * k)
+  {-# INLINEABLE (.*) #-}
 
 -- | @since 0.1
 instance MSpace TimeSpec Natural where
   ts .% MkNonZero k = fromDouble (toDouble ts / fromIntegral k)
+  {-# INLINEABLE (.%) #-}
 
 -- | @since 0.1
 instance Semimodule TimeSpec Natural
@@ -163,6 +170,7 @@ instance SemivectorSpace TimeSpec Natural
 -- | @since 0.1
 instance Normed TimeSpec where
   norm = id
+  {-# INLINEABLE norm #-}
 
 -- | Converts a 'Double' to a 'TimeSpec'.
 --
@@ -240,14 +248,20 @@ instance MonadTime IO where
   getSystemTime =
     addCallStack
       (Local.zonedTimeToLocalTime <$> Local.getZonedTime)
+  {-# INLINEABLE getSystemTime #-}
   getSystemZonedTime = addCallStack Local.getZonedTime
+  {-# INLINEABLE getSystemZonedTime #-}
   getMonotonicTime = addCallStack C.getMonotonicTime
+  {-# INLINEABLE getMonotonicTime #-}
 
 -- | @since 0.1
 instance MonadTime m => MonadTime (ReaderT e m) where
   getSystemTime = lift getSystemTime
+  {-# INLINEABLE getSystemTime #-}
   getSystemZonedTime = lift getSystemZonedTime
+  {-# INLINEABLE getSystemZonedTime #-}
   getMonotonicTime = lift getMonotonicTime
+  {-# INLINEABLE getMonotonicTime #-}
 
 -- | Runs an action, returning the elapsed time.
 --
@@ -263,6 +277,7 @@ withTiming m = do
   res <- m
   end <- getMonotonicTime
   pure (fromDouble (end - start), res)
+{-# INLINEABLE withTiming #-}
 
 -- | 'withTiming' but ignores the result value.
 --
@@ -274,6 +289,7 @@ withTiming_ ::
   m a ->
   m TimeSpec
 withTiming_ = fmap fst . withTiming
+{-# INLINEABLE withTiming_ #-}
 
 -- TODO: handle more time zones?
 
@@ -288,6 +304,7 @@ formatZonedTime = Format.formatTime Format.defaultTimeLocale zonedTimeFormat
 -- @since 0.1
 getSystemTimeString :: (HasCallStack, MonadTime m) => m String
 getSystemTimeString = fmap formatLocalTime getSystemTime
+{-# INLINEABLE getSystemTimeString #-}
 
 -- | Formats the 'LocalTime' to @YYYY-MM-DD HH:MM:SS@.
 --
@@ -300,6 +317,7 @@ formatLocalTime = Format.formatTime Format.defaultTimeLocale localTimeFormat
 -- @since 0.1
 getSystemZonedTimeString :: (HasCallStack, MonadTime m) => m String
 getSystemZonedTimeString = fmap formatZonedTime getSystemZonedTime
+{-# INLINEABLE getSystemZonedTimeString #-}
 
 -- | Parses the 'LocalTime' from @YYYY-MM-DD HH:MM:SS@. If the 'MonadFail'
 -- instance throws an 'Control.Exception.Exception' consider
@@ -312,6 +330,7 @@ parseLocalTime =
     True
     Format.defaultTimeLocale
     localTimeFormat
+{-# INLINEABLE parseLocalTime #-}
 
 -- | Variant of 'parseLocalTime' that includes CallStack for thrown
 -- exceptions.
@@ -325,6 +344,7 @@ parseLocalTimeCallStack ::
   String ->
   m LocalTime
 parseLocalTimeCallStack = addCallStack . parseLocalTime
+{-# INLINEABLE parseLocalTimeCallStack #-}
 
 -- | Parses the 'ZonedTime' from @YYYY-MM-DD HH:MM:SS Z@. If the 'MonadFail'
 -- instance throws an 'Control.Exception.Exception' consider
@@ -352,6 +372,7 @@ parseZonedTime =
     True
     Format.defaultTimeLocale
     zonedTimeFormat
+{-# INLINEABLE parseZonedTime #-}
 
 -- | Variant of 'parseZonedTime' that includes CallStack for thrown
 -- exceptions.
@@ -365,6 +386,7 @@ parseZonedTimeCallStack ::
   String ->
   m ZonedTime
 parseZonedTimeCallStack = addCallStack . parseZonedTime
+{-# INLINEABLE parseZonedTimeCallStack #-}
 
 localTimeFormat :: String
 localTimeFormat = "%0Y-%m-%d %H:%M:%S"

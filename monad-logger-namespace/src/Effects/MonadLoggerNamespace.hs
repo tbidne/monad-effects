@@ -92,12 +92,15 @@ makeFieldLabelsNoPrefix ''Namespace
 -- | @since 0.1
 instance IsString Namespace where
   fromString = MkNamespace . Seq.singleton . T.pack
+  {-# INLINEABLE fromString #-}
 
 -- | @since 0.1
 instance IsList Namespace where
   type Item Namespace = Text
   fromList = MkNamespace . fromList
+  {-# INLINEABLE fromList #-}
   toList = toList . unNamespace
+  {-# INLINEABLE toList #-}
 
 displayNamespace :: Namespace -> Text
 displayNamespace =
@@ -129,6 +132,7 @@ addNamespace ::
   m a ->
   m a
 addNamespace txt = localNamespace (over' #unNamespace (|> txt))
+{-# INLINEABLE addNamespace #-}
 
 -- | Determines how we log location data.
 --
@@ -247,6 +251,7 @@ formatLog formatter lvl msg = do
           toLogStr . MonadTime.formatZonedTime <$> getSystemZonedTime
       | otherwise =
           toLogStr . MonadTime.formatLocalTime <$> getSystemTime
+{-# INLINEABLE formatLog #-}
 
 partialLoc :: Loc -> Builder
 partialLoc loc =

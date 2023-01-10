@@ -39,10 +39,12 @@ class Monad m => MonadThread m where
 -- | @since 0.1
 instance MonadThread IO where
   microsleep n = addCallStack $ for_ (natToInts n) threadDelay
+  {-# INLINEABLE microsleep #-}
 
 -- | @since 0.1
 instance MonadThread m => MonadThread (ReaderT e m) where
   microsleep = lift . microsleep
+  {-# INLINEABLE microsleep #-}
 
 -- | Runs sleep in the current thread for the specified number of
 -- seconds.
@@ -50,6 +52,7 @@ instance MonadThread m => MonadThread (ReaderT e m) where
 -- @since 0.1
 sleep :: (HasCallStack, MonadThread m) => Natural -> m ()
 sleep = microsleep . (* 1_000_000)
+{-# INLINEABLE sleep #-}
 
 natToInts :: Natural -> [Int]
 natToInts n
@@ -104,17 +107,29 @@ class Monad m => MonadQSem m where
 -- | @since 0.1
 instance MonadQSem IO where
   newQSem = QSem.newQSem
+  {-# INLINEABLE newQSem #-}
   waitQSem = QSem.waitQSem
+  {-# INLINEABLE waitQSem #-}
   signalQSem = QSem.signalQSem
+  {-# INLINEABLE signalQSem #-}
   newQSemN = QSemN.newQSemN
+  {-# INLINEABLE newQSemN #-}
   waitQSemN = QSemN.waitQSemN
+  {-# INLINEABLE waitQSemN #-}
   signalQSemN = QSemN.signalQSemN
+  {-# INLINEABLE signalQSemN #-}
 
 -- | @since 0.1
 instance MonadQSem m => MonadQSem (ReaderT e m) where
   newQSem = lift . newQSem
+  {-# INLINEABLE newQSem #-}
   waitQSem = lift . waitQSem
+  {-# INLINEABLE waitQSem #-}
   signalQSem = lift . signalQSem
+  {-# INLINEABLE signalQSem #-}
   newQSemN = lift . newQSemN
+  {-# INLINEABLE newQSemN #-}
   waitQSemN q = lift . waitQSemN q
+  {-# INLINEABLE waitQSemN #-}
   signalQSemN q = lift . signalQSemN q
+  {-# INLINEABLE signalQSemN #-}

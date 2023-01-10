@@ -52,19 +52,30 @@ class Monad m => MonadIORef m where
 -- | @since 0.1
 instance MonadIORef IO where
   newIORef = addCallStack . IORef.newIORef
+  {-# INLINEABLE newIORef #-}
   readIORef = addCallStack . IORef.readIORef
+  {-# INLINEABLE readIORef #-}
   writeIORef r = addCallStack . IORef.writeIORef r
+  {-# INLINEABLE writeIORef #-}
   modifyIORef' r = addCallStack . IORef.modifyIORef' r
+  {-# INLINEABLE modifyIORef' #-}
   atomicModifyIORef' r = addCallStack . IORef.atomicModifyIORef' r
+  {-# INLINEABLE atomicModifyIORef' #-}
 
 -- | @since 0.1
 instance MonadIORef m => MonadIORef (ReaderT e m) where
   newIORef = lift . newIORef
+  {-# INLINEABLE newIORef #-}
   readIORef = lift . readIORef
+  {-# INLINEABLE readIORef #-}
   writeIORef r = lift . writeIORef r
+  {-# INLINEABLE writeIORef #-}
   modifyIORef' r = lift . modifyIORef' r
+  {-# INLINEABLE modifyIORef' #-}
   atomicModifyIORef' r = lift . atomicModifyIORef' r
+  {-# INLINEABLE atomicModifyIORef' #-}
 
 -- | Variant of 'atomicModifyIORef'' which ignores the return value
 atomicModifyIORef'_ :: MonadIORef m => IORef a -> (a -> a) -> m ()
 atomicModifyIORef'_ ref f = atomicModifyIORef' ref $ \a -> (f a, ())
+{-# INLINEABLE atomicModifyIORef'_ #-}
