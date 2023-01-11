@@ -26,7 +26,6 @@ import Effects.FileSystem.Path (Path)
 import Effects.MonadCallStack
   ( MonadCallStack (addCallStack),
   )
-import GHC.Natural (Natural)
 import GHC.Stack (HasCallStack)
 import System.Directory
   ( Permissions (..),
@@ -71,7 +70,7 @@ class Monad m => MonadPathReader m where
   getTemporaryDirectory :: HasCallStack => m Path
 
   -- | @since 0.1
-  getFileSize :: HasCallStack => Path -> m Natural
+  getFileSize :: HasCallStack => Path -> m Integer
 
   -- | @since 0.1
   canonicalizePath :: HasCallStack => Path -> m Path
@@ -146,7 +145,7 @@ instance MonadPathReader IO where
   {-# INLINEABLE getUserDocumentsDirectory #-}
   getTemporaryDirectory = addCallStack Dir.getTemporaryDirectory
   {-# INLINEABLE getTemporaryDirectory #-}
-  getFileSize = addCallStack . fmap fromIntegral . Dir.getFileSize
+  getFileSize = addCallStack . Dir.getFileSize
   {-# INLINEABLE getFileSize #-}
   canonicalizePath = addCallStack . Dir.canonicalizePath
   {-# INLINEABLE canonicalizePath #-}
