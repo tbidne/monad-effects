@@ -2,17 +2,21 @@
 --
 -- @since 0.1
 module Effects.MonadThread
-  ( -- * Threads
+  ( -- * Thread Effect
     MonadThread (..),
     microsleep,
     sleep,
 
-    -- * Semaphores
-    MonadQSem (..),
-
     -- * Reexports
     Natural,
     ThreadId,
+
+    -- * QSem Effect
+    MonadQSem (..),
+
+    -- * Reexports
+    QSem,
+    QSemN,
   )
 where
 
@@ -85,7 +89,8 @@ instance MonadThread m => MonadThread (ReaderT e m) where
   threadCapability = lift . threadCapability
   {-# INLINEABLE threadCapability #-}
 
--- | 'threadDelay' in terms of unbounded 'Natural' rather than 'Int'.
+-- | 'threadDelay' in terms of unbounded 'Natural' rather than 'Int' i.e.
+-- runs sleep in the current thread for the specified number of microseconds.
 --
 -- @since 0.1
 microsleep :: (HasCallStack, MonadThread m) => Natural -> m ()

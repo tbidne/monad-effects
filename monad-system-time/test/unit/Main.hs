@@ -73,10 +73,10 @@ timeSpecTests =
   testGroup
     "TimeSpec"
     [ eqEquivClass,
-      createFromDouble,
-      elimToDouble,
-      toFromDoubleEpsilon,
-      fromToDoubleEpsilon,
+      createFromSeconds,
+      elimToSeconds,
+      toFromSecondsEpsilon,
+      fromToSecondsEpsilon,
       createFromNanoSeconds,
       elimToNanoseconds,
       toFromNatRoundTrip,
@@ -97,16 +97,16 @@ eqEquivClass = testPropertyNamed desc "eqEquivClass" $
   where
     desc = "Eq equivalence class"
 
-createFromDouble :: TestTree
-createFromDouble =
+createFromSeconds :: TestTree
+createFromSeconds =
   goldenVsStringDiff desc gdiff gpath $
     pure $
       fromString $
         show $
-          MonadTime.fromDouble 10.123456789
+          MonadTime.fromSeconds 10.123456789
   where
     desc = "Creates TimeSpec from Double seconds"
-    gpath = goldenPath </> "timespec-create-double.golden"
+    gpath = goldenPath </> "timespec-create-seconds.golden"
 
 createFromNanoSeconds :: TestTree
 createFromNanoSeconds =
@@ -117,44 +117,44 @@ createFromNanoSeconds =
           MonadTime.fromNanoSeconds 10_123_456_789
   where
     desc = "Creates TimeSpec from Natural nanoseconds"
-    gpath = goldenPath </> "timespec-create-natural.golden"
+    gpath = goldenPath </> "timespec-create-nanoseconds.golden"
 
-elimToDouble :: TestTree
-elimToDouble =
+elimToSeconds :: TestTree
+elimToSeconds =
   goldenVsStringDiff desc gdiff gpath $
     pure $
       fromString $
         show $
-          MonadTime.toDouble $
+          MonadTime.toSeconds $
             MkTimeSpec 10 123_456_789
   where
-    desc = "Maps TimeSpec to Double"
-    gpath = goldenPath </> "timespec-elim-double.golden"
+    desc = "Maps TimeSpec to seconds"
+    gpath = goldenPath </> "timespec-elim-seconds.golden"
 
-toFromDoubleEpsilon :: TestTree
-toFromDoubleEpsilon = testPropertyNamed desc "toFromDoubleEpsilon" $
+toFromSecondsEpsilon :: TestTree
+toFromSecondsEpsilon = testPropertyNamed desc "toFromSecondsEpsilon" $
   property $ do
     s <- forAll genDouble
-    let ts = MonadTime.fromDouble s
-        s' = MonadTime.toDouble ts
+    let ts = MonadTime.fromSeconds s
+        s' = MonadTime.toSeconds ts
     annotateShow ts
 
     diff (abs (s - s')) (<) 1
   where
-    desc = "(toDouble . fromDouble) x ~= x (up to 1 sec)"
+    desc = "(toSeconds . fromSeconds) x ~= x (up to 1 sec)"
 
-fromToDoubleEpsilon :: TestTree
-fromToDoubleEpsilon = testPropertyNamed desc "fromToDoubleEpsilon" $
+fromToSecondsEpsilon :: TestTree
+fromToSecondsEpsilon = testPropertyNamed desc "fromToSecondsEpsilon" $
   property $ do
     ts <- forAll genTimeSpec
-    let s = MonadTime.toDouble ts
-        ts' = MonadTime.fromDouble s
+    let s = MonadTime.toSeconds ts
+        ts' = MonadTime.fromSeconds s
     annotateShow s
 
     toSeconds ts === toSeconds ts'
   where
     toSeconds = view #sec . MonadTime.normalizeTimeSpec
-    desc = "(toDouble . fromDouble) x ~= x (up to 1 sec)"
+    desc = "(toSeconds . fromSeconds) x ~= x (up to 1 sec)"
 
 toFromNatRoundTrip :: TestTree
 toFromNatRoundTrip = testPropertyNamed desc "toFromNatRoundTrip" $
@@ -187,8 +187,8 @@ elimToNanoseconds =
           MonadTime.toNanoSeconds $
             MkTimeSpec 10 123_456_789
   where
-    desc = "Maps TimeSpec to Double"
-    gpath = goldenPath </> "timespec-elim-natural.golden"
+    desc = "Maps TimeSpec to nanoseconds"
+    gpath = goldenPath </> "timespec-elim-nanoseconds.golden"
 
 diffsTimeSpec :: TestTree
 diffsTimeSpec =

@@ -31,7 +31,6 @@ instance Monad Logger where
      in mkB ns
 
 instance MonadTime Logger where
-  getSystemTime = pure localTime
   getSystemZonedTime = pure zonedTime
   getMonotonicTime = pure 50
 

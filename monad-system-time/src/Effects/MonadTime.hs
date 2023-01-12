@@ -18,11 +18,11 @@ module Effects.MonadTime
     TimeSpec (..),
 
     -- *** Creation
-    fromDouble,
+    fromSeconds,
     fromNanoSeconds,
 
     -- *** Elimination
-    toDouble,
+    toSeconds,
     toNanoSeconds,
 
     -- *** Operations
@@ -159,7 +159,7 @@ instance MSemiSpace TimeSpec Natural where
 
 -- | @since 0.1
 instance MSpace TimeSpec Natural where
-  ts .% MkNonZero k = fromDouble (toDouble ts / fromIntegral k)
+  ts .% MkNonZero k = fromSeconds (toSeconds ts / fromIntegral k)
   {-# INLINEABLE (.%) #-}
 
 -- | @since 0.1
@@ -173,11 +173,11 @@ instance Normed TimeSpec where
   norm = id
   {-# INLINEABLE norm #-}
 
--- | Converts a 'Double' to a 'TimeSpec'.
+-- | Converts 'Double' seconds to a 'TimeSpec'.
 --
 -- @since 0.1
-fromDouble :: Double -> TimeSpec
-fromDouble d =
+fromSeconds :: Double -> TimeSpec
+fromSeconds d =
   MkTimeSpec
     { sec = seconds,
       nsec = nanoseconds
@@ -194,11 +194,11 @@ fromNanoSeconds nanoseconds = MkTimeSpec s ns
   where
     (s, ns) = quotRem nanoseconds 1_000_000_000
 
--- | Converts a 'TimeSpec' to a 'Double'.
+-- | Converts a 'TimeSpec' to 'Double' seconds.
 --
 -- @since 0.1
-toDouble :: TimeSpec -> Double
-toDouble (MkTimeSpec s n) =
+toSeconds :: TimeSpec -> Double
+toSeconds (MkTimeSpec s n) =
   fromIntegral s + (fromIntegral n / 1_000_000_000)
 
 -- | Converts a 'TimeSpec' into 'Natural' nanoseconds.
@@ -273,7 +273,7 @@ withTiming m = do
   start <- getMonotonicTime
   res <- m
   end <- getMonotonicTime
-  pure (fromDouble (end - start), res)
+  pure (fromSeconds (end - start), res)
 {-# INLINEABLE withTiming #-}
 
 -- | 'withTiming' but ignores the result value.
