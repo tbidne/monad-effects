@@ -42,7 +42,7 @@ import Numeric.Natural (Natural)
 --
 -- @since 0.1
 class Monad m => MonadSTM m where
-  -- | Lifts an 'STM'.
+  -- | Lifted 'STM.atomically'.
   --
   -- @since 0.1
   atomically :: HasCallStack => STM a -> m a
@@ -57,47 +57,65 @@ instance MonadSTM m => MonadSTM (ReaderT e m) where
   atomically = lift . atomically
   {-# INLINEABLE atomically #-}
 
--- | @since 0.1
+-- | Lifted 'TVar.newTVar'.
+--
+-- @since 0.1
 newTVarM :: (HasCallStack, MonadSTM m) => a -> m (TVar a)
 newTVarM = atomically . TVar.newTVar
 {-# INLINEABLE newTVarM #-}
 
--- | @since 0.1
+-- | Lifted 'TVar.readTVar'.
+--
+-- @since 0.1
 readTVarM :: (HasCallStack, MonadSTM m) => TVar a -> m a
 readTVarM = atomically . TVar.readTVar
 {-# INLINEABLE readTVarM #-}
 
--- | @since 0.1
+-- | Lifted 'TVar.writeTVar'.
+--
+-- @since 0.1
 writeTVarM :: (HasCallStack, MonadSTM m) => TVar a -> a -> m ()
 writeTVarM r = atomically . TVar.writeTVar r
 {-# INLINEABLE writeTVarM #-}
 
--- | @since 0.1
+-- | Lifted 'TVar.modifyTVar''.
+--
+-- @since 0.1
 modifyTVarM' :: (HasCallStack, MonadSTM m) => TVar a -> (a -> a) -> m ()
 modifyTVarM' r = atomically . TVar.modifyTVar' r
 {-# INLINEABLE modifyTVarM' #-}
 
--- | @since 0.1
+-- | Lifted 'TBQueue.newTBQueue'.
+--
+-- @since 0.1
 newTBQueueM :: (HasCallStack, MonadSTM m) => Natural -> m (TBQueue a)
 newTBQueueM = atomically . TBQueue.newTBQueue
 {-# INLINEABLE newTBQueueM #-}
 
--- | @since 0.1
+-- | Lifted 'TBQueue.readTBQueue'.
+--
+-- @since 0.1
 readTBQueueM :: (HasCallStack, MonadSTM m) => TBQueue a -> m a
 readTBQueueM = atomically . TBQueue.readTBQueue
 {-# INLINEABLE readTBQueueM #-}
 
--- | @since 0.1
+-- | Lifted 'TBQueue.tryReadTBQueue'.
+--
+-- @since 0.1
 tryReadTBQueueM :: (HasCallStack, MonadSTM m) => TBQueue a -> m (Maybe a)
 tryReadTBQueueM = atomically . TBQueue.tryReadTBQueue
 {-# INLINEABLE tryReadTBQueueM #-}
 
--- | @since 0.1
+-- | Lifted 'TBQueue.writeTBQueue'.
+--
+-- @since 0.1
 writeTBQueueM :: (HasCallStack, MonadSTM m) => TBQueue a -> a -> m ()
 writeTBQueueM q = atomically . TBQueue.writeTBQueue q
 {-# INLINEABLE writeTBQueueM #-}
 
--- | @since 0.1
+-- | Lifted 'TBQueue.flushTBQueue'.
+--
+-- @since 0.1
 flushTBQueueM :: (HasCallStack, MonadSTM m) => TBQueue a -> m [a]
 flushTBQueueM = atomically . TBQueue.flushTBQueue
 {-# INLINEABLE flushTBQueueM #-}

@@ -43,68 +43,111 @@ import System.Directory.OsPath qualified as Dir
 import System.Directory qualified as Dir
 #endif
 
+-- REVIEW: Can we reduce the class size by implementing some of these
+-- functions in terms of others?
+
 -- | Represents file-system writer effects.
 --
 -- @since 0.1
 class Monad m => MonadPathWriter m where
-  -- | @since 0.1
+  -- | Lifted 'Dir.createDirectory'.
+  --
+  -- @since 0.1
   createDirectory :: HasCallStack => Path -> m ()
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.createDirectoryIfMissing'.
+  --
+  -- @since 0.1
   createDirectoryIfMissing :: HasCallStack => Bool -> Path -> m ()
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.removeDirectory'.
+  --
+  -- @since 0.1
   removeDirectory :: HasCallStack => Path -> m ()
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.removeDirectoryRecursive'.
+  --
+  -- @since 0.1
   removeDirectoryRecursive :: HasCallStack => Path -> m ()
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.removePathForcibly'.
+  --
+  -- @since 0.1
   removePathForcibly :: HasCallStack => Path -> m ()
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.renameDirectory'.
+  --
+  -- @since 0.1
   renameDirectory :: HasCallStack => Path -> Path -> m ()
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.setCurrentDirectory'.
+  --
+  -- @since 0.1
   setCurrentDirectory :: HasCallStack => Path -> m ()
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.withCurrentDirectory'.
+  --
+  -- @since 0.1
   withCurrentDirectory :: HasCallStack => Path -> m a -> m a
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.removeFile'.
+  --
+  -- @since 0.1
   removeFile :: HasCallStack => Path -> m ()
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.renameFile'.
+  --
+  -- @since 0.1
   renameFile :: HasCallStack => Path -> Path -> m ()
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.renamePath'.
+  --
+  -- @since 0.1
   renamePath :: HasCallStack => Path -> Path -> m ()
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.copyFile'.
+  --
+  -- @since 0.1
   copyFile :: HasCallStack => Path -> Path -> m ()
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.copyFileWithMetadata'.
+  --
+  -- @since 0.1
   copyFileWithMetadata :: HasCallStack => Path -> Path -> m ()
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.createFileLink'.
+  --
+  -- @since 0.1
   createFileLink :: HasCallStack => Path -> Path -> m ()
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.createDirectoryLink'.
+  --
+  -- @since 0.1
   createDirectoryLink :: HasCallStack => Path -> Path -> m ()
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.removeDirectoryLink'.
+  --
+  -- @since 0.1
   removeDirectoryLink :: HasCallStack => Path -> m ()
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.setPermissions'.
+  --
+  -- @since 0.1
   setPermissions :: HasCallStack => Path -> Permissions -> m ()
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.copyPermissions'.
+  --
+  -- @since 0.1
   copyPermissions :: HasCallStack => Path -> Path -> m ()
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.setAccessTime'.
+  --
+  -- @since 0.1
   setAccessTime :: HasCallStack => Path -> UTCTime -> m ()
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.setModificationTime'.
+  --
+  -- @since 0.1
   setModificationTime :: HasCallStack => Path -> UTCTime -> m ()
 
 -- | @since 0.1

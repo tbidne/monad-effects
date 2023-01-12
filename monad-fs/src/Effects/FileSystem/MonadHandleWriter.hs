@@ -48,37 +48,59 @@ import System.IO qualified as IO
 --
 -- @since 0.1
 class Monad m => MonadHandleWriter m where
-  -- | @since 0.1
+  -- | Lifted 'IO.openBinaryFile'.
+  --
+  -- @since 0.1
   openBinaryFile :: HasCallStack => Path -> IOMode -> m Handle
 
-  -- | @since 0.1
+  -- | Lifted 'IO.withBinaryFile'.
+  --
+  -- @since 0.1
   withBinaryFile :: HasCallStack => Path -> IOMode -> (Handle -> m a) -> m a
 
-  -- | @since 0.1
+  -- | Lifted 'IO.hClose'.
+  --
+  -- @since 0.1
   hClose :: HasCallStack => Handle -> m ()
 
-  -- | @since 0.1
+  -- | Lifted 'IO.hFlush'.
+  --
+  -- @since 0.1
   hFlush :: HasCallStack => Handle -> m ()
 
-  -- | @since 0.1
+  -- | Lifted 'IO.hSetFileSize'.
+  --
+  -- @since 0.1
   hSetFileSize :: HasCallStack => Handle -> Integer -> m ()
 
-  -- | @since 0.1
+  -- | Lifted 'IO.hSetBuffering'.
+  --
+  -- @since 0.1
   hSetBuffering :: HasCallStack => Handle -> BufferMode -> m ()
 
-  -- | @since 0.1
+  -- | Lifted 'IO.hSeek'.
+  --
+  -- @since 0.1
   hSeek :: HasCallStack => Handle -> SeekMode -> Integer -> m ()
 
-  -- | @since 0.1
+  -- | Lifted 'IO.hTell'.
+  --
+  -- @since 0.1
   hTell :: HasCallStack => Handle -> m Integer
 
-  -- | @since 0.1
+  -- | Lifted 'IO.hSetEcho'.
+  --
+  -- @since 0.1
   hSetEcho :: HasCallStack => Handle -> Bool -> m ()
 
-  -- | @since 0.1
+  -- | Lifted 'BS.hPut'.
+  --
+  -- @since 0.1
   hPut :: HasCallStack => Handle -> ByteString -> m ()
 
-  -- | @since 0.1
+  -- | Lifted 'BS.hPutNonBlocking'.
+  --
+  -- @since 0.1
   hPutNonBlocking :: HasCallStack => Handle -> ByteString -> m ByteString
 
 -- | @since 0.1
@@ -132,12 +154,16 @@ instance MonadHandleWriter m => MonadHandleWriter (ReaderT env m) where
   hPutNonBlocking h = lift . hPutNonBlocking h
   {-# INLINEABLE hPutNonBlocking #-}
 
--- | @since 0.1
+-- | Writes the UTF-8 text to the handle.
+--
+-- @since 0.1
 hPutUtf8 :: (HasCallStack, MonadHandleWriter m) => Handle -> Text -> m ()
 hPutUtf8 h = hPut h . encodeUtf8
 {-# INLINEABLE hPutUtf8 #-}
 
--- | @since 0.1
+-- | Writes UTF-8 text to handle, returning leftover bytes.
+--
+-- @since 0.1
 hPutNonBlockingUtf8' ::
   ( HasCallStack,
     MonadHandleWriter m
@@ -148,7 +174,10 @@ hPutNonBlockingUtf8' ::
 hPutNonBlockingUtf8' h = hPutNonBlocking h . encodeUtf8
 {-# INLINEABLE hPutNonBlockingUtf8' #-}
 
--- | @since 0.1
+-- | Writes UTF-8 text to handle. Any leftover bytes are returned, after
+-- attempted UTF-8 decoding.
+--
+-- @since 0.1
 hPutNonBlockingUtf8 ::
   ( HasCallStack,
     MonadHandleWriter m
@@ -159,7 +188,10 @@ hPutNonBlockingUtf8 ::
 hPutNonBlockingUtf8 h = fmap decodeUtf8 . hPutNonBlocking h . encodeUtf8
 {-# INLINEABLE hPutNonBlockingUtf8 #-}
 
--- | @since 0.1
+-- | Writes UTF-8 text to handle. Any leftover bytes are returned, after
+-- lenient UTF-8 conversion.
+--
+-- @since 0.1
 hPutNonBlockingUtf8Lenient ::
   ( HasCallStack,
     MonadHandleWriter m
@@ -173,7 +205,11 @@ hPutNonBlockingUtf8Lenient h =
     . encodeUtf8
 {-# INLINEABLE hPutNonBlockingUtf8Lenient #-}
 
--- | @since 0.1
+-- | Writes UTF-8 text to handle. Any leftover bytes are returned, after
+-- UTF-8 conversion. Throws 'UnicodeException' if there are any decode
+-- errors.
+--
+-- @since 0.1
 hPutNonBlockingUtf8ThrowM ::
   ( HasCallStack,
     MonadCallStack m,

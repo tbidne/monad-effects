@@ -232,7 +232,7 @@ class Monad m => MonadTime m where
   -- @since 0.1
   getSystemTime :: HasCallStack => m LocalTime
 
-  -- | Returns the zoned system time
+  -- | Returns the zoned system time.
   --
   -- @since 0.1
   getSystemZonedTime :: HasCallStack => m ZonedTime

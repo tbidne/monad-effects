@@ -62,28 +62,32 @@ instance Exception TermSizeException where
 --
 -- @since 0.1
 class Monad m => MonadTerminal m where
-  -- | Simple print function.
+  -- | Lifted 'IO.putStr'.
   --
   -- @since 0.1
   putStr :: HasCallStack => String -> m ()
 
-  -- | Simple print function with newline.
+  -- | Lifted 'IO.putStrLn'.
   --
   -- @since 0.1
   putStrLn :: HasCallStack => String -> m ()
   putStrLn = putStr . (<> "\n")
   {-# INLINEABLE putStrLn #-}
 
-  -- | Retrieves a 'Char'.
+  -- | Lifted 'IO.getChar'.
   --
   -- @since 0.1
   getChar :: HasCallStack => m Char
 
-  -- | @since 0.1
+  -- | Lifted 'IO.getLine'.
+  --
+  -- @since 0.1
   getLine :: HasCallStack => m String
 
 #if MIN_VERSION_base(4,15,0)
-  -- | @since 0.1
+  -- | Lifted 'IO.getContents''.
+  --
+  -- @since 0.1
   getContents' :: HasCallStack => m String
 #endif
 
@@ -143,13 +147,17 @@ putTextLn :: (HasCallStack, MonadTerminal m) => Text -> m ()
 putTextLn = putStrLn . T.unpack
 {-# INLINEABLE putTextLn #-}
 
--- | @since 0.1
+-- | 'Text' version of 'getLine'.
+--
+-- @since 0.1
 getTextLine :: (HasCallStack, MonadTerminal m) => m Text
 getTextLine = T.pack <$> getLine
 {-# INLINEABLE getTextLine #-}
 
 #if MIN_VERSION_base(4,15,0)
--- | @since 0.1
+-- | 'Text' version of 'getContents''.
+--
+-- @since 0.1
 getTextContents' :: (HasCallStack, MonadTerminal m) => m Text
 getTextContents' = T.pack <$> getContents'
 {-# INLINEABLE getTextContents' #-}

@@ -4,6 +4,7 @@
 module Effects.MonadThread
   ( -- * Threads
     MonadThread (..),
+    microsleep,
     sleep,
 
     -- * Semaphores
@@ -33,11 +34,10 @@ import GHC.Stack (HasCallStack)
 --
 -- @since 0.1
 class Monad m => MonadThread m where
-  -- | Runs sleep in the current thread for the specified number of
-  -- microseconds.
+  -- | Lifted 'CC.threadDelay'.
   --
   -- @since 0.1
-  microsleep :: HasCallStack => Natural -> m ()
+  threadDelay :: HasCallStack => Int -> m ()
 
   -- | Lifted 'CC.throwTo'.
   --
@@ -61,8 +61,8 @@ class Monad m => MonadThread m where
 
 -- | @since 0.1
 instance MonadThread IO where
-  microsleep n = addCallStack $ for_ (natToInts n) CC.threadDelay
-  {-# INLINEABLE microsleep #-}
+  threadDelay = addCallStack . CC.threadDelay
+  {-# INLINEABLE threadDelay #-}
   throwTo tid = addCallStack . CC.throwTo tid
   {-# INLINEABLE throwTo #-}
   getNumCapabilities = addCallStack CC.getNumCapabilities
@@ -74,8 +74,8 @@ instance MonadThread IO where
 
 -- | @since 0.1
 instance MonadThread m => MonadThread (ReaderT e m) where
-  microsleep = lift . microsleep
-  {-# INLINEABLE microsleep #-}
+  threadDelay = lift . threadDelay
+  {-# INLINEABLE threadDelay #-}
   throwTo tid = lift . throwTo tid
   {-# INLINEABLE throwTo #-}
   getNumCapabilities = lift getNumCapabilities
@@ -84,6 +84,13 @@ instance MonadThread m => MonadThread (ReaderT e m) where
   {-# INLINEABLE setNumCapabilities #-}
   threadCapability = lift . threadCapability
   {-# INLINEABLE threadCapability #-}
+
+-- | 'threadDelay' in terms of unbounded 'Natural' rather than 'Int'.
+--
+-- @since 0.1
+microsleep :: (HasCallStack, MonadThread m) => Natural -> m ()
+microsleep n = for_ (natToInts n) threadDelay
+{-# INLINEABLE microsleep #-}
 
 -- | Runs sleep in the current thread for the specified number of
 -- seconds.
@@ -113,32 +120,32 @@ i2n = fromIntegral
 --
 -- @since 0.1
 class Monad m => MonadQSem m where
-  -- | Creates a 'QSem'.
+  -- | Lifted 'QSem.newQSem'.
   --
   -- @since 0.1
   newQSem :: Int -> m QSem
 
-  -- | Waits for a 'QSem'.
+  -- | Lifted 'QSem.waitQSem'.
   --
   -- @since 0.1
   waitQSem :: QSem -> m ()
 
-  -- | Signals a 'QSem'.
+  -- | Lifted 'QSem.signalQSem'.
   --
   -- @since 0.1
   signalQSem :: QSem -> m ()
 
-  -- | Creates a 'QSemN'.
+  -- | Lifted 'QSemN.newQSemN'.
   --
   -- @since 0.1
   newQSemN :: Int -> m QSemN
 
-  -- | Waits for a 'QSemN'.
+  -- | Lifted 'QSemN.waitQSemN'.
   --
   -- @since 0.1
   waitQSemN :: QSemN -> Int -> m ()
 
-  -- | Signals a 'QSemN'.
+  -- | Lifted 'QSemN.signalQSemN'.
   --
   -- @since 0.1
   signalQSemN :: QSemN -> Int -> m ()

@@ -53,55 +53,89 @@ import System.IO qualified as IO
 --
 -- @since 0.1
 class Monad m => MonadHandleReader m where
-  -- | @since 0.1
+  -- | Lifted 'IO.hIsEOF'.
+  --
+  -- @since 0.1
   hIsEOF :: HasCallStack => Handle -> m Bool
 
-  -- | @since 0.1
+  -- | Lifted 'IO.hGetBuffering'.
+  --
+  -- @since 0.1
   hGetBuffering :: HasCallStack => Handle -> m BufferMode
 
-  -- | @since 0.1
+  -- | Lifted 'IO.hIsOpen'.
+  --
+  -- @since 0.1
   hIsOpen :: HasCallStack => Handle -> m Bool
 
-  -- | @since 0.1
+  -- | Lifted 'IO.hIsClosed'.
+  --
+  -- @since 0.1
   hIsClosed :: HasCallStack => Handle -> m Bool
 
-  -- | @since 0.1
+  -- | Lifted 'IO.hIsReadable'.
+  --
+  -- @since 0.1
   hIsReadable :: HasCallStack => Handle -> m Bool
 
-  -- | @since 0.1
+  -- | Lifted 'IO.hIsWritable'.
+  --
+  -- @since 0.1
   hIsWritable :: HasCallStack => Handle -> m Bool
 
-  -- | @since 0.1
+  -- | Lifted 'IO.hIsSeekable'.
+  --
+  -- @since 0.1
   hIsSeekable :: HasCallStack => Handle -> m Bool
 
-  -- | @since 0.1
+  -- | Lifted 'IO.hIsTerminalDevice'.
+  --
+  -- @since 0.1
   hIsTerminalDevice :: HasCallStack => Handle -> m Bool
 
-  -- | @since 0.1
+  -- | Lifted 'IO.hGetEcho'.
+  --
+  -- @since 0.1
   hGetEcho :: HasCallStack => Handle -> m Bool
 
-  -- | @since 0.1
+  -- | Lifted 'IO.hWaitForInput'.
+  --
+  -- @since 0.1
   hWaitForInput :: HasCallStack => Handle -> Int -> m Bool
 
-  -- | @since 0.1
+  -- | Lifted 'IO.hReady'.
+  --
+  -- @since 0.1
   hReady :: HasCallStack => Handle -> m Bool
 
-  -- | @since 0.1
+  -- | Lifted 'IO.hGetChar'.
+  --
+  -- @since 0.1
   hGetChar :: HasCallStack => Handle -> m Char
 
-  -- | @since 0.1
+  -- | Lifted 'BS.hGetLine'.
+  --
+  -- @since 0.1
   hGetLine :: HasCallStack => Handle -> m ByteString
 
-  -- | @since 0.1
+  -- | Lifted 'BS.hGetContents'.
+  --
+  -- @since 0.1
   hGetContents :: HasCallStack => Handle -> m ByteString
 
-  -- | @since 0.1
+  -- | Lifted 'BS.hGet'.
+  --
+  -- @since 0.1
   hGet :: HasCallStack => Handle -> Int -> m ByteString
 
-  -- | @since 0.1
+  -- | Lifted 'BS.hGetSome'.
+  --
+  -- @since 0.1
   hGetSome :: HasCallStack => Handle -> Int -> m ByteString
 
-  -- | @since 0.1
+  -- | Lifted 'BS.hGetNonBlocking'.
+  --
+  -- @since 0.1
   hGetNonBlocking :: HasCallStack => Handle -> Int -> m ByteString
 
 -- | @since 0.1
@@ -178,7 +212,9 @@ instance MonadHandleReader m => MonadHandleReader (ReaderT e m) where
   hGetNonBlocking h = lift . hGetNonBlocking h
   {-# INLINEABLE hGetNonBlocking #-}
 
--- | @since 0.1
+-- | 'hGetLine' that attempts a UTF-8 conversion.
+--
+-- @since 0.1
 hGetLineUtf8 ::
   ( HasCallStack,
     MonadHandleReader m
@@ -188,12 +224,16 @@ hGetLineUtf8 ::
 hGetLineUtf8 = fmap decodeUtf8 . hGetLine
 {-# INLINEABLE hGetLineUtf8 #-}
 
--- | @since 0.1
+-- | 'hGetLine' that converts to UTF-8 in lenient mode.
+--
+-- @since 0.1
 hGetLineUtf8Lenient :: (HasCallStack, MonadHandleReader m) => Handle -> m Text
 hGetLineUtf8Lenient = fmap decodeUtf8Lenient . hGetLine
 {-# INLINEABLE hGetLineUtf8Lenient #-}
 
--- | @since 0.1
+-- | 'hGetLine' that throws 'UnicodeException' if UTF-8 conversion fails.
+--
+-- @since 0.1
 hGetLineUtf8ThrowM ::
   ( HasCallStack,
     MonadCallStack m,
@@ -204,7 +244,9 @@ hGetLineUtf8ThrowM ::
 hGetLineUtf8ThrowM = hGetLine >=> decodeUtf8ThrowM
 {-# INLINEABLE hGetLineUtf8ThrowM #-}
 
--- | @since 0.1
+-- | 'hGetContents' that attempts a UTF-8 conversion.
+--
+-- @since 0.1
 hGetContentsUtf8 ::
   ( HasCallStack,
     MonadHandleReader m
@@ -214,7 +256,9 @@ hGetContentsUtf8 ::
 hGetContentsUtf8 = fmap decodeUtf8 . hGetContents
 {-# INLINEABLE hGetContentsUtf8 #-}
 
--- | @since 0.1
+-- | 'hGetContents' that converts to UTF-8 in lenient mode.
+--
+-- @since 0.1
 hGetContentsUtf8Lenient ::
   ( HasCallStack,
     MonadHandleReader m
@@ -224,7 +268,9 @@ hGetContentsUtf8Lenient ::
 hGetContentsUtf8Lenient = fmap decodeUtf8Lenient . hGetContents
 {-# INLINEABLE hGetContentsUtf8Lenient #-}
 
--- | @since 0.1
+-- | 'hGetContents' that throws 'UnicodeException' if UTF-8 conversion fails.
+--
+-- @since 0.1
 hGetContentsUtf8ThrowM ::
   ( HasCallStack,
     MonadCallStack m,
@@ -235,7 +281,9 @@ hGetContentsUtf8ThrowM ::
 hGetContentsUtf8ThrowM = hGetContents >=> decodeUtf8ThrowM
 {-# INLINEABLE hGetContentsUtf8ThrowM #-}
 
--- | @since 0.1
+-- | 'hGet' that attempts a UTF-8 conversion.
+--
+-- @since 0.1
 hGetUtf8 ::
   ( HasCallStack,
     MonadHandleReader m
@@ -246,7 +294,9 @@ hGetUtf8 ::
 hGetUtf8 h = fmap decodeUtf8 . hGet h
 {-# INLINEABLE hGetUtf8 #-}
 
--- | @since 0.1
+-- | 'hGet' that converts to UTF-8 in lenient mode.
+--
+-- @since 0.1
 hGetUtf8Lenient ::
   ( HasCallStack,
     MonadHandleReader m
@@ -257,7 +307,9 @@ hGetUtf8Lenient ::
 hGetUtf8Lenient h = fmap decodeUtf8Lenient . hGet h
 {-# INLINEABLE hGetUtf8Lenient #-}
 
--- | @since 0.1
+-- | 'hGet' that throws 'UnicodeException' if UTF-8 conversion fails.
+--
+-- @since 0.1
 hGetUtf8ThrowM ::
   ( HasCallStack,
     MonadCallStack m,
@@ -269,7 +321,9 @@ hGetUtf8ThrowM ::
 hGetUtf8ThrowM h = hGet h >=> decodeUtf8ThrowM
 {-# INLINEABLE hGetUtf8ThrowM #-}
 
--- | @since 0.1
+-- | 'hGetSome' that attempts a UTF-8 conversion.
+--
+-- @since 0.1
 hGetSomeUtf8 ::
   ( HasCallStack,
     MonadHandleReader m
@@ -280,7 +334,9 @@ hGetSomeUtf8 ::
 hGetSomeUtf8 h = fmap decodeUtf8 . hGetSome h
 {-# INLINEABLE hGetSomeUtf8 #-}
 
--- | @since 0.1
+-- | 'hGetSome' that converts to UTF-8 in lenient mode.
+--
+-- @since 0.1
 hGetSomeUtf8Lenient ::
   ( HasCallStack,
     MonadHandleReader m
@@ -291,7 +347,9 @@ hGetSomeUtf8Lenient ::
 hGetSomeUtf8Lenient h = fmap decodeUtf8Lenient . hGetSome h
 {-# INLINEABLE hGetSomeUtf8Lenient #-}
 
--- | @since 0.1
+-- | 'hGetSome' that throws 'UnicodeException' if UTF-8 conversion fails.
+--
+-- @since 0.1
 hGetSomeUtf8ThrowM ::
   ( HasCallStack,
     MonadCallStack m,
@@ -303,7 +361,9 @@ hGetSomeUtf8ThrowM ::
 hGetSomeUtf8ThrowM h = hGetSome h >=> decodeUtf8ThrowM
 {-# INLINEABLE hGetSomeUtf8ThrowM #-}
 
--- | @since 0.1
+-- | 'hGetNonBlocking' that attempts a UTF-8 conversion.
+--
+-- @since 0.1
 hGetNonBlockingUtf8 ::
   ( HasCallStack,
     MonadHandleReader m
@@ -314,7 +374,9 @@ hGetNonBlockingUtf8 ::
 hGetNonBlockingUtf8 h = fmap decodeUtf8 . hGetNonBlocking h
 {-# INLINEABLE hGetNonBlockingUtf8 #-}
 
--- | @since 0.1
+-- | 'hGetNonBlocking' that converts to UTF-8 in lenient mode.
+--
+-- @since 0.1
 hGetNonBlockingUtf8Lenient ::
   ( HasCallStack,
     MonadHandleReader m
@@ -325,7 +387,9 @@ hGetNonBlockingUtf8Lenient ::
 hGetNonBlockingUtf8Lenient h = fmap decodeUtf8Lenient . hGetNonBlocking h
 {-# INLINEABLE hGetNonBlockingUtf8Lenient #-}
 
--- | @since 0.1
+-- | 'hGetNonBlocking' that throws 'UnicodeException' if UTF-8 conversion fails.
+--
+-- @since 0.1
 hGetNonBlockingUtf8ThrowM ::
   ( HasCallStack,
     MonadCallStack m,

@@ -99,7 +99,7 @@ import Effects.MonadIORef
   )
 import Effects.MonadSTM (MonadSTM (..))
 import Effects.MonadThread
-  ( MonadThread (getNumCapabilities, microsleep, throwTo),
+  ( MonadThread (getNumCapabilities, threadDelay, throwTo),
   )
 import GHC.Stack (HasCallStack)
 
@@ -432,7 +432,7 @@ waitAnyCancel asyncs =
   waitAny asyncs `Ex.finally` mapM_ cancel asyncs
 {-# INLINEABLE waitAnyCancel #-}
 
---- | Lifted 'Async.waitAnyCatchCancel'.
+-- | Lifted 'Async.waitAnyCatchCancel'.
 --
 -- @since 0.1
 waitAnyCatchCancel ::
@@ -573,7 +573,7 @@ instance MonadAsync m => Applicative (Concurrently m) where
 
 -- | @since 0.1
 instance (MonadAsync m, MonadThread m) => Alternative (Concurrently m) where
-  empty = Concurrently $ forever (microsleep 9223372036854775807)
+  empty = Concurrently $ forever (threadDelay maxBound)
   Concurrently as <|> Concurrently bs =
     Concurrently $ either id id <$> race as bs
 

@@ -38,92 +38,151 @@ import System.Directory.OsPath qualified as Dir
 import System.Directory qualified as Dir
 #endif
 
+-- REVIEW: Can we reduce the class size by implementing some of these
+-- functions in terms of others?
+
 -- | Represents file-system reader effects.
 --
 -- @since 0.1
 class Monad m => MonadPathReader m where
-  -- | @since 0.1
+  -- | Lifted 'Dir.listDirectory'.
+  --
+  -- @since 0.1
   listDirectory :: HasCallStack => Path -> m [Path]
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.getDirectoryContents'.
+  --
+  -- @since 0.1
   getDirectoryContents :: HasCallStack => Path -> m [Path]
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.getCurrentDirectory'.
+  --
+  -- @since 0.1
   getCurrentDirectory :: HasCallStack => m Path
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.getHomeDirectory'.
+  --
+  -- @since 0.1
   getHomeDirectory :: HasCallStack => m Path
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.getXdgDirectory'.
+  --
+  -- @since 0.1
   getXdgDirectory :: HasCallStack => XdgDirectory -> Path -> m Path
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.getXdgDirectoryList'.
+  --
+  -- @since 0.1
   getXdgDirectoryList :: HasCallStack => XdgDirectoryList -> m [Path]
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.getAppUserDataDirectory'.
+  --
+  -- @since 0.1
   getAppUserDataDirectory :: HasCallStack => Path -> m Path
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.getUserDocumentsDirectory'.
+  --
+  -- @since 0.1
   getUserDocumentsDirectory :: HasCallStack => m Path
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.getTemporaryDirectory'.
+  --
+  -- @since 0.1
   getTemporaryDirectory :: HasCallStack => m Path
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.getFileSize'.
+  --
+  -- @since 0.1
   getFileSize :: HasCallStack => Path -> m Integer
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.canonicalizePath'.
+  --
+  -- @since 0.1
   canonicalizePath :: HasCallStack => Path -> m Path
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.makeAbsolute'.
+  --
+  -- @since 0.1
   makeAbsolute :: HasCallStack => Path -> m Path
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.makeRelativeToCurrentDirectory'.
+  --
+  -- @since 0.1
   makeRelativeToCurrentDirectory :: HasCallStack => Path -> m Path
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.doesPathExist'.
+  --
+  -- @since 0.1
   doesPathExist :: HasCallStack => Path -> m Bool
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.doesFileExist'.
+  --
+  -- @since 0.1
   doesFileExist :: HasCallStack => Path -> m Bool
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.doesDirectoryExist'.
+  --
+  -- @since 0.1
   doesDirectoryExist :: HasCallStack => Path -> m Bool
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.findExecutable'.
+  --
+  -- @since 0.1
   findExecutable :: HasCallStack => String -> m (Maybe Path)
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.findExecutables'.
+  --
+  -- @since 0.1
   findExecutables :: HasCallStack => String -> m [Path]
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.findExecutablesInDirectories'.
+  --
+  -- @since 0.1
   findExecutablesInDirectories :: HasCallStack => [Path] -> String -> m [Path]
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.findFile'.
+  --
+  -- @since 0.1
   findFile :: HasCallStack => [Path] -> String -> m (Maybe Path)
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.findFiles'.
+  --
+  -- @since 0.1
   findFiles :: HasCallStack => [Path] -> String -> m [Path]
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.findFileWith'.
+  --
+  -- @since 0.1
   findFileWith :: HasCallStack => (Path -> m Bool) -> [Path] -> String -> m (Maybe Path)
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.findFilesWith'.
+  --
+  -- @since 0.1
   findFilesWith :: HasCallStack => (Path -> m Bool) -> [Path] -> String -> m [Path]
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.pathIsSymbolicLink'.
+  --
+  -- @since 0.1
   pathIsSymbolicLink :: HasCallStack => Path -> m Bool
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.getSymbolicLinkTarget'.
+  --
+  -- @since 0.1
   getSymbolicLinkTarget :: HasCallStack => Path -> m Path
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.getPermissions'.
+  --
+  -- @since 0.1
   getPermissions :: HasCallStack => Path -> m Permissions
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.getAccessTime'.
+  --
+  -- @since 0.1
   getAccessTime :: HasCallStack => Path -> m UTCTime
 
-  -- | @since 0.1
+  -- | Lifted 'Dir.getModificationTime'.
+  --
+  -- @since 0.1
   getModificationTime :: HasCallStack => Path -> m UTCTime
 
 instance MonadPathReader IO where

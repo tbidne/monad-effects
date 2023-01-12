@@ -24,32 +24,32 @@ import GHC.Stack (HasCallStack)
 --
 -- @since 0.1
 class Monad m => MonadIORef m where
-  -- | Creates a new 'IORef'.
+  -- | Lifted 'IORef.newIORef'.
   --
   -- @since 0.1
   newIORef :: HasCallStack => a -> m (IORef a)
 
-  -- | Returns the 'IORef'.
+  -- | Lifted 'IORef.readIORef'.
   --
   -- @since 0.1
   readIORef :: HasCallStack => IORef a -> m a
 
-  -- | Writes to an 'IORef'.
+  -- | Lifted 'IORef.writeIORef'.
   --
   -- @since 0.1
   writeIORef :: HasCallStack => IORef a -> a -> m ()
 
-  -- | Atomically writes an 'IORef'.
+  -- | Lifted 'IORef.atomicWriteIORef'.
   --
   -- @since 0.1
   atomicWriteIORef :: HasCallStack => IORef a -> a -> m ()
 
-  -- | Strictly modifies an 'IORef'.
+  -- | Lifted 'IORef.modifyIORef''.
   --
   -- @since 0.1
   modifyIORef' :: HasCallStack => IORef a -> (a -> a) -> m ()
 
-  -- | Atomically modifies an 'IORef'.
+  -- | Lifted 'IORef.atomicModifyIORef''.
   --
   -- @since 0.1
   atomicModifyIORef' :: HasCallStack => IORef a -> (a -> (a, b)) -> m b
