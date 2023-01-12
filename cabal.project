@@ -1,4 +1,5 @@
 packages:
+  ./monad-async
   ./monad-callstack
   ./monad-fs
   ./monad-ioref
@@ -13,6 +14,14 @@ packages:
 -- trouble on CI. See: https://github.com/haskell/cabal/pull/7973
 --
 -- Might be due to CI having a cabal that is too old?
+
+package monad-async
+  ghc-options:
+    -Wall -Wcompat -Werror -Widentities
+    -Wincomplete-record-updates -Wincomplete-uni-patterns
+    -Wmissing-home-modules -Wmissing-export-lists -Wpartial-fields
+    -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
+    -Wprepositive-qualified-module
 
 package monad-callstack
   ghc-options:

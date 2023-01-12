@@ -22,17 +22,22 @@ common common
   default-extensions:
     DataKinds
     DeriveAnyClass
+    DeriveFunctor
     DeriveGeneric
     DerivingStrategies
     DerivingVia
     FlexibleInstances
+    GeneralizedNewtypeDeriving
     ImportQualifiedPost
     LambdaCase
     MultiParamTypeClasses
     NumericUnderscores
     OverloadedLabels
     OverloadedStrings
+    RankNTypes
+    RankNTypes
     ScopedTypeVariables
+    TupleSections
     TypeApplications
     TypeFamilies
     TypeOperators

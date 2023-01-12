@@ -23,16 +23,20 @@ common common
     DataKinds
     DeriveAnyClass
     DeriveFunctor
+    DeriveFunctor
     DeriveGeneric
     DerivingStrategies
     DerivingVia
     FlexibleInstances
+    GeneralizedNewtypeDeriving
     ImportQualifiedPost
     MultiParamTypeClasses
     NumericUnderscores
     OverloadedLabels
     OverloadedStrings
+    RankNTypes
     ScopedTypeVariables
+    TupleSections
     TypeApplications
     TypeFamilies
     TypeOperators

@@ -1,5 +1,7 @@
 cradle:
   cabal:
+    - path: "./monad-async/src"
+      component: "lib:monad-async"
     - path: "./monad-callstack/src"
       component: "lib:monad-callstack"
     - path: "./monad-callstack/test/unit"

@@ -52,6 +52,7 @@ lintc:
 haddock:
 	cabal haddock all --haddock-hyperlink-source --haddock-quickjump ;\
 	mkdir -p docs/ ;\
+	rm -rf docs/monad-async* ;\
 	rm -rf docs/monad-callstack* ;\
 	rm -rf docs/monad-fs* ;\
 	rm -rf docs/monad-ioref* ;\
@@ -60,6 +61,7 @@ haddock:
 	rm -rf docs/monad-system-time* ;\
 	rm -rf docs/monad-terminal* ;\
 	rm -rf docs/monad-thread* ;\
+	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-async-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-callstack-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-fs-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-ioref-0.1/doc/html/* docs/ ;\
@@ -70,6 +72,7 @@ haddock:
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-thread-0.1/doc/html/* docs/ ;\
 
 haddockc:
+	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-async ;\
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-callstack ;\
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-fs \
 		-m Effects.FileSystem.MonadPathReader 85 \

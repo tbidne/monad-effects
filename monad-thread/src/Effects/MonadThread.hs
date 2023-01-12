@@ -11,14 +11,17 @@ module Effects.MonadThread
 
     -- * Reexports
     Natural,
+    ThreadId,
   )
 where
 
-import Control.Concurrent (threadDelay)
+import Control.Concurrent (ThreadId)
+import Control.Concurrent qualified as CC
 import Control.Concurrent.QSem (QSem)
 import Control.Concurrent.QSem qualified as QSem
 import Control.Concurrent.QSemN (QSemN)
 import Control.Concurrent.QSemN qualified as QSemN
+import Control.Exception (Exception)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.Foldable (for_)
@@ -36,15 +39,51 @@ class Monad m => MonadThread m where
   -- @since 0.1
   microsleep :: HasCallStack => Natural -> m ()
 
+  -- | Lifted 'CC.throwTo'.
+  --
+  -- @since 0.1
+  throwTo :: (Exception e, HasCallStack) => ThreadId -> e -> m ()
+
+  -- | Lifted 'CC.getNumCapabilities'
+  --
+  -- @since 0.1
+  getNumCapabilities :: HasCallStack => m Int
+
+  -- | Lifted 'CC.setNumCapabilities'
+  --
+  -- @since 0.1
+  setNumCapabilities :: HasCallStack => Int -> m ()
+
+  -- | Lifted 'CC.threadCapability'
+  --
+  -- @since 0.1
+  threadCapability :: HasCallStack => ThreadId -> m (Int, Bool)
+
 -- | @since 0.1
 instance MonadThread IO where
-  microsleep n = addCallStack $ for_ (natToInts n) threadDelay
+  microsleep n = addCallStack $ for_ (natToInts n) CC.threadDelay
   {-# INLINEABLE microsleep #-}
+  throwTo tid = addCallStack . CC.throwTo tid
+  {-# INLINEABLE throwTo #-}
+  getNumCapabilities = addCallStack CC.getNumCapabilities
+  {-# INLINEABLE getNumCapabilities #-}
+  setNumCapabilities = addCallStack . CC.setNumCapabilities
+  {-# INLINEABLE setNumCapabilities #-}
+  threadCapability = addCallStack . CC.threadCapability
+  {-# INLINEABLE threadCapability #-}
 
 -- | @since 0.1
 instance MonadThread m => MonadThread (ReaderT e m) where
   microsleep = lift . microsleep
   {-# INLINEABLE microsleep #-}
+  throwTo tid = lift . throwTo tid
+  {-# INLINEABLE throwTo #-}
+  getNumCapabilities = lift getNumCapabilities
+  {-# INLINEABLE getNumCapabilities #-}
+  setNumCapabilities = lift . setNumCapabilities
+  {-# INLINEABLE setNumCapabilities #-}
+  threadCapability = lift . threadCapability
+  {-# INLINEABLE threadCapability #-}
 
 -- | Runs sleep in the current thread for the specified number of
 -- seconds.

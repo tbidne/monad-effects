@@ -32,6 +32,10 @@ import Data.Foldable (Foldable (foldMap'))
 import Data.Typeable (cast)
 import GHC.Stack (CallStack, HasCallStack, prettyCallStack)
 
+-- TODO: Once we have callstacks built in to stack traces (GHC 9.8?),
+-- hopefully we can either remove this or replace it w/ MonadThrow from
+-- safe-exceptions.
+
 -- | Typeclass for 'CallStack' effects. The 'IO' instance uses the machinery
 -- from @annotated-exception@. Note that this means the try/catch/etc.
 -- function from that package should be used, if you are using the 'IO'

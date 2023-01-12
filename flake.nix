@@ -56,6 +56,7 @@
           };
           hsOverlay =
             (compiler.extend (hlib.compose.packageSourceOverrides {
+              monad-async = ./monad-async;
               monad-callstack = ./monad-callstack;
               monad-fs = ./monad-fs;
               monad-ioref = ./monad-ioref;
@@ -66,6 +67,7 @@
               monad-thread = ./monad-thread;
             }));
           packages = p: [
+            p.monad-async
             p.monad-callstack
             p.monad-fs
             p.monad-ioref
@@ -85,6 +87,7 @@
           };
         in
         {
+          packages.monad-async = mkPkgsCallStack "monad-async" ./monad-async { };
           packages.monad-callstack = mkPkg "monad-callstack" ./monad-callstack { };
           packages.monad-fs = mkPkgsCallStack "monad-fs" ./monad-fs;
           packages.monad-ioref = mkPkgsCallStack "monad-ioref" ./monad-ioref;

@@ -1,5 +1,6 @@
 resolver: lts-19.28
 packages:
+- monad-async
 - monad-callstack
 - monad-fs
 - monad-ioref

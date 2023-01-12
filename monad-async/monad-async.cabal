@@ -1,5 +1,5 @@
 cabal-version:      2.4
-name:               monad-ioref
+name:               monad-async
 version:            0.1
 license:            MIT
 license-file:       LICENSE
@@ -9,8 +9,8 @@ author:             Thomas Bidne
 maintainer:         tbidne@protonmail.com
 homepage:           https://github.com/tbidne/monad-effects/
 bug-reports:        https://github.com/tbidne/monad-effects/issues
-synopsis:           IORef effects
-description:        IORef effects
+synopsis:           Thread effects
+description:        Thread effects
 category:           Effects
 extra-source-files: CHANGELOG.md
 
@@ -22,6 +22,7 @@ common common
   default-extensions:
     DataKinds
     DeriveAnyClass
+    DeriveFunctor
     DeriveFunctor
     DeriveGeneric
     DerivingStrategies
@@ -43,10 +44,17 @@ common common
 
 library
   import:           common
-  exposed-modules:  Effects.MonadIORef
+  exposed-modules:  Effects.MonadAsync
   build-depends:
+    , async            ^>=2.2.2
     , base             >=4.14.0.0 && <4.18
+    , exceptions       ^>=0.10.4
     , monad-callstack  ^>=0.1
+    , monad-ioref      ^>=0.1
+    , monad-stm        ^>=0.1
+    , monad-thread     ^>=0.1
+    , safe-exceptions  ^>=0.1.7.0
+    , stm              ^>=2.5.0.0
     , transformers     >=0.5.6.2  && <0.7
 
   hs-source-dirs:   src
