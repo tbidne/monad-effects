@@ -49,7 +49,7 @@ import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TEnc
 import Data.Text.Encoding.Error qualified as TEncError
-import Effects.MonadTime (MonadTime (getSystemTime, getSystemZonedTime))
+import Effects.MonadTime (MonadTime (getSystemZonedTime), getSystemTime)
 import Effects.MonadTime qualified as MonadTime
 import GHC.Exts (IsList (Item, fromList, toList))
 import GHC.Generics (Generic)

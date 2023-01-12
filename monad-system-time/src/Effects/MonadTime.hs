@@ -6,8 +6,9 @@
 --
 -- @since 0.1
 module Effects.MonadTime
-  ( -- * Class
+  ( -- * Effect
     MonadTime (..),
+    getSystemTime,
 
     -- * Timing
     withTiming,
@@ -227,11 +228,6 @@ normalizeTimeSpec = fromNanoSeconds . toNanoSeconds
 --
 -- @since 0.1
 class Monad m => MonadTime m where
-  -- | Returns the local system time.
-  --
-  -- @since 0.1
-  getSystemTime :: HasCallStack => m LocalTime
-
   -- | Returns the zoned system time.
   --
   -- @since 0.1
@@ -245,10 +241,6 @@ class Monad m => MonadTime m where
 
 -- | @since 0.1
 instance MonadTime IO where
-  getSystemTime =
-    addCallStack
-      (Local.zonedTimeToLocalTime <$> Local.getZonedTime)
-  {-# INLINEABLE getSystemTime #-}
   getSystemZonedTime = addCallStack Local.getZonedTime
   {-# INLINEABLE getSystemZonedTime #-}
   getMonotonicTime = addCallStack C.getMonotonicTime
@@ -256,12 +248,17 @@ instance MonadTime IO where
 
 -- | @since 0.1
 instance MonadTime m => MonadTime (ReaderT e m) where
-  getSystemTime = lift getSystemTime
-  {-# INLINEABLE getSystemTime #-}
   getSystemZonedTime = lift getSystemZonedTime
   {-# INLINEABLE getSystemZonedTime #-}
   getMonotonicTime = lift getMonotonicTime
   {-# INLINEABLE getMonotonicTime #-}
+
+-- | Returns the local system time.
+--
+-- @since 0.1
+getSystemTime :: (HasCallStack, MonadTime m) => m LocalTime
+getSystemTime = Local.zonedTimeToLocalTime <$> getSystemZonedTime
+{-# INLINEABLE getSystemTime #-}
 
 -- | Runs an action, returning the elapsed time.
 --
