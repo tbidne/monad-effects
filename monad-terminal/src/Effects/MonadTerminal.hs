@@ -4,7 +4,7 @@
 --
 -- @since 0.1
 module Effects.MonadTerminal
-  ( -- * Class
+  ( -- * Effect
     MonadTerminal (..),
     TermSizeException (..),
 

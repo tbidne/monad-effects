@@ -2,7 +2,7 @@
 --
 -- @since 0.1
 module Effects.FileSystem.MonadHandleWriter
-  ( -- * Class
+  ( -- * Effect
     MonadHandleWriter (..),
     Path,
 

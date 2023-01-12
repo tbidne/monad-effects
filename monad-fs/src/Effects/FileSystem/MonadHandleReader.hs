@@ -2,7 +2,7 @@
 --
 -- @since 0.1
 module Effects.FileSystem.MonadHandleReader
-  ( -- * Class
+  ( -- * Effect
     MonadHandleReader (..),
 
     -- * UTF-8 Utils

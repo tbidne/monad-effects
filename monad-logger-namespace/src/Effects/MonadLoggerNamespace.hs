@@ -5,7 +5,7 @@
 --
 -- @since 0.1
 module Effects.MonadLoggerNamespace
-  ( -- * Class
+  ( -- * Effect
     MonadLoggerNamespace (..),
     Namespace (..),
     addNamespace,

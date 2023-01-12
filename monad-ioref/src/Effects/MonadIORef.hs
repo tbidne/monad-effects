@@ -2,7 +2,7 @@
 --
 -- @since 0.1
 module Effects.MonadIORef
-  ( -- * Class
+  ( -- * Effect
     MonadIORef (..),
 
     -- * Functions
