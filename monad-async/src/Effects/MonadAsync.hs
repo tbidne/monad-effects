@@ -1,10 +1,11 @@
-{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE PostfixOperators #-}
 
 -- | Provides the 'MonadAsync' typeclass for async effects.
 --
 -- @since 0.1
 module Effects.MonadAsync
   ( -- * Effect
+    Async,
     MonadAsync (..),
 
     -- * Querying Asyncs
@@ -17,6 +18,7 @@ module Effects.MonadAsync
     Async.asyncThreadId,
 
     -- * STM Operations
+    STM,
     Async.waitSTM,
     Async.pollSTM,
     Async.waitCatchSTM,
@@ -42,6 +44,7 @@ module Effects.MonadAsync
     Async.waitBothSTM,
 
     -- * Pooled concurrency
+    -- $pool
     pooledMapConcurrentlyN,
     pooledMapConcurrently,
     pooledMapConcurrentlyN_,
@@ -66,9 +69,13 @@ module Effects.MonadAsync
     Concurrently,
 
     -- * Reexports
-    Async,
     SomeException,
-    STM,
+
+    -- ** Positive
+    -- $positive
+    Positive (MkPositive),
+    Positive.mkPositive,
+    (+!),
   )
 where
 
@@ -87,7 +94,7 @@ import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask, mapReaderT)
 import Data.Foldable (Foldable (fold), toList)
 import Data.Functor (void, ($>))
 import Data.Traversable (for)
-import Effects.MonadCallStack (MonadCallStack (addCallStack, throwWithCallStack))
+import Effects.MonadCallStack (MonadCallStack (addCallStack))
 import Effects.MonadIORef
   ( IORef,
     MonadIORef
@@ -102,15 +109,19 @@ import Effects.MonadThread
   ( MonadThread (getNumCapabilities, threadDelay, throwTo),
   )
 import GHC.Stack (HasCallStack)
+import Numeric.Data.Positive (Positive (MkPositive), (+!))
+import Numeric.Data.Positive qualified as Positive
 
--- | Represents async effects. API largely follows @unliftio@'s implementation
--- of "UnliftIO.Async".
+-- | Represents async effects. API largely follows
+-- [unliftio](https://hackage.haskell.org/package/unliftio)'s implementation
+-- of [UnliftIO.Async](https://hackage.haskell.org/package/unliftio/docs/UnliftIO-Async.html).
 --
 -- We prefer to implement as much of the API outside of the typeclass as
 -- possible, to reduce the overall size for both ease of use and
 -- performance. Nevertheless, there are many functions on the typeclass due to
--- their implementation in "Control.Concurrent.Async" being complex, and we
--- do not want to reimplement any complex logic here.
+-- their implementation in
+-- [Control.Concurrent.Async](https://hackage.haskell.org/package/async/docs/Control-Concurrent-Async.html)
+-- being complex, and we do not want to reimplement any complex logic here.
 --
 -- @since 0.1
 class Monad m => MonadAsync m where
@@ -239,15 +250,15 @@ instance forall m env. MonadAsync m => MonadAsync (ReaderT env m) where
   {-# INLINEABLE asyncBound #-}
   asyncOn i = mapReaderT $ asyncOn i
   {-# INLINEABLE asyncOn #-}
-  asyncWithUnmask unmask =
+  asyncWithUnmask m =
     ask >>= \e ->
-      lift $ asyncWithUnmask $ \k ->
-        usingReaderT e $ unmask $ \r -> lift (k (runReaderT r e))
+      lift $ asyncWithUnmask $ \unmask ->
+        usingReaderT e $ m $ \r -> lift (unmask (runReaderT r e))
   {-# INLINEABLE asyncWithUnmask #-}
-  asyncOnWithUnmask i unmask =
+  asyncOnWithUnmask i m =
     ask >>= \e ->
-      lift $ asyncOnWithUnmask i $ \k ->
-        usingReaderT e $ unmask $ \r -> lift (k (runReaderT r e))
+      lift $ asyncOnWithUnmask i $ \unmask ->
+        usingReaderT e $ m $ \r -> lift (unmask (runReaderT r e))
   {-# INLINEABLE asyncOnWithUnmask #-}
   withAsync rdr onAsync =
     ask >>= \e ->
@@ -261,19 +272,19 @@ instance forall m env. MonadAsync m => MonadAsync (ReaderT env m) where
     ask >>= \e ->
       lift $ withAsyncOn i (runReaderT rdr e) $ usingReaderT e . onAsync
   {-# INLINEABLE withAsyncOn #-}
-  withAsyncWithUnmask unmask onAsync =
+  withAsyncWithUnmask m onAsync =
     ask >>= \e ->
       lift $
         withAsyncWithUnmask
-          (\k -> usingReaderT e $ unmask $ \r -> lift (k (runReaderT r e)))
+          (\unmask -> usingReaderT e $ m $ \r -> lift (unmask (runReaderT r e)))
           (usingReaderT e . onAsync)
   {-# INLINEABLE withAsyncWithUnmask #-}
-  withAsyncOnWithUnmask i unmask onAsync =
+  withAsyncOnWithUnmask i m onAsync =
     ask >>= \e ->
       lift $
         withAsyncOnWithUnmask
           i
-          (\k -> usingReaderT e $ unmask $ \r -> lift (k (runReaderT r e)))
+          (\unmask -> usingReaderT e $ m $ \r -> lift (unmask (runReaderT r e)))
           (usingReaderT e . onAsync)
   {-# INLINEABLE withAsyncOnWithUnmask #-}
   link = lift . link
@@ -310,6 +321,14 @@ usingReaderT = flip runReaderT
 --
 -- We copy INLINE pragmas, adding INLINEABLE where there are none.
 
+-- HACK: You will see some haddock on arguments like
+--
+--   -- | .
+--
+-- This is a workaround to make haddock use 'multiline' mode as the lines
+-- get really long, even though we don't really want to annotate that
+-- specific field.
+
 -- | Lifted 'Async.poll'.
 --
 -- @since 0.1
@@ -335,6 +354,7 @@ cancel ::
     MonadSTM m,
     MonadThread m
   ) =>
+  -- | .
   Async a ->
   m ()
 cancel a = throwTo (Async.asyncThreadId a) Async.AsyncCancelled <* waitCatch a
@@ -344,7 +364,7 @@ cancel a = throwTo (Async.asyncThreadId a) Async.AsyncCancelled <* waitCatch a
 --
 -- @since 0.1
 cancelWith ::
-  forall e m a.
+  forall m e a.
   ( Exception e,
     HasCallStack,
     MonadAsync m,
@@ -352,6 +372,7 @@ cancelWith ::
     MonadSTM m,
     MonadThread m
   ) =>
+  -- | .
   Async a ->
   e ->
   m ()
@@ -379,6 +400,7 @@ uninterruptibleCancel ::
     MonadSTM m,
     MonadThread m
   ) =>
+  -- | .
   Async a ->
   m ()
 uninterruptibleCancel = Ex.uninterruptibleMask_ . cancel
@@ -393,6 +415,7 @@ waitCatch ::
     MonadCatch m,
     MonadSTM m
   ) =>
+  -- | .
   Async a ->
   m (Either SomeException a)
 waitCatch = tryAgain . atomically . Async.waitCatchSTM
@@ -410,6 +433,7 @@ waitAnyCatch ::
   ( HasCallStack,
     MonadSTM m
   ) =>
+  -- | .
   [Async a] ->
   m (Async a, Either SomeException a)
 waitAnyCatch = atomically . Async.waitAnyCatchSTM
@@ -426,6 +450,7 @@ waitAnyCancel ::
     MonadSTM m,
     MonadThread m
   ) =>
+  -- | .
   [Async a] ->
   m (Async a, a)
 waitAnyCancel asyncs =
@@ -443,6 +468,7 @@ waitAnyCatchCancel ::
     MonadSTM m,
     MonadThread m
   ) =>
+  -- | .
   [Async a] ->
   m (Async a, Either SomeException a)
 waitAnyCatchCancel asyncs =
@@ -471,6 +497,7 @@ waitEitherCatch ::
   ( HasCallStack,
     MonadSTM m
   ) =>
+  -- | .
   Async a ->
   Async b ->
   m (Either (Either SomeException a) (Either SomeException b))
@@ -488,6 +515,7 @@ waitEitherCancel ::
     MonadSTM m,
     MonadThread m
   ) =>
+  -- | .
   Async a ->
   Async b ->
   m (Either a b)
@@ -506,6 +534,7 @@ waitEitherCatchCancel ::
     MonadSTM m,
     MonadThread m
   ) =>
+  -- | .
   Async a ->
   Async b ->
   m
@@ -540,6 +569,7 @@ waitBoth ::
     MonadCatch m,
     MonadSTM m
   ) =>
+  -- | .
   Async a ->
   Async b ->
   m (a, b)
@@ -659,42 +689,31 @@ replicateConcurrently_ cnt =
 
 -- NOTE: Pooled functions copied from unliftio.
 
--- | Exception for pooled-specific failures (i.e. threads < 0, empty IORef).
---
--- @since 0.1
-newtype PooledException = MkPooledException String
-  deriving stock
-    ( -- | @since 0.1
-      Eq,
-      -- | @since 0.1
-      Show
-    )
+-- $pool
+-- These functions mirror those defined in
+-- [unliftio](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#g:9).
 
--- | @since 0.1
-instance Exception PooledException where
-  displayException (MkPooledException s) = s
-
--- | @unliftio@'s @pooledMapConcurrently@.
+-- | @unliftio@'s [pooledMapConcurrently](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#v:pooledMapConcurrently).
 --
 -- @since 0.1
 pooledMapConcurrently ::
   forall m t a b.
   ( HasCallStack,
     MonadAsync m,
-    MonadCallStack m,
     MonadIORef m,
     MonadThread m,
     Traversable t
   ) =>
+  -- | .
   (a -> m b) ->
   t a ->
   m (t b)
 pooledMapConcurrently f xs = do
   numProcs <- getNumCapabilities
-  pooledMapConcurrentlyN numProcs f xs
+  pooledMapConcurrentlyN (numProcs +!) f xs
 {-# INLINEABLE pooledMapConcurrently #-}
 
--- | @unliftio@'s @pooledMapConcurrently_@.
+-- | @unliftio@'s [pooledMapConcurrently_](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#v:pooledMapConcurrently_)
 --
 -- @since 0.1
 pooledMapConcurrently_ ::
@@ -702,55 +721,55 @@ pooledMapConcurrently_ ::
   ( HasCallStack,
     Foldable f,
     MonadAsync m,
-    MonadCallStack m,
     MonadIORef m,
     MonadThread m
   ) =>
+  -- | .
   (a -> m b) ->
   f a ->
   m ()
 pooledMapConcurrently_ f t = do
   numProcs <- getNumCapabilities
-  pooledMapConcurrentlyN_ numProcs f t
+  pooledMapConcurrentlyN_ (numProcs +!) f t
 {-# INLINEABLE pooledMapConcurrently_ #-}
 
--- | @unliftio@'s @pooledForConcurrentlyN@.
+-- | @unliftio@'s [pooledForConcurrentlyN](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#v:pooledForConcurrentlyN).
 --
 -- @since 0.1
 pooledForConcurrentlyN ::
   forall m t a b.
   ( HasCallStack,
     MonadAsync m,
-    MonadCallStack m,
     MonadIORef m,
     Traversable t
   ) =>
-  Int ->
+  -- | Max threads > 0
+  Positive Int ->
   t a ->
   (a -> m b) ->
   m (t b)
 pooledForConcurrentlyN numProcs = flip (pooledMapConcurrentlyN numProcs)
 {-# INLINEABLE pooledForConcurrentlyN #-}
 
--- | @unliftio@'s @pooledForConcurrently@.
+-- | @unliftio@'s [pooledForConcurrently](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#v:pooledForConcurrently).
 --
 -- @since 0.1
 pooledForConcurrently ::
   forall m t a b.
   ( HasCallStack,
     MonadAsync m,
-    MonadCallStack m,
     MonadIORef m,
     MonadThread m,
     Traversable t
   ) =>
+  -- | .
   t a ->
   (a -> m b) ->
   m (t b)
 pooledForConcurrently = flip pooledMapConcurrently
 {-# INLINEABLE pooledForConcurrently #-}
 
--- | @unliftio@'s @pooledForConcurrentlyN_@.
+-- | @unliftio@'s [pooledForConcurrentlyN_](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#v:pooledForConcurrentlyN_).
 --
 -- @since 0.1
 pooledForConcurrentlyN_ ::
@@ -758,17 +777,17 @@ pooledForConcurrentlyN_ ::
   ( Foldable f,
     HasCallStack,
     MonadAsync m,
-    MonadCallStack m,
     MonadIORef m
   ) =>
-  Int ->
+  -- | Max threads > 0
+  Positive Int ->
   f a ->
   (a -> m b) ->
   m ()
 pooledForConcurrentlyN_ numProcs = flip (pooledMapConcurrentlyN_ numProcs)
 {-# INLINEABLE pooledForConcurrentlyN_ #-}
 
--- | @unliftio@'s @pooledForConcurrently_@.
+-- | @unliftio@'s [pooledForConcurrently_](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#v:pooledForConcurrently_).
 --
 -- @since 0.1
 pooledForConcurrently_ ::
@@ -776,89 +795,85 @@ pooledForConcurrently_ ::
   ( Foldable f,
     HasCallStack,
     MonadAsync m,
-    MonadCallStack m,
     MonadIORef m,
     MonadThread m
   ) =>
+  -- | .
   f a ->
   (a -> m b) ->
   m ()
 pooledForConcurrently_ = flip pooledMapConcurrently_
 {-# INLINEABLE pooledForConcurrently_ #-}
 
--- | @unliftio@'s @pooledReplicateConcurrentlyN@.
+-- | @unliftio@'s [pooledReplicateConcurrentlyN](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#v:pooledReplicateConcurrentlyN).
 --
 -- @since 0.1
 pooledReplicateConcurrentlyN ::
   forall m a.
   ( HasCallStack,
     MonadAsync m,
-    MonadCallStack m,
     MonadIORef m
   ) =>
-  -- | Max. number of threads. Should not be less than 1.
-  Int ->
+  -- | Max threads > 0
+  Positive Int ->
   -- | Number of times to perform the action.
   Int ->
   m a ->
   m [a]
 pooledReplicateConcurrentlyN numProcs cnt task =
   if cnt < 1
-    then return []
+    then pure []
     else pooledMapConcurrentlyN numProcs (const task) [1 .. cnt]
 {-# INLINEABLE pooledReplicateConcurrentlyN #-}
 
--- | @unliftio@'s @pooledReplicateConcurrently@.
+-- | @unliftio@'s [pooledReplicateConcurrently](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#v:pooledReplicateConcurrently).
 --
 -- @since 0.1
 pooledReplicateConcurrently ::
   forall m a.
   ( HasCallStack,
     MonadAsync m,
-    MonadCallStack m,
     MonadIORef m,
     MonadThread m
   ) =>
   -- | Number of times to perform the action.
-  Int ->
+  Positive Int ->
   m a ->
   m [a]
-pooledReplicateConcurrently cnt task =
+pooledReplicateConcurrently (MkPositive cnt) task =
   if cnt < 1
-    then return []
+    then pure []
     else pooledMapConcurrently (const task) [1 .. cnt]
 {-# INLINEABLE pooledReplicateConcurrently #-}
 
--- | @unliftio@'s @pooledReplicateConcurrentlyN_@.
+-- | @unliftio@'s [pooledReplicateConcurrentlyN_](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#v:pooledReplicateConcurrentlyN_).
 --
 -- @since 0.1
 pooledReplicateConcurrentlyN_ ::
   forall m a.
   ( HasCallStack,
     MonadAsync m,
-    MonadCallStack m,
     MonadIORef m
   ) =>
-  -- | Max. number of threads. Should not be less than 1.
-  Int ->
+  -- | Max threads > 0
+  Positive Int ->
   -- | Number of times to perform the action.
   Int ->
   m a ->
   m ()
 pooledReplicateConcurrentlyN_ numProcs cnt task =
   if cnt < 1
-    then return ()
+    then pure ()
     else pooledMapConcurrentlyN_ numProcs (const task) [1 .. cnt]
 {-# INLINEABLE pooledReplicateConcurrentlyN_ #-}
 
--- | @unliftio@'s @pooledReplicateConcurrently_@.
+-- | @unliftio@'s [pooledReplicateConcurrently_](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#v:pooledReplicateConcurrently_).
 --
 -- @since 0.1
 pooledReplicateConcurrently_ ::
   forall m a.
   ( HasCallStack,
     MonadAsync m,
-    MonadCallStack m,
     MonadIORef m,
     MonadThread m
   ) =>
@@ -868,70 +883,47 @@ pooledReplicateConcurrently_ ::
   m ()
 pooledReplicateConcurrently_ cnt task =
   if cnt < 1
-    then return ()
+    then pure ()
     else pooledMapConcurrently_ (const task) [1 .. cnt]
 {-# INLINEABLE pooledReplicateConcurrently_ #-}
 
--- | @unliftio@'s @pooledMapConcurrentlyN@.
+-- | @unliftio@'s [pooledMapConcurrentlyN](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#v:pooledMapConcurrentlyN).
 --
 -- @since 0.1
 pooledMapConcurrentlyN ::
   forall m t a b.
   ( HasCallStack,
     MonadAsync m,
-    MonadCallStack m,
     MonadIORef m,
     Traversable t
   ) =>
-  Int ->
+  -- | Max threads > 0
+  Positive Int ->
   (a -> m b) ->
   t a ->
   m (t b)
-pooledMapConcurrentlyN numProcs f xs =
-  if numProcs < 1
-    then
-      throwWithCallStack $
-        MkPooledException $
-          "pooledMapconcurrentlyN: number of threads < 1: " <> show numProcs
-    else pooledMapConcurrently' numProcs f xs
+pooledMapConcurrentlyN numProcs f xs = do
+  -- prepare one IORef per result...
+  jobs :: t (a, IORef b) <-
+    for
+      xs
+      ( \x ->
+          (x,)
+            <$> newIORef
+              (error "Effects.MonadAsync.pooledMapConcurrentlyN: empty IORef")
+      )
+  -- ...put all the inputs in a queue..
+  jobsVar :: IORef [(a, IORef b)] <- newIORef (toList jobs)
+  -- ...run `numProcs` threads in parallel, each
+  -- of them consuming the queue and filling in
+  -- the respective IORefs.
+  pooledConcurrently numProcs jobsVar $ \(x, outRef) ->
+    f x
+      >>= atomicWriteIORef outRef -- Read all the IORefs
+  for jobs (\(_, outputRef) -> readIORef outputRef)
 {-# INLINEABLE pooledMapConcurrentlyN #-}
 
--- | @unliftio@'s @pooledMapConcurrently'@.
---
--- @since 0.1
-pooledMapConcurrently' ::
-  forall m t a b.
-  ( HasCallStack,
-    MonadAsync m,
-    MonadCallStack m,
-    MonadIORef m,
-    Traversable t
-  ) =>
-  -- | Max. number of threads. Should not be less than 1.
-  Int ->
-  (a -> m b) ->
-  t a ->
-  m (t b)
-pooledMapConcurrently' numProcs f xs
-  | numProcs < 1 =
-      throwWithCallStack $
-        MkPooledException "pooledMapConcurrently': empty IORef"
-  | otherwise = do
-      -- prepare one IORef per result...
-      jobs :: t (a, IORef b) <-
-        for xs (\x -> (x,) <$> newIORef (error "pooledMapConcurrently': empty IORef"))
-      -- ...put all the inputs in a queue..
-      jobsVar :: IORef [(a, IORef b)] <- newIORef (toList jobs)
-      -- ...run `numProcs` threads in parallel, each
-      -- of them consuming the queue and filling in
-      -- the respective IORefs.
-      pooledConcurrently numProcs jobsVar $ \(x, outRef) ->
-        f x
-          >>= atomicWriteIORef outRef -- Read all the IORefs
-      for jobs (\(_, outputRef) -> readIORef outputRef)
-{-# INLINEABLE pooledMapConcurrently' #-}
-
--- | @unliftio@'s @pooledMapConcurrentlyN_@.
+-- | @unliftio@'s [pooledMapConcurrentlyN_](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#v:pooledMapConcurrentlyN_).
 --
 -- @since 0.1
 pooledMapConcurrentlyN_ ::
@@ -939,24 +931,18 @@ pooledMapConcurrentlyN_ ::
   ( HasCallStack,
     Foldable f,
     MonadAsync m,
-    MonadCallStack m,
     MonadIORef m
   ) =>
-  Int ->
+  -- | Max threads > 0
+  Positive Int ->
   (a -> m b) ->
   f a ->
   m ()
-pooledMapConcurrentlyN_ numProcs f xs =
-  if numProcs < 1
-    then
-      throwWithCallStack $
-        MkPooledException $
-          "pooledMapConcurrentlyN_: number of threads < 1: "
-            <> show numProcs
-    else pooledMapConcurrentlyN_' numProcs (\x -> f x $> ()) xs
+pooledMapConcurrentlyN_ numProcs f =
+  pooledMapConcurrentlyN_' numProcs (\x -> f x $> ())
 {-# INLINEABLE pooledMapConcurrentlyN_ #-}
 
--- | @unliftio@'s @pooledMapConcurrentlyN_'@.
+-- | @unliftio@'s [pooledMapConcurrentlyN_'](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#v:pooledMapConcurrentlyN_').
 --
 -- @since 0.1
 pooledMapConcurrentlyN_' ::
@@ -966,7 +952,8 @@ pooledMapConcurrentlyN_' ::
     MonadAsync m,
     MonadIORef m
   ) =>
-  Int ->
+  -- | Max threads > 0
+  Positive Int ->
   (a -> m ()) ->
   f a ->
   m ()
@@ -982,20 +969,27 @@ pooledConcurrently ::
     MonadAsync m,
     MonadIORef m
   ) =>
-  Int ->
+  Positive Int ->
   IORef [a] ->
   (a -> m b) ->
   m ()
-pooledConcurrently numProcs jobsVar f = do
-  replicateConcurrently_ numProcs $ do
+pooledConcurrently (MkPositive numProcs) jobsVar f =
+  replicateConcurrently_ numProcs $
     let loop = do
           mbJob :: Maybe a <- atomicModifyIORef' jobsVar $ \case
             [] -> ([], Nothing)
             var : vars -> (vars, Just var)
           case mbJob of
-            Nothing -> return ()
+            Nothing -> pure ()
             Just x -> do
               _ <- f x
               loop
      in loop
 {-# INLINEABLE pooledConcurrently #-}
+
+-- $positive
+-- The 'Positive' type comes from
+-- [Numeric.Data.Positive](https://tbidne.github.io/smart-math/Numeric-Data-Positive.html)
+-- from the
+-- [smart-math](https://github.com/tbidne/smart-math) package. See that module for
+-- more functionality.

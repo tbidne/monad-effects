@@ -21,5 +21,7 @@ extra-deps:
   commit: 2c8a79e8d3bf67c99e4851c557bf68a44c512307
 - git: https://github.com/tbidne/bounds.git
   commit: 004f03aec46f29069fd0bf5115a384cd2b3141b3
+- git: https://github.com/tbidne/smart-math.git
+  commit: 0a8a6a741c999be1183b810ea8b1cd9438cb0d8e
 nix:
   shell-file: nix/stack.nix

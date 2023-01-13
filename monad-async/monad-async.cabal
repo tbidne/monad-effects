@@ -9,8 +9,8 @@ author:             Thomas Bidne
 maintainer:         tbidne@protonmail.com
 homepage:           https://github.com/tbidne/monad-effects/
 bug-reports:        https://github.com/tbidne/monad-effects/issues
-synopsis:           Thread effects
-description:        Thread effects
+synopsis:           Async effects
+description:        Async effects
 category:           Effects
 extra-source-files: CHANGELOG.md
 
@@ -54,6 +54,7 @@ library
     , monad-stm        ^>=0.1
     , monad-thread     ^>=0.1
     , safe-exceptions  ^>=0.1.7.0
+    , smart-math       ^>=0.1
     , stm              ^>=2.5.0.0
     , transformers     >=0.5.6.2  && <0.7
 

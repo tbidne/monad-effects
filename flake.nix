@@ -22,11 +22,21 @@
     inputs.flake-parts.follows = "flake-parts";
     inputs.nixpkgs.follows = "nixpkgs";
   };
+  inputs.smart-math = {
+    url = "github:tbidne/smart-math";
+    inputs.flake-compat.follows = "flake-compat";
+    inputs.flake-parts.follows = "flake-parts";
+    inputs.nixpkgs.follows = "nixpkgs";
+
+    inputs.algebra-simple.follows = "algebra-simple";
+    inputs.bounds.follows = "bounds";
+  };
   outputs =
     { algebra-simple
     , bounds
     , flake-parts
     , self
+    , smart-math
     , ...
     }:
     flake-parts.lib.mkFlake { inherit self; } {
@@ -51,6 +61,7 @@
               # https://github.com/ddssff/listlike/issues/23
               ListLike = hlib.dontCheck prev.ListLike;
               hedgehog = prev.hedgehog_1_2;
+              smart-math = final.callCabal2nix "smart-math" smart-math { };
               tasty-hedgehog = prev.tasty-hedgehog_1_4_0_0;
             };
           };
