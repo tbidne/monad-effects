@@ -18,15 +18,15 @@ jobs:
       fail-fast: false
       matrix:
         lib:
-          - monad-async
-          - monad-callstack
-          - monad-fs
-          - monad-ioref
-          - monad-logger-namespace
-          - monad-stm
-          - monad-system-time
-          - monad-terminal
-          - monad-thread
+          - "monad-async"
+          - "monad-callstack"
+          - "monad-fs"
+          - "monad-ioref"
+          - "monad-logger-namespace"
+          - "monad-stm"
+          - "monad-system-time"
+          - "monad-terminal"
+          - "monad-thread"
     steps:
       - uses: actions/checkout@v3.0.2
 
