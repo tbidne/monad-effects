@@ -19,13 +19,13 @@ module Effects.MonadCallStack
   )
 where
 
-import Control.Exception.Annotated.UnliftIO
+import Control.Exception.Annotated
   ( AnnotatedException (..),
     Annotation (..),
     Exception (displayException, fromException, toException),
     SomeException,
   )
-import Control.Exception.Annotated.UnliftIO qualified as Ann
+import Control.Exception.Annotated qualified as Ann
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (ReaderT), ask)
 import Data.Foldable (Foldable (foldMap'))
