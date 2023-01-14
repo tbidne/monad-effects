@@ -4,7 +4,9 @@
 --
 -- @since 0.1
 module Effects.FileSystem.Path
-  ( Path,
+  ( -- * Path
+    Path,
+    (</>),
 
     -- * System.IO
     openBinaryFileIO,
@@ -25,7 +27,7 @@ import Prelude hiding (FilePath)
 
 #if MIN_VERSION_filepath(1,4,100) && MIN_VERSION_directory(1,3,8)
 import Control.Monad ((>=>))
-import System.OsPath (OsPath)
+import System.OsPath (OsPath, (</>))
 
 -- | For @filepath >= 1.4.100@ and @directory >= 1.3.8@, 'Path' = 'OsPath'.
 -- Below that it is a 'FilePath'.
@@ -54,7 +56,7 @@ withBinaryFileIO :: OsPath -> IOMode -> (Handle -> IO a) -> IO a
 withBinaryFileIO p m f = decodeFS p >>= \h -> IO.withBinaryFile h m f
 
 #else
-import System.FilePath (FilePath)
+import System.FilePath (FilePath, (</>))
 
 -- | For @filepath >= 1.4.100@ and @directory >= 1.3.8@,
 -- 'Path' = @System.FilePath.OsPath@. Below that it is a 'FilePath'.
