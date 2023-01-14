@@ -32,6 +32,9 @@ where
 import Control.Exception ( Exception(displayException) )
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
+import Data.ByteString.Char8 qualified as Char8
+import Data.ByteString (ByteString)
+import Data.ByteString qualified as BS
 import Data.Text (Text)
 import Data.Text qualified as T
 import Effects.MonadCallStack
@@ -66,6 +69,8 @@ class Monad m => MonadTerminal m where
   --
   -- @since 0.1
   putStr :: HasCallStack => String -> m ()
+  putStr = putBinary . Char8.pack
+  {-# INLINEABLE putStr #-}
 
   -- | Lifted 'IO.putStrLn'.
   --
@@ -73,6 +78,13 @@ class Monad m => MonadTerminal m where
   putStrLn :: HasCallStack => String -> m ()
   putStrLn = putStr . (<> "\n")
   {-# INLINEABLE putStrLn #-}
+
+  -- | Lifted 'BS.putStr'.
+  --
+  -- @since 0.1
+  putBinary :: HasCallStack => ByteString -> m ()
+  putBinary = putStr . Char8.unpack
+  {-# INLINEABLE putBinary #-}
 
   -- | Lifted 'IO.getChar'.
   --
@@ -102,6 +114,8 @@ instance MonadTerminal IO where
   {-# INLINEABLE putStr #-}
   putStrLn = addCallStack . IO.putStrLn
   {-# INLINEABLE putStrLn #-}
+  putBinary = addCallStack . BS.putStr
+  {-# INLINEABLE putBinary #-}
   getChar = addCallStack IO.getChar
   {-# INLINEABLE getChar #-}
   getLine = addCallStack IO.getLine
@@ -122,6 +136,8 @@ instance MonadTerminal m => MonadTerminal (ReaderT e m) where
   {-# INLINEABLE putStr #-}
   putStrLn = lift . putStrLn
   {-# INLINEABLE putStrLn #-}
+  putBinary = lift . putBinary
+  {-# INLINEABLE putBinary #-}
   getChar = lift getChar
   {-# INLINEABLE getChar #-}
   getLine = lift getLine
