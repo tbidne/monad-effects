@@ -108,6 +108,12 @@ class Monad m => MonadTerminal m where
   -- @since 0.1
   getTerminalSize :: HasCallStack => m (Window Natural)
 
+#if MIN_VERSION_base(4,15,0)
+  {-# MINIMAL (putStr | putBinary), getChar, getLine, getContents', getTerminalSize #-}
+#else
+  {-# MINIMAL (putStr | putBinary), getChar, getLine, getTerminalSize #-}
+#endif
+
 -- | @since 0.1
 instance MonadTerminal IO where
   putStr = addCallStack . IO.putStr
