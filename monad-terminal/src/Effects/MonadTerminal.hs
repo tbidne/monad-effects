@@ -9,6 +9,7 @@ module Effects.MonadTerminal
     TermSizeException (..),
 
     -- * Functions
+    print,
 
     -- ** Text
     putText,
@@ -45,7 +46,7 @@ import GHC.Natural (Natural)
 import GHC.Stack (HasCallStack)
 import System.Console.Terminal.Size (Window (..), size)
 import System.IO qualified as IO
-import Prelude hiding (getChar, getLine, putStr, putStrLn)
+import Prelude hiding (getChar, getLine, putStr, putStrLn, print)
 
 -- | @since 0.1
 data TermSizeException = MkTermSizeException
@@ -154,6 +155,13 @@ instance MonadTerminal m => MonadTerminal (ReaderT e m) where
 #endif
   getTerminalSize = lift getTerminalSize
   {-# INLINEABLE getTerminalSize #-}
+
+-- | Lifted 'IO.print'.
+--
+-- @since 0.1
+print :: (HasCallStack, MonadTerminal m) => String -> m ()
+print = putStrLn . show
+{-# INLINEABLE print #-}
 
 -- | 'Text' version of 'putStr'.
 --
