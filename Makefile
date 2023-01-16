@@ -72,7 +72,8 @@ haddock:
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-thread-0.1/doc/html/* docs/ ;\
 
 haddockc:
-	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-async ;\
+	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-async \
+		-m Effects.MonadAsync 90;\
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-callstack ;\
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-fs \
 		-m Effects.FileSystem.MonadPathReader 85 \

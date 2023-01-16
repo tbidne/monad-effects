@@ -43,6 +43,11 @@ module Effects.MonadAsync
     Async.waitEitherSTM_,
     Async.waitBothSTM,
 
+    -- * Linking
+    Async.ExceptionInLinkedThread (..),
+    link,
+    link2,
+
     -- * Pooled concurrency
     -- $pool
     pooledMapConcurrentlyN,
@@ -83,11 +88,19 @@ import Control.Applicative (Alternative (..), Applicative (liftA2))
 import Control.Concurrent.Async (Async)
 import Control.Concurrent.Async qualified as Async
 import Control.Concurrent.STM (STM)
-import Control.Exception.Base (BlockedIndefinitelyOnSTM (BlockedIndefinitelyOnSTM))
+import Control.Exception.Base
+  ( BlockedIndefinitelyOnSTM
+      ( BlockedIndefinitelyOnSTM
+      ),
+  )
 import Control.Exception.Safe (MonadMask)
 import Control.Exception.Safe qualified as SafeEx
 import Control.Monad (forever, replicateM)
-import Control.Monad.Catch (Exception, MonadCatch, SomeException)
+import Control.Monad.Catch
+  ( Exception (fromException),
+    MonadCatch,
+    SomeException,
+  )
 import Control.Monad.Catch qualified as Ex
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask, mapReaderT)
@@ -184,15 +197,15 @@ class Monad m => MonadAsync m where
     (Async a -> m b) ->
     m b
 
-  -- | Lifted 'Async.link'.
+  -- | Lifted 'Async.linkOnly'.
   --
   -- @since 0.1
-  link :: HasCallStack => Async a -> m ()
+  linkOnly :: HasCallStack => (SomeException -> Bool) -> Async a -> m ()
 
-  -- | Lifted 'Async.link2'.
+  -- | Lifted 'Async.link2Only'.
   --
   -- @since 0.1
-  link2 :: HasCallStack => Async a -> Async b -> m ()
+  link2Only :: HasCallStack => (SomeException -> Bool) -> Async a -> Async b -> m ()
 
   -- | Lifted 'Async.race'.
   --
@@ -231,10 +244,10 @@ instance MonadAsync IO where
   {-# INLINEABLE withAsyncWithUnmask #-}
   withAsyncOnWithUnmask i f = addCallStack . Async.withAsyncOnWithUnmask i f
   {-# INLINEABLE withAsyncOnWithUnmask #-}
-  link = addCallStack . Async.link
-  {-# INLINEABLE link #-}
-  link2 x = addCallStack . Async.link2 x
-  {-# INLINEABLE link2 #-}
+  linkOnly f = addCallStack . Async.linkOnly f
+  {-# INLINEABLE linkOnly #-}
+  link2Only f x = addCallStack . Async.link2Only f x
+  {-# INLINEABLE link2Only #-}
   race x = addCallStack . Async.race x
   {-# INLINEABLE race #-}
   concurrently x = addCallStack . Async.concurrently x
@@ -287,10 +300,10 @@ instance forall m env. MonadAsync m => MonadAsync (ReaderT env m) where
           (\unmask -> usingReaderT e $ m $ \r -> lift (unmask (runReaderT r e)))
           (usingReaderT e . onAsync)
   {-# INLINEABLE withAsyncOnWithUnmask #-}
-  link = lift . link
-  {-# INLINEABLE link #-}
-  link2 x = lift . link2 x
-  {-# INLINEABLE link2 #-}
+  linkOnly f = lift . linkOnly f
+  {-# INLINEABLE linkOnly #-}
+  link2Only f x = lift . link2Only f x
+  {-# INLINEABLE link2Only #-}
   race left right =
     ask >>= \e ->
       let left' = runReaderT left e
@@ -686,6 +699,25 @@ replicateConcurrently_ :: forall m a. MonadAsync m => Int -> m a -> m ()
 replicateConcurrently_ cnt =
   runConcurrently . fold . replicate cnt . Concurrently . void
 {-# INLINEABLE replicateConcurrently_ #-}
+
+-- | Lifted 'Async.link'.
+--
+-- @since 0.1
+link :: (HasCallStack, MonadAsync m) => Async a -> m ()
+link = linkOnly (not . isCancel)
+{-# INLINEABLE link #-}
+
+-- | Lifted 'Async.link2'.
+--
+-- @since 0.1
+link2 :: (HasCallStack, MonadAsync m) => Async a -> Async b -> m ()
+link2 = link2Only (not . isCancel)
+{-# INLINEABLE link2 #-}
+
+isCancel :: SomeException -> Bool
+isCancel e
+  | Just Async.AsyncCancelled <- fromException e = True
+  | otherwise = False
 
 -- NOTE: Pooled functions copied from unliftio.
 
