@@ -35,6 +35,9 @@ import GHC.Stack (CallStack, HasCallStack, prettyCallStack)
 -- TODO: Once we have callstacks built in to stack traces (GHC 9.8?),
 -- hopefully we can either remove this or replace it w/ MonadThrow from
 -- safe-exceptions.
+--
+-- Actually, probably want to replace it w/ exceptions and avoid the
+-- uninterruptibleMask behavior. Would need our own catchAny, etc. functions.
 
 -- | Typeclass for 'CallStack' effects. The 'IO' instance uses the machinery
 -- from @annotated-exception@. Note that this means the try/catch/etc.
