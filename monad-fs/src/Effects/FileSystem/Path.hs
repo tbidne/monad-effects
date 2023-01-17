@@ -35,6 +35,8 @@ import System.OsPath (OsPath, (</>))
 -- @since 0.1
 type Path = OsPath
 
+-- REVIEW: should this be decodeUtf instead?
+
 -- | @since 0.1
 readBinaryFileIO :: OsPath -> IO ByteString
 readBinaryFileIO = decodeFS >=> BS.readFile
