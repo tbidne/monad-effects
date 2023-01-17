@@ -24,3 +24,5 @@ cradle:
       component: "lib:monad-terminal"
     - path: "./monad-thread/src"
       component: "lib:monad-thread"
+    - path: "./monad-typed-process/src"
+      component: "lib:monad-typed-process"

@@ -76,6 +76,7 @@
               monad-system-time = ./monad-system-time;
               monad-terminal = ./monad-terminal;
               monad-thread = ./monad-thread;
+              monad-typed-process = ./monad-typed-process;
             }));
           packages = p: [
             p.monad-async
@@ -87,6 +88,7 @@
             p.monad-system-time
             p.monad-terminal
             p.monad-thread
+            p.monad-typed-process
           ];
 
           mkPkg = name: root: source-overrides: compiler.developPackage {
@@ -117,6 +119,11 @@
           packages.monad-system-time = mkPkgsCallStack "monad-system-time" ./monad-system-time;
           packages.monad-terminal = mkPkgsCallStack "monad-terminal" ./monad-terminal;
           packages.monad-thread = mkPkgsCallStack "monad-thread" ./monad-thread;
+          packages.monad-typed-process =
+            mkPkg "monad-typed-process" ./monad-typed-process {
+              monad-callstack = ./monad-callstack;
+              monad-stm = ./monad-stm;
+            };
 
           devShells.default = hsOverlay.shellFor {
             inherit packages;

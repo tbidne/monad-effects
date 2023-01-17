@@ -61,6 +61,7 @@ haddock:
 	rm -rf docs/monad-system-time* ;\
 	rm -rf docs/monad-terminal* ;\
 	rm -rf docs/monad-thread* ;\
+	rm -rf docs/monad-typed-process* ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-async-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-callstack-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-fs-0.1/doc/html/* docs/ ;\
@@ -70,10 +71,11 @@ haddock:
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-system-time-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-terminal-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-thread-0.1/doc/html/* docs/ ;\
+	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-typed-process-0.1/doc/html/* docs/ ;\
 
 haddockc:
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-async \
-		-m Effects.MonadAsync 90;\
+		-m Effects.MonadAsync 90 ;\
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-callstack ;\
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-fs \
 		-m Effects.FileSystem.MonadPathReader 85 \
@@ -86,6 +88,7 @@ haddockc:
 		-m Effects.MonadTime 75 ;\
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-terminal ;\
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-thread
+	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-typed-process ;\
 
 .PHONY: hackage
 hackage:

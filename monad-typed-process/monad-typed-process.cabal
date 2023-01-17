@@ -1,0 +1,58 @@
+cabal-version:      2.4
+name:               monad-typed-process
+version:            0.1
+license:            MIT
+license-file:       LICENSE
+tested-with:        GHC ==8.10.7 || ==9.0.2 || ==9.2.4 || ==9.4.2
+copyright:          2022 Thomas Bidne
+author:             Thomas Bidne
+maintainer:         tbidne@protonmail.com
+homepage:           https://github.com/tbidne/monad-effects/
+bug-reports:        https://github.com/tbidne/monad-effects/issues
+synopsis:           Async effects
+description:        Async effects
+category:           Effects
+extra-source-files: CHANGELOG.md
+
+source-repository head
+  type:     git
+  location: https://github.com/tbidne/monad-effects
+
+common common
+  default-extensions:
+    DataKinds
+    DeriveAnyClass
+    DeriveFunctor
+    DeriveFunctor
+    DeriveGeneric
+    DerivingStrategies
+    DerivingVia
+    FlexibleInstances
+    GeneralizedNewtypeDeriving
+    ImportQualifiedPost
+    LambdaCase
+    MultiParamTypeClasses
+    NumericUnderscores
+    OverloadedLabels
+    OverloadedStrings
+    RankNTypes
+    ScopedTypeVariables
+    TupleSections
+    TypeApplications
+    TypeFamilies
+    TypeOperators
+
+library
+  import:           common
+  exposed-modules:  Effects.MonadProcess
+  build-depends:
+    , base             >=4.14.0.0  && <4.18
+    , bytestring       >=0.10.12.0 && <0.12
+    , monad-callstack  ^>=0.1
+    , monad-stm        ^>=0.1
+    , safe-exceptions  ^>=0.1.7.0
+    , transformers     >=0.5.6.2   && <0.7
+    , typed-process    >=0.1.0.0   && <0.3
+
+  hs-source-dirs:   src
+  default-language: Haskell2010
