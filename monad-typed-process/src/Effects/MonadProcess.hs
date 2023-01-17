@@ -121,6 +121,7 @@ class Monad m => MonadProcess m where
   -- @since 0.1
   readProcessInterleaved ::
     HasCallStack =>
+    -- | .
     ProcessConfig stdin stdoutIgnored stderrIgnored ->
     m (ExitCode, BSL.ByteString)
 
@@ -129,6 +130,7 @@ class Monad m => MonadProcess m where
   -- @since 0.1
   withProcessTerm ::
     HasCallStack =>
+    -- | .
     ProcessConfig stdin stdout stderr ->
     (Process stdin stdout stderr -> m a) ->
     m a
@@ -138,6 +140,7 @@ class Monad m => MonadProcess m where
   -- @since 0.1
   startProcess ::
     HasCallStack =>
+    -- | .
     ProcessConfig stdin stdout stderr ->
     m (Process stdin stdout stderr)
 
@@ -151,6 +154,7 @@ class Monad m => MonadProcess m where
   -- @since 0.1
   readProcessInterleaved_ ::
     HasCallStack =>
+    -- | .
     ProcessConfig stdin stdoutIgnored stderrIgnored ->
     m BSL.ByteString
 
@@ -186,6 +190,7 @@ instance MonadProcess m => MonadProcess (ReaderT env m) where
 -- @since 0.1
 runProcess ::
   (HasCallStack, MonadProcess m, MonadSTM m) =>
+  -- | .
   ProcessConfig stdin stdout stderr ->
   m ExitCode
 runProcess pc = withProcessTerm pc waitExitCode
@@ -196,6 +201,7 @@ runProcess pc = withProcessTerm pc waitExitCode
 -- @since 0.1
 readProcess ::
   (HasCallStack, MonadProcess m, MonadSTM m) =>
+  -- | .
   ProcessConfig stdin stdoutIgnored stderrIgnored ->
   m (ExitCode, BSL.ByteString, BSL.ByteString)
 readProcess pc =
@@ -216,6 +222,7 @@ readProcess pc =
 -- @since 0.1
 readProcessStdout ::
   (HasCallStack, MonadProcess m, MonadSTM m) =>
+  -- | .
   ProcessConfig stdin stdoutIgnored stderr ->
   m (ExitCode, BSL.ByteString)
 readProcessStdout pc =
@@ -233,6 +240,7 @@ readProcessStdout pc =
 -- @since 0.1
 readProcessStderr ::
   (HasCallStack, MonadProcess m, MonadSTM m) =>
+  -- | .
   ProcessConfig stdin stdout stderrIgnored ->
   m (ExitCode, BSL.ByteString)
 readProcessStderr pc =
@@ -250,6 +258,7 @@ readProcessStderr pc =
 -- @since 0.1
 withProcessWait ::
   (HasCallStack, MonadMask m, MonadProcess m, MonadSTM m) =>
+  -- | .
   ProcessConfig stdin stdout stderr ->
   (Process stdin stdout stderr -> m a) ->
   m a
@@ -265,6 +274,7 @@ withProcessWait config f =
 -- @since 0.1
 runProcess_ ::
   (HasCallStack, MonadProcess m, MonadSTM m) =>
+  -- | .
   ProcessConfig stdin stdout stderr ->
   m ()
 runProcess_ pc = withProcessTerm pc checkExitCode
@@ -275,6 +285,7 @@ runProcess_ pc = withProcessTerm pc checkExitCode
 -- @since 0.1
 readProcess_ ::
   (HasCallStack, MonadProcess m, MonadSTM m) =>
+  -- | .
   ProcessConfig stdin stdoutIgnored stderrIgnored ->
   m (BSL.ByteString, BSL.ByteString)
 readProcess_ pc =
@@ -299,6 +310,7 @@ readProcess_ pc =
 -- @since 0.1
 readProcessStdout_ ::
   (HasCallStack, MonadProcess m, MonadSTM m) =>
+  -- | .
   ProcessConfig stdin stdoutIgnored stderr ->
   m BSL.ByteString
 readProcessStdout_ pc =
@@ -319,6 +331,7 @@ readProcessStdout_ pc =
 -- @since 0.1
 readProcessStderr_ ::
   (HasCallStack, MonadProcess m, MonadSTM m) =>
+  -- | .
   ProcessConfig stdin stdout stderrIgnored ->
   m BSL.ByteString
 readProcessStderr_ pc =
@@ -336,9 +349,10 @@ readProcessStderr_ pc =
 
 -- | Lifted 'P.withProcessWait_'.
 --
--- @since
+-- @since 0.1
 withProcessWait_ ::
   (HasCallStack, MonadMask m, MonadProcess m, MonadSTM m) =>
+  -- | .
   ProcessConfig stdin stdout stderr ->
   (Process stdin stdout stderr -> m a) ->
   m a
@@ -351,9 +365,10 @@ withProcessWait_ config f =
 
 -- | Lifted 'P.withProcessTerm_'.
 --
--- @since
+-- @since 0.1
 withProcessTerm_ ::
   (MonadMask m, MonadProcess m, MonadSTM m) =>
+  -- | .
   ProcessConfig stdin stdout stderr ->
   (Process stdin stdout stderr -> m a) ->
   m a
@@ -366,20 +381,29 @@ withProcessTerm_ config =
 -- | Lifted 'P.waitExitCode'.
 --
 -- @since 0.1
-waitExitCode :: (HasCallStack, MonadSTM m) => Process stdin stdout stderr -> m ExitCode
+waitExitCode ::
+  (HasCallStack, MonadSTM m) =>
+  Process stdin stdout stderr ->
+  m ExitCode
 waitExitCode = atomically . P.waitExitCodeSTM
 {-# INLINEABLE waitExitCode #-}
 
 -- | Lifted 'getExitCode'.
 --
 -- @since 0.1
-getExitCode :: (HasCallStack, MonadSTM m) => Process stdin stdout stderr -> m (Maybe ExitCode)
+getExitCode ::
+  (HasCallStack, MonadSTM m) =>
+  Process stdin stdout stderr ->
+  m (Maybe ExitCode)
 getExitCode = atomically . P.getExitCodeSTM
 {-# INLINEABLE getExitCode #-}
 
 -- | Lifted 'P.checkExitCode'.
 --
 -- @since 0.1
-checkExitCode :: (HasCallStack, MonadSTM m) => Process stdin stdout stderr -> m ()
+checkExitCode ::
+  (HasCallStack, MonadSTM m) =>
+  Process stdin stdout stderr ->
+  m ()
 checkExitCode = atomically . P.checkExitCodeSTM
 {-# INLINEABLE checkExitCode #-}
