@@ -73,6 +73,7 @@
               monad-fs = ./monad-fs;
               monad-ioref = ./monad-ioref;
               monad-logger-namespace = ./monad-logger-namespace;
+              monad-optparse = ./monad-optparse;
               monad-stm = ./monad-stm;
               monad-system-time = ./monad-system-time;
               monad-terminal = ./monad-terminal;
@@ -86,6 +87,7 @@
             p.monad-fs
             p.monad-ioref
             p.monad-logger-namespace
+            p.monad-optparse
             p.monad-stm
             p.monad-system-time
             p.monad-terminal
@@ -118,6 +120,7 @@
               monad-callstack = ./monad-callstack;
               monad-system-time = ./monad-system-time;
             };
+          packages.monad-optparse = mkPkgsCallStack "monad-optparse" ./monad-optparse;
           packages.monad-stm = mkPkgsCallStack "monad-stm" ./monad-stm;
           packages.monad-system-time = mkPkgsCallStack "monad-system-time" ./monad-system-time;
           packages.monad-terminal = mkPkgsCallStack "monad-terminal" ./monad-terminal;

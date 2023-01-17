@@ -13,7 +13,7 @@ import Effects.MonadCallStack (addCallStack)
 import GHC.Stack (HasCallStack)
 import Prelude hiding (getChar, getLine, print, putStr, putStrLn)
 
--- | Represents a terminal.
+-- | Environment effects.
 --
 -- @since 0.1
 class Monad m => MonadEnv m where

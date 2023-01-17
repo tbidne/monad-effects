@@ -58,6 +58,7 @@ haddock:
 	rm -rf docs/monad-fs* ;\
 	rm -rf docs/monad-ioref* ;\
 	rm -rf docs/monad-logger-namespace* ;\
+	rm -rf docs/monad-optparse* ;\
 	rm -rf docs/monad-stm* ;\
 	rm -rf docs/monad-system-time* ;\
 	rm -rf docs/monad-terminal* ;\
@@ -69,6 +70,7 @@ haddock:
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-fs-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-ioref-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-logger-namespace-0.1/doc/html/* docs/ ;\
+	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-optparse-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-stm-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-system-time-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-terminal-0.1/doc/html/* docs/ ;\
@@ -86,6 +88,7 @@ haddockc:
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-ioref ;\
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-logger-namespace \
 		-m Effects.MonadLoggerNamespace 85 ;\
+	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-optparse ;\
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-stm ;\
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-system-time \
 		-m Effects.MonadTime 75 ;\

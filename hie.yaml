@@ -16,6 +16,8 @@ cradle:
       component: "lib:monad-logger-namespace"
     - path: "./monad-logger-namespace/test/unit"
       component: "monad-logger-namespace:test:unit"
+    - path: "./monad-optparse/src"
+      component: "lib:monad-optparse"
     - path: "./monad-stm/src"
       component: "lib:monad-stm"
     - path: "./monad-system-time/src"

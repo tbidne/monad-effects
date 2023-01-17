@@ -5,6 +5,7 @@ packages:
   ./monad-fs
   ./monad-ioref
   ./monad-logger-namespace
+  ./monad-optparse
   ./monad-stm
   ./monad-system-time
   ./monad-terminal
@@ -58,6 +59,14 @@ package monad-ioref
     -Wprepositive-qualified-module
 
 package monad-logger-namespace
+  ghc-options:
+    -Wall -Wcompat -Werror -Widentities
+    -Wincomplete-record-updates -Wincomplete-uni-patterns
+    -Wmissing-home-modules -Wmissing-export-lists -Wpartial-fields
+    -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
+    -Wprepositive-qualified-module
+
+package monad-optparse
   ghc-options:
     -Wall -Wcompat -Werror -Widentities
     -Wincomplete-record-updates -Wincomplete-uni-patterns

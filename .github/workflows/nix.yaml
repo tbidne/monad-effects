@@ -24,6 +24,7 @@ jobs:
           - "monad-fs"
           - "monad-ioref"
           - "monad-logger-namespace"
+          - "monad-optparse"
           - "monad-stm"
           - "monad-system-time"
           - "monad-terminal"
