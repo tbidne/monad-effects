@@ -8,6 +8,10 @@ module Effects.FileSystem.MonadPathReader
     MonadPathReader (..),
     Path,
 
+    -- ** Functions
+    findFile,
+    findFiles,
+
     -- * Xdg Utils
     getXdgConfig,
 
@@ -128,37 +132,27 @@ class Monad m => MonadPathReader m where
   -- | Lifted 'Dir.findExecutable'.
   --
   -- @since 0.1
-  findExecutable :: HasCallStack => String -> m (Maybe Path)
+  findExecutable :: HasCallStack => Path -> m (Maybe Path)
 
   -- | Lifted 'Dir.findExecutables'.
   --
   -- @since 0.1
-  findExecutables :: HasCallStack => String -> m [Path]
+  findExecutables :: HasCallStack => Path -> m [Path]
 
   -- | Lifted 'Dir.findExecutablesInDirectories'.
   --
   -- @since 0.1
-  findExecutablesInDirectories :: HasCallStack => [Path] -> String -> m [Path]
-
-  -- | Lifted 'Dir.findFile'.
-  --
-  -- @since 0.1
-  findFile :: HasCallStack => [Path] -> String -> m (Maybe Path)
-
-  -- | Lifted 'Dir.findFiles'.
-  --
-  -- @since 0.1
-  findFiles :: HasCallStack => [Path] -> String -> m [Path]
+  findExecutablesInDirectories :: HasCallStack => [Path] -> Path -> m [Path]
 
   -- | Lifted 'Dir.findFileWith'.
   --
   -- @since 0.1
-  findFileWith :: HasCallStack => (Path -> m Bool) -> [Path] -> String -> m (Maybe Path)
+  findFileWith :: HasCallStack => (Path -> m Bool) -> [Path] -> Path -> m (Maybe Path)
 
   -- | Lifted 'Dir.findFilesWith'.
   --
   -- @since 0.1
-  findFilesWith :: HasCallStack => (Path -> m Bool) -> [Path] -> String -> m [Path]
+  findFilesWith :: HasCallStack => (Path -> m Bool) -> [Path] -> Path -> m [Path]
 
   -- | Lifted 'Dir.pathIsSymbolicLink'.
   --
@@ -224,10 +218,6 @@ instance MonadPathReader IO where
   {-# INLINEABLE findExecutables #-}
   findExecutablesInDirectories ps = addCallStack . Dir.findExecutablesInDirectories ps
   {-# INLINEABLE findExecutablesInDirectories #-}
-  findFile ps = addCallStack . Dir.findFile ps
-  {-# INLINEABLE findFile #-}
-  findFiles ps = addCallStack . Dir.findFiles ps
-  {-# INLINEABLE findFiles #-}
   findFileWith f ps = addCallStack . Dir.findFileWith f ps
   {-# INLINEABLE findFileWith #-}
   findFilesWith f ps = addCallStack . Dir.findFilesWith f ps
@@ -282,10 +272,6 @@ instance MonadPathReader m => MonadPathReader (ReaderT env m) where
   {-# INLINEABLE findExecutables #-}
   findExecutablesInDirectories ps = lift . findExecutablesInDirectories ps
   {-# INLINEABLE findExecutablesInDirectories #-}
-  findFile ps = lift . findFile ps
-  {-# INLINEABLE findFile #-}
-  findFiles ps = lift . findFiles ps
-  {-# INLINEABLE findFiles #-}
   findFileWith action ps fileName =
     ask >>= lift . \e -> findFileWith ((`runReaderT` e) . action) ps fileName
   {-# INLINEABLE findFileWith #-}
@@ -302,6 +288,20 @@ instance MonadPathReader m => MonadPathReader (ReaderT env m) where
   {-# INLINEABLE getAccessTime #-}
   getModificationTime = lift . getModificationTime
   {-# INLINEABLE getModificationTime #-}
+
+-- | Lifted 'Dir.findFile'.
+--
+-- @since 0.1
+findFile :: (HasCallStack, MonadPathReader m) => [Path] -> Path -> m (Maybe Path)
+findFile = findFileWith (\_ -> pure True)
+{-# INLINEABLE findFile #-}
+
+-- | Lifted 'Dir.findFiles'.
+--
+-- @since 0.1
+findFiles :: (HasCallStack, MonadPathReader m) => [Path] -> Path -> m [Path]
+findFiles = findFilesWith (\_ -> pure True)
+{-# INLINEABLE findFiles #-}
 
 -- | Retrieves the Xdg Config directory.
 --

@@ -43,9 +43,6 @@ import System.Directory.OsPath qualified as Dir
 import System.Directory qualified as Dir
 #endif
 
--- REVIEW: Can we reduce the class size by implementing some of these
--- functions in terms of others?
-
 -- | Represents file-system writer effects.
 --
 -- @since 0.1
