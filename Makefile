@@ -88,7 +88,8 @@ haddockc:
 		-m Effects.MonadTime 75 ;\
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-terminal ;\
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-thread
-	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-typed-process ;\
+	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-typed-process \
+		-m Effects.MonadProcess 95 ;\
 
 .PHONY: hackage
 hackage:
