@@ -6,6 +6,8 @@ cradle:
       component: "lib:monad-callstack"
     - path: "./monad-callstack/test/unit"
       component: "monad-callstack:test:unit"
+    - path: "./monad-env/src"
+      component: "lib:monad-env"
     - path: "./monad-fs/src"
       component: "lib:monad-fs"
     - path: "./monad-ioref/src"

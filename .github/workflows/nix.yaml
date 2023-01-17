@@ -20,6 +20,7 @@ jobs:
         lib:
           - "monad-async"
           - "monad-callstack"
+          - "monad-env"
           - "monad-fs"
           - "monad-ioref"
           - "monad-logger-namespace"

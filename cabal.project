@@ -1,6 +1,7 @@
 packages:
   ./monad-async
   ./monad-callstack
+  ./monad-env
   ./monad-fs
   ./monad-ioref
   ./monad-logger-namespace
@@ -25,6 +26,14 @@ package monad-async
     -Wprepositive-qualified-module
 
 package monad-callstack
+  ghc-options:
+    -Wall -Wcompat -Werror -Widentities
+    -Wincomplete-record-updates -Wincomplete-uni-patterns
+    -Wmissing-home-modules -Wmissing-export-lists -Wpartial-fields
+    -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
+    -Wprepositive-qualified-module
+
+package monad-env
   ghc-options:
     -Wall -Wcompat -Werror -Widentities
     -Wincomplete-record-updates -Wincomplete-uni-patterns

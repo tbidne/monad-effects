@@ -69,6 +69,7 @@
             (compiler.extend (hlib.compose.packageSourceOverrides {
               monad-async = ./monad-async;
               monad-callstack = ./monad-callstack;
+              monad-env = ./monad-env;
               monad-fs = ./monad-fs;
               monad-ioref = ./monad-ioref;
               monad-logger-namespace = ./monad-logger-namespace;
@@ -81,6 +82,7 @@
           packages = p: [
             p.monad-async
             p.monad-callstack
+            p.monad-env
             p.monad-fs
             p.monad-ioref
             p.monad-logger-namespace
@@ -108,6 +110,7 @@
               monad-thread = ./monad-thread;
             };
           packages.monad-callstack = mkPkg "monad-callstack" ./monad-callstack { };
+          packages.monad-env = mkPkgsCallStack "monad-env" ./monad-env;
           packages.monad-fs = mkPkgsCallStack "monad-fs" ./monad-fs;
           packages.monad-ioref = mkPkgsCallStack "monad-ioref" ./monad-ioref;
           packages.monad-logger-namespace =
