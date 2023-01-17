@@ -11,9 +11,9 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Effects.MonadCallStack (addCallStack)
 import GHC.Stack (HasCallStack)
-import Prelude hiding (getChar, getLine, print, putStr, putStrLn)
-import Options.Applicative qualified as OA
 import Options.Applicative (ParserInfo, ParserPrefs, ParserResult)
+import Options.Applicative qualified as OA
+import Prelude hiding (getChar, getLine, print, putStr, putStrLn)
 
 -- | Effects for
 -- [optparse-applicative](https://hackage.haskell.org/package/optparse-applicative/docs/Options-Applicative.html).

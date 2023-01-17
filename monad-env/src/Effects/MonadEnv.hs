@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 -- | Provides the 'MonadEnv' typeclass.
 --
 -- @since 0.1
@@ -12,6 +14,7 @@ import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Effects.MonadCallStack (addCallStack)
 import GHC.Stack (HasCallStack)
 import Prelude hiding (getChar, getLine, print, putStr, putStrLn)
+import System.Environment qualified as Env
 
 -- | Environment effects.
 --
@@ -27,10 +30,12 @@ class Monad m => MonadEnv m where
   -- @since 0.1
   getProgName :: HasCallStack => m String
 
+#if MIN_VERSION_base(4,17,0)
   -- | Lifted 'Env.getArgs'.
   --
   -- @since 0.1
   executablePath :: HasCallStack => Maybe (m (Maybe FilePath))
+#endif
 
   -- | Lifted 'Env.getArgs'.
   --
@@ -74,27 +79,29 @@ class Monad m => MonadEnv m where
 
 -- | @since 0.1
 instance MonadEnv IO where
-  getArgs = addCallStack getArgs
+  getArgs = addCallStack Env.getArgs
   {-# INLINEABLE getArgs #-}
-  getProgName = addCallStack getProgName
+  getProgName = addCallStack Env.getProgName
   {-# INLINEABLE getProgName #-}
-  executablePath = fmap addCallStack executablePath
+#if MIN_VERSION_base(4,17,0)
+  executablePath = fmap addCallStack Env.executablePath
   {-# INLINEABLE executablePath #-}
-  getExecutablePath = addCallStack getExecutablePath
+#endif
+  getExecutablePath = addCallStack Env.getExecutablePath
   {-# INLINEABLE getExecutablePath #-}
-  getEnv = addCallStack . getEnv
+  getEnv = addCallStack . Env.getEnv
   {-# INLINEABLE getEnv #-}
-  lookupEnv = addCallStack . lookupEnv
+  lookupEnv = addCallStack . Env.lookupEnv
   {-# INLINEABLE lookupEnv #-}
-  setEnv x = addCallStack . setEnv x
+  setEnv x = addCallStack . Env.setEnv x
   {-# INLINEABLE setEnv #-}
-  unsetEnv = addCallStack . unsetEnv
+  unsetEnv = addCallStack . Env.unsetEnv
   {-# INLINEABLE unsetEnv #-}
-  withArgs x = addCallStack . withArgs x
+  withArgs x = addCallStack . Env.withArgs x
   {-# INLINEABLE withArgs #-}
-  withProgName x = addCallStack . withProgName x
+  withProgName x = addCallStack . Env.withProgName x
   {-# INLINEABLE withProgName #-}
-  getEnvironment = addCallStack getEnvironment
+  getEnvironment = addCallStack Env.getEnvironment
   {-# INLINEABLE getEnvironment #-}
 
 -- | @since 0.1
@@ -103,8 +110,10 @@ instance MonadEnv m => MonadEnv (ReaderT env m) where
   {-# INLINEABLE getArgs #-}
   getProgName = lift getProgName
   {-# INLINEABLE getProgName #-}
+#if MIN_VERSION_base(4,17,0)
   executablePath = fmap lift executablePath
   {-# INLINEABLE executablePath #-}
+#endif
   getExecutablePath = lift getExecutablePath
   {-# INLINEABLE getExecutablePath #-}
   getEnv = lift . getEnv
