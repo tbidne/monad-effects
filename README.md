@@ -12,6 +12,25 @@
 
 </div>
 
+---
+
+### Table of Contents
+- [Introduction](#introduction)
+- [Effects](#effects)
+  - [monad-async](#monad-async)
+  - [monad-callstack](#monad-callstack)
+  - [monad-env](#monad-env)
+  - [monad-exit](#monad-exit)
+  - [monad-fs](#monad-fs)
+  - [monad-ioref](#monad-ioref)
+  - [monad-logger-namespace](#monad-logger-namespace)
+  - [monad-optparse](#monad-optparse)
+  - [monad-stm](#monad-stm)
+  - [monad-system-time](#monad-system-time)
+  - [monad-terminal](#monad-terminal)
+  - [monad-thread](#monad-thread)
+  - [monad-typed-process](#monad-typed-process)
+
 # Introduction
 
 This repository contains a number of monadic "effects" for writing code that implements an abstract interface. For instance, instead of writing:
@@ -77,6 +96,17 @@ Nearly every package in this repository depends on `monad-callstack` and has `Ha
 ### Description
 
 Effect for `System.Environment`.
+
+## monad-exit
+
+### Library: `base`
+
+### Modules
+* `Effects.System.MonadExit (System.Exit)`
+
+### Description
+
+Effect for `System.Exit`.
 
 ## monad-fs
 

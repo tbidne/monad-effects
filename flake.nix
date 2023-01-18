@@ -70,6 +70,7 @@
               monad-async = ./monad-async;
               monad-callstack = ./monad-callstack;
               monad-env = ./monad-env;
+              monad-exit = ./monad-exit;
               monad-fs = ./monad-fs;
               monad-ioref = ./monad-ioref;
               monad-logger-namespace = ./monad-logger-namespace;
@@ -84,6 +85,7 @@
             p.monad-async
             p.monad-callstack
             p.monad-env
+            p.monad-exit
             p.monad-fs
             p.monad-ioref
             p.monad-logger-namespace
@@ -113,6 +115,11 @@
             };
           packages.monad-callstack = mkPkg "monad-callstack" ./monad-callstack { };
           packages.monad-env = mkPkgsCallStack "monad-env" ./monad-env;
+          packages.monad-exit =
+            mkPkg "monad-exit" ./monad-exit {
+              monad-callstack = ./monad-callstack;
+              monad-fs = ./monad-fs;
+            };
           packages.monad-fs = mkPkgsCallStack "monad-fs" ./monad-fs;
           packages.monad-ioref = mkPkgsCallStack "monad-ioref" ./monad-ioref;
           packages.monad-logger-namespace =

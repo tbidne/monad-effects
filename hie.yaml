@@ -8,6 +8,8 @@ cradle:
       component: "monad-callstack:test:unit"
     - path: "./monad-env/src"
       component: "lib:monad-env"
+    - path: "./monad-exit/src"
+      component: "lib:monad-exit"
     - path: "./monad-fs/src"
       component: "lib:monad-fs"
     - path: "./monad-ioref/src"

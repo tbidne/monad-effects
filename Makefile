@@ -55,6 +55,7 @@ haddock:
 	rm -rf docs/monad-async* ;\
 	rm -rf docs/monad-callstack* ;\
 	rm -rf docs/monad-env* ;\
+	rm -rf docs/monad-exit* ;\
 	rm -rf docs/monad-fs* ;\
 	rm -rf docs/monad-ioref* ;\
 	rm -rf docs/monad-logger-namespace* ;\
@@ -67,6 +68,7 @@ haddock:
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-async-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-callstack-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-env-0.1/doc/html/* docs/ ;\
+	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-exit-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-fs-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-ioref-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-logger-namespace-0.1/doc/html/* docs/ ;\
@@ -82,6 +84,7 @@ haddockc:
 		-m Effects.MonadAsync 90 ;\
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-callstack ;\
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-env \
+	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-exit \
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-fs \
 		-m Effects.FileSystem.MonadPathReader 85 \
 		-m Effects.FileSystem.MonadPathWriter 85 ;\
