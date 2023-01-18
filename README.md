@@ -67,7 +67,7 @@ The following lists the supported effects, along with the libraries/modules they
 ### Library: `async`
 
 ### Modules
-* `Effects.MonadAsync (Control.Concurrent.Async)`
+* `Effects.Concurrent.MonadAsync (Control.Concurrent.Async)`
 
 ### Description
 
@@ -91,7 +91,7 @@ Nearly every package in this repository depends on `monad-callstack` and has `Ha
 ### Library: `base`
 
 ### Modules
-* `Effects.MonadEnv (System.Environment)`
+* `Effects.System.MonadEnv (System.Environment)`
 
 ### Description
 
@@ -172,7 +172,7 @@ Most of `optparse-applicative`'s API is pure, so there is not much here, just fu
 
 ### Description
 
-Provides a single function `atomically :: MonadSTM m => STM a -> m a` and helper combinators for other `STM` concepts (e.g. `TVar`).
+Provides a single function `atomically :: MonadSTM m => STM a -> m a` and helper combinators for other `STM` concepts (e.g. `readTVarM :: MonadSTM m => TVar a -> m a`).
 
 ## monad-system-time
 
