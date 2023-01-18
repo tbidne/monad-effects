@@ -168,7 +168,7 @@ Most of `optparse-applicative`'s API is pure, so there is not much here, just fu
 ### Library: `stm`
 
 ### Modules
-* `Effects.MonadSTM`
+* `Effects.Concurrent.MonadSTM (Control.Concurrent.STM)`
 
 ### Description
 
@@ -190,7 +190,7 @@ Provides functions for retrieving the current system time and monotonic time.
 ### Library: `base`
 
 ### Modules
-* `Effects.MonadTerminal (System.IO)`
+* `Effects.System.MonadTerminal (System.IO)`
 
 ### Description
 
@@ -201,7 +201,7 @@ Implements typical terminal functions e.g. `putStrLn`.
 ### Library: `base`
 
 ### Modules
-* `Effects.MonadThread (Control.Concurrent)`
+* `Effects.Concurrent.MonadThread (Control.Concurrent)`
 
 ### Description
 
@@ -212,7 +212,7 @@ Implements functions from `Control.Concurrent` along with `Control.Concurrent.QS
 ### Library: `typed-process`
 
 ### Modules
-* `Effects.MonadProcess (Options.Applicative)`
+* `Effects.System.MonadProcess (System.Process.Typed)`
 
 ### Description
 

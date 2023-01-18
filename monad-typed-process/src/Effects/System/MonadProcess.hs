@@ -1,7 +1,7 @@
 -- | Provides the 'MonadProcess' typeclass for process effects.
 --
 -- @since 0.1
-module Effects.MonadProcess
+module Effects.System.MonadProcess
   ( -- * Effect
     MonadProcess (..),
 
@@ -97,8 +97,8 @@ import Control.Exception.Safe (MonadMask, bracket, finally)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Data.ByteString.Lazy qualified as BSL
+import Effects.Concurrent.MonadSTM (MonadSTM (..))
 import Effects.MonadCallStack (MonadCallStack (addCallStack))
-import Effects.MonadSTM (MonadSTM (..))
 import GHC.Conc (catchSTM, throwSTM)
 import GHC.Stack (HasCallStack)
 import System.Exit (ExitCode)

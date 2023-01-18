@@ -3,7 +3,7 @@
 -- | Provides the 'MonadEnv' typeclass.
 --
 -- @since 0.1
-module Effects.MonadEnv
+module Effects.System.MonadEnv
   ( -- * Effect
     MonadEnv (..),
   )

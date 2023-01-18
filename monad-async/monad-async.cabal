@@ -44,7 +44,7 @@ common common
 
 library
   import:           common
-  exposed-modules:  Effects.MonadAsync
+  exposed-modules:  Effects.Concurrent.MonadAsync
   build-depends:
     , async            ^>=2.2.2
     , base             >=4.14.0.0 && <4.18

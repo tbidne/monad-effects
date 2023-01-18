@@ -81,24 +81,36 @@ haddock:
 
 haddockc:
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-async \
-		-m Effects.MonadAsync 90 ;\
+		-m Effects.Concurrent.MonadAsync 90 ;\
+
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-callstack ;\
+
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-env \
+
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-exit \
+
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-fs \
 		-m Effects.FileSystem.MonadPathReader 85 \
 		-m Effects.FileSystem.MonadPathWriter 85 ;\
+
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-ioref ;\
+
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-logger-namespace \
 		-m Effects.MonadLoggerNamespace 85 ;\
+
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-optparse ;\
+
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-stm ;\
+
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-system-time \
 		-m Effects.MonadTime 75 ;\
+
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-terminal ;\
+
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-thread
+
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-typed-process \
-		-m Effects.MonadProcess 95 ;\
+		-m Effects.System.MonadProcess 95 ;\
 
 .PHONY: hackage
 hackage:
