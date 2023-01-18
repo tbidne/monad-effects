@@ -13,7 +13,6 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Effects.MonadCallStack (addCallStack)
 import GHC.Stack (HasCallStack)
-import Prelude hiding (getChar, getLine, print, putStr, putStrLn)
 import System.Environment qualified as Env
 
 -- | Environment effects.
