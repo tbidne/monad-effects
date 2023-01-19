@@ -7,6 +7,7 @@ module Effects.MonadCallStack
 
     -- * Utils
     displayCallStack,
+    displayNoCallStack,
 
     -- * Reexports
     CallStack,
@@ -88,3 +89,13 @@ displayCallStack ex =
     prettyAnn (Annotation x) = case cast x of
       Just cs -> prettyCallStack cs
       Nothing -> show x
+
+-- | Like 'displayException', except it has specific logic to skip any
+-- found 'CallStack's.
+--
+-- @since 0.1
+displayNoCallStack :: forall e. Exception e => e -> String
+displayNoCallStack ex =
+  case fromException @(AnnotatedException SomeException) (toException ex) of
+    Nothing -> displayException ex
+    Just (AnnotatedException _ anEx) -> displayException anEx

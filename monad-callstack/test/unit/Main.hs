@@ -6,6 +6,7 @@ import Data.String (IsString (fromString))
 import Effects.MonadCallStack
   ( MonadCallStack (addCallStack, throwWithCallStack),
     displayCallStack,
+    displayNoCallStack,
   )
 import System.FilePath ((</>))
 import Test.Tasty (TestTree, defaultMain, testGroup)
@@ -17,7 +18,8 @@ main =
     testGroup
       "Unit Tests"
       [ throwsCallStack,
-        addsCallStack
+        addsCallStack,
+        displaysNoCallStack
       ]
 
 data Ex = MkEx
@@ -43,6 +45,16 @@ addsCallStack =
   where
     desc = "Adds callstack"
     gpath = goldenPath </> "add-callstack.golden"
+
+displaysNoCallStack :: TestTree
+displaysNoCallStack =
+  goldenVsStringDiff desc diff gpath $
+    try @SomeException (throwWithCallStack MkEx) <&> \case
+      Left e -> fromString $ displayNoCallStack e
+      Right _ -> "Error: did not catch expected exception."
+  where
+    desc = "Does not display callstack"
+    gpath = goldenPath </> "no-callstack.golden"
 
 goldenPath :: FilePath
 goldenPath = "test/unit/"
