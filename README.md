@@ -86,7 +86,7 @@ Effect for `System.Environment`.
 
 ## monad-exceptions
 
-### Library: `annotated-exception, exceptions, safe-exceptions,`
+### Library: `annotated-exception`, `exceptions`, `safe-exceptions`
 
 ### Modules
 * `Effects.Exception`
@@ -116,7 +116,7 @@ Effect for `System.Exit`.
 
 ## monad-fs
 
-### Library: `base, bytestring, directory`
+### Library: `base`, `bytestring`, `directory`
 
 ### Modules
 * `Effects.FileSystem.FileReader (Data.ByteString)`
@@ -149,7 +149,7 @@ These are written to be compatible with the upcoming `FilePath -> OsPath` change
 
 ## monad-logger-namespace
 
-### Library: `(none)`
+### Library: `monad-logger`
 
 ### Modules
 * `Effects.LoggerNamespace`
