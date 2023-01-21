@@ -4,7 +4,7 @@ cradle:
       component: "lib:monad-async"
     - path: "./monad-env/src"
       component: "lib:monad-env"
-      - path: "./monad-exceptions/src"
+    - path: "./monad-exceptions/src"
       component: "lib:monad-exceptions"
     - path: "./monad-exceptions/test/unit"
       component: "monad-exceptions:test:unit"

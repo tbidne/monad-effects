@@ -36,7 +36,10 @@
 --
 -- @since 0.1
 module Effects.Exception
-  ( -- * CallStack
+  ( -- * Effect
+    MonadGlobalException (..),
+
+    -- * CallStack
     throwWithCallStack,
     catchWithCallStack,
     tryWithCallStack,
@@ -93,7 +96,10 @@ module Effects.Exception
   )
 where
 
+import Control.Monad.Trans.Reader (ReaderT, runReaderT, ask)
+import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Exception (IOException)
+import GHC.Conc.Sync qualified as Sync
 import Control.Exception.Annotated
   ( AnnotatedException (..),
     Annotation (..),
@@ -116,6 +122,38 @@ import GHC.Stack
     prettyCallStack,
     withFrozenCallStack,
   )
+
+-- | Effect for global exception mechanisms.
+--
+-- @since 0.1
+class Monad m => MonadGlobalException m where
+  -- | Lifted 'Sync.setUncaughtExceptionHandler'.
+  --
+  -- @since 0.1
+  setUncaughtExceptionHandler :: HasCallStack => (SomeException -> m ()) -> m ()
+
+  -- | Lifted 'Sync.getUncaughtExceptionHandler'.
+  --
+  -- @since 0.1
+  getUncaughtExceptionHandler :: HasCallStack => m (SomeException -> m ())
+
+-- | @since 0.1
+instance MonadGlobalException IO where
+  setUncaughtExceptionHandler = addCallStack . Sync.setUncaughtExceptionHandler
+  {-# INLINEABLE setUncaughtExceptionHandler #-}
+
+  getUncaughtExceptionHandler = addCallStack Sync.getUncaughtExceptionHandler
+  {-# INLINEABLE getUncaughtExceptionHandler #-}
+
+-- | @since 0.1
+instance MonadGlobalException m => MonadGlobalException (ReaderT env m) where
+  setUncaughtExceptionHandler f = ask >>= \e ->
+    lift $ setUncaughtExceptionHandler (\ex -> runReaderT (f ex) e)
+  {-# INLINEABLE setUncaughtExceptionHandler #-}
+
+  getUncaughtExceptionHandler =
+    ask >>= \e -> lift (runReaderT getUncaughtExceptionHandler e)
+  {-# INLINEABLE getUncaughtExceptionHandler #-}
 
 -- | Alias for 'Ann.throwWithCallStack'. Will eventually be removed in favor
 -- of @safe-exception@'s 'SafeEx.throwM' once GHC natively handles exceptions
