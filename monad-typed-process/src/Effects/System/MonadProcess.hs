@@ -98,7 +98,7 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Data.ByteString.Lazy qualified as BSL
 import Effects.Concurrent.MonadSTM (MonadSTM (..))
-import Effects.MonadCallStack (MonadCallStack (addCallStack))
+import Effects.Exception (addCallStack)
 import GHC.Conc (catchSTM, throwSTM)
 import GHC.Stack (HasCallStack)
 import System.Exit (ExitCode)

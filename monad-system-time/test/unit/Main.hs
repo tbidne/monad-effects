@@ -9,7 +9,7 @@ import Data.Functor ((<&>))
 import Data.String (IsString (fromString))
 import Data.Time.Calendar.OrdinalDate (fromOrdinalDate)
 import Data.Time.LocalTime (TimeOfDay (TimeOfDay), utc)
-import Effects.MonadCallStack (displayCallStack)
+import Effects.Exception (displayCallStack)
 import Effects.MonadTime
   ( LocalTime (LocalTime),
     TimeSpec (MkTimeSpec),

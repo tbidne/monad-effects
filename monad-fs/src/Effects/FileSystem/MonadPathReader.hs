@@ -26,10 +26,8 @@ where
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Data.Time (UTCTime (..))
+import Effects.Exception (addCallStack)
 import Effects.FileSystem.Path (Path)
-import Effects.MonadCallStack
-  ( MonadCallStack (addCallStack),
-  )
 import GHC.Stack (HasCallStack)
 import System.Directory
   ( Permissions (..),

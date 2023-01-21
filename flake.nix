@@ -68,8 +68,8 @@
           hsOverlay =
             (compiler.extend (hlib.compose.packageSourceOverrides {
               monad-async = ./monad-async;
-              monad-callstack = ./monad-callstack;
               monad-env = ./monad-env;
+              monad-exceptions = ./monad-exceptions;
               monad-exit = ./monad-exit;
               monad-fs = ./monad-fs;
               monad-ioref = ./monad-ioref;
@@ -83,8 +83,8 @@
             }));
           packages = p: [
             p.monad-async
-            p.monad-callstack
             p.monad-env
+            p.monad-exceptions
             p.monad-exit
             p.monad-fs
             p.monad-ioref
@@ -101,40 +101,40 @@
             inherit name root source-overrides;
             returnShellEnv = false;
           };
-          mkPkgsCallStack = name: root: mkPkg name root {
-            monad-callstack = ./monad-callstack;
+          mkPkgsException = name: root: mkPkg name root {
+            monad-exceptions = ./monad-exceptions;
           };
         in
         {
           packages.monad-async =
             mkPkg "monad-async" ./monad-async {
-              monad-callstack = ./monad-callstack;
+              monad-exceptions = ./monad-exceptions;
               monad-ioref = ./monad-ioref;
               monad-stm = ./monad-stm;
               monad-thread = ./monad-thread;
             };
-          packages.monad-callstack = mkPkg "monad-callstack" ./monad-callstack { };
-          packages.monad-env = mkPkgsCallStack "monad-env" ./monad-env;
+          packages.monad-env = mkPkgsException "monad-env" ./monad-env;
+          packages.monad-exceptions = mkPkg "monad-exceptions" ./monad-exceptions { };
           packages.monad-exit =
             mkPkg "monad-exit" ./monad-exit {
-              monad-callstack = ./monad-callstack;
+              monad-exceptions = ./monad-exceptions;
               monad-fs = ./monad-fs;
             };
-          packages.monad-fs = mkPkgsCallStack "monad-fs" ./monad-fs;
-          packages.monad-ioref = mkPkgsCallStack "monad-ioref" ./monad-ioref;
+          packages.monad-fs = mkPkgsException "monad-fs" ./monad-fs;
+          packages.monad-ioref = mkPkgsException "monad-ioref" ./monad-ioref;
           packages.monad-logger-namespace =
             mkPkg "monad-logger-namespace" ./monad-logger-namespace {
-              monad-callstack = ./monad-callstack;
+              monad-exceptions = ./monad-exceptions;
               monad-system-time = ./monad-system-time;
             };
-          packages.monad-optparse = mkPkgsCallStack "monad-optparse" ./monad-optparse;
-          packages.monad-stm = mkPkgsCallStack "monad-stm" ./monad-stm;
-          packages.monad-system-time = mkPkgsCallStack "monad-system-time" ./monad-system-time;
-          packages.monad-terminal = mkPkgsCallStack "monad-terminal" ./monad-terminal;
-          packages.monad-thread = mkPkgsCallStack "monad-thread" ./monad-thread;
+          packages.monad-optparse = mkPkgsException "monad-optparse" ./monad-optparse;
+          packages.monad-stm = mkPkgsException "monad-stm" ./monad-stm;
+          packages.monad-system-time = mkPkgsException "monad-system-time" ./monad-system-time;
+          packages.monad-terminal = mkPkgsException "monad-terminal" ./monad-terminal;
+          packages.monad-thread = mkPkgsException "monad-thread" ./monad-thread;
           packages.monad-typed-process =
             mkPkg "monad-typed-process" ./monad-typed-process {
-              monad-callstack = ./monad-callstack;
+              monad-exceptions = ./monad-exceptions;
               monad-stm = ./monad-stm;
             };
 

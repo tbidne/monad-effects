@@ -17,7 +17,7 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.IORef (IORef)
 import Data.IORef qualified as IORef
-import Effects.MonadCallStack (addCallStack)
+import Effects.Exception (addCallStack)
 import GHC.Stack (HasCallStack)
 
 -- | 'IORef' effect.

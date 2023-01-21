@@ -46,17 +46,16 @@ library
   import:           common
   exposed-modules:  Effects.Concurrent.MonadAsync
   build-depends:
-    , async            ^>=2.2.2
-    , base             >=4.14.0.0 && <4.18
-    , exceptions       ^>=0.10.4
-    , monad-callstack  ^>=0.1
-    , monad-ioref      ^>=0.1
-    , monad-stm        ^>=0.1
-    , monad-thread     ^>=0.1
-    , safe-exceptions  ^>=0.1.7.0
-    , smart-math       ^>=0.1
-    , stm              ^>=2.5.0.0
-    , transformers     >=0.5.6.2  && <0.7
+    , async             ^>=2.2.2
+    , base              >=4.14.0.0 && <4.18
+    , exceptions        ^>=0.10.4
+    , monad-exceptions  ^>=0.1
+    , monad-ioref       ^>=0.1
+    , monad-stm         ^>=0.1
+    , monad-thread      ^>=0.1
+    , smart-math        ^>=0.1
+    , stm               ^>=2.5.0.0
+    , transformers      >=0.5.6.2  && <0.7
 
   hs-source-dirs:   src
   default-language: Haskell2010

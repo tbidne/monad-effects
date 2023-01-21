@@ -29,10 +29,8 @@ import Data.Text (Text)
 import Data.Text.Encoding qualified as TEnc
 import Data.Text.Encoding.Error (UnicodeException)
 import Data.Text.Encoding.Error qualified as TEncError
+import Effects.Exception (MonadThrow, addCallStack, throwWithCallStack)
 import Effects.FileSystem.Path (Path, readBinaryFileIO)
-import Effects.MonadCallStack
-  ( MonadCallStack (addCallStack, throwWithCallStack),
-  )
 import GHC.Stack (HasCallStack)
 
 -- | Represents file-system reader effects.
@@ -71,7 +69,7 @@ decodeUtf8Lenient = TEnc.decodeUtf8With TEncError.lenientDecode
 -- @since 0.1
 decodeUtf8ThrowM ::
   ( HasCallStack,
-    MonadCallStack m
+    MonadThrow m
   ) =>
   ByteString ->
   m Text
@@ -86,7 +84,6 @@ decodeUtf8ThrowM =
 -- @since 0.1
 readFileUtf8 ::
   ( HasCallStack,
-    MonadCallStack m,
     MonadFileReader m
   ) =>
   Path ->
@@ -99,7 +96,6 @@ readFileUtf8 = fmap decodeUtf8 . readBinaryFile
 -- @since 0.1
 readFileUtf8Lenient ::
   ( HasCallStack,
-    MonadCallStack m,
     MonadFileReader m
   ) =>
   Path ->
@@ -112,8 +108,8 @@ readFileUtf8Lenient = fmap decodeUtf8Lenient . readBinaryFile
 -- @since 0.1
 readFileUtf8ThrowM ::
   ( HasCallStack,
-    MonadCallStack m,
-    MonadFileReader m
+    MonadFileReader m,
+    MonadThrow m
   ) =>
   Path ->
   m Text

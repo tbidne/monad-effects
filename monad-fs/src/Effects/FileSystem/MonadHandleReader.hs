@@ -37,13 +37,11 @@ import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.Text (Text)
 import Data.Text.Encoding.Error (UnicodeException)
+import Effects.Exception (MonadThrow, addCallStack)
 import Effects.FileSystem.MonadFileReader
   ( decodeUtf8,
     decodeUtf8Lenient,
     decodeUtf8ThrowM,
-  )
-import Effects.MonadCallStack
-  ( MonadCallStack (addCallStack),
   )
 import GHC.Stack (HasCallStack)
 import System.IO (BufferMode, Handle)
@@ -236,8 +234,8 @@ hGetLineUtf8Lenient = fmap decodeUtf8Lenient . hGetLine
 -- @since 0.1
 hGetLineUtf8ThrowM ::
   ( HasCallStack,
-    MonadCallStack m,
-    MonadHandleReader m
+    MonadHandleReader m,
+    MonadThrow m
   ) =>
   Handle ->
   m Text
@@ -273,8 +271,8 @@ hGetContentsUtf8Lenient = fmap decodeUtf8Lenient . hGetContents
 -- @since 0.1
 hGetContentsUtf8ThrowM ::
   ( HasCallStack,
-    MonadCallStack m,
-    MonadHandleReader m
+    MonadHandleReader m,
+    MonadThrow m
   ) =>
   Handle ->
   m Text
@@ -312,8 +310,8 @@ hGetUtf8Lenient h = fmap decodeUtf8Lenient . hGet h
 -- @since 0.1
 hGetUtf8ThrowM ::
   ( HasCallStack,
-    MonadCallStack m,
-    MonadHandleReader m
+    MonadHandleReader m,
+    MonadThrow m
   ) =>
   Handle ->
   Int ->
@@ -352,8 +350,8 @@ hGetSomeUtf8Lenient h = fmap decodeUtf8Lenient . hGetSome h
 -- @since 0.1
 hGetSomeUtf8ThrowM ::
   ( HasCallStack,
-    MonadCallStack m,
-    MonadHandleReader m
+    MonadHandleReader m,
+    MonadThrow m
   ) =>
   Handle ->
   Int ->
@@ -392,8 +390,8 @@ hGetNonBlockingUtf8Lenient h = fmap decodeUtf8Lenient . hGetNonBlocking h
 -- @since 0.1
 hGetNonBlockingUtf8ThrowM ::
   ( HasCallStack,
-    MonadCallStack m,
-    MonadHandleReader m
+    MonadHandleReader m,
+    MonadThrow m
   ) =>
   Handle ->
   Int ->

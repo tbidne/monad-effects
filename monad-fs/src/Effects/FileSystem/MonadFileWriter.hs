@@ -22,10 +22,8 @@ import Control.Monad.Trans.Reader (ReaderT)
 import Data.ByteString (ByteString)
 import Data.Text (Text)
 import Data.Text.Encoding qualified as TEnc
+import Effects.Exception (addCallStack)
 import Effects.FileSystem.Path (Path, appendBinaryFileIO, writeBinaryFileIO)
-import Effects.MonadCallStack
-  ( MonadCallStack (addCallStack),
-  )
 import GHC.Stack (HasCallStack)
 
 -- | Represents file-system writer effects.

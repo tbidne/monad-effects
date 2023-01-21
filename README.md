@@ -18,8 +18,8 @@
 - [Introduction](#introduction)
 - [Effects](#effects)
   - [monad-async](#monad-async)
-  - [monad-callstack](#monad-callstack)
   - [monad-env](#monad-env)
+  - [monad-exceptions](#monad-exceptions)
   - [monad-exit](#monad-exit)
   - [monad-fs](#monad-fs)
   - [monad-ioref](#monad-ioref)
@@ -73,19 +73,6 @@ The following lists the supported effects, along with the libraries/modules they
 
 Effect for the `async` library. The implementation is nearly identical to `async`'s API, with the additions of `unliftio`'s "pooled concurrency" functions.
 
-## monad-callstack
-
-### Library: `(none)`
-
-### Modules
-* `Effects.MonadCallStack`
-
-### Description
-
-Effect for adding `CallStack`s to arbitrary functions. Currently this reuses the machinery from `annotated-exception`, though once native `CallStack` support is added (GHC 9.8?), this effect will likely be removed / reduced.
-
-Nearly every package in this repository depends on `monad-callstack` and has `HasCallStack` added to its functions. Hopefully some (all?) of this can be removed once the aforementioned native support exists.
-
 ## monad-env
 
 ### Library: `base`
@@ -96,6 +83,25 @@ Nearly every package in this repository depends on `monad-callstack` and has `Ha
 ### Description
 
 Effect for `System.Environment`.
+
+## monad-exceptions
+
+### Library: `annotated-exception, exceptions, safe-exceptions,`
+
+### Modules
+* `Effects.Exception`
+
+### Description
+
+Provides:
+
+* Functions for throwing/catching exceptions with callstacks (`annotated-exception`).
+* `MonadThrow/MonadCatch/MonadMask` typeclasses (`exceptions`).
+* General throw/catch, disallowing catching async exceptions (`safe-exceptions`).
+* Brackets _without_ `uninterruptibleMask` (`exceptions`).
+
+The `CallStack` machinery will be removed once GHC natively supports adding `CallStack` to exceptions (GHC 9.8?). See 
+https://github.com/ghc-proposals/ghc-proposals/pull/330.
 
 ## monad-exit
 

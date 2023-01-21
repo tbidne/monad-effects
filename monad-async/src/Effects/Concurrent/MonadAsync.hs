@@ -93,8 +93,6 @@ import Control.Exception.Base
       ( BlockedIndefinitelyOnSTM
       ),
   )
-import Control.Exception.Safe (MonadMask)
-import Control.Exception.Safe qualified as SafeEx
 import Control.Monad (forever, replicateM)
 import Control.Monad.Catch
   ( Exception (fromException),
@@ -111,7 +109,7 @@ import Effects.Concurrent.MonadSTM (MonadSTM (..))
 import Effects.Concurrent.MonadThread
   ( MonadThread (getNumCapabilities, threadDelay, throwTo),
   )
-import Effects.MonadCallStack (MonadCallStack (addCallStack))
+import Effects.Exception (MonadMask, addCallStack, toAsyncException)
 import Effects.MonadIORef
   ( IORef,
     MonadIORef
@@ -342,6 +340,11 @@ usingReaderT = flip runReaderT
 -- get really long, even though we don't really want to annotate that
 -- specific field.
 
+-- NOTE: We are using exceptions here instead of monad-exceptions for
+-- everything because the real async library uses the former (actually just
+-- base's Control.Exception), and we do not want to deviate from its
+-- behavior.
+
 -- | Lifted 'Async.poll'.
 --
 -- @since 0.1
@@ -392,7 +395,7 @@ cancelWith ::
 cancelWith a e =
   throwTo
     (Async.asyncThreadId a)
-    (SafeEx.toAsyncException e)
+    (toAsyncException e)
     <* waitCatch a
 {-# INLINEABLE cancelWith #-}
 

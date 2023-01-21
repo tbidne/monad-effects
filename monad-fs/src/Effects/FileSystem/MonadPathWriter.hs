@@ -24,6 +24,7 @@ import Control.Monad (when)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Data.Time (UTCTime (..))
+import Effects.Exception (addCallStack)
 import Effects.FileSystem.MonadPathReader
   ( MonadPathReader
       ( doesDirectoryExist,
@@ -32,9 +33,6 @@ import Effects.FileSystem.MonadPathReader
       ),
   )
 import Effects.FileSystem.Path (Path)
-import Effects.MonadCallStack
-  ( MonadCallStack (addCallStack),
-  )
 import GHC.Stack (HasCallStack)
 import System.Directory (Permissions (..))
 #if MIN_VERSION_filepath(1,4,100) && MIN_VERSION_directory(1,3,8)

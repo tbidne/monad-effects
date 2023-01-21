@@ -1,7 +1,7 @@
 packages:
   ./monad-async
-  ./monad-callstack
   ./monad-env
+  ./monad-exceptions
   ./monad-exit
   ./monad-fs
   ./monad-ioref
@@ -27,7 +27,7 @@ package monad-async
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
     -Wprepositive-qualified-module
 
-package monad-callstack
+package monad-env
   ghc-options:
     -Wall -Wcompat -Werror -Widentities
     -Wincomplete-record-updates -Wincomplete-uni-patterns
@@ -35,7 +35,7 @@ package monad-callstack
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
     -Wprepositive-qualified-module
 
-package monad-env
+package monad-exceptions
   ghc-options:
     -Wall -Wcompat -Werror -Widentities
     -Wincomplete-record-updates -Wincomplete-uni-patterns

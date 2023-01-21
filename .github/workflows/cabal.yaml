@@ -35,8 +35,8 @@ jobs:
       - name: Compile
         run: cabal build all
 
-      - name: Test monad-callstack
-        run: cabal test monad-callstack
+      - name: Test monad-exceptions
+        run: cabal test monad-exceptions
 
       - name: Test monad-logger-namespace
         run: cabal test monad-logger-namespace

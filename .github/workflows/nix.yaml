@@ -19,8 +19,8 @@ jobs:
       matrix:
         lib:
           - "monad-async"
-          - "monad-callstack"
           - "monad-env"
+          - "monad-exceptions"
           - "monad-exit"
           - "monad-fs"
           - "monad-ioref"

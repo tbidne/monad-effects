@@ -1,12 +1,16 @@
 module Main (main) where
 
-import Control.Exception (Exception, SomeException, throwIO, try)
 import Data.Functor ((<&>))
 import Data.String (IsString (fromString))
-import Effects.MonadCallStack
-  ( MonadCallStack (addCallStack, throwWithCallStack),
+import Effects.Exception
+  ( Exception,
+    SomeException,
+    addCallStack,
     displayCallStack,
     displayNoCallStack,
+    throwM,
+    throwWithCallStack,
+    try,
   )
 import System.FilePath ((</>))
 import Test.Tasty (TestTree, defaultMain, testGroup)
@@ -29,7 +33,7 @@ data Ex = MkEx
 throwsCallStack :: TestTree
 throwsCallStack =
   goldenVsStringDiff desc diff gpath $
-    try @SomeException (throwWithCallStack MkEx) <&> \case
+    try @_ @SomeException (throwWithCallStack MkEx) <&> \case
       Left e -> fromString $ stableCallStack e
       Right _ -> "Error: did not catch expected exception."
   where
@@ -39,7 +43,7 @@ throwsCallStack =
 addsCallStack :: TestTree
 addsCallStack =
   goldenVsStringDiff desc diff gpath $
-    try @SomeException (addCallStack $ throwIO MkEx) <&> \case
+    try @_ @SomeException (addCallStack $ throwM MkEx) <&> \case
       Left e -> fromString $ stableCallStack e
       Right _ -> "Error: did not catch expected exception."
   where
@@ -49,7 +53,7 @@ addsCallStack =
 displaysNoCallStack :: TestTree
 displaysNoCallStack =
   goldenVsStringDiff desc diff gpath $
-    try @SomeException (throwWithCallStack MkEx) <&> \case
+    try @_ @SomeException (throwWithCallStack MkEx) <&> \case
       Left e -> fromString $ displayNoCallStack e
       Right _ -> "Error: did not catch expected exception."
   where

@@ -34,7 +34,7 @@ import Control.Concurrent.STM.TVar (TVar)
 import Control.Concurrent.STM.TVar qualified as TVar
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
-import Effects.MonadCallStack (addCallStack)
+import Effects.Exception (addCallStack)
 import GHC.Stack (HasCallStack)
 import Numeric.Natural (Natural)
 

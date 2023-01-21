@@ -29,6 +29,7 @@ import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.Text (Text)
+import Effects.Exception (MonadThrow, addCallStack)
 import Effects.FileSystem.MonadFileReader
   ( UnicodeException,
     decodeUtf8,
@@ -37,9 +38,6 @@ import Effects.FileSystem.MonadFileReader
   )
 import Effects.FileSystem.MonadFileWriter (encodeUtf8)
 import Effects.FileSystem.Path (Path, openBinaryFileIO, withBinaryFileIO)
-import Effects.MonadCallStack
-  ( MonadCallStack (addCallStack),
-  )
 import GHC.Stack (HasCallStack)
 import System.IO (BufferMode (..), Handle, IOMode (..), SeekMode (..))
 import System.IO qualified as IO
@@ -212,8 +210,8 @@ hPutNonBlockingUtf8Lenient h =
 -- @since 0.1
 hPutNonBlockingUtf8ThrowM ::
   ( HasCallStack,
-    MonadCallStack m,
-    MonadHandleWriter m
+    MonadHandleWriter m,
+    MonadThrow m
   ) =>
   Handle ->
   Text ->

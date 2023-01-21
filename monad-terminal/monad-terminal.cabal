@@ -45,12 +45,12 @@ library
   import:           common
   exposed-modules:  Effects.System.MonadTerminal
   build-depends:
-    , base             >=4.14.0.0  && <4.18
-    , bytestring       >=0.10.12.0 && <0.12
-    , monad-callstack  ^>=0.1
-    , terminal-size    ^>=0.3.0
-    , text             >=1.2.4.0   && <2.1
-    , transformers     >=0.5.6.2   && <0.7
+    , base              >=4.14.0.0  && <4.18
+    , bytestring        >=0.10.12.0 && <0.12
+    , monad-exceptions  ^>=0.1
+    , terminal-size     ^>=0.3.0
+    , text              >=1.2.4.0   && <2.1
+    , transformers      >=0.5.6.2   && <0.7
 
   hs-source-dirs:   src
   default-language: Haskell2010

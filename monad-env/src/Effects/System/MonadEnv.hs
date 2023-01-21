@@ -11,9 +11,11 @@ where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
-import Effects.MonadCallStack (addCallStack)
+import Effects.Exception (addCallStack)
 import GHC.Stack (HasCallStack)
 import System.Environment qualified as Env
+
+{- ORMOLU_DISABLE -}
 
 -- | Environment effects.
 --
@@ -40,37 +42,30 @@ class Monad m => MonadEnv m where
   --
   -- @since 0.1
   getExecutablePath :: HasCallStack => m FilePath
-
   -- | Lifted 'Env.getArgs'.
   --
   -- @since 0.1
   getEnv :: HasCallStack => String -> m String
-
   -- | Lifted 'Env.getArgs'.
   --
   -- @since 0.1
   lookupEnv :: HasCallStack => String -> m (Maybe String)
-
   -- | Lifted 'Env.getArgs'.
   --
   -- @since 0.1
   setEnv :: HasCallStack => String -> String -> m ()
-
   -- | Lifted 'Env.getArgs'.
   --
   -- @since 0.1
   unsetEnv :: HasCallStack => String -> m ()
-
   -- | Lifted 'Env.getArgs'.
   --
   -- @since 0.1
   withArgs :: HasCallStack => [String] -> m a -> m a
-
   -- | Lifted 'Env.getArgs'.
   --
   -- @since 0.1
   withProgName :: HasCallStack => String -> m a -> m a
-
   -- | Lifted 'Env.getArgs'.
   --
   -- @since 0.1
@@ -129,3 +124,5 @@ instance MonadEnv m => MonadEnv (ReaderT env m) where
   {-# INLINEABLE withProgName #-}
   getEnvironment = lift getEnvironment
   {-# INLINEABLE getEnvironment #-}
+
+{- ORMOLU_ENABLE -}

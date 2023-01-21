@@ -1,4 +1,4 @@
-# Revision history for monad-callstack
+# Revision history for monad-exceptions
 
 ## 0.1 -- YYYY-mm-dd
 

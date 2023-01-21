@@ -72,7 +72,7 @@ import Data.Time.LocalTime
     ZonedTime (ZonedTime, zonedTimeToLocalTime, zonedTimeZone),
   )
 import Data.Time.LocalTime qualified as Local
-import Effects.MonadCallStack (MonadCallStack, addCallStack)
+import Effects.Exception (MonadCatch, addCallStack)
 import GHC.Clock qualified as C
 #if MIN_VERSION_base(4,17,0)
 import GHC.Float (properFractionDouble)
@@ -335,7 +335,7 @@ parseLocalTime =
 -- @since 0.1
 parseLocalTimeCallStack ::
   ( HasCallStack,
-    MonadCallStack m,
+    MonadCatch m,
     MonadFail m
   ) =>
   String ->
@@ -377,7 +377,7 @@ parseZonedTime =
 -- @since 0.1
 parseZonedTimeCallStack ::
   ( HasCallStack,
-    MonadCallStack m,
+    MonadCatch m,
     MonadFail m
   ) =>
   String ->

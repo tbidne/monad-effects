@@ -30,7 +30,7 @@ import Control.Exception (Exception)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.Foldable (for_)
-import Effects.MonadCallStack (addCallStack)
+import Effects.Exception (addCallStack)
 import GHC.Natural (Natural)
 import GHC.Stack (HasCallStack)
 

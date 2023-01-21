@@ -53,8 +53,8 @@ haddock:
 	cabal haddock all --haddock-hyperlink-source --haddock-quickjump ;\
 	mkdir -p docs/ ;\
 	rm -rf docs/monad-async* ;\
-	rm -rf docs/monad-callstack* ;\
 	rm -rf docs/monad-env* ;\
+	rm -rf docs/monad-exceptions* ;\
 	rm -rf docs/monad-exit* ;\
 	rm -rf docs/monad-fs* ;\
 	rm -rf docs/monad-ioref* ;\
@@ -66,8 +66,8 @@ haddock:
 	rm -rf docs/monad-thread* ;\
 	rm -rf docs/monad-typed-process* ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-async-0.1/doc/html/* docs/ ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-callstack-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-env-0.1/doc/html/* docs/ ;\
+	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-exceptions-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-exit-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-fs-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-ioref-0.1/doc/html/* docs/ ;\
@@ -83,9 +83,9 @@ haddockc:
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-async \
 		-m Effects.Concurrent.MonadAsync 90 ;\
 
-	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-callstack ;\
-
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-env \
+
+	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-exceptions ;\
 
 	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-exit \
 

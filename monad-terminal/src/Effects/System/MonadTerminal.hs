@@ -1,5 +1,7 @@
 {-# LANGUAGE CPP #-}
 
+{- ORMOLU_DISABLE -}
+
 -- | Provides the 'MonadTerminal' typeclass.
 --
 -- @since 0.1
@@ -15,6 +17,7 @@ module Effects.System.MonadTerminal
     putText,
     putTextLn,
     getTextLine,
+
 #if MIN_VERSION_base(4,15,0)
     getTextContents',
 #endif
@@ -30,15 +33,17 @@ module Effects.System.MonadTerminal
   )
 where
 
-import Control.Exception ( Exception(displayException) )
+{- ORMOLU_ENABLE -}
+
+import Control.Exception (Exception (displayException))
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
-import Data.ByteString.Char8 qualified as Char8
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
+import Data.ByteString.Char8 qualified as Char8
 import Data.Text (Text)
 import Data.Text qualified as T
-import Effects.MonadCallStack
+import Effects.Exception
   ( addCallStack,
     throwWithCallStack,
   )
@@ -46,7 +51,7 @@ import GHC.Natural (Natural)
 import GHC.Stack (HasCallStack)
 import System.Console.Terminal.Size (Window (..), size)
 import System.IO qualified as IO
-import Prelude hiding (getChar, getLine, putStr, putStrLn, print)
+import Prelude hiding (getChar, getLine, print, putStr, putStrLn)
 
 -- | @since 0.1
 data TermSizeException = MkTermSizeException
@@ -61,6 +66,8 @@ data TermSizeException = MkTermSizeException
 instance Exception TermSizeException where
   displayException = const "Failed to detect the terminal size."
   {-# INLINEABLE displayException #-}
+
+{- ORMOLU_DISABLE -}
 
 -- | Represents a terminal.
 --
@@ -155,6 +162,8 @@ instance MonadTerminal m => MonadTerminal (ReaderT e m) where
 #endif
   getTerminalSize = lift getTerminalSize
   {-# INLINEABLE getTerminalSize #-}
+
+{- ORMOLU_ENABLE -}
 
 -- | Lifted 'IO.print'.
 --
