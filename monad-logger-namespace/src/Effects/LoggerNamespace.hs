@@ -4,7 +4,7 @@
 -- | Provides namespaced logging functionality on top of 'MonadLogger'.
 --
 -- @since 0.1
-module Effects.MonadLoggerNamespace
+module Effects.LoggerNamespace
   ( -- * Effect
     MonadLoggerNamespace (..),
     Namespace (..),
@@ -49,8 +49,8 @@ import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TEnc
 import Data.Text.Encoding.Error qualified as TEncError
-import Effects.MonadTime (MonadTime (getSystemZonedTime), getSystemTime)
-import Effects.MonadTime qualified as MonadTime
+import Effects.Time (MonadTime (getSystemZonedTime), getSystemTime)
+import Effects.Time qualified as MonadTime
 import GHC.Exts (IsList (Item, fromList, toList))
 import GHC.Generics (Generic)
 import GHC.Stack (HasCallStack)

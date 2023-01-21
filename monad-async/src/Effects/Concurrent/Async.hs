@@ -3,7 +3,7 @@
 -- | Provides the 'MonadAsync' typeclass for async effects.
 --
 -- @since 0.1
-module Effects.Concurrent.MonadAsync
+module Effects.Concurrent.Async
   ( -- * Effect
     Async,
     MonadAsync (..),
@@ -105,12 +105,12 @@ import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask, mapReaderT)
 import Data.Foldable (Foldable (fold), toList)
 import Data.Functor (void, ($>))
 import Data.Traversable (for)
-import Effects.Concurrent.MonadSTM (MonadSTM (..))
-import Effects.Concurrent.MonadThread
+import Effects.Concurrent.STM (MonadSTM (..))
+import Effects.Concurrent.Thread
   ( MonadThread (getNumCapabilities, threadDelay, throwTo),
   )
 import Effects.Exception (MonadMask, addCallStack, toAsyncException)
-import Effects.MonadIORef
+import Effects.IORef
   ( IORef,
     MonadIORef
       ( atomicModifyIORef',

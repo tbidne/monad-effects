@@ -1,7 +1,7 @@
 -- | Provides the 'MonadExit' typeclass.
 --
 -- @since 0.1
-module Effects.System.MonadExit
+module Effects.System.Exit
   ( -- * Effect
     MonadExit (..),
     ExitCode (..),
@@ -16,7 +16,7 @@ where
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.ByteString.Char8 qualified as Char8
-import Effects.FileSystem.MonadHandleWriter
+import Effects.FileSystem.HandleWriter
   ( MonadHandleWriter (hPut),
   )
 import GHC.Stack (HasCallStack)

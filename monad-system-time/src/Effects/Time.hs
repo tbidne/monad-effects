@@ -5,7 +5,7 @@
 -- | Provides the 'MonadTime' class.
 --
 -- @since 0.1
-module Effects.MonadTime
+module Effects.Time
   ( -- * Effect
     MonadTime (..),
     getSystemTime,

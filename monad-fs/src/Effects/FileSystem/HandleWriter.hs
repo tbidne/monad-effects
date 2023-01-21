@@ -1,7 +1,7 @@
 -- | Provides the MonadFileWriter effect.
 --
 -- @since 0.1
-module Effects.FileSystem.MonadHandleWriter
+module Effects.FileSystem.HandleWriter
   ( -- * Effect
     MonadHandleWriter (..),
     Path,
@@ -30,13 +30,13 @@ import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.Text (Text)
 import Effects.Exception (MonadThrow, addCallStack)
-import Effects.FileSystem.MonadFileReader
+import Effects.FileSystem.FileReader
   ( UnicodeException,
     decodeUtf8,
     decodeUtf8Lenient,
     decodeUtf8ThrowM,
   )
-import Effects.FileSystem.MonadFileWriter (encodeUtf8)
+import Effects.FileSystem.FileWriter (encodeUtf8)
 import Effects.FileSystem.Path (Path, openBinaryFileIO, withBinaryFileIO)
 import GHC.Stack (HasCallStack)
 import System.IO (BufferMode (..), Handle, IOMode (..), SeekMode (..))

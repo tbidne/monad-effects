@@ -1,7 +1,7 @@
 -- | Provides the MonadFileReader effect.
 --
 -- @since 0.1
-module Effects.FileSystem.MonadFileReader
+module Effects.FileSystem.FileReader
   ( -- * Effect
     MonadFileReader (..),
     Path,

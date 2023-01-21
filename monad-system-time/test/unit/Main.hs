@@ -10,12 +10,12 @@ import Data.String (IsString (fromString))
 import Data.Time.Calendar.OrdinalDate (fromOrdinalDate)
 import Data.Time.LocalTime (TimeOfDay (TimeOfDay), utc)
 import Effects.Exception (displayCallStack)
-import Effects.MonadTime
+import Effects.Time
   ( LocalTime (LocalTime),
     TimeSpec (MkTimeSpec),
     ZonedTime (ZonedTime),
   )
-import Effects.MonadTime qualified as MonadTime
+import Effects.Time qualified as MonadTime
 import Hedgehog (Gen, annotate, annotateShow, diff, forAll, property, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as R

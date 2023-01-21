@@ -43,7 +43,7 @@ common common
 
 library
   import:           common
-  exposed-modules:  Effects.Concurrent.MonadThread
+  exposed-modules:  Effects.Concurrent.Thread
   build-depends:
     , base              >=4.14.0.0 && <4.18
     , monad-exceptions  ^>=0.1

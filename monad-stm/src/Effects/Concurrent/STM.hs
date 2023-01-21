@@ -1,7 +1,7 @@
 -- | Provides classes for 'STM'.
 --
 -- @since 0.1
-module Effects.Concurrent.MonadSTM
+module Effects.Concurrent.STM
   ( -- * Effect
     STM,
     MonadSTM (..),

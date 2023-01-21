@@ -44,13 +44,13 @@ common common
 library
   import:           common
   exposed-modules:
-    Effects.FileSystem.MonadFileReader
-    Effects.FileSystem.MonadFileWriter
-    Effects.FileSystem.MonadHandleReader
-    Effects.FileSystem.MonadHandleWriter
-    Effects.FileSystem.MonadPathReader
-    Effects.FileSystem.MonadPathWriter
+    Effects.FileSystem.FileReader
+    Effects.FileSystem.FileWriter
+    Effects.FileSystem.HandleReader
+    Effects.FileSystem.HandleWriter
     Effects.FileSystem.Path
+    Effects.FileSystem.PathReader
+    Effects.FileSystem.PathWriter
 
   build-depends:
     , base              >=4.14.0.0  && <4.18

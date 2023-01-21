@@ -1,7 +1,7 @@
 -- | Provides the 'MonadThread' typeclass.
 --
 -- @since 0.1
-module Effects.Concurrent.MonadThread
+module Effects.Concurrent.Thread
   ( -- * Thread Effect
     MonadThread (..),
     microsleep,

@@ -1,7 +1,7 @@
 -- | Provides the MonadFileWriter effect.
 --
 -- @since 0.1
-module Effects.FileSystem.MonadFileWriter
+module Effects.FileSystem.FileWriter
   ( -- * Effect
     MonadFileWriter (..),
     Path,

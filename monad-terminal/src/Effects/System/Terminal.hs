@@ -5,7 +5,7 @@
 -- | Provides the 'MonadTerminal' typeclass.
 --
 -- @since 0.1
-module Effects.System.MonadTerminal
+module Effects.System.Terminal
   ( -- * Effect
     MonadTerminal (..),
     TermSizeException (..),

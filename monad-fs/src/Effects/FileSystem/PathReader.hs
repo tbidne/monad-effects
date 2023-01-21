@@ -3,7 +3,7 @@
 -- | Provides the MonadPathReader effect.
 --
 -- @since 0.1
-module Effects.FileSystem.MonadPathReader
+module Effects.FileSystem.PathReader
   ( -- * Effect
     MonadPathReader (..),
     Path,

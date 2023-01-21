@@ -1,7 +1,7 @@
 -- | Provides the 'MonadIORef' class.
 --
 -- @since 0.1
-module Effects.MonadIORef
+module Effects.IORef
   ( -- * Effect
     MonadIORef (..),
 

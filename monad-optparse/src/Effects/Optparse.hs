@@ -1,7 +1,7 @@
 -- | Provides the 'MonadOptparse' typeclass.
 --
 -- @since 0.1
-module Effects.MonadOptparse
+module Effects.Optparse
   ( -- * Effect
     MonadOptparse (..),
   )

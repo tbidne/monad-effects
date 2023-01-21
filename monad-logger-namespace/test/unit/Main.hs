@@ -7,8 +7,8 @@ import Data.ByteString.Lazy qualified as BSL
 import Data.Text (Text)
 import Data.Time.Calendar.OrdinalDate (fromOrdinalDate)
 import Data.Time.LocalTime (TimeOfDay (TimeOfDay), utc)
-import Effects.MonadLoggerNamespace
-import Effects.MonadTime
+import Effects.LoggerNamespace
+import Effects.Time
   ( LocalTime (LocalTime),
     MonadTime (..),
     ZonedTime (ZonedTime),

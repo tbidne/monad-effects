@@ -67,7 +67,7 @@ The following lists the supported effects, along with the libraries/modules they
 ### Library: `async`
 
 ### Modules
-* `Effects.Concurrent.MonadAsync (Control.Concurrent.Async)`
+* `Effects.Concurrent.Async (Control.Concurrent.Async)`
 
 ### Description
 
@@ -78,7 +78,7 @@ Effect for the `async` library. The implementation is nearly identical to `async
 ### Library: `base`
 
 ### Modules
-* `Effects.System.MonadEnv (System.Environment)`
+* `Effects.System.Environment (System.Environment)`
 
 ### Description
 
@@ -108,7 +108,7 @@ https://github.com/ghc-proposals/ghc-proposals/pull/330.
 ### Library: `base`
 
 ### Modules
-* `Effects.System.MonadExit (System.Exit)`
+* `Effects.System.Exit (System.Exit)`
 
 ### Description
 
@@ -119,20 +119,20 @@ Effect for `System.Exit`.
 ### Library: `base, bytestring, directory`
 
 ### Modules
-* `Effects.FileSystem.MonadFileReader (Data.ByteString)`
-* `Effects.FileSystem.MonadFileWriter (Data.ByteString)`
-* `Effects.FileSystem.MonadPathReader (System.Directory)`
-* `Effects.FileSystem.MonadPathWriter (System.Directory)`
-* `Effects.FileSystem.MonadHandleReader (System.IO)`
-* `Effects.FileSystem.MonadHandleWriter (System.IO)`
+* `Effects.FileSystem.FileReader (Data.ByteString)`
+* `Effects.FileSystem.FileWriter (Data.ByteString)`
+* `Effects.FileSystem.PathReader (System.Directory)`
+* `Effects.FileSystem.PathWriter (System.Directory)`
+* `Effects.FileSystem.HandleReader (System.IO)`
+* `Effects.FileSystem.HandleWriter (System.IO)`
 
 ### Description
 
 Filesystem effects. In particular:
 
-* The `MonadFile*` modules are for reading/writing to files, and include helper functions for (de/en)coding UTF-8.
-* The `MonadPath*` modules implement the `directory` interface.
-* The `MonadHandle*` modules implement `System.IO` handle operations.
+* The `File*` modules are for reading/writing to files, and include helper functions for (de/en)coding UTF-8.
+* The `Path*` modules implement the `directory` interface.
+* The `Handle*` modules implement `System.IO` handle operations.
 
 These are written to be compatible with the upcoming `FilePath -> OsPath` change, i.e. if `filepath` and `directory` libraries are new enough (>= `1.4.100` and `1.3.8`, respectively), then the APIs require `OsPath`, not `FilePath`.
 
@@ -141,7 +141,7 @@ These are written to be compatible with the upcoming `FilePath -> OsPath` change
 ### Library: `base`
 
 ### Modules
-* `Effects.MonadIORef (Data.IORef)`
+* `Effects.IORef (Data.IORef)`
 
 ### Description
 
@@ -152,7 +152,7 @@ These are written to be compatible with the upcoming `FilePath -> OsPath` change
 ### Library: `(none)`
 
 ### Modules
-* `Effects.MonadLoggerNamespace`
+* `Effects.LoggerNamespace`
 
 ### Description
 
@@ -174,7 +174,7 @@ Most of `optparse-applicative`'s API is pure, so there is not much here, just fu
 ### Library: `stm`
 
 ### Modules
-* `Effects.Concurrent.MonadSTM (Control.Concurrent.STM)`
+* `Effects.Concurrent.STM (Control.Concurrent.STM)`
 
 ### Description
 
@@ -185,7 +185,7 @@ Provides a single function `atomically :: MonadSTM m => STM a -> m a` and helper
 ### Library: `time`
 
 ### Modules
-* `Effects.MonadTime`
+* `Effects.Time`
 
 ### Description
 
@@ -196,7 +196,7 @@ Provides functions for retrieving the current system time and monotonic time.
 ### Library: `base`
 
 ### Modules
-* `Effects.System.MonadTerminal (System.IO)`
+* `Effects.System.Terminal (System.IO)`
 
 ### Description
 
@@ -207,7 +207,7 @@ Implements typical terminal functions e.g. `putStrLn`.
 ### Library: `base`
 
 ### Modules
-* `Effects.Concurrent.MonadThread (Control.Concurrent)`
+* `Effects.Concurrent.Thread (Control.Concurrent)`
 
 ### Description
 
@@ -218,7 +218,7 @@ Implements functions from `Control.Concurrent` along with `Control.Concurrent.QS
 ### Library: `typed-process`
 
 ### Modules
-* `Effects.System.MonadProcess (System.Process.Typed)`
+* `Effects.System.Process (System.Process.Typed)`
 
 ### Description
 
