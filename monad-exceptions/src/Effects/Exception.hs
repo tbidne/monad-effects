@@ -1,4 +1,10 @@
----
+-- | Exception handling. The interface here combines pieces of the following
+-- three libraries in a somewhat idiosyncratic way:
+--
+-- * [exceptions](https://hackage.haskell.org/package/exceptions)
+-- * [safe-exceptions](https://hackage.haskell.org/package/safe-exceptions)
+-- * [annotated-exception](https://hackage.haskell.org/package/annotated-exception)
+--
 -- We have the following goals, hence the three libraries:
 --
 -- 1. Typeclass abstraction: @exceptions@'s typeclasses.
@@ -6,7 +12,6 @@
 --    for this purpose. The call stack specific functions will be removed
 --    once GHC natively supports combining exceptions and 'CallStack'
 --    (tentatively GHC 9.8). See the following proposal for more information:
---
 --    https://github.com/ghc-proposals/ghc-proposals/pull/330
 --
 -- 3. Throw/catch exceptions in accordance with @safe-exceptions@: That is,
@@ -23,20 +28,13 @@
 -- libraries, so if more functionality is required, a direct dependency
 -- will be necessary.
 --
--- NOTE that, like @safe-exceptions@, the typeclass methods for
+-- Note that, like @safe-exceptions@, the typeclass methods for
 -- 'MonadThrow' ('throwM') and 'MonadCatch' ('catch') are __not__ exported
 -- here because they are overridden to prevent catching async exceptions.
 -- This means that if one needs to manually write an instance for either of
 -- those classes, then a dependency on @exceptions@ is required.
 --
 -- @since 0.1
-
--- | Exception handling. The interface here combines pieces of the following
--- three libraries in a somewhat idiosyncratic way:
---
--- * [exceptions](https://hackage.haskell.org/package/exceptions)
--- * [safe-exceptions](https://hackage.haskell.org/package/safe-exceptions)
--- * [annotated-exception](https://hackage.haskell.org/package/annotated-exception)
 module Effects.Exception
   ( -- * CallStack
     throwWithCallStack,
