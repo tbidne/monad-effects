@@ -55,6 +55,7 @@ module Effects.Exception
     -- ** Throwing (@safe-exceptions@)
     MonadThrow,
     SafeEx.throwM,
+    SafeEx.throwString,
 
     -- ** Catching (@safe-exceptions@)
     MonadCatch,
