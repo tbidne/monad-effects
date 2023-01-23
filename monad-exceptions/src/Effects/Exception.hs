@@ -7,7 +7,8 @@
 --
 -- We have the following goals, hence the three libraries:
 --
--- 1. Typeclass abstraction: @exceptions@'s typeclasses.
+-- 1. Typeclass abstraction: @exceptions@'s
+--    'MonadThrow'\/'MonadCatch'\/'MonadMask'.
 -- 2. Throw exceptions w/ 'CallStack': For now, we reuse @annotated-exception@
 --    for this purpose. The call stack specific functions will be removed
 --    once GHC natively supports combining exceptions and 'CallStack'
@@ -96,10 +97,7 @@ module Effects.Exception
   )
 where
 
-import Control.Monad.Trans.Reader (ReaderT, runReaderT, ask)
-import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Exception (IOException)
-import GHC.Conc.Sync qualified as Sync
 import Control.Exception.Annotated
   ( AnnotatedException (..),
     Annotation (..),
@@ -114,8 +112,11 @@ import Control.Monad.Catch
     SomeException,
   )
 import Control.Monad.Catch qualified as Ex
+import Control.Monad.Trans.Class (MonadTrans (lift))
+import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Data.Foldable (Foldable (foldMap'))
 import Data.Typeable (cast)
+import GHC.Conc.Sync qualified as Sync
 import GHC.Stack
   ( CallStack,
     HasCallStack,
@@ -147,8 +148,9 @@ instance MonadGlobalException IO where
 
 -- | @since 0.1
 instance MonadGlobalException m => MonadGlobalException (ReaderT env m) where
-  setUncaughtExceptionHandler f = ask >>= \e ->
-    lift $ setUncaughtExceptionHandler (\ex -> runReaderT (f ex) e)
+  setUncaughtExceptionHandler f =
+    ask >>= \e ->
+      lift $ setUncaughtExceptionHandler (\ex -> runReaderT (f ex) e)
   {-# INLINEABLE setUncaughtExceptionHandler #-}
 
   getUncaughtExceptionHandler =
@@ -164,9 +166,9 @@ throwWithCallStack ::
   (Exception e, HasCallStack, MonadThrow m) => e -> m a
 throwWithCallStack = Ann.throwWithCallStack
 
--- | Alias for 'Ann.catch'. Needed to catch exceptions thrown by
--- @throwWithCallStack@, which is used liberally by the packages in this
--- repository. Will eventually be removed in favor of @safe-exception@'s
+-- | Alias for @annotated-exceptions@' 'Ann.catch'. Needed to catch exceptions
+-- thrown by @throwWithCallStack@, which is used liberally by the packages in
+-- this repository. Will eventually be removed in favor of @safe-exception@'s
 -- 'SafeEx.catch' once GHC natively handles exceptions with 'CallStack' (9.8).
 --
 -- @since 0.1
@@ -174,19 +176,19 @@ catchWithCallStack ::
   (Exception e, HasCallStack, MonadCatch m) => m a -> (e -> m a) -> m a
 catchWithCallStack = Ann.catch
 
--- | Alias for 'Ann.try'. Needed to catch exceptions thrown by
--- @throwWithCallStack@, which is used liberally by the packages in this
--- repository. Will eventually be removed in favor of @safe-exception@'s
--- 'SafeEx.catch' once GHC natively handles exceptions with 'CallStack' (9.8).
+-- | Alias for @annotated-exceptions@' 'Ann.try'. Needed to catch exceptions
+-- thrown by @throwWithCallStack@, which is used liberally by the packages in
+-- this repository. Will eventually be removed in favor of @safe-exceptions@'
+-- 'SafeEx.try' once GHC natively handles exceptions with 'CallStack' (9.8).
 --
 -- @since 0.1
 tryWithCallStack ::
   (Exception e, MonadCatch m) => m a -> m (Either e a)
 tryWithCallStack = Ann.try
 
--- | Alias for 'Ann.checkpointCallStack'. Will eventually be removed in favor
--- of @safe-exception@'s 'SafeEx.catch' once GHC natively handles exceptions
--- with 'CallStack' (9.8).
+-- | Alias for @annotated-exceptions@' 'Ann.checkpointCallStack'. Will
+-- eventually be removed once GHC natively handles exceptions with
+-- 'CallStack' (9.8).
 --
 -- @since 0.1
 addCallStack :: (HasCallStack, MonadCatch m) => m a -> m a
