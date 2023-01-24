@@ -1,5 +1,7 @@
 {-# LANGUAGE CPP #-}
 
+{- ORMOLU_DISABLE -}
+
 -- | Provides the MonadPathReader effect.
 --
 -- @since 0.1
@@ -14,6 +16,9 @@ module Effects.FileSystem.PathReader
 
     -- * Xdg Utils
     getXdgConfig,
+#if MIN_VERSION_directory(1,3,7)
+    getXdgState,
+#endif
 
     -- * Reexports
     XdgDirectory (..),
@@ -39,6 +44,8 @@ import System.Directory.OsPath qualified as Dir
 #else
 import System.Directory qualified as Dir
 #endif
+
+{- ORMOLU_ENABLE -}
 
 -- REVIEW: Can we reduce the class size by implementing some of these
 -- functions in terms of others?
@@ -307,3 +314,12 @@ findFiles = findFilesWith (\_ -> pure True)
 getXdgConfig :: (HasCallStack, MonadPathReader m) => Path -> m Path
 getXdgConfig = getXdgDirectory XdgConfig
 {-# INLINEABLE getXdgConfig #-}
+
+#if MIN_VERSION_directory(1,3,7)
+-- | Retrieves the Xdg Config directory.
+--
+-- @since 0.1
+getXdgState :: (HasCallStack, MonadPathReader m) => Path -> m Path
+getXdgState = getXdgDirectory XdgState
+{-# INLINEABLE getXdgState #-}
+#endif
