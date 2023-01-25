@@ -86,7 +86,7 @@ Effect for `System.Environment`.
 
 ## monad-exceptions
 
-### Library: `annotated-exception`, `exceptions`, `safe-exceptions`
+### Library: `exceptions`, `safe-exceptions`
 
 ### Modules
 * `Effects.Exception`
@@ -95,12 +95,12 @@ Effect for `System.Environment`.
 
 Provides:
 
-* Functions for throwing/catching exceptions with callstacks (`annotated-exception`).
+* Functions for throwing/catching exceptions with callstacks.
 * `MonadThrow/MonadCatch/MonadMask` typeclasses (`exceptions`).
 * General throw/catch, disallowing catching async exceptions (`safe-exceptions`).
 * Brackets _without_ `uninterruptibleMask` (`exceptions`).
 
-The `CallStack` machinery will be removed once GHC natively supports adding `CallStack` to exceptions (GHC 9.8?). See 
+The `CallStack` machinery may be removed once GHC natively supports adding `CallStack` to exceptions (GHC 9.8?). See
 https://github.com/ghc-proposals/ghc-proposals/pull/330.
 
 ## monad-exit

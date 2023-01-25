@@ -34,7 +34,7 @@ import Control.Concurrent.STM.TVar (TVar)
 import Control.Concurrent.STM.TVar qualified as TVar
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
-import Effects.Exception (addCallStack)
+import Effects.Exception (addCS)
 import GHC.Stack (HasCallStack)
 import Numeric.Natural (Natural)
 
@@ -49,7 +49,7 @@ class Monad m => MonadSTM m where
 
 -- | @since 0.1
 instance MonadSTM IO where
-  atomically = addCallStack . STM.atomically
+  atomically = addCS . STM.atomically
   {-# INLINEABLE atomically #-}
 
 -- | @since 0.1

@@ -1,16 +1,15 @@
 -- | Exception handling. The interface here combines pieces of the following
--- three libraries in a somewhat idiosyncratic way:
+-- two libraries in a somewhat idiosyncratic way:
 --
 -- * [exceptions](https://hackage.haskell.org/package/exceptions)
 -- * [safe-exceptions](https://hackage.haskell.org/package/safe-exceptions)
--- * [annotated-exception](https://hackage.haskell.org/package/annotated-exception)
 --
--- We have the following goals, hence the three libraries:
+-- We have the following goals, hence the two libraries:
 --
 -- 1. Typeclass abstraction: @exceptions@'s
 --    'MonadThrow'\/'MonadCatch'\/'MonadMask'.
--- 2. Throw exceptions w/ 'CallStack': For now, we reuse @annotated-exception@
---    for this purpose. The call stack specific functions will be removed
+-- 2. Throw exceptions w/ 'CallStack': For now, we use a custom type
+--    'ExceptionCS' for this purpose. This functionality may be removed
 --    once GHC natively supports combining exceptions and 'CallStack'
 --    (tentatively GHC 9.8). See the following proposal for more information:
 --    https://github.com/ghc-proposals/ghc-proposals/pull/330
@@ -25,7 +24,7 @@
 --    legitimate uses are rare, and for those corner cases, deadlocks are worse
 --    than interruptible operations receiving async exceptions.
 --
--- The API exported here is not comprehensive vis-à-vis any of the three
+-- The API exported here is not comprehensive vis-à-vis either of the two
 -- libraries, so if more functionality is required, a direct dependency
 -- will be necessary.
 --
@@ -41,14 +40,20 @@ module Effects.Exception
     MonadGlobalException (..),
 
     -- * CallStack
-    throwWithCallStack,
-    catchWithCallStack,
-    tryWithCallStack,
-    addCallStack,
+    -- $callstack
+    ExceptionCS (..),
+    throwWithCS,
+    catchWithCS,
+    catchAnyWithCS,
+    handleWithCS,
+    handleAnyWithCS,
+    tryWithCS,
+    tryAnyWithCS,
+    addCS,
+    addOuterCS,
 
     -- ** Utils
-    displayCallStack,
-    displayNoCallStack,
+    displayNoCS,
 
     -- * Re-exports
 
@@ -79,10 +84,6 @@ module Effects.Exception
     Ex.finally,
     Ex.bracketOnError,
 
-    -- ** @annotated-exception@
-    AnnotatedException (..),
-    Annotation (..),
-
     -- ** @safe-exceptions@
     SafeEx.toSyncException,
     SafeEx.toAsyncException,
@@ -98,32 +99,32 @@ module Effects.Exception
   )
 where
 
+import Control.DeepSeq (NFData)
 import Control.Exception (IOException)
-import Control.Exception.Annotated
-  ( AnnotatedException (..),
-    Annotation (..),
-  )
-import Control.Exception.Annotated qualified as Ann
 import Control.Exception.Safe qualified as SafeEx
 import Control.Monad.Catch
   ( Exception (..),
+    Handler (..),
     MonadCatch (..),
     MonadMask (..),
     MonadThrow (..),
-    SomeException,
+    SomeException (..),
   )
 import Control.Monad.Catch qualified as Ex
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
-import Data.Foldable (Foldable (foldMap'))
+import Data.Set qualified as Set
 import Data.Typeable (cast)
 import GHC.Conc.Sync qualified as Sync
+import GHC.Generics (Generic)
 import GHC.Stack
   ( CallStack,
     HasCallStack,
+    callStack,
     prettyCallStack,
     withFrozenCallStack,
   )
+import GHC.Stack.Types (SrcLoc (..), fromCallSiteList, getCallStack)
 
 -- | Effect for global exception mechanisms.
 --
@@ -141,10 +142,10 @@ class Monad m => MonadGlobalException m where
 
 -- | @since 0.1
 instance MonadGlobalException IO where
-  setUncaughtExceptionHandler = addCallStack . Sync.setUncaughtExceptionHandler
+  setUncaughtExceptionHandler = addCS . Sync.setUncaughtExceptionHandler
   {-# INLINEABLE setUncaughtExceptionHandler #-}
 
-  getUncaughtExceptionHandler = addCallStack Sync.getUncaughtExceptionHandler
+  getUncaughtExceptionHandler = addCS Sync.getUncaughtExceptionHandler
   {-# INLINEABLE getUncaughtExceptionHandler #-}
 
 -- | @since 0.1
@@ -158,71 +159,258 @@ instance MonadGlobalException m => MonadGlobalException (ReaderT env m) where
     ask >>= \e -> lift (runReaderT getUncaughtExceptionHandler e)
   {-# INLINEABLE getUncaughtExceptionHandler #-}
 
--- | Alias for 'Ann.throwWithCallStack'. Will eventually be removed in favor
--- of @safe-exception@'s 'SafeEx.throwM' once GHC natively handles exceptions
--- with 'CallStack' (9.8).
+-- $callstack
+-- The callstack API and implementation is heavily inspired by the excellent
+-- [annotated-exception](https://hackage.haskell.org/package/annotated-exception)
+-- library.
 --
--- @since 0.1
-throwWithCallStack ::
-  (Exception e, HasCallStack, MonadThrow m) => e -> m a
-throwWithCallStack = Ann.throwWithCallStack
+-- The primary difference is that @annotated-exception@ is more general and
+-- comprehensive; the primary exception type allows one to tie arbitrary
+-- data to its exceptions.
+--
+-- By comparison, the functionality here is only concerned with 'CallStack'.
+-- That enables both the implementation and usage to be simpler, if you only
+-- have the modest goal of obtaining exception callstacks.
+--
+-- Another difference is that 'ExceptionCS'\'s 'Show' instance uses
+-- its 'displayException', which pretty-prints the 'CallStack'. This decision
+-- is due to many functions/ibraries defaulting to 'Show', so this way is
+-- more conservative if you really want stacktraces, at the cost of some
+-- transparency.
+--
+-- Note that if an exception @e@ is thrown with 'throwWithCS', you can
+-- no longer catch it with normal @catch \@e@, as it is now a
+-- @ExceptionCS e@. You can instead use @catchWithCS \@e@.
 
--- | Alias for @annotated-exceptions@' 'Ann.catch'. Needed to catch exceptions
--- thrown by @throwWithCallStack@, which is used liberally by the packages in
--- this repository. Will eventually be removed in favor of @safe-exception@'s
--- 'SafeEx.catch' once GHC natively handles exceptions with 'CallStack' (9.8).
+-- | Attaches a 'CallStack' to an arbitrary exception. The 'Show' instance
+-- uses 'displayException' i.e. the underlying exceptions' 'displayException'
+-- and pretty-prints the 'CallStack' due to some libraries (e.g. testing)
+-- defaulting to 'Show' when printing exceptions.
 --
 -- @since 0.1
-catchWithCallStack ::
-  (Exception e, HasCallStack, MonadCatch m) => m a -> (e -> m a) -> m a
-catchWithCallStack = Ann.catch
+data ExceptionCS e = MkExceptionCS e CallStack
+  deriving stock
+    ( -- | @since 0.1
+      Generic,
+      -- | @since 0.1
+      Functor
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
+    )
 
--- | Alias for @annotated-exceptions@' 'Ann.try'. Needed to catch exceptions
--- thrown by @throwWithCallStack@, which is used liberally by the packages in
--- this repository. Will eventually be removed in favor of @safe-exceptions@'
--- 'SafeEx.try' once GHC natively handles exceptions with 'CallStack' (9.8).
---
--- @since 0.1
-tryWithCallStack ::
-  (Exception e, MonadCatch m) => m a -> m (Either e a)
-tryWithCallStack = Ann.try
+-- | @since 0.1
+instance Applicative ExceptionCS where
+  pure x = MkExceptionCS x callStack
 
--- | Alias for @annotated-exceptions@' 'Ann.checkpointCallStack'. Will
--- eventually be removed once GHC natively handles exceptions with
--- 'CallStack' (9.8).
---
--- @since 0.1
-addCallStack :: (HasCallStack, MonadCatch m) => m a -> m a
-addCallStack = Ann.checkpointCallStack
+  MkExceptionCS f cs <*> MkExceptionCS x cs' =
+    MkExceptionCS (f x) (mergeCallStack cs cs')
 
--- | Like 'displayException', except it has extra logic that attempts to
--- display any found 'CallStack's in a pretty way.
+-- | @since 0.1
+instance Monad ExceptionCS where
+  MkExceptionCS x cs >>= f =
+    let MkExceptionCS x' cs' = f x
+     in MkExceptionCS x' (mergeCallStack cs cs')
+
+-- | Alias for 'displayException'.
 --
 -- @since 0.1
-displayCallStack :: forall e. Exception e => e -> String
-displayCallStack ex =
-  case fromException @(AnnotatedException SomeException) (toException ex) of
-    Nothing -> displayException ex
-    Just (AnnotatedException anns anEx) ->
-      mconcat
-        [ displayException anEx,
-          foldMap' (\a -> "\n" <> prettyAnn a) anns
-        ]
+instance Exception e => Show (ExceptionCS e) where
+  show = displayException
+
+-- | @since 0.1
+instance Exception e => Exception (ExceptionCS e) where
+  -- Converting underlying exception so that we can predictably convert to
+  -- ExceptionCS SomeException
+  toException (MkExceptionCS ex cs) =
+    tryFlatten $ SomeException (MkExceptionCS (toException ex) cs)
+
+  -- 1. SomeException ex
+  fromException (SomeException ex)
+    -- 1.1. The underlying ex is (ExceptionCS e)
+    --      ==> return the ExceptionCS e
+    | Just x <- cast ex = Just x
+    -- 1.2 The underlying ex is (ExceptionCS SomeException) AND
+    --     The SomeException can be converted to the requested e
+    --     ==> return the ExceptionCS e
+    | Just (MkExceptionCS (ecs :: SomeException) cs) <- cast ex,
+      Just x <- SafeEx.fromException ecs =
+        pure $ MkExceptionCS x cs
+  -- 2. ex = SomeException
+  fromException ex
+    -- 2.1. The ex is convertible to the requested e
+    --      ==> wrap it in an ExceptionCS
+    | Just e <- SafeEx.fromException ex = Just $ pure e
+    -- 2.2. We did our best
+    | otherwise = Nothing
+
+  displayException (MkExceptionCS e cs) =
+    mconcat
+      [ displayException e,
+        "\n",
+        prettyCallStack cs
+      ]
+
+flatten :: ExceptionCS (ExceptionCS e) -> ExceptionCS e
+flatten (MkExceptionCS (MkExceptionCS ex old) new) =
+  MkExceptionCS ex (mergeCallStack old new)
+
+tryFlatten :: SomeException -> SomeException
+tryFlatten ex =
+  case fromException ex of
+    Just (ex' :: ExceptionCS (ExceptionCS SomeException)) ->
+      SomeException $ flatten ex'
+    Nothing ->
+      ex
+
+-- | Wraps an exception in 'ExceptionCS' and rethrows. If the @e@ is
+-- also an 'ExceptionCS', the callStacks are merged.
+--
+-- @since 0.1
+throwWithCS ::
+  forall m e a.
+  (Exception e, HasCallStack, MonadThrow m) =>
+  e ->
+  m a
+throwWithCS ex =
+  withFrozenCallStack $ throwM $ MkExceptionCS ex callStack
+{-# INLINEABLE throwWithCS #-}
+
+-- | Catches both @e@ and @ExceptionCS e@. The given handler is
+-- wrapped in 'addCS'.
+--
+-- @since 0.1
+catchWithCS ::
+  forall m e a.
+  (Exception e, HasCallStack, MonadCatch m) =>
+  m a ->
+  (e -> m a) ->
+  m a
+catchWithCS action handler =
+  withFrozenCallStack $
+    SafeEx.catches
+      action
+      [ Handler $ \ex -> addCS $ handler ex,
+        -- "Forget" about the callstack unless another is raised.
+        Handler $ \(MkExceptionCS ex cs) -> addOuterCS cs $ handler ex
+      ]
+{-# INLINEABLE catchWithCS #-}
+
+-- | 'catchWithCS' specialized to 'SomeException'.
+--
+-- @since 0.1
+catchAnyWithCS ::
+  forall m a.
+  (HasCallStack, MonadCatch m) =>
+  m a ->
+  (SomeException -> m a) ->
+  m a
+catchAnyWithCS = catchWithCS
+{-# INLINEABLE catchAnyWithCS #-}
+
+-- | Flipped 'catchWithCS'.
+--
+-- @since 0.1
+handleWithCS ::
+  forall m e a.
+  (Exception e, HasCallStack, MonadCatch m) =>
+  (e -> m a) ->
+  m a ->
+  m a
+handleWithCS = flip catchWithCS
+{-# INLINEABLE handleWithCS #-}
+
+-- | 'handleWithCS' specialized to 'SomeException'.
+--
+-- @since 0.1
+handleAnyWithCS ::
+  forall m a.
+  (HasCallStack, MonadCatch m) =>
+  (SomeException -> m a) ->
+  m a ->
+  m a
+handleAnyWithCS = handleWithCS
+{-# INLINEABLE handleAnyWithCS #-}
+
+-- | Try for 'catchWithCS'.
+--
+-- @since 0.1
+tryWithCS ::
+  forall m e a.
+  (Exception e, MonadCatch m) =>
+  m a ->
+  m (Either e a)
+tryWithCS m = (Right <$> m) `catchWithCS` (pure . Left)
+{-# INLINEABLE tryWithCS #-}
+
+-- | 'tryWithCS' specialized to 'SomeException'.
+--
+-- @since 0.1
+tryAnyWithCS ::
+  forall m a.
+  MonadCatch m =>
+  m a ->
+  m (Either SomeException a)
+tryAnyWithCS = tryWithCS
+{-# INLINEABLE tryAnyWithCS #-}
+
+-- | Turns any caught exceptions @e@ into an @ExceptionCS e@ with
+-- attached 'CallStack' and rethrows.
+--
+-- @since 0.1
+addCS :: forall m a. (HasCallStack, MonadCatch m) => m a -> m a
+addCS m = withFrozenCallStack $ addOuterCS callStack m
+{-# INLINEABLE addCS #-}
+
+-- | Like 'addCS', except it merges the given "outer callstack" with
+-- the one generated by a caught exception.
+--
+-- @since 0.1
+addOuterCS :: forall m a. (HasCallStack, MonadCatch m) => CallStack -> m a -> m a
+addOuterCS outerCS m =
+  m `SafeEx.catch` \(ex :: SomeException) ->
+    throwM $ case fromException ex of
+      Just (MkExceptionCS (innerEx :: SomeException) innerCS) ->
+        MkExceptionCS
+          innerEx
+          (innerCS `mergeCallStack` outerCS `mergeCallStack` callStack)
+      Nothing -> MkExceptionCS ex (outerCS `mergeCallStack` callStack)
+{-# INLINEABLE addOuterCS #-}
+
+mergeCallStack :: CallStack -> CallStack -> CallStack
+mergeCallStack innerCS outerCS =
+  fromCallSiteList $
+    fmap (fmap fromSrcLocOrd) $
+      ordNub $
+        fmap (fmap toSrcLocOrd) $
+          getCallStack innerCS <> getCallStack outerCS
+
+toSrcLocOrd :: SrcLoc -> ([Char], [Char], [Char], Int, Int, Int, Int)
+toSrcLocOrd (SrcLoc a b c d e f g) =
+  (a, b, c, d, e, f, g)
+
+fromSrcLocOrd :: ([Char], [Char], [Char], Int, Int, Int, Int) -> SrcLoc
+fromSrcLocOrd (a, b, c, d, e, f, g) =
+  SrcLoc a b c d e f g
+
+ordNub :: Ord a => [a] -> [a]
+ordNub = go Set.empty
   where
-    prettyAnn :: Annotation -> String
-    prettyAnn (Annotation x) = case cast x of
-      Just cs -> prettyCallStack cs
-      Nothing -> show x
+    go _ [] = []
+    go s (x : xs)
+      | Set.member x s = go s xs
+      | otherwise = x : go (Set.insert x s) xs
 
 -- | Like 'displayException', except it has specific logic to skip any
 -- found 'CallStack's.
 --
 -- @since 0.1
-displayNoCallStack :: forall e. Exception e => e -> String
-displayNoCallStack ex =
-  case fromException @(AnnotatedException SomeException) (toException ex) of
+displayNoCS :: forall e. Exception e => e -> String
+displayNoCS ex =
+  case fromException (toException ex) of
     Nothing -> displayException ex
-    Just (AnnotatedException _ anEx) -> displayException anEx
+    Just (MkExceptionCS (ecs :: SomeException) _) -> displayException ecs
 
 -- | Run an action only if an exception is thrown in the main action. The
 -- exception is not caught, simply rethrown.
@@ -243,6 +431,7 @@ displayNoCallStack ex =
 -- masking.
 --
 -- @since 0.1
-onException :: (HasCallStack, MonadCatch m) => m a -> m b -> m a
+onException :: forall m a b. (HasCallStack, MonadCatch m) => m a -> m b -> m a
 onException action handler =
-  withFrozenCallStack SafeEx.catchAny action (\e -> handler *> throwM e)
+  withFrozenCallStack $ SafeEx.catchAny action (\e -> handler *> throwM e)
+{-# INLINEABLE onException #-}

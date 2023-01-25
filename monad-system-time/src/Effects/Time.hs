@@ -72,7 +72,7 @@ import Data.Time.LocalTime
     ZonedTime (ZonedTime, zonedTimeToLocalTime, zonedTimeZone),
   )
 import Data.Time.LocalTime qualified as Local
-import Effects.Exception (MonadCatch, addCallStack)
+import Effects.Exception (MonadCatch, addCS)
 import GHC.Clock qualified as C
 #if MIN_VERSION_base(4,17,0)
 import GHC.Float (properFractionDouble)
@@ -241,9 +241,9 @@ class Monad m => MonadTime m where
 
 -- | @since 0.1
 instance MonadTime IO where
-  getSystemZonedTime = addCallStack Local.getZonedTime
+  getSystemZonedTime = addCS Local.getZonedTime
   {-# INLINEABLE getSystemZonedTime #-}
-  getMonotonicTime = addCallStack C.getMonotonicTime
+  getMonotonicTime = addCS C.getMonotonicTime
   {-# INLINEABLE getMonotonicTime #-}
 
 -- | @since 0.1
@@ -340,7 +340,7 @@ parseLocalTimeCallStack ::
   ) =>
   String ->
   m LocalTime
-parseLocalTimeCallStack = addCallStack . parseLocalTime
+parseLocalTimeCallStack = addCS . parseLocalTime
 {-# INLINEABLE parseLocalTimeCallStack #-}
 
 -- | Parses the 'ZonedTime' from @YYYY-MM-DD HH:MM:SS Z@. If the 'MonadFail'
@@ -382,7 +382,7 @@ parseZonedTimeCallStack ::
   ) =>
   String ->
   m ZonedTime
-parseZonedTimeCallStack = addCallStack . parseZonedTime
+parseZonedTimeCallStack = addCS . parseZonedTime
 {-# INLINEABLE parseZonedTimeCallStack #-}
 
 localTimeFormat :: String

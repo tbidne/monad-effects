@@ -37,7 +37,7 @@ import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.Text (Text)
 import Data.Text.Encoding.Error (UnicodeException)
-import Effects.Exception (MonadThrow, addCallStack)
+import Effects.Exception (MonadThrow, addCS)
 import Effects.FileSystem.FileReader
   ( decodeUtf8,
     decodeUtf8Lenient,
@@ -138,39 +138,39 @@ class Monad m => MonadHandleReader m where
 
 -- | @since 0.1
 instance MonadHandleReader IO where
-  hIsEOF = addCallStack . IO.hIsEOF
+  hIsEOF = addCS . IO.hIsEOF
   {-# INLINEABLE hIsEOF #-}
-  hGetBuffering = addCallStack . IO.hGetBuffering
+  hGetBuffering = addCS . IO.hGetBuffering
   {-# INLINEABLE hGetBuffering #-}
-  hIsOpen = addCallStack . IO.hIsOpen
+  hIsOpen = addCS . IO.hIsOpen
   {-# INLINEABLE hIsOpen #-}
-  hIsClosed = addCallStack . IO.hIsClosed
+  hIsClosed = addCS . IO.hIsClosed
   {-# INLINEABLE hIsClosed #-}
-  hIsReadable = addCallStack . IO.hIsReadable
+  hIsReadable = addCS . IO.hIsReadable
   {-# INLINEABLE hIsReadable #-}
-  hIsWritable = addCallStack . IO.hIsWritable
+  hIsWritable = addCS . IO.hIsWritable
   {-# INLINEABLE hIsWritable #-}
-  hIsSeekable = addCallStack . IO.hIsSeekable
+  hIsSeekable = addCS . IO.hIsSeekable
   {-# INLINEABLE hIsSeekable #-}
-  hIsTerminalDevice = addCallStack . IO.hIsTerminalDevice
+  hIsTerminalDevice = addCS . IO.hIsTerminalDevice
   {-# INLINEABLE hIsTerminalDevice #-}
-  hGetEcho = addCallStack . IO.hGetEcho
+  hGetEcho = addCS . IO.hGetEcho
   {-# INLINEABLE hGetEcho #-}
-  hWaitForInput h = addCallStack . IO.hWaitForInput h
+  hWaitForInput h = addCS . IO.hWaitForInput h
   {-# INLINEABLE hWaitForInput #-}
-  hReady = addCallStack . IO.hReady
+  hReady = addCS . IO.hReady
   {-# INLINEABLE hReady #-}
-  hGetChar = addCallStack . IO.hGetChar
+  hGetChar = addCS . IO.hGetChar
   {-# INLINEABLE hGetChar #-}
-  hGetLine = addCallStack . BS.hGetLine
+  hGetLine = addCS . BS.hGetLine
   {-# INLINEABLE hGetLine #-}
-  hGetContents = addCallStack . BS.hGetContents
+  hGetContents = addCS . BS.hGetContents
   {-# INLINEABLE hGetContents #-}
-  hGet h = addCallStack . BS.hGet h
+  hGet h = addCS . BS.hGet h
   {-# INLINEABLE hGet #-}
-  hGetSome h = addCallStack . BS.hGetSome h
+  hGetSome h = addCS . BS.hGetSome h
   {-# INLINEABLE hGetSome #-}
-  hGetNonBlocking h = addCallStack . BS.hGetNonBlocking h
+  hGetNonBlocking h = addCS . BS.hGetNonBlocking h
   {-# INLINEABLE hGetNonBlocking #-}
 
 -- | @since 0.1

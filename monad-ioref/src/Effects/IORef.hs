@@ -17,7 +17,7 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.IORef (IORef)
 import Data.IORef qualified as IORef
-import Effects.Exception (addCallStack)
+import Effects.Exception (addCS)
 import GHC.Stack (HasCallStack)
 
 -- | 'IORef' effect.
@@ -56,17 +56,17 @@ class Monad m => MonadIORef m where
 
 -- | @since 0.1
 instance MonadIORef IO where
-  newIORef = addCallStack . IORef.newIORef
+  newIORef = addCS . IORef.newIORef
   {-# INLINEABLE newIORef #-}
-  readIORef = addCallStack . IORef.readIORef
+  readIORef = addCS . IORef.readIORef
   {-# INLINEABLE readIORef #-}
-  writeIORef r = addCallStack . IORef.writeIORef r
+  writeIORef r = addCS . IORef.writeIORef r
   {-# INLINEABLE writeIORef #-}
-  atomicWriteIORef r = addCallStack . IORef.atomicWriteIORef r
+  atomicWriteIORef r = addCS . IORef.atomicWriteIORef r
   {-# INLINEABLE atomicWriteIORef #-}
-  modifyIORef' r = addCallStack . IORef.modifyIORef' r
+  modifyIORef' r = addCS . IORef.modifyIORef' r
   {-# INLINEABLE modifyIORef' #-}
-  atomicModifyIORef' r = addCallStack . IORef.atomicModifyIORef' r
+  atomicModifyIORef' r = addCS . IORef.atomicModifyIORef' r
   {-# INLINEABLE atomicModifyIORef' #-}
 
 -- | @since 0.1

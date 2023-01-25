@@ -24,7 +24,7 @@ import Control.Monad (when)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Data.Time (UTCTime (..))
-import Effects.Exception (addCallStack)
+import Effects.Exception (addCS)
 import Effects.FileSystem.Path (Path)
 import Effects.FileSystem.PathReader
   ( MonadPathReader
@@ -147,45 +147,45 @@ class Monad m => MonadPathWriter m where
 
 -- | @since 0.1
 instance MonadPathWriter IO where
-  createDirectory = addCallStack . Dir.createDirectory
+  createDirectory = addCS . Dir.createDirectory
   {-# INLINEABLE createDirectory #-}
-  createDirectoryIfMissing b = addCallStack . Dir.createDirectoryIfMissing b
+  createDirectoryIfMissing b = addCS . Dir.createDirectoryIfMissing b
   {-# INLINEABLE createDirectoryIfMissing #-}
-  removeDirectory = addCallStack . Dir.removeDirectory
+  removeDirectory = addCS . Dir.removeDirectory
   {-# INLINEABLE removeDirectory #-}
-  removeDirectoryRecursive = addCallStack . Dir.removeDirectoryRecursive
+  removeDirectoryRecursive = addCS . Dir.removeDirectoryRecursive
   {-# INLINEABLE removeDirectoryRecursive #-}
-  removePathForcibly = addCallStack . Dir.removePathForcibly
+  removePathForcibly = addCS . Dir.removePathForcibly
   {-# INLINEABLE removePathForcibly #-}
-  renameDirectory p = addCallStack . Dir.renameDirectory p
+  renameDirectory p = addCS . Dir.renameDirectory p
   {-# INLINEABLE renameDirectory #-}
-  setCurrentDirectory = addCallStack . Dir.setCurrentDirectory
+  setCurrentDirectory = addCS . Dir.setCurrentDirectory
   {-# INLINEABLE setCurrentDirectory #-}
-  withCurrentDirectory p = addCallStack . Dir.withCurrentDirectory p
+  withCurrentDirectory p = addCS . Dir.withCurrentDirectory p
   {-# INLINEABLE withCurrentDirectory #-}
-  removeFile = addCallStack . Dir.removeFile
+  removeFile = addCS . Dir.removeFile
   {-# INLINEABLE removeFile #-}
-  renameFile p = addCallStack . Dir.renameFile p
+  renameFile p = addCS . Dir.renameFile p
   {-# INLINEABLE renameFile #-}
-  renamePath p = addCallStack . Dir.renamePath p
+  renamePath p = addCS . Dir.renamePath p
   {-# INLINEABLE renamePath #-}
-  copyFile p = addCallStack . Dir.copyFile p
+  copyFile p = addCS . Dir.copyFile p
   {-# INLINEABLE copyFile #-}
-  copyFileWithMetadata p = addCallStack . Dir.copyFileWithMetadata p
+  copyFileWithMetadata p = addCS . Dir.copyFileWithMetadata p
   {-# INLINEABLE copyFileWithMetadata #-}
-  createFileLink p = addCallStack . Dir.createFileLink p
+  createFileLink p = addCS . Dir.createFileLink p
   {-# INLINEABLE createFileLink #-}
-  createDirectoryLink p = addCallStack . Dir.createDirectoryLink p
+  createDirectoryLink p = addCS . Dir.createDirectoryLink p
   {-# INLINEABLE createDirectoryLink #-}
-  removeDirectoryLink = addCallStack . Dir.removeDirectoryLink
+  removeDirectoryLink = addCS . Dir.removeDirectoryLink
   {-# INLINEABLE removeDirectoryLink #-}
-  setPermissions p = addCallStack . Dir.setPermissions p
+  setPermissions p = addCS . Dir.setPermissions p
   {-# INLINEABLE setPermissions #-}
-  copyPermissions p = addCallStack . Dir.copyPermissions p
+  copyPermissions p = addCS . Dir.copyPermissions p
   {-# INLINEABLE copyPermissions #-}
-  setAccessTime p = addCallStack . Dir.setAccessTime p
+  setAccessTime p = addCS . Dir.setAccessTime p
   {-# INLINEABLE setAccessTime #-}
-  setModificationTime p = addCallStack . Dir.setModificationTime p
+  setModificationTime p = addCS . Dir.setModificationTime p
   {-# INLINEABLE setModificationTime #-}
 
 -- | @since 0.1

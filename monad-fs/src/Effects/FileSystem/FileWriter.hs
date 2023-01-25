@@ -22,7 +22,7 @@ import Control.Monad.Trans.Reader (ReaderT)
 import Data.ByteString (ByteString)
 import Data.Text (Text)
 import Data.Text.Encoding qualified as TEnc
-import Effects.Exception (addCallStack)
+import Effects.Exception (addCS)
 import Effects.FileSystem.Path (Path, appendBinaryFileIO, writeBinaryFileIO)
 import GHC.Stack (HasCallStack)
 
@@ -42,9 +42,9 @@ class Monad m => MonadFileWriter m where
 
 -- | @since 0.1
 instance MonadFileWriter IO where
-  writeBinaryFile p = addCallStack . writeBinaryFileIO p
+  writeBinaryFile p = addCS . writeBinaryFileIO p
   {-# INLINEABLE writeBinaryFile #-}
-  appendBinaryFile p = addCallStack . appendBinaryFileIO p
+  appendBinaryFile p = addCS . appendBinaryFileIO p
   {-# INLINEABLE appendBinaryFile #-}
 
 -- | @since 0.1

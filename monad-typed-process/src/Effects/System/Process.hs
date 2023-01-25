@@ -98,7 +98,7 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Data.ByteString.Lazy qualified as BSL
 import Effects.Concurrent.STM (MonadSTM (..))
-import Effects.Exception (addCallStack)
+import Effects.Exception (addCS)
 import GHC.Conc (catchSTM, throwSTM)
 import GHC.Stack (HasCallStack)
 import System.Exit (ExitCode)
@@ -160,15 +160,15 @@ class Monad m => MonadProcess m where
 
 -- | @since 0.1
 instance MonadProcess IO where
-  readProcessInterleaved = addCallStack . P.readProcessInterleaved
+  readProcessInterleaved = addCS . P.readProcessInterleaved
   {-# INLINEABLE readProcessInterleaved #-}
-  withProcessTerm pc = addCallStack . P.withProcessTerm pc
+  withProcessTerm pc = addCS . P.withProcessTerm pc
   {-# INLINEABLE withProcessTerm #-}
-  startProcess = addCallStack . P.startProcess
+  startProcess = addCS . P.startProcess
   {-# INLINEABLE startProcess #-}
-  stopProcess = addCallStack . P.stopProcess
+  stopProcess = addCS . P.stopProcess
   {-# INLINEABLE stopProcess #-}
-  readProcessInterleaved_ = addCallStack . P.readProcessInterleaved_
+  readProcessInterleaved_ = addCS . P.readProcessInterleaved_
   {-# INLINEABLE readProcessInterleaved_ #-}
 
 -- | @since 0.1

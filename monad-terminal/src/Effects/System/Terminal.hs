@@ -44,8 +44,8 @@ import Data.ByteString.Char8 qualified as Char8
 import Data.Text (Text)
 import Data.Text qualified as T
 import Effects.Exception
-  ( addCallStack,
-    throwWithCallStack,
+  ( addCS,
+    throwWithCS,
   )
 import GHC.Natural (Natural)
 import GHC.Stack (HasCallStack)
@@ -124,24 +124,24 @@ class Monad m => MonadTerminal m where
 
 -- | @since 0.1
 instance MonadTerminal IO where
-  putStr = addCallStack . IO.putStr
+  putStr = addCS . IO.putStr
   {-# INLINEABLE putStr #-}
-  putStrLn = addCallStack . IO.putStrLn
+  putStrLn = addCS . IO.putStrLn
   {-# INLINEABLE putStrLn #-}
-  putBinary = addCallStack . BS.putStr
+  putBinary = addCS . BS.putStr
   {-# INLINEABLE putBinary #-}
-  getChar = addCallStack IO.getChar
+  getChar = addCS IO.getChar
   {-# INLINEABLE getChar #-}
-  getLine = addCallStack IO.getLine
+  getLine = addCS IO.getLine
   {-# INLINEABLE getLine #-}
 #if MIN_VERSION_base(4,15,0)
-  getContents' = addCallStack IO.getContents'
+  getContents' = addCS IO.getContents'
   {-# INLINEABLE getContents' #-}
 #endif
   getTerminalSize =
     size >>= \case
       Just h -> pure h
-      Nothing -> throwWithCallStack MkTermSizeException
+      Nothing -> throwWithCS MkTermSizeException
   {-# INLINEABLE getTerminalSize #-}
 
 -- | @since 0.1

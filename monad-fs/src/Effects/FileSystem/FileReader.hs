@@ -29,7 +29,7 @@ import Data.Text (Text)
 import Data.Text.Encoding qualified as TEnc
 import Data.Text.Encoding.Error (UnicodeException)
 import Data.Text.Encoding.Error qualified as TEncError
-import Effects.Exception (MonadThrow, addCallStack, throwWithCallStack)
+import Effects.Exception (MonadThrow, addCS, throwWithCS)
 import Effects.FileSystem.Path (Path, readBinaryFileIO)
 import GHC.Stack (HasCallStack)
 
@@ -44,7 +44,7 @@ class Monad m => MonadFileReader m where
 
 -- | @since 0.1
 instance MonadFileReader IO where
-  readBinaryFile = addCallStack . readBinaryFileIO
+  readBinaryFile = addCS . readBinaryFileIO
   {-# INLINEABLE readBinaryFile #-}
 
 -- | @since 0.1
@@ -76,7 +76,7 @@ decodeUtf8ThrowM ::
 decodeUtf8ThrowM =
   TEnc.decodeUtf8' >.> \case
     Right txt -> pure txt
-    Left ex -> throwWithCallStack ex
+    Left ex -> throwWithCS ex
 {-# INLINEABLE decodeUtf8ThrowM #-}
 
 -- | Reads a file as UTF-8.

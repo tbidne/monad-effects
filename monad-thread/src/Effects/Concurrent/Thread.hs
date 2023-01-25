@@ -30,7 +30,7 @@ import Control.Exception (Exception)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.Foldable (for_)
-import Effects.Exception (addCallStack)
+import Effects.Exception (addCS)
 import GHC.Natural (Natural)
 import GHC.Stack (HasCallStack)
 
@@ -65,15 +65,15 @@ class Monad m => MonadThread m where
 
 -- | @since 0.1
 instance MonadThread IO where
-  threadDelay = addCallStack . CC.threadDelay
+  threadDelay = addCS . CC.threadDelay
   {-# INLINEABLE threadDelay #-}
-  throwTo tid = addCallStack . CC.throwTo tid
+  throwTo tid = addCS . CC.throwTo tid
   {-# INLINEABLE throwTo #-}
-  getNumCapabilities = addCallStack CC.getNumCapabilities
+  getNumCapabilities = addCS CC.getNumCapabilities
   {-# INLINEABLE getNumCapabilities #-}
-  setNumCapabilities = addCallStack . CC.setNumCapabilities
+  setNumCapabilities = addCS . CC.setNumCapabilities
   {-# INLINEABLE setNumCapabilities #-}
-  threadCapability = addCallStack . CC.threadCapability
+  threadCapability = addCS . CC.threadCapability
   {-# INLINEABLE threadCapability #-}
 
 -- | @since 0.1

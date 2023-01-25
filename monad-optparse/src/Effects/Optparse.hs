@@ -9,7 +9,7 @@ where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
-import Effects.Exception (addCallStack)
+import Effects.Exception (addCS)
 import GHC.Stack (HasCallStack)
 import Options.Applicative (ParserInfo, ParserPrefs, ParserResult)
 import Options.Applicative qualified as OA
@@ -40,11 +40,11 @@ class Monad m => MonadOptparse m where
 
 -- | @since 0.1
 instance MonadOptparse IO where
-  execParser = addCallStack . OA.execParser
+  execParser = addCS . OA.execParser
   {-# INLINEABLE execParser #-}
-  customExecParser p = addCallStack . OA.customExecParser p
+  customExecParser p = addCS . OA.customExecParser p
   {-# INLINEABLE customExecParser #-}
-  handleParseResult = addCallStack . OA.handleParseResult
+  handleParseResult = addCS . OA.handleParseResult
   {-# INLINEABLE handleParseResult #-}
 
 -- | @since 0.1

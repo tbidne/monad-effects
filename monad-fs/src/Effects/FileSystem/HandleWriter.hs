@@ -29,7 +29,7 @@ import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.Text (Text)
-import Effects.Exception (MonadThrow, addCallStack)
+import Effects.Exception (MonadThrow, addCS)
 import Effects.FileSystem.FileReader
   ( UnicodeException,
     decodeUtf8,
@@ -103,27 +103,27 @@ class Monad m => MonadHandleWriter m where
 
 -- | @since 0.1
 instance MonadHandleWriter IO where
-  openBinaryFile f = addCallStack . openBinaryFileIO f
+  openBinaryFile f = addCS . openBinaryFileIO f
   {-# INLINEABLE openBinaryFile #-}
-  withBinaryFile f m = addCallStack . withBinaryFileIO f m
+  withBinaryFile f m = addCS . withBinaryFileIO f m
   {-# INLINEABLE withBinaryFile #-}
-  hClose = addCallStack . IO.hClose
+  hClose = addCS . IO.hClose
   {-# INLINEABLE hClose #-}
-  hFlush = addCallStack . IO.hFlush
+  hFlush = addCS . IO.hFlush
   {-# INLINEABLE hFlush #-}
-  hSetFileSize h = addCallStack . IO.hSetFileSize h
+  hSetFileSize h = addCS . IO.hSetFileSize h
   {-# INLINEABLE hSetFileSize #-}
-  hSetBuffering h = addCallStack . IO.hSetBuffering h
+  hSetBuffering h = addCS . IO.hSetBuffering h
   {-# INLINEABLE hSetBuffering #-}
-  hSeek h m = addCallStack . IO.hSeek h m
+  hSeek h m = addCS . IO.hSeek h m
   {-# INLINEABLE hSeek #-}
-  hTell = addCallStack . IO.hTell
+  hTell = addCS . IO.hTell
   {-# INLINEABLE hTell #-}
-  hSetEcho h = addCallStack . IO.hSetEcho h
+  hSetEcho h = addCS . IO.hSetEcho h
   {-# INLINEABLE hSetEcho #-}
-  hPut h = addCallStack . BS.hPut h
+  hPut h = addCS . BS.hPut h
   {-# INLINEABLE hPut #-}
-  hPutNonBlocking h = addCallStack . BS.hPutNonBlocking h
+  hPutNonBlocking h = addCS . BS.hPutNonBlocking h
   {-# INLINEABLE hPutNonBlocking #-}
 
 -- | @since 0.1

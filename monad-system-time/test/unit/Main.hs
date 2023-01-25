@@ -1,7 +1,7 @@
 module Main (main) where
 
 import Control.Concurrent (threadDelay)
-import Control.Exception (Exception, SomeException, try)
+import Control.Exception (Exception, SomeException, displayException, try)
 import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Data.Fixed (Fixed (MkFixed))
@@ -9,7 +9,6 @@ import Data.Functor ((<&>))
 import Data.String (IsString (fromString))
 import Data.Time.Calendar.OrdinalDate (fromOrdinalDate)
 import Data.Time.LocalTime (TimeOfDay (TimeOfDay), utc)
-import Effects.Exception (displayCallStack)
 import Effects.Time
   ( LocalTime (LocalTime),
     TimeSpec (MkTimeSpec),
@@ -26,6 +25,7 @@ import Test.Tasty (TestTree, defaultMain, testGroup)
 import Test.Tasty.Golden (goldenVsStringDiff)
 import Test.Tasty.HUnit (assertBool, testCase, (@=?))
 import Test.Tasty.Hedgehog (testPropertyNamed)
+import Text.Read qualified as TR
 
 main :: IO ()
 main =
@@ -494,4 +494,30 @@ genTimeSpec = MkTimeSpec <$> genSec <*> genNSec
     genNSec = Gen.integral (R.linearFrom 0 0 10_000_000_000)
 
 stableCallStack :: Exception e => e -> String
-stableCallStack = unlines . take 2 . lines . displayCallStack
+stableCallStack = stripPkgName . zeroNums . displayException
+
+-- A bit overzealous since we don't need all numbers zeroed, but it's not a
+-- big deal
+zeroNums :: String -> String
+zeroNums [] = []
+zeroNums (x : xs) = case TR.readMaybe @Int [x] of
+  Nothing -> x : zeroNums xs
+  Just _ -> '0' : zeroNums (skipNums xs)
+  where
+    skipNums [] = []
+    skipNums (y : ys) = case TR.readMaybe @Int [y] of
+      Nothing -> y : ys
+      Just _ -> skipNums ys
+
+-- crude, but it works
+stripPkgName :: String -> String
+stripPkgName [] = []
+stripPkgName ('m':'o':'n':'a':'d':'-':'s':'y':'s':'t':'e':'m':'-':'t':'i':'m':'e':'-':'0':'.':'0':'-': rest)
+  = "monad-system-time-0.0-<pkg>" ++ skipUntilColon rest
+stripPkgName (x : xs) = x : stripPkgName xs
+
+
+skipUntilColon :: String -> String
+skipUntilColon [] = []
+skipUntilColon (':' : rest) = ':' : rest
+skipUntilColon (_ : xs) = skipUntilColon xs

@@ -1,0 +1,5 @@
+MkEx
+CallStack (from HasCallStack):
+  throwWithCS, called at test/unit/Main.hs:0:0 in main:Main
+  catchesCallStackAny, called at test/unit/Main.hs:0:0 in main:Main
+  catchTests, called at test/unit/Main.hs:0:0 in main:Main

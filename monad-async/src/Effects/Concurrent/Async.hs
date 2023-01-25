@@ -109,7 +109,7 @@ import Effects.Concurrent.STM (MonadSTM (..))
 import Effects.Concurrent.Thread
   ( MonadThread (getNumCapabilities, threadDelay, throwTo),
   )
-import Effects.Exception (MonadMask, addCallStack, toAsyncException)
+import Effects.Exception (MonadMask, addCS, toAsyncException)
 import Effects.IORef
   ( IORef,
     MonadIORef
@@ -222,35 +222,35 @@ class Monad m => MonadAsync m where
 
 -- | @since 0.1
 instance MonadAsync IO where
-  async = addCallStack . Async.async
+  async = addCS . Async.async
   {-# INLINEABLE async #-}
-  asyncBound = addCallStack . Async.asyncBound
+  asyncBound = addCS . Async.asyncBound
   {-# INLINEABLE asyncBound #-}
-  asyncOn i = addCallStack . Async.asyncOn i
+  asyncOn i = addCS . Async.asyncOn i
   {-# INLINEABLE asyncOn #-}
-  asyncWithUnmask f = addCallStack $ Async.asyncWithUnmask f
+  asyncWithUnmask f = addCS $ Async.asyncWithUnmask f
   {-# INLINEABLE asyncWithUnmask #-}
-  asyncOnWithUnmask i f = addCallStack $ Async.asyncOnWithUnmask i f
+  asyncOnWithUnmask i f = addCS $ Async.asyncOnWithUnmask i f
   {-# INLINEABLE asyncOnWithUnmask #-}
-  withAsync m = addCallStack . Async.withAsync m
+  withAsync m = addCS . Async.withAsync m
   {-# INLINEABLE withAsync #-}
-  withAsyncBound m = addCallStack . Async.withAsyncBound m
+  withAsyncBound m = addCS . Async.withAsyncBound m
   {-# INLINEABLE withAsyncBound #-}
-  withAsyncOn i m = addCallStack . Async.withAsyncOn i m
+  withAsyncOn i m = addCS . Async.withAsyncOn i m
   {-# INLINEABLE withAsyncOn #-}
-  withAsyncWithUnmask f = addCallStack . Async.withAsyncWithUnmask f
+  withAsyncWithUnmask f = addCS . Async.withAsyncWithUnmask f
   {-# INLINEABLE withAsyncWithUnmask #-}
-  withAsyncOnWithUnmask i f = addCallStack . Async.withAsyncOnWithUnmask i f
+  withAsyncOnWithUnmask i f = addCS . Async.withAsyncOnWithUnmask i f
   {-# INLINEABLE withAsyncOnWithUnmask #-}
-  linkOnly f = addCallStack . Async.linkOnly f
+  linkOnly f = addCS . Async.linkOnly f
   {-# INLINEABLE linkOnly #-}
-  link2Only f x = addCallStack . Async.link2Only f x
+  link2Only f x = addCS . Async.link2Only f x
   {-# INLINEABLE link2Only #-}
-  race x = addCallStack . Async.race x
+  race x = addCS . Async.race x
   {-# INLINEABLE race #-}
-  concurrently x = addCallStack . Async.concurrently x
+  concurrently x = addCS . Async.concurrently x
   {-# INLINEABLE concurrently #-}
-  concurrently_ x = addCallStack . Async.concurrently_ x
+  concurrently_ x = addCS . Async.concurrently_ x
   {-# INLINEABLE concurrently_ #-}
 
 -- | @since 0.1

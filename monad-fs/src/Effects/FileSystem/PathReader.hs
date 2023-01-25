@@ -31,7 +31,7 @@ where
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Data.Time (UTCTime (..))
-import Effects.Exception (addCallStack)
+import Effects.Exception (addCS)
 import Effects.FileSystem.Path (Path)
 import GHC.Stack (HasCallStack)
 import System.Directory
@@ -185,57 +185,57 @@ class Monad m => MonadPathReader m where
   getModificationTime :: HasCallStack => Path -> m UTCTime
 
 instance MonadPathReader IO where
-  listDirectory = addCallStack . Dir.listDirectory
+  listDirectory = addCS . Dir.listDirectory
   {-# INLINEABLE listDirectory #-}
-  getDirectoryContents = addCallStack . Dir.getDirectoryContents
+  getDirectoryContents = addCS . Dir.getDirectoryContents
   {-# INLINEABLE getDirectoryContents #-}
-  getCurrentDirectory = addCallStack Dir.getCurrentDirectory
+  getCurrentDirectory = addCS Dir.getCurrentDirectory
   {-# INLINEABLE getCurrentDirectory #-}
-  getHomeDirectory = addCallStack Dir.getHomeDirectory
+  getHomeDirectory = addCS Dir.getHomeDirectory
   {-# INLINEABLE getHomeDirectory #-}
-  getXdgDirectory d = addCallStack . Dir.getXdgDirectory d
+  getXdgDirectory d = addCS . Dir.getXdgDirectory d
   {-# INLINEABLE getXdgDirectory #-}
-  getXdgDirectoryList = addCallStack . Dir.getXdgDirectoryList
+  getXdgDirectoryList = addCS . Dir.getXdgDirectoryList
   {-# INLINEABLE getXdgDirectoryList #-}
-  getAppUserDataDirectory = addCallStack . Dir.getAppUserDataDirectory
+  getAppUserDataDirectory = addCS . Dir.getAppUserDataDirectory
   {-# INLINEABLE getAppUserDataDirectory #-}
-  getUserDocumentsDirectory = addCallStack Dir.getUserDocumentsDirectory
+  getUserDocumentsDirectory = addCS Dir.getUserDocumentsDirectory
   {-# INLINEABLE getUserDocumentsDirectory #-}
-  getTemporaryDirectory = addCallStack Dir.getTemporaryDirectory
+  getTemporaryDirectory = addCS Dir.getTemporaryDirectory
   {-# INLINEABLE getTemporaryDirectory #-}
-  getFileSize = addCallStack . Dir.getFileSize
+  getFileSize = addCS . Dir.getFileSize
   {-# INLINEABLE getFileSize #-}
-  canonicalizePath = addCallStack . Dir.canonicalizePath
+  canonicalizePath = addCS . Dir.canonicalizePath
   {-# INLINEABLE canonicalizePath #-}
-  makeAbsolute = addCallStack . Dir.makeAbsolute
+  makeAbsolute = addCS . Dir.makeAbsolute
   {-# INLINEABLE makeAbsolute #-}
-  makeRelativeToCurrentDirectory = addCallStack . Dir.makeRelativeToCurrentDirectory
+  makeRelativeToCurrentDirectory = addCS . Dir.makeRelativeToCurrentDirectory
   {-# INLINEABLE makeRelativeToCurrentDirectory #-}
-  doesPathExist = addCallStack . Dir.doesPathExist
+  doesPathExist = addCS . Dir.doesPathExist
   {-# INLINEABLE doesPathExist #-}
-  doesFileExist = addCallStack . Dir.doesFileExist
+  doesFileExist = addCS . Dir.doesFileExist
   {-# INLINEABLE doesFileExist #-}
-  doesDirectoryExist = addCallStack . Dir.doesDirectoryExist
+  doesDirectoryExist = addCS . Dir.doesDirectoryExist
   {-# INLINEABLE doesDirectoryExist #-}
-  findExecutable = addCallStack . Dir.findExecutable
+  findExecutable = addCS . Dir.findExecutable
   {-# INLINEABLE findExecutable #-}
-  findExecutables = addCallStack . Dir.findExecutables
+  findExecutables = addCS . Dir.findExecutables
   {-# INLINEABLE findExecutables #-}
-  findExecutablesInDirectories ps = addCallStack . Dir.findExecutablesInDirectories ps
+  findExecutablesInDirectories ps = addCS . Dir.findExecutablesInDirectories ps
   {-# INLINEABLE findExecutablesInDirectories #-}
-  findFileWith f ps = addCallStack . Dir.findFileWith f ps
+  findFileWith f ps = addCS . Dir.findFileWith f ps
   {-# INLINEABLE findFileWith #-}
-  findFilesWith f ps = addCallStack . Dir.findFilesWith f ps
+  findFilesWith f ps = addCS . Dir.findFilesWith f ps
   {-# INLINEABLE findFilesWith #-}
-  pathIsSymbolicLink = addCallStack . Dir.pathIsSymbolicLink
+  pathIsSymbolicLink = addCS . Dir.pathIsSymbolicLink
   {-# INLINEABLE pathIsSymbolicLink #-}
-  getSymbolicLinkTarget = addCallStack . Dir.getSymbolicLinkTarget
+  getSymbolicLinkTarget = addCS . Dir.getSymbolicLinkTarget
   {-# INLINEABLE getSymbolicLinkTarget #-}
-  getPermissions = addCallStack . Dir.getPermissions
+  getPermissions = addCS . Dir.getPermissions
   {-# INLINEABLE getPermissions #-}
-  getAccessTime = addCallStack . Dir.getAccessTime
+  getAccessTime = addCS . Dir.getAccessTime
   {-# INLINEABLE getAccessTime #-}
-  getModificationTime = addCallStack . Dir.getModificationTime
+  getModificationTime = addCS . Dir.getModificationTime
   {-# INLINEABLE getModificationTime #-}
 
 instance MonadPathReader m => MonadPathReader (ReaderT env m) where

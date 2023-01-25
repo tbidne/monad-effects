@@ -28,6 +28,7 @@ common common
     DerivingStrategies
     DerivingVia
     FlexibleInstances
+    GADTs
     GeneralizedNewtypeDeriving
     ImportQualifiedPost
     MultiParamTypeClasses
@@ -36,6 +37,7 @@ common common
     OverloadedStrings
     RankNTypes
     ScopedTypeVariables
+    StandaloneDeriving
     TupleSections
     TypeApplications
     TypeFamilies
