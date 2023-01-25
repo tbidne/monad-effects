@@ -1,2 +1,5 @@
 MkEx
 CallStack (from HasCallStack):
+  checkpointCallStack, called at src/Effects/Exception.hs:0:0 in monad-exceptions-0.0-inplace:Effects.Exception
+  addCallStack, called at test/unit/Main.hs:0:0 in main:Main
+  addsCallStack, called at test/unit/Main.hs:0:0 in main:Main
