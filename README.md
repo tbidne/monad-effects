@@ -20,7 +20,6 @@
   - [monad-async](#monad-async)
   - [monad-env](#monad-env)
   - [monad-exceptions](#monad-exceptions)
-  - [monad-exit](#monad-exit)
   - [monad-fs](#monad-fs)
   - [monad-ioref](#monad-ioref)
   - [monad-logger-namespace](#monad-logger-namespace)
