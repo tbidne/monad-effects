@@ -15,7 +15,9 @@ module Effects.FileSystem.PathReader
     findFiles,
 
     -- * Xdg Utils
+    getXdgData,
     getXdgConfig,
+    getXdgCache,
 #if MIN_VERSION_directory(1,3,7)
     getXdgState,
 #endif
@@ -308,15 +310,29 @@ findFiles :: (HasCallStack, MonadPathReader m) => [Path] -> Path -> m [Path]
 findFiles = findFilesWith (\_ -> pure True)
 {-# INLINEABLE findFiles #-}
 
--- | Retrieves the Xdg Config directory.
+-- | Retrieves the Xdg data directory e.g. @~/.local\/share@.
+--
+-- @since 0.1
+getXdgData :: (HasCallStack, MonadPathReader m) => Path -> m Path
+getXdgData = getXdgDirectory XdgData
+{-# INLINEABLE getXdgData #-}
+
+-- | Retrieves the Xdg config directory e.g. @~/.config@.
 --
 -- @since 0.1
 getXdgConfig :: (HasCallStack, MonadPathReader m) => Path -> m Path
 getXdgConfig = getXdgDirectory XdgConfig
 {-# INLINEABLE getXdgConfig #-}
 
+-- | Retrieves the Xdg cache directory e.g. @~/.cache@.
+--
+-- @since 0.1
+getXdgCache :: (HasCallStack, MonadPathReader m) => Path -> m Path
+getXdgCache = getXdgDirectory XdgCache
+{-# INLINEABLE getXdgCache #-}
+
 #if MIN_VERSION_directory(1,3,7)
--- | Retrieves the Xdg Config directory.
+-- | Retrieves the Xdg state directory e.g. @~/.local/state@.
 --
 -- @since 0.1
 getXdgState :: (HasCallStack, MonadPathReader m) => Path -> m Path
