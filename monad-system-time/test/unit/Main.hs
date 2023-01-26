@@ -512,10 +512,9 @@ zeroNums (x : xs) = case TR.readMaybe @Int [x] of
 -- crude, but it works
 stripPkgName :: String -> String
 stripPkgName [] = []
-stripPkgName ('m':'o':'n':'a':'d':'-':'s':'y':'s':'t':'e':'m':'-':'t':'i':'m':'e':'-':'0':'.':'0':'-': rest)
-  = "monad-system-time-0.0-<pkg>" ++ skipUntilColon rest
+stripPkgName ('m' : 'o' : 'n' : 'a' : 'd' : '-' : 's' : 'y' : 's' : 't' : 'e' : 'm' : '-' : 't' : 'i' : 'm' : 'e' : '-' : '0' : '.' : '0' : '-' : rest) =
+  "monad-system-time-0.0-<pkg>" ++ skipUntilColon rest
 stripPkgName (x : xs) = x : stripPkgName xs
-
 
 skipUntilColon :: String -> String
 skipUntilColon [] = []

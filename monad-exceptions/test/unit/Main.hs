@@ -14,7 +14,7 @@ import Effects.Exception
     displayNoCS,
     throwM,
     throwWithCS,
-    try,
+    tryAny,
   )
 import GHC.Stack (callStack)
 import System.FilePath ((</>))
@@ -33,7 +33,8 @@ main =
         addsCallStack,
         addsCallStackMerges,
         fromExceptionTests,
-        displaysNoCallStack
+        displaysNoCallStack,
+        displaysNoCallStackNested
       ]
 
 data Ex = MkEx
@@ -43,7 +44,7 @@ data Ex = MkEx
 throwsCallStack :: HasCallStack => TestTree
 throwsCallStack =
   goldenVsStringDiff desc diff gpath $
-    try @_ @SomeException (throwWithCS MkEx) <&> \case
+    tryAny (throwWithCS MkEx) <&> \case
       Left e -> displayExceptionBS e
       Right _ -> "Error: did not catch expected exception."
   where
@@ -146,7 +147,7 @@ fromExceptionDirect = goldenVsStringDiff desc diff gpath $ do
 addsCallStack :: HasCallStack => TestTree
 addsCallStack =
   goldenVsStringDiff desc diff gpath $
-    try @_ @SomeException (addCS $ throwM MkEx) <&> \case
+    tryAny (addCS $ throwM MkEx) <&> \case
       Left e -> displayExceptionBS e
       Right _ -> "Error: did not catch expected exception."
   where
@@ -156,7 +157,7 @@ addsCallStack =
 addsCallStackMerges :: HasCallStack => TestTree
 addsCallStackMerges =
   goldenVsStringDiff desc diff gpath $
-    try @_ @SomeException (addCS $ throwWithCS MkEx) <&> \case
+    tryAny (addCS $ throwWithCS MkEx) <&> \case
       Left e -> displayExceptionBS e
       Right _ -> "Error: did not catch expected exception."
   where
@@ -166,12 +167,29 @@ addsCallStackMerges =
 displaysNoCallStack :: HasCallStack => TestTree
 displaysNoCallStack =
   goldenVsStringDiff desc diff gpath $
-    try @_ @SomeException (throwWithCS MkEx) <&> \case
+    tryAny (throwWithCS MkEx) <&> \case
       Left e -> fromString $ displayNoCS e
       Right _ -> "Error: did not catch expected exception."
   where
     desc = "Does not display callstack"
     gpath = goldenPath </> "no-callstack.golden"
+
+displaysNoCallStackNested :: HasCallStack => TestTree
+displaysNoCallStackNested =
+  goldenVsStringDiff desc diff gpath $
+    pure $
+      fromString $
+        displayNoCS ex
+  where
+    ex =
+      MkExceptionCS
+        ( MkExceptionCS
+            (MkExceptionCS MkEx callStack)
+            callStack
+        )
+        callStack
+    desc = "Does not display nested callstack"
+    gpath = goldenPath </> "no-callstack-nested.golden"
 
 goldenPath :: FilePath
 goldenPath = "test/unit/"

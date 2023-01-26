@@ -226,23 +226,20 @@ instance Exception e => Exception (ExceptionCS e) where
   toException (MkExceptionCS ex cs) =
     tryFlatten $ SomeException (MkExceptionCS (toException ex) cs)
 
-  -- 1. SomeException ex
-  fromException (SomeException ex)
-    -- 1.1. The underlying ex is (ExceptionCS e)
-    --      ==> return the ExceptionCS e
-    | Just x <- cast ex = Just x
-    -- 1.2 The underlying ex is (ExceptionCS SomeException) AND
-    --     The SomeException can be converted to the requested e
-    --     ==> return the ExceptionCS e
-    | Just (MkExceptionCS (ecs :: SomeException) cs) <- cast ex,
-      Just x <- SafeEx.fromException ecs =
-        pure $ MkExceptionCS x cs
-  -- 2. ex = SomeException
-  fromException ex
-    -- 2.1. The ex is convertible to the requested e
-    --      ==> wrap it in an ExceptionCS
-    | Just e <- SafeEx.fromException ex = Just $ pure e
-    -- 2.2. We did our best
+  fromException someEx@(SomeException innerEx)
+    -- innerEx == ExceptionCS e
+    -- ==> ExceptionCS e
+    | Just x <- cast innerEx = Just x
+    -- innerEx == ExceptionCS innerSomeEx@SomeException
+    -- innerSomeEx == e
+    -- ==> ExceptionCS e
+    | Just (MkExceptionCS (innerSomeEx :: SomeException) cs) <- cast innerEx,
+      Just x <- SafeEx.fromException innerSomeEx =
+        Just $ MkExceptionCS x cs
+    -- SomeException == e
+    -- ==> ExceptionCS e
+    | Just x <- fromException someEx = Just $ pure x
+    -- We did our best
     | otherwise = Nothing
 
   displayException (MkExceptionCS e cs) =
@@ -410,7 +407,7 @@ displayNoCS :: forall e. Exception e => e -> String
 displayNoCS ex =
   case fromException (toException ex) of
     Nothing -> displayException ex
-    Just (MkExceptionCS (ecs :: SomeException) _) -> displayException ecs
+    Just (MkExceptionCS (ex' :: SomeException) _) -> displayException ex'
 
 -- | Run an action only if an exception is thrown in the main action. The
 -- exception is not caught, simply rethrown.
