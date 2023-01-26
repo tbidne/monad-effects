@@ -103,17 +103,6 @@ Provides:
 The `CallStack` machinery may be removed once GHC natively supports adding `CallStack` to exceptions (GHC 9.8?). See
 https://github.com/ghc-proposals/ghc-proposals/pull/330.
 
-## monad-exit
-
-### Library: `base`
-
-### Modules
-* `Effects.System.Exit (System.Exit)`
-
-### Description
-
-Effect for `System.Exit`.
-
 ## monad-fs
 
 ### Library: `base`, `bytestring`, `directory`

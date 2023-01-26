@@ -13,6 +13,9 @@ module Effects.FileSystem.HandleWriter
     hPutNonBlockingUtf8Lenient,
     hPutNonBlockingUtf8ThrowM,
 
+    -- * Misc
+    die,
+
     -- * Reexports
     BufferMode (..),
     ByteString,
@@ -28,8 +31,9 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
+import Data.ByteString.Char8 qualified as Char8
 import Data.Text (Text)
-import Effects.Exception (MonadThrow, addCS)
+import Effects.Exception (MonadThrow, addCS, exitFailure)
 import Effects.FileSystem.FileReader
   ( UnicodeException,
     decodeUtf8,
@@ -219,3 +223,11 @@ hPutNonBlockingUtf8ThrowM ::
 hPutNonBlockingUtf8ThrowM h =
   (hPutNonBlocking h . encodeUtf8) >=> decodeUtf8ThrowM
 {-# INLINEABLE hPutNonBlockingUtf8ThrowM #-}
+
+-- | Lifted 'System.Exit.die'.
+--
+-- @since 0.1
+die :: (HasCallStack, MonadHandleWriter m, MonadThrow m) => String -> m a
+die err = hPut IO.stderr err' *> exitFailure
+  where
+    err' = Char8.pack err

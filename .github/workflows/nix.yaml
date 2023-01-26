@@ -21,7 +21,6 @@ jobs:
           - "monad-async"
           - "monad-env"
           - "monad-exceptions"
-          - "monad-exit"
           - "monad-fs"
           - "monad-ioref"
           - "monad-logger-namespace"

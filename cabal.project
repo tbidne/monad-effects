@@ -2,7 +2,6 @@ packages:
   ./monad-async
   ./monad-env
   ./monad-exceptions
-  ./monad-exit
   ./monad-fs
   ./monad-ioref
   ./monad-logger-namespace
@@ -36,14 +35,6 @@ package monad-env
     -Wprepositive-qualified-module
 
 package monad-exceptions
-  ghc-options:
-    -Wall -Wcompat -Werror -Widentities
-    -Wincomplete-record-updates -Wincomplete-uni-patterns
-    -Wmissing-home-modules -Wmissing-export-lists -Wpartial-fields
-    -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
-    -Wprepositive-qualified-module
-
-package monad-exit
   ghc-options:
     -Wall -Wcompat -Werror -Widentities
     -Wincomplete-record-updates -Wincomplete-uni-patterns

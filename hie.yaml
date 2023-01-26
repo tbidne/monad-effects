@@ -8,8 +8,6 @@ cradle:
       component: "lib:monad-exceptions"
     - path: "./monad-exceptions/test/unit"
       component: "monad-exceptions:test:unit"
-    - path: "./monad-exit/src"
-      component: "lib:monad-exit"
     - path: "./monad-fs/src"
       component: "lib:monad-fs"
     - path: "./monad-ioref/src"

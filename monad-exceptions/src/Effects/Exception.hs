@@ -1,42 +1,47 @@
--- | Exception handling. The interface here combines pieces of the following
--- two libraries in a somewhat idiosyncratic way:
+{-# LANGUAGE CPP #-}
+
+-- | Exception handling. The interface here combines ideas from the following
+-- three libraries in a somewhat idiosyncratic way:
 --
+-- * [annotated-exception](https://hackage.haskell.org/package/annotated-exception)
 -- * [exceptions](https://hackage.haskell.org/package/exceptions)
 -- * [safe-exceptions](https://hackage.haskell.org/package/safe-exceptions)
 --
--- We have the following goals, hence the two libraries:
+-- We have the following goals:
 --
 -- 1. Typeclass abstraction: @exceptions@'s
---    'MonadThrow'\/'MonadCatch'\/'MonadMask'.
--- 2. Throw exceptions w/ 'CallStack': For now, we use a custom type
---    'ExceptionCS' for this purpose. This functionality may be removed
---    once GHC natively supports combining exceptions and 'CallStack'
---    (tentatively GHC 9.8). See the following proposal for more information:
+--    'MonadThrow'\/'MonadCatch'\/'MonadMask' hierarchy.
+-- 2. Throw exceptions w/ 'CallStack': Inspired by @annotated-exception@, we
+--    use a custom type 'ExceptionCS' for this purpose. This functionality may
+--    be removed once GHC natively supports combining exceptions and
+--    'CallStack' (tentatively GHC 9.8). See the following proposal for more
+--    information:
 --    https://github.com/ghc-proposals/ghc-proposals/pull/330
 --
 -- 3. Throw/catch exceptions in accordance with @safe-exceptions@: That is,
---    do not throw or catch async exceptions.
+--    do not throw or catch async exceptions. We do not actually re-export
+--    @safe-exceptions@ functions; the functions here are bespoke, primarily
+--    to add `HasCallStack` constraints.
 --
--- 4. Masking/bracket uses 'Ex.mask', not 'Ex.uninterruptibleMask': This
---    deviation is why we depend directly on @exceptions@, instead of
---    reusing @safe-exceptions@ for both. We take the position that
---    'Ex.uninterruptibleMask' should /not/ be the default behavior, as
---    legitimate uses are rare, and for those corner cases, deadlocks are worse
---    than interruptible operations receiving async exceptions.
+-- 4. Masking/bracket uses 'Ex.mask', not 'Ex.uninterruptibleMask': We take
+--    the position that 'Ex.uninterruptibleMask' should /not/ be the default
+--    behavior, as legitimate uses are rare, and for those corner cases,
+--    deadlocks are worse than interruptible operations receiving async
+--    exceptions.
 --
--- The API exported here is not comprehensive vis-à-vis either of the two
+-- The API exported here is not comprehensive vis-à-vis any of the mentioned
 -- libraries, so if more functionality is required, a direct dependency
 -- will be necessary.
 --
 -- Note that, like @safe-exceptions@, the typeclass methods for
 -- 'MonadThrow' ('throwM') and 'MonadCatch' ('catch') are __not__ exported
 -- here because they are overridden to prevent catching async exceptions.
--- This means that if one needs to manually write an instance for either of
+-- This means that if one needs to manually write an instance for any of
 -- those classes, then a dependency on @exceptions@ is required.
 --
 -- @since 0.1
 module Effects.Exception
-  ( -- * Effect
+  ( -- * Global mechanisms
     MonadGlobalException (..),
 
     -- * CallStack
@@ -55,26 +60,28 @@ module Effects.Exception
     -- ** Utils
     displayNoCS,
 
-    -- * Re-exports
+    -- * Basic exceptions
+    -- $basics
 
-    -- ** Throwing (@safe-exceptions@)
+    -- ** Throwing
     MonadThrow,
-    SafeEx.throwM,
+    throwM,
     SafeEx.throwString,
 
-    -- ** Catching (@safe-exceptions@)
+    -- ** Catching
     MonadCatch,
-    SafeEx.catch,
-    SafeEx.catchAny,
-    SafeEx.handle,
-    SafeEx.handleAny,
-    SafeEx.try,
-    SafeEx.tryAny,
-    SafeEx.Handler (..),
-    SafeEx.catches,
+    catch,
+    catchAny,
+    handle,
+    handleAny,
+    try,
+    tryAny,
+    Handler (..),
+    catches,
     onException,
 
-    -- ** Masking (@exceptions@)
+    -- ** Masking
+    -- $masking
     MonadMask (..),
     Ex.ExitCase (..),
     Ex.mask_,
@@ -84,11 +91,22 @@ module Effects.Exception
     Ex.finally,
     Ex.bracketOnError,
 
-    -- ** @safe-exceptions@
+    -- ** Utils
+    SafeEx.SyncExceptionWrapper,
+    SafeEx.AsyncExceptionWrapper,
     SafeEx.toSyncException,
     SafeEx.toAsyncException,
     SafeEx.isSyncException,
     SafeEx.isAsyncException,
+
+    -- ** Exiting
+    -- $exit
+    ExitCode (..),
+
+    -- ** Functions
+    exitFailure,
+    exitSuccess,
+    exitWith,
 
     -- * Misc
     CallStack,
@@ -100,14 +118,13 @@ module Effects.Exception
 where
 
 import Control.DeepSeq (NFData)
-import Control.Exception (IOException)
 import Control.Exception.Safe qualified as SafeEx
 import Control.Monad.Catch
   ( Exception (..),
     Handler (..),
-    MonadCatch (..),
+    MonadCatch,
     MonadMask (..),
-    MonadThrow (..),
+    MonadThrow,
     SomeException (..),
   )
 import Control.Monad.Catch qualified as Ex
@@ -117,6 +134,7 @@ import Data.Set qualified as Set
 import Data.Typeable (cast)
 import GHC.Conc.Sync qualified as Sync
 import GHC.Generics (Generic)
+import GHC.IO.Exception (IOErrorType (InvalidArgument), IOException (..))
 import GHC.Stack
   ( CallStack,
     HasCallStack,
@@ -125,6 +143,11 @@ import GHC.Stack
     withFrozenCallStack,
   )
 import GHC.Stack.Types (SrcLoc (..), fromCallSiteList, getCallStack)
+import System.Exit (ExitCode (..))
+
+-------------------------------------------------------------------------------
+--                           MonadGlobalException                            --
+-------------------------------------------------------------------------------
 
 -- | Effect for global exception mechanisms.
 --
@@ -158,6 +181,10 @@ instance MonadGlobalException m => MonadGlobalException (ReaderT env m) where
   getUncaughtExceptionHandler =
     ask >>= \e -> lift (runReaderT getUncaughtExceptionHandler e)
   {-# INLINEABLE getUncaughtExceptionHandler #-}
+
+-------------------------------------------------------------------------------
+--                                 CallStack                                 --
+-------------------------------------------------------------------------------
 
 -- $callstack
 -- The callstack API and implementation is heavily inspired by the excellent
@@ -234,7 +261,7 @@ instance Exception e => Exception (ExceptionCS e) where
     -- innerSomeEx == e
     -- ==> ExceptionCS e
     | Just (MkExceptionCS (innerSomeEx :: SomeException) cs) <- cast innerEx,
-      Just x <- SafeEx.fromException innerSomeEx =
+      Just x <- fromException innerSomeEx =
         Just $ MkExceptionCS x cs
     -- SomeException == e
     -- ==> ExceptionCS e
@@ -286,7 +313,7 @@ catchWithCS ::
   m a
 catchWithCS action handler =
   withFrozenCallStack $
-    SafeEx.catches
+    catches
       action
       [ Handler $ \ex -> addCS $ handler ex,
         -- "Forget" about the callstack unless another is raised.
@@ -294,7 +321,7 @@ catchWithCS action handler =
       ]
 {-# INLINEABLE catchWithCS #-}
 
--- | 'catchWithCS' specialized to 'SomeException'.
+-- | 'catchWithCS' specialized to all synchronous exceptions.
 --
 -- @since 0.1
 catchAnyWithCS ::
@@ -366,7 +393,7 @@ addCS m = withFrozenCallStack $ addOuterCS callStack m
 -- @since 0.1
 addOuterCS :: forall m a. (HasCallStack, MonadCatch m) => CallStack -> m a -> m a
 addOuterCS outerCS m =
-  m `SafeEx.catch` \(ex :: SomeException) ->
+  m `catch` \(ex :: SomeException) ->
     throwM $ case fromException ex of
       Just (MkExceptionCS (innerEx :: SomeException) innerCS) ->
         MkExceptionCS
@@ -409,6 +436,19 @@ displayNoCS ex =
     Nothing -> displayException ex
     Just (MkExceptionCS (ex' :: SomeException) _) -> displayException ex'
 
+-------------------------------------------------------------------------------
+--                                 Exceptions                                --
+-------------------------------------------------------------------------------
+
+-- $basics
+-- The functionality here is a mix of @exceptions@ and @safe-exceptions@.
+-- On the one hand, we reuse @exceptions@' typeclass hierarchy. On the other
+-- hand, the functions we export (e.g. `throwM`, `catch`) are reimplemented
+-- with @safe-exceptions@' philosophy: by default, do not throw or catch
+-- async exceptions. The only reason we do not directly export all
+-- @safe-exceptions@' functions is due to them missing `HasCallStack`
+-- constraints.
+
 -- | Run an action only if an exception is thrown in the main action. The
 -- exception is not caught, simply rethrown.
 --
@@ -423,12 +463,179 @@ displayNoCS ex =
 -- other hand, use its bracket functions, meaning it performs
 -- @uninterruptibleMask@, which we also do not want.
 --
--- Hence this version, which is based on @safe-exceptions@' 'SafeEx.catchAny'
--- i.e. it does not catch async async exceptions, nor does it invoke any
--- masking.
+-- Hence this version, which is based on 'catchAny' i.e. it does not catch
+-- any asynchronous exceptions, nor does it invoke any masking.
 --
 -- @since 0.1
 onException :: forall m a b. (HasCallStack, MonadCatch m) => m a -> m b -> m a
 onException action handler =
-  withFrozenCallStack $ SafeEx.catchAny action (\e -> handler *> throwM e)
+  withFrozenCallStack $ catchAny action (\e -> handler *> throwM e)
 {-# INLINEABLE onException #-}
+
+-- Using the same idea from exceptions. We generally want HasCallStack on our
+-- functions, but only if exceptions also has them (0.10.6), otherwise we
+-- receive -Wredundant-constraint warnings.
+
+#if MIN_VERSION_exceptions(0,10,6)
+# define HAS_CALL_STACK HasCallStack
+#else
+# define HAS_CALL_STACK ()
+#endif
+
+-- | Like 'Ex.throwM' but any thrown asynchronous exceptions will be thrown
+-- synchronously via 'toSyncException'.
+--
+-- @since 0.1
+throwM :: HAS_CALL_STACK => (MonadThrow m, Exception e) => e -> m a
+throwM = Ex.throwM . SafeEx.toSyncException
+
+-- | Like upstream 'Ex.catch', but will not catch asynchronous exceptions.
+--
+-- @since 0.1
+catch ::
+  forall m e a.
+  HAS_CALL_STACK =>
+  ( MonadCatch m,
+    Exception e
+  ) =>
+  m a ->
+  (e -> m a) ->
+  m a
+catch f g =
+  f `Ex.catch` \e ->
+    if SafeEx.isSyncException e
+      then g e
+      else -- intentionally rethrowing an async exception synchronously,
+      -- since we want to preserve async behavior
+        Ex.throwM e
+
+-- | 'catch' specialized to all synchronous exceptions.
+--
+-- @since 0.1
+catchAny ::
+  forall m a.
+  HAS_CALL_STACK =>
+  ( MonadCatch m
+  ) =>
+  m a ->
+  (SomeException -> m a) ->
+  m a
+catchAny = catch
+
+-- | Flipped version of 'catch'.
+--
+-- @since 0.1
+handle ::
+  forall m e a.
+  HAS_CALL_STACK =>
+  ( MonadCatch m,
+    Exception e
+  ) =>
+  (e -> m a) ->
+  m a ->
+  m a
+handle = flip catch
+
+-- | Flipped version of 'catchAny'.
+--
+-- @since 0.1
+handleAny ::
+  forall m a.
+  HAS_CALL_STACK =>
+  MonadCatch m =>
+  (SomeException -> m a) ->
+  m a ->
+  m a
+handleAny = flip catchAny
+
+-- | Like upstream 'Ex.try', but will not catch asynchronous exceptions.
+--
+-- @since 0.1
+try ::
+  forall m e a.
+  HAS_CALL_STACK =>
+  ( MonadCatch m,
+    Exception e
+  ) =>
+  m a ->
+  m (Either e a)
+try f = catch (fmap Right f) (pure . Left)
+
+-- | 'try' specialized to catch all synchronous exceptions.
+--
+-- @since 0.1
+tryAny ::
+  forall m a.
+  HAS_CALL_STACK =>
+  MonadCatch m =>
+  m a ->
+  m (Either SomeException a)
+tryAny = try
+
+-- | Like upstream 'Ex.catches', but will not catch asynchronous exceptions.
+--
+-- @since 0.1
+catches ::
+  forall m a.
+  HAS_CALL_STACK =>
+  MonadCatch m =>
+  m a ->
+  [Handler m a] ->
+  m a
+catches io handlers = io `catch` catchesHandler handlers
+
+catchesHandler ::
+  forall m a.
+  HAS_CALL_STACK =>
+  MonadThrow m =>
+  [Handler m a] ->
+  SomeException ->
+  m a
+catchesHandler handlers e = foldr tryHandler (throwM e) handlers
+  where
+    tryHandler (Handler handler) res = maybe res handler (fromException e)
+
+-------------------------------------------------------------------------------
+--                                    Exit                                   --
+-------------------------------------------------------------------------------
+
+-- $exit
+-- These functions represent 'System.Exit'. 'System.Exit.die' can be found
+-- in "Effects.FileSystem.HandleWriter".
+
+-- | Lifted 'Exit.exitFailure'.
+--
+-- @since 0.1
+exitFailure :: HAS_CALL_STACK => MonadThrow m => m a
+exitFailure = exitWith (ExitFailure 1)
+{-# INLINEABLE exitFailure #-}
+
+-- | Lifted 'Exit.exitSuccess'.
+--
+-- @since 0.1
+exitSuccess :: HAS_CALL_STACK => MonadThrow m => m a
+exitSuccess = exitWith ExitSuccess
+{-# INLINEABLE exitSuccess #-}
+
+-- | Lifted 'System.Exit.exitWith'.
+--
+-- @since 0.1
+exitWith :: HAS_CALL_STACK => MonadThrow m => ExitCode -> m a
+exitWith ExitSuccess = throwM ExitSuccess
+exitWith code@(ExitFailure n)
+  | n /= 0 = throwM code
+  | otherwise =
+      throwM
+        ( IOError
+            Nothing
+            InvalidArgument
+            "exitWith"
+            "ExitFailure 0"
+            Nothing
+            Nothing
+        )
+{-# INLINEABLE exitWith #-}
+
+-- $masking
+-- This section directly reexports @exceptions@' functions: we favor its
+-- 'mask' over @safe-exceptions@' 'uninterruptibleMask'.

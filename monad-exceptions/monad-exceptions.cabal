@@ -20,6 +20,7 @@ source-repository head
 
 common common
   default-extensions:
+    ConstraintKinds
     DataKinds
     DeriveAnyClass
     DeriveFunctor

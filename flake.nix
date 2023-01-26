@@ -70,7 +70,6 @@
               monad-async = ./monad-async;
               monad-env = ./monad-env;
               monad-exceptions = ./monad-exceptions;
-              monad-exit = ./monad-exit;
               monad-fs = ./monad-fs;
               monad-ioref = ./monad-ioref;
               monad-logger-namespace = ./monad-logger-namespace;
@@ -85,7 +84,6 @@
             p.monad-async
             p.monad-env
             p.monad-exceptions
-            p.monad-exit
             p.monad-fs
             p.monad-ioref
             p.monad-logger-namespace
@@ -115,11 +113,6 @@
             };
           packages.monad-env = mkPkgsException "monad-env" ./monad-env;
           packages.monad-exceptions = mkPkg "monad-exceptions" ./monad-exceptions { };
-          packages.monad-exit =
-            mkPkg "monad-exit" ./monad-exit {
-              monad-exceptions = ./monad-exceptions;
-              monad-fs = ./monad-fs;
-            };
           packages.monad-fs = mkPkgsException "monad-fs" ./monad-fs;
           packages.monad-ioref = mkPkgsException "monad-ioref" ./monad-ioref;
           packages.monad-logger-namespace =
