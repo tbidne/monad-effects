@@ -29,7 +29,7 @@ import Data.Text (Text)
 import Data.Text.Encoding qualified as TEnc
 import Data.Text.Encoding.Error (UnicodeException)
 import Data.Text.Encoding.Error qualified as TEncError
-import Effects.Exception (MonadThrow, addCS, throwWithCS)
+import Effects.Exception (MonadThrow, addCS, throwCS)
 import Effects.FileSystem.Path (Path, readBinaryFileIO)
 import GHC.Stack (HasCallStack)
 
@@ -76,7 +76,7 @@ decodeUtf8ThrowM ::
 decodeUtf8ThrowM =
   TEnc.decodeUtf8' >.> \case
     Right txt -> pure txt
-    Left ex -> throwWithCS ex
+    Left ex -> throwCS ex
 {-# INLINEABLE decodeUtf8ThrowM #-}
 
 -- | Reads a file as UTF-8.

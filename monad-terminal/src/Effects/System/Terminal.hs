@@ -45,7 +45,7 @@ import Data.Text (Text)
 import Data.Text qualified as T
 import Effects.Exception
   ( addCS,
-    throwWithCS,
+    throwCS,
   )
 import GHC.Natural (Natural)
 import GHC.Stack (HasCallStack)
@@ -141,7 +141,7 @@ instance MonadTerminal IO where
   getTerminalSize =
     size >>= \case
       Just h -> pure h
-      Nothing -> throwWithCS MkTermSizeException
+      Nothing -> throwCS MkTermSizeException
   {-# INLINEABLE getTerminalSize #-}
 
 -- | @since 0.1

@@ -47,13 +47,13 @@ module Effects.Exception
     -- * CallStack
     -- $callstack
     ExceptionCS (..),
-    throwWithCS,
-    catchWithCS,
-    catchAnyWithCS,
-    handleWithCS,
-    handleAnyWithCS,
-    tryWithCS,
-    tryAnyWithCS,
+    throwCS,
+    catchCS,
+    catchAnyCS,
+    handleCS,
+    handleAnyCS,
+    tryCS,
+    tryAnyCS,
     addCS,
     addOuterCS,
 
@@ -206,9 +206,9 @@ instance MonadGlobalException m => MonadGlobalException (ReaderT env m) where
 -- more conservative if you really want stacktraces, at the cost of some
 -- transparency.
 --
--- Note that if an exception @e@ is thrown with 'throwWithCS', you can
+-- Note that if an exception @e@ is thrown with 'throwCS', you can
 -- no longer catch it with normal @catch \@e@, as it is now a
--- @ExceptionCS e@. You can instead use @catchWithCS \@e@.
+-- @ExceptionCS e@. You can instead use @catchCS \@e@.
 
 -- | Attaches a 'CallStack' to an arbitrary exception. The 'Show' instance
 -- uses 'displayException' i.e. the underlying exceptions' 'displayException'
@@ -293,26 +293,26 @@ tryFlatten ex =
 -- also an 'ExceptionCS', the callStacks are merged.
 --
 -- @since 0.1
-throwWithCS ::
+throwCS ::
   forall m e a.
   (Exception e, HasCallStack, MonadThrow m) =>
   e ->
   m a
-throwWithCS ex =
+throwCS ex =
   withFrozenCallStack $ throwM $ MkExceptionCS ex callStack
-{-# INLINEABLE throwWithCS #-}
+{-# INLINEABLE throwCS #-}
 
 -- | Catches both @e@ and @ExceptionCS e@. The given handler is
 -- wrapped in 'addCS'.
 --
 -- @since 0.1
-catchWithCS ::
+catchCS ::
   forall m e a.
   (Exception e, HasCallStack, MonadCatch m) =>
   m a ->
   (e -> m a) ->
   m a
-catchWithCS action handler =
+catchCS action handler =
   withFrozenCallStack $
     catches
       action
@@ -320,65 +320,65 @@ catchWithCS action handler =
         -- "Forget" about the callstack unless another is raised.
         Handler $ \(MkExceptionCS ex cs) -> addOuterCS cs $ handler ex
       ]
-{-# INLINEABLE catchWithCS #-}
+{-# INLINEABLE catchCS #-}
 
--- | 'catchWithCS' specialized to all synchronous exceptions.
+-- | 'catchCS' specialized to all synchronous exceptions.
 --
 -- @since 0.1
-catchAnyWithCS ::
+catchAnyCS ::
   forall m a.
   (HasCallStack, MonadCatch m) =>
   m a ->
   (SomeException -> m a) ->
   m a
-catchAnyWithCS = catchWithCS
-{-# INLINEABLE catchAnyWithCS #-}
+catchAnyCS = catchCS
+{-# INLINEABLE catchAnyCS #-}
 
--- | Flipped 'catchWithCS'.
+-- | Flipped 'catchCS'.
 --
 -- @since 0.1
-handleWithCS ::
+handleCS ::
   forall m e a.
   (Exception e, HasCallStack, MonadCatch m) =>
   (e -> m a) ->
   m a ->
   m a
-handleWithCS = flip catchWithCS
-{-# INLINEABLE handleWithCS #-}
+handleCS = flip catchCS
+{-# INLINEABLE handleCS #-}
 
--- | 'handleWithCS' specialized to 'SomeException'.
+-- | 'handleCS' specialized to 'SomeException'.
 --
 -- @since 0.1
-handleAnyWithCS ::
+handleAnyCS ::
   forall m a.
   (HasCallStack, MonadCatch m) =>
   (SomeException -> m a) ->
   m a ->
   m a
-handleAnyWithCS = handleWithCS
-{-# INLINEABLE handleAnyWithCS #-}
+handleAnyCS = handleCS
+{-# INLINEABLE handleAnyCS #-}
 
--- | Try for 'catchWithCS'.
+-- | Try for 'catchCS'.
 --
 -- @since 0.1
-tryWithCS ::
+tryCS ::
   forall m e a.
   (Exception e, MonadCatch m) =>
   m a ->
   m (Either e a)
-tryWithCS m = (Right <$> m) `catchWithCS` (pure . Left)
-{-# INLINEABLE tryWithCS #-}
+tryCS m = (Right <$> m) `catchCS` (pure . Left)
+{-# INLINEABLE tryCS #-}
 
--- | 'tryWithCS' specialized to 'SomeException'.
+-- | 'tryCS' specialized to 'SomeException'.
 --
 -- @since 0.1
-tryAnyWithCS ::
+tryAnyCS ::
   forall m a.
   MonadCatch m =>
   m a ->
   m (Either SomeException a)
-tryAnyWithCS = tryWithCS
-{-# INLINEABLE tryAnyWithCS #-}
+tryAnyCS = tryCS
+{-# INLINEABLE tryAnyCS #-}
 
 -- | Turns any caught exceptions @e@ into an @ExceptionCS e@ with
 -- attached 'CallStack' and rethrows.

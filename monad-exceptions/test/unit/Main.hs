@@ -9,11 +9,11 @@ import Effects.Exception
     HasCallStack,
     SomeException,
     addCS,
-    catchWithCS,
+    catchCS,
     displayException,
     displayNoCS,
     throwM,
-    throwWithCS,
+    throwCS,
     tryAny,
   )
 import GHC.Stack (callStack)
@@ -44,7 +44,7 @@ data Ex = MkEx
 throwsCallStack :: HasCallStack => TestTree
 throwsCallStack =
   goldenVsStringDiff desc diff gpath $
-    tryAny (throwWithCS MkEx) <&> \case
+    tryAny (throwCS MkEx) <&> \case
       Left e -> displayExceptionBS e
       Right _ -> "Error: did not catch expected exception."
   where
@@ -62,29 +62,29 @@ catchTests =
 
 catchesCallStackWrapped :: HasCallStack => TestTree
 catchesCallStackWrapped = goldenVsStringDiff desc diff gpath $ do
-  (throwWithCS MkEx $> "Error: did not catch expected exception.")
-    `catchWithCS` \(e :: ExceptionCS Ex) ->
+  (throwCS MkEx $> "Error: did not catch expected exception.")
+    `catchCS` \(e :: ExceptionCS Ex) ->
       pure $ displayExceptionBS e
   where
-    desc = "catchWithCS catches wrapped exception"
+    desc = "catchCS catches wrapped exception"
     gpath = goldenPath </> "catches-callstack-wrapped.golden"
 
 catchesCallStackOriginal :: HasCallStack => TestTree
 catchesCallStackOriginal = goldenVsStringDiff desc diff gpath $ do
-  (throwWithCS MkEx $> "Error: did not catch expected exception.")
-    `catchWithCS` \(e :: Ex) ->
+  (throwCS MkEx $> "Error: did not catch expected exception.")
+    `catchCS` \(e :: Ex) ->
       pure $ displayExceptionBS e
   where
-    desc = "catchWithCS catches the original exception"
+    desc = "catchCS catches the original exception"
     gpath = goldenPath </> "catches-callstack-original.golden"
 
 catchesCallStackAny :: HasCallStack => TestTree
 catchesCallStackAny = goldenVsStringDiff desc diff gpath $ do
-  (throwWithCS MkEx $> "Error: did not catch expected exception.")
-    `catchWithCS` \(e :: ExceptionCS SomeException) ->
+  (throwCS MkEx $> "Error: did not catch expected exception.")
+    `catchCS` \(e :: ExceptionCS SomeException) ->
       pure $ displayExceptionBS e
   where
-    desc = "catchWithCS catches any exception"
+    desc = "catchCS catches any exception"
     gpath = goldenPath </> "catches-callstack-any.golden"
 
 toExceptionTests :: HasCallStack => TestTree
@@ -157,7 +157,7 @@ addsCallStack =
 addsCallStackMerges :: HasCallStack => TestTree
 addsCallStackMerges =
   goldenVsStringDiff desc diff gpath $
-    tryAny (addCS $ throwWithCS MkEx) <&> \case
+    tryAny (addCS $ throwCS MkEx) <&> \case
       Left e -> displayExceptionBS e
       Right _ -> "Error: did not catch expected exception."
   where
@@ -167,7 +167,7 @@ addsCallStackMerges =
 displaysNoCallStack :: HasCallStack => TestTree
 displaysNoCallStack =
   goldenVsStringDiff desc diff gpath $
-    tryAny (throwWithCS MkEx) <&> \case
+    tryAny (throwCS MkEx) <&> \case
       Left e -> fromString $ displayNoCS e
       Right _ -> "Error: did not catch expected exception."
   where

@@ -18,7 +18,7 @@ import Effects.Exception
     StringException,
     displayException,
     throwString,
-    tryWithCS,
+    tryCS,
   )
 import Effects.FileSystem.FileReader (MonadFileReader (readBinaryFile))
 import Effects.FileSystem.FileWriter
@@ -94,7 +94,7 @@ cdrnDestNonExtantFails getTmpDir = testCase desc $ do
   -- createDirectoryIfMissing False destDir
 
   -- copy files
-  result <- tryWithCS $ PathWriter.copyDirectoryRecursive OverwriteNone srcDir destDir
+  result <- tryCS $ PathWriter.copyDirectoryRecursive OverwriteNone srcDir destDir
   resultEx <- case result of
     Right _ -> assertFailure "Expected exception, received none"
     Left (ex :: PathDoesNotExistException) -> pure ex
@@ -124,7 +124,7 @@ cdrnOverwriteFails getTmpDir = testCase desc $ do
   createDirectoryIfMissing False (destDir </> "src")
 
   -- copy files
-  result <- tryWithCS $ PathWriter.copyDirectoryRecursive OverwriteNone srcDir destDir
+  result <- tryCS $ PathWriter.copyDirectoryRecursive OverwriteNone srcDir destDir
   resultEx <- case result of
     Right _ -> assertFailure "Expected exception, received none"
     Left (ex :: PathExistsException) -> pure ex
@@ -156,7 +156,7 @@ cdrnPartialFails getTmpDir = testCase desc $ do
 
   -- copy files
   result <-
-    tryWithCS $
+    tryCS $
       runPartialIO $
         PathWriter.copyDirectoryRecursive OverwriteNone srcDir destDir
   resultEx <- case result of
@@ -212,7 +212,7 @@ cdrtDestNonExtantFails getTmpDir = testCase desc $ do
   -- createDirectoryIfMissing False destDir
 
   -- copy files
-  result <- tryWithCS $ PathWriter.copyDirectoryRecursive OverwriteTarget srcDir destDir
+  result <- tryCS $ PathWriter.copyDirectoryRecursive OverwriteTarget srcDir destDir
   resultEx <- case result of
     Right _ -> assertFailure "Expected exception, received none"
     Left (ex :: PathDoesNotExistException) -> pure ex
@@ -264,7 +264,7 @@ cdrtOverwriteFileFails getTmpDir = testCase desc $ do
   writeFiles [(destDir </> "src/a/b/c/f1", "cat")]
 
   -- copy files
-  result <- tryWithCS $ PathWriter.copyDirectoryRecursive OverwriteTarget srcDir destDir
+  result <- tryCS $ PathWriter.copyDirectoryRecursive OverwriteTarget srcDir destDir
   resultEx <- case result of
     Right _ -> assertFailure "Expected exception, received none"
     Left (ex :: PathExistsException) -> pure ex
@@ -290,7 +290,7 @@ cdrtPartialFails getTmpDir = testCase desc $ do
 
   -- copy files
   result <-
-    tryWithCS $
+    tryCS $
       runPartialIO $
         PathWriter.copyDirectoryRecursive OverwriteTarget srcDir destDir
   resultEx <- case result of
@@ -324,7 +324,7 @@ cdrtOverwritePartialFails getTmpDir = testCase desc $ do
 
   -- copy files
   result <-
-    tryWithCS $
+    tryCS $
       runPartialIO $
         PathWriter.copyDirectoryRecursive OverwriteTarget srcDir destDir
   resultEx <- case result of

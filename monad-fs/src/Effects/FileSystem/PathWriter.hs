@@ -34,7 +34,7 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Data.Foldable (for_, traverse_)
 import Data.Time (UTCTime (..))
-import Effects.Exception (MonadMask, addCS, mask_, onException, throwWithCS)
+import Effects.Exception (MonadMask, addCS, mask_, onException, throwCS)
 import Effects.FileSystem.Path (Path, (</>))
 import Effects.FileSystem.PathReader
   ( MonadPathReader
@@ -342,7 +342,7 @@ copyDirectoryRecursive overwrite src destRoot = do
   destExists <- doesDirectoryExist destRoot
 
   unless destExists $
-    throwWithCS $
+    throwCS $
       MkPathDoesNotExistException destRoot
 
   let srcName = FP.takeBaseName $ FP.dropTrailingPathSeparator src
@@ -402,7 +402,7 @@ copyDirectoryOverwrite overwriteFiles src dest = do
           then \f -> do
             exists <- doesFileExist f
             when exists $
-              throwWithCS $
+              throwCS $
                 MkPathExistsException f
           else const (pure ())
 
@@ -451,7 +451,7 @@ copyDirectoryNoOverwrite ::
   m ()
 copyDirectoryNoOverwrite src dest = do
   destExists <- doesDirectoryExist dest
-  when destExists $ throwWithCS (MkPathExistsException dest)
+  when destExists $ throwCS (MkPathExistsException dest)
 
   let copyFiles = do
         (subFiles, subDirs) <- listDirectoryRecursive src
