@@ -1,7 +1,10 @@
+{-# LANGUAGE ViewPatterns #-}
+
 module Main (main) where
 
 import Data.ByteString.Lazy qualified as BSL
 import Data.Functor (($>), (<&>))
+import Data.List qualified as L
 import Data.String (IsString (fromString))
 import Effects.Exception
   ( Exception (..),
@@ -225,7 +228,7 @@ showBS :: Show a => a -> BSL.ByteString
 showBS = fromString . zeroNums . show
 
 displayExceptionBS :: Exception e => e -> BSL.ByteString
-displayExceptionBS = fromString . zeroNums . displayException
+displayExceptionBS = fromString . stripPkgName . zeroNums . displayException
 
 zeroNums :: String -> String
 zeroNums [] = []
@@ -237,3 +240,15 @@ zeroNums (x : xs) = case TR.readMaybe @Int [x] of
     skipNums (y : ys) = case TR.readMaybe @Int [y] of
       Nothing -> y : ys
       Just _ -> skipNums ys
+
+-- crude, but it works
+stripPkgName :: String -> String
+stripPkgName [] = []
+stripPkgName (L.stripPrefix "monad-exceptions-0.0-" -> Just rest) =
+  "monad-exceptions-0.0-<pkg>" ++ skipUntilColon rest
+stripPkgName (x : xs) = x : stripPkgName xs
+
+skipUntilColon :: String -> String
+skipUntilColon [] = []
+skipUntilColon (':' : rest) = ':' : rest
+skipUntilColon (_ : xs) = skipUntilColon xs
