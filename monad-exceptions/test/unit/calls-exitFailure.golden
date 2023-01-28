@@ -1,0 +1,3 @@
+ExitFailure 0
+CallStack (from HasCallStack):
+  throwCS, called at src/Effects/Exception.hs:0:0 in monad-exceptions-0.0-inplace:Effects.Exception

@@ -12,11 +12,13 @@ import Effects.Exception
     catchCS,
     displayException,
     displayNoCS,
+    exitFailure,
     throwCS,
     throwM,
     tryAny,
   )
 import GHC.Stack (callStack)
+import System.Exit (exitSuccess)
 import System.FilePath ((</>))
 import Test.Tasty (TestTree, defaultMain, testGroup)
 import Test.Tasty.Golden (goldenVsStringDiff)
@@ -28,6 +30,8 @@ main =
     testGroup
       "CallStack Tests"
       [ throwsCallStack,
+        throwsExitFailure,
+        throwsExitSuccess,
         catchTests,
         toExceptionTests,
         addsCallStack,
@@ -50,6 +54,26 @@ throwsCallStack =
   where
     desc = "Throws with callstack"
     gpath = goldenPath </> "throw-callstack.golden"
+
+throwsExitFailure :: TestTree
+throwsExitFailure =
+  goldenVsStringDiff desc diff gpath $
+    tryAny exitFailure <&> \case
+      Left e -> displayExceptionBS e
+      Right _ -> "Error: did not catch expected exception."
+  where
+    desc = "Calls exitFailure"
+    gpath = goldenPath </> "calls-exitFailure.golden"
+
+throwsExitSuccess :: TestTree
+throwsExitSuccess =
+  goldenVsStringDiff desc diff gpath $
+    tryAny exitSuccess <&> \case
+      Left e -> displayExceptionBS e
+      Right _ -> "Error: did not catch expected exception."
+  where
+    desc = "Calls exitSuccess"
+    gpath = goldenPath </> "calls-exitSuccess.golden"
 
 catchTests :: HasCallStack => TestTree
 catchTests =

@@ -622,11 +622,11 @@ exitSuccess = exitWith ExitSuccess
 --
 -- @since 0.1
 exitWith :: HAS_CALL_STACK => MonadThrow m => ExitCode -> m a
-exitWith ExitSuccess = throwM ExitSuccess
+exitWith ExitSuccess = throwCS ExitSuccess
 exitWith code@(ExitFailure n)
-  | n /= 0 = throwM code
+  | n /= 0 = throwCS code
   | otherwise =
-      throwM
+      throwCS
         ( IOError
             Nothing
             InvalidArgument
