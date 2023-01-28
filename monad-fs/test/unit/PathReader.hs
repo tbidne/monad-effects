@@ -1,10 +1,10 @@
 module PathReader (tests) where
 
+import Data.List qualified as L
 import Data.String (IsString (fromString))
 import Effects.FileSystem.Path ((</>))
 import Effects.FileSystem.PathReader qualified as PathReader
 import Test.Tasty (TestTree, testGroup)
-import Data.List qualified as L
 import Test.Tasty.Golden (goldenVsStringDiff)
 
 tests :: TestTree

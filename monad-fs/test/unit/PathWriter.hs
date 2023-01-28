@@ -386,7 +386,6 @@ cdraOverwriteFileSucceeds getTmpDir = testCase desc $ do
 setupSrc :: HasCallStack => Path -> IO Path
 setupSrc baseDir = do
   let files = ["a/b/c/f1", "a/f2", "a/b/f3", "a/f4", "a/f5", "a/b/f5"]
-
       srcDir = baseDir </> "src"
 
   -- create directories and files
@@ -397,9 +396,7 @@ setupSrc baseDir = do
       srcFiles = fmap (first (srcDir </>)) baseFiles
 
   writeFiles srcFiles
-
   assertSrcExists baseDir
-
   pure srcDir
 
 writeFiles :: HasCallStack => [(Path, ByteString)] -> IO ()
@@ -422,13 +419,6 @@ newtype PartialIO a = MkPartialT (ReaderT (IORef Word8) IO a)
       MonadPathReader
     )
     via (ReaderT (IORef Word8) IO)
-
-{-deriving
-  ( MonadTrans
-  )
-  via (ReaderT (IORef Word8))-}
-
--- type PartialIO = PartialT IO
 
 runPartialIO :: PartialIO a -> IO a
 runPartialIO (MkPartialT x) = do
