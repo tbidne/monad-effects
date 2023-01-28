@@ -102,7 +102,7 @@ cdrnDestNonExtantFails getTmpDir = testCase desc $ do
   let exText = displayException resultEx
 
   assertBool exText ("Path does not exist:" `L.isPrefixOf` exText)
-  assertBool exText ("monad-fs/cdrnDestNonExtantFails/dest" `L.isSuffixOf` exText)
+  assertBool exText ("monad-fs/unit/cdrnDestNonExtantFails/dest" `L.isSuffixOf` exText)
 
   -- assert original files remain
   assertSrcExists tmpDir
@@ -132,7 +132,7 @@ cdrnOverwriteFails getTmpDir = testCase desc $ do
   let exText = displayException resultEx
 
   assertBool exText ("Path already exists:" `L.isPrefixOf` exText)
-  assertBool exText ("monad-fs/cdrnExtantFails/dest/src" `L.isSuffixOf` exText)
+  assertBool exText ("monad-fs/unit/cdrnExtantFails/dest/src" `L.isSuffixOf` exText)
 
   -- assert original files remain
   assertSrcExists tmpDir
@@ -220,7 +220,7 @@ cdrtDestNonExtantFails getTmpDir = testCase desc $ do
   let exText = displayException resultEx
 
   assertBool exText ("Path does not exist:" `L.isPrefixOf` exText)
-  assertBool exText ("monad-fs/cdrtDestNonExtantFails/dest" `L.isSuffixOf` exText)
+  assertBool exText ("monad-fs/unit/cdrtDestNonExtantFails/dest" `L.isSuffixOf` exText)
 
   -- assert original files remain
   assertSrcExists tmpDir
@@ -272,7 +272,7 @@ cdrtOverwriteFileFails getTmpDir = testCase desc $ do
   let exText = displayException resultEx
 
   assertBool exText ("Path already exists:" `L.isPrefixOf` exText)
-  assertBool exText ("monad-fs/cdrtOverwriteFileFails/dest/src/a/b/c/f1" `L.isSuffixOf` exText)
+  assertBool exText ("monad-fs/unit/cdrtOverwriteFileFails/dest/src/a/b/c/f1" `L.isSuffixOf` exText)
 
   -- assert original files remain
   assertSrcExists tmpDir

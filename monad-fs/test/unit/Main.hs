@@ -23,7 +23,7 @@ main =
 
 setup :: IO FilePath
 setup = do
-  tmpDir <- (</> "monad-fs") <$> getTemporaryDirectory
+  tmpDir <- (</> "monad-fs/unit") <$> getTemporaryDirectory
   createDirectoryIfMissing True tmpDir
   pure tmpDir
 

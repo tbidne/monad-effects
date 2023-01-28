@@ -15,7 +15,7 @@ tests =
 
 testListDirectoryRecursive :: TestTree
 testListDirectoryRecursive = goldenVsStringDiff desc diff gpath $ do
-  (files, dirs) <- PathReader.listDirectoryRecursive "./"
+  (files, dirs) <- PathReader.listDirectoryRecursive "./src"
   let str =
         mconcat
           [ "FILES\n\n",

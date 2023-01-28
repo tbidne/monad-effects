@@ -1,25 +1,14 @@
 FILES
 
-monad-fs.cabal
-CHANGELOG.md
-LICENSE
-test/unit/PathReader.hs
-test/unit/PathWriter.hs
-test/unit/Main.hs
-test/unit/PathReader/listDirectoryRecursive.golden
-src/Effects/FileSystem/PathReader.hs
-src/Effects/FileSystem/Path.hs
-src/Effects/FileSystem/HandleWriter.hs
-src/Effects/FileSystem/PathWriter.hs
-src/Effects/FileSystem/HandleReader.hs
-src/Effects/FileSystem/FileReader.hs
-src/Effects/FileSystem/FileWriter.hs
+Effects/FileSystem/PathReader.hs
+Effects/FileSystem/Path.hs
+Effects/FileSystem/HandleWriter.hs
+Effects/FileSystem/PathWriter.hs
+Effects/FileSystem/HandleReader.hs
+Effects/FileSystem/FileReader.hs
+Effects/FileSystem/FileWriter.hs
 
 DIRECTORIES
 
-test
-src
-test/unit
-test/unit/PathReader
-src/Effects
-src/Effects/FileSystem
+Effects
+Effects/FileSystem
