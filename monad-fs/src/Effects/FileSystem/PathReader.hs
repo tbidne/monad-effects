@@ -13,6 +13,7 @@ module Effects.FileSystem.PathReader
     -- ** Functions
     findFile,
     findFiles,
+    
 
     -- * Xdg Utils
     getXdgData,
@@ -21,6 +22,9 @@ module Effects.FileSystem.PathReader
 #if MIN_VERSION_directory(1,3,7)
     getXdgState,
 #endif
+
+    -- * Misc
+    listDirectoryRecursive,
 
     -- * Reexports
     XdgDirectory (..),
@@ -34,7 +38,7 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Data.Time (UTCTime (..))
 import Effects.Exception (addCS)
-import Effects.FileSystem.Path (Path)
+import Effects.FileSystem.Path (Path, (</>))
 import GHC.Stack (HasCallStack)
 import System.Directory
   ( Permissions (..),
@@ -339,3 +343,47 @@ getXdgState :: (HasCallStack, MonadPathReader m) => Path -> m Path
 getXdgState = getXdgDirectory XdgState
 {-# INLINEABLE getXdgState #-}
 #endif
+
+-- | Retrieves the recursive directory contents; splits the sub folders and
+-- directories apart.
+--
+-- @since 0.1
+listDirectoryRecursive ::
+  forall m.
+  ( HasCallStack,
+    MonadPathReader m
+  ) =>
+  -- | Root path.
+  Path ->
+  -- | (files, directories)
+  m ([Path], [Path])
+listDirectoryRecursive root = recurseDirs [""]
+  where
+    recurseDirs :: [Path] -> m ([Path], [Path])
+    recurseDirs [] = pure ([], [])
+    recurseDirs (d : ds) = do
+      (files, dirs) <- splitPaths root d [] [] =<< listDirectory (root </> d)
+      (files', dirs') <- recurseDirs (dirs ++ ds)
+      pure (files ++ files', dirs ++ dirs')
+
+splitPaths ::
+  forall m.
+  ( HasCallStack,
+    MonadPathReader m
+  ) =>
+  Path ->
+  Path ->
+  [Path] ->
+  [Path] ->
+  [Path] ->
+  m ([Path], [Path])
+splitPaths root d = go
+  where
+    go :: [Path] -> [Path] -> [Path] -> m ([Path], [Path])
+    go files dirs [] = pure (reverse files, reverse dirs)
+    go files dirs (p : ps) = do
+      let dirEntry = d </> p
+      isDir <- doesDirectoryExist (root </> dirEntry)
+      if isDir
+        then go files (dirEntry : dirs) ps
+        else go (dirEntry : files) dirs ps

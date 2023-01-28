@@ -10,6 +10,8 @@ cradle:
       component: "monad-exceptions:test:unit"
     - path: "./monad-fs/src"
       component: "lib:monad-fs"
+    - path: "./monad-fs/test/unit"
+      component: "monad-fs:test:unit"
     - path: "./monad-ioref/src"
       component: "lib:monad-ioref"
     - path: "./monad-logger-namespace/src"

@@ -113,7 +113,11 @@
             };
           packages.monad-env = mkPkgsException "monad-env" ./monad-env;
           packages.monad-exceptions = mkPkg "monad-exceptions" ./monad-exceptions { };
-          packages.monad-fs = mkPkgsException "monad-fs" ./monad-fs;
+          packages.monad-fs =
+            mkPkg "monad-fs" ./monad-fs {
+              monad-exceptions = ./monad-exceptions;
+              monad-ioref = ./monad-ioref;
+            };
           packages.monad-ioref = mkPkgsException "monad-ioref" ./monad-ioref;
           packages.monad-logger-namespace =
             mkPkg "monad-logger-namespace" ./monad-logger-namespace {

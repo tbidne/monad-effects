@@ -114,6 +114,7 @@ module Effects.Exception
     HasCallStack,
     SomeException,
     IOException,
+    SafeEx.StringException,
   )
 where
 

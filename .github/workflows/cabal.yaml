@@ -38,6 +38,9 @@ jobs:
       - name: Test monad-exceptions
         run: cabal test monad-exceptions
 
+      - name: Test monad-fs
+        run: cabal test monad-fs
+
       - name: Test monad-logger-namespace
         run: cabal test monad-logger-namespace
 
