@@ -8,8 +8,11 @@ module Effects.FileSystem.PathWriter
     MonadPathWriter (..),
     Path,
 
-    -- * Misc
+    -- * Copying
+    Overwrite (..),
     copyDirectoryRecursive,
+
+    -- * Removing
     removeFileIfExists,
     removeDirectoryIfExists,
     removeDirectoryRecursiveIfExists,
@@ -273,6 +276,23 @@ instance Exception PathDoesNotExistException where
   displayException (MkPathDoesNotExistException path) =
     "Path does not exist: " <> path
 
+-- | Determines file/directory overwrite behavior.
+--
+-- @since 0.1
+data Overwrite
+  = -- | No overwriting allowed.
+    --
+    -- @since 0.1
+    OverwriteNone
+  | -- | Allow overwriting the target directory.
+    --
+    -- @since 0.1
+    OverwriteTarget
+  | -- | Allow overwriting the target directory and all subpaths.
+    --
+    -- @since 0.1
+    OverwriteAll
+
 -- | @copyDirectoryRecursive overwrite src dest@ copies the @src@ and its
 -- contents into @dest@ e.g.
 --
@@ -285,10 +305,22 @@ instance Exception PathDoesNotExistException where
 -- __Throws:__
 --
 -- * 'PathDoesNotExistException': if @dest@ does not exist.
--- * 'PathExistsException': if @dest/\<src\>@ exists and @overwrite@ is false.
+-- * 'PathExistsException':
 --
--- This function attempts to be atomic, in that if an error occurs during
--- the copying, we try to roll back any successful writes.
+--     * 'OverwriteNone' and @dest/\<src\>@ exists.
+--     * 'OverwriteTarget' and some @dest/\<src\>\/p@ would be overwritten.
+--
+-- The atomicity semantics are as follows:
+--
+-- * 'OverwriteNone': If an error is encountered, we roll back the successful
+--    writes by deleting the entire @dest\/\<src\>@.
+-- * 'OverwriteTarget': If an error is encountered, we attempt to delete all
+--   successfully written paths/directories. Because these deletes are
+--   performed sequentially, we cannot guarantee all are removed before the
+--   process is interrupted.
+-- * 'OverwriteAll': Same as 'OverwriteTarget', except paths that were
+--   overwritten are not restored. That is, if a path @dest\/\<src\>\/p@ is
+--   overwritten and an error later encountered, @p@ is not restored.
 --
 -- @since 0.1
 copyDirectoryRecursive ::
@@ -300,7 +332,7 @@ copyDirectoryRecursive ::
     MonadPathWriter m
   ) =>
   -- | Overwrite
-  Bool ->
+  Overwrite ->
   -- | Source
   Path ->
   -- | Destination
@@ -316,9 +348,10 @@ copyDirectoryRecursive overwrite src destRoot = do
   let srcName = FP.takeBaseName $ FP.dropTrailingPathSeparator src
       dest = destRoot </> srcName
 
-  if overwrite
-    then copyDirectoryOverwrite src dest
-    else copyDirectory src dest
+  case overwrite of
+    OverwriteNone -> copyDirectoryNoOverwrite src dest
+    OverwriteTarget -> copyDirectoryOverwrite False src dest
+    OverwriteAll -> copyDirectoryOverwrite True src dest
 
 copyDirectoryOverwrite ::
   forall m.
@@ -328,12 +361,14 @@ copyDirectoryOverwrite ::
     MonadPathReader m,
     MonadPathWriter m
   ) =>
+  -- | Overwrite files
+  Bool ->
   -- | Source
   Path ->
   -- | Destination
   Path ->
   m ()
-copyDirectoryOverwrite src dest = do
+copyDirectoryOverwrite overwriteFiles src dest = do
   -- NOTE: The logic here merits explanation. The idea is if we encounter
   -- any errors while copying, we want to "roll back" any successful copies
   -- i.e. copying should try to be atomic.
@@ -362,7 +397,16 @@ copyDirectoryOverwrite src dest = do
 
   destExists <- doesDirectoryExist dest
 
-  let copyFiles = do
+  let checkOverwrites =
+        if not overwriteFiles
+          then \f -> do
+            exists <- doesFileExist f
+            when exists $
+              throwWithCS $
+                MkPathExistsException f
+          else const (pure ())
+
+      copyFiles = do
         (subFiles, subDirs) <- listDirectoryRecursive src
 
         -- create dest if it does not exist
@@ -378,7 +422,7 @@ copyDirectoryOverwrite src dest = do
 
         -- copy files
         for_ subFiles $ \f -> do
-          -- TODO: handle file collisions?
+          checkOverwrites (dest </> f)
           copyFileWithMetadata (src </> f) (dest </> f)
           modifyIORef' copiedFilesRef ((dest </> f) :)
 
@@ -392,7 +436,7 @@ copyDirectoryOverwrite src dest = do
 
   copyFiles `onException` mask_ cleanup
 
-copyDirectory ::
+copyDirectoryNoOverwrite ::
   forall m.
   ( HasCallStack,
     MonadIORef m,
@@ -405,7 +449,7 @@ copyDirectory ::
   -- | Destination
   Path ->
   m ()
-copyDirectory src dest = do
+copyDirectoryNoOverwrite src dest = do
   destExists <- doesDirectoryExist dest
   when destExists $ throwWithCS (MkPathExistsException dest)
 

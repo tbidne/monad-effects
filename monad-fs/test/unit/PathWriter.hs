@@ -20,6 +20,7 @@ import Effects.Exception
     throwString,
     tryWithCS,
   )
+import Effects.FileSystem.FileReader (MonadFileReader (readBinaryFile))
 import Effects.FileSystem.FileWriter
   ( MonadFileWriter (writeBinaryFile),
     Path,
@@ -32,6 +33,7 @@ import Effects.FileSystem.PathReader
   )
 import Effects.FileSystem.PathWriter
   ( MonadPathWriter (..),
+    Overwrite (..),
     PathDoesNotExistException,
     PathExistsException,
     createDirectoryIfMissing,
@@ -39,7 +41,7 @@ import Effects.FileSystem.PathWriter
 import Effects.FileSystem.PathWriter qualified as PathWriter
 import Effects.IORef (MonadIORef (..))
 import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.HUnit (assertBool, assertFailure, testCase)
+import Test.Tasty.HUnit (assertBool, assertFailure, testCase, (@=?))
 
 tests :: IO FilePath -> TestTree
 tests getTmpDir = do
@@ -52,38 +54,39 @@ copyDirectoryRecursiveTests :: IO FilePath -> TestTree
 copyDirectoryRecursiveTests getTmpDir =
   testGroup
     "copyDirectoryRecursive"
-    [ cdrNoOverwriteTests getTmpDir,
-      cdrOverwriteTests getTmpDir
+    [ cdrOverwriteNoneTests getTmpDir,
+      cdrOverwriteTargetTests getTmpDir,
+      cdrOverwriteAllTests getTmpDir
     ]
 
-cdrNoOverwriteTests :: IO FilePath -> TestTree
-cdrNoOverwriteTests getTmpDir =
+cdrOverwriteNoneTests :: IO FilePath -> TestTree
+cdrOverwriteNoneTests getTmpDir =
   testGroup
-    "Overwrite = False"
-    [ cdrFresh getTmpDir,
-      cdrDestNonExtantFails getTmpDir,
-      cdrOverwriteFails getTmpDir,
-      cdrPartialFails getTmpDir
+    "OverwriteNone"
+    [ cdrnFresh getTmpDir,
+      cdrnDestNonExtantFails getTmpDir,
+      cdrnOverwriteFails getTmpDir,
+      cdrnPartialFails getTmpDir
     ]
 
-cdrFresh :: IO FilePath -> TestTree
-cdrFresh getTmpDir = testCase desc $ do
-  tmpDir <- (</> "cdrFresh") <$> getTmpDir
+cdrnFresh :: IO FilePath -> TestTree
+cdrnFresh getTmpDir = testCase desc $ do
+  tmpDir <- (</> "cdrnFresh") <$> getTmpDir
   srcDir <- setupSrc tmpDir
   let destDir = tmpDir </> "dest"
 
   createDirectoryIfMissing False destDir
 
-  PathWriter.copyDirectoryRecursive False srcDir destDir
+  PathWriter.copyDirectoryRecursive OverwriteNone srcDir destDir
 
   assertSrcExists tmpDir
   assertDestExists tmpDir
   where
     desc = "Copy to fresh directory succeeds"
 
-cdrDestNonExtantFails :: IO FilePath -> TestTree
-cdrDestNonExtantFails getTmpDir = testCase desc $ do
-  tmpDir <- (</> "cdrDestNonExtantFails") <$> getTmpDir
+cdrnDestNonExtantFails :: IO FilePath -> TestTree
+cdrnDestNonExtantFails getTmpDir = testCase desc $ do
+  tmpDir <- (</> "cdrnDestNonExtantFails") <$> getTmpDir
   srcDir <- setupSrc tmpDir
   let destDir = tmpDir </> "dest"
 
@@ -91,7 +94,7 @@ cdrDestNonExtantFails getTmpDir = testCase desc $ do
   -- createDirectoryIfMissing False destDir
 
   -- copy files
-  result <- tryWithCS $ PathWriter.copyDirectoryRecursive False srcDir destDir
+  result <- tryWithCS $ PathWriter.copyDirectoryRecursive OverwriteNone srcDir destDir
   resultEx <- case result of
     Right _ -> assertFailure "Expected exception, received none"
     Left (ex :: PathDoesNotExistException) -> pure ex
@@ -99,7 +102,7 @@ cdrDestNonExtantFails getTmpDir = testCase desc $ do
   let exText = displayException resultEx
 
   assertBool exText ("Path does not exist:" `L.isPrefixOf` exText)
-  assertBool exText ("monad-fs/cdrDestNonExtantFails/dest" `L.isSuffixOf` exText)
+  assertBool exText ("monad-fs/cdrnDestNonExtantFails/dest" `L.isSuffixOf` exText)
 
   -- assert original files remain
   assertSrcExists tmpDir
@@ -109,9 +112,9 @@ cdrDestNonExtantFails getTmpDir = testCase desc $ do
   where
     desc = "Copy to non-extant dest fails"
 
-cdrOverwriteFails :: IO FilePath -> TestTree
-cdrOverwriteFails getTmpDir = testCase desc $ do
-  tmpDir <- (</> "cdrExtantFails") <$> getTmpDir
+cdrnOverwriteFails :: IO FilePath -> TestTree
+cdrnOverwriteFails getTmpDir = testCase desc $ do
+  tmpDir <- (</> "cdrnExtantFails") <$> getTmpDir
   srcDir <- setupSrc tmpDir
   let destDir = tmpDir </> "dest"
 
@@ -121,7 +124,7 @@ cdrOverwriteFails getTmpDir = testCase desc $ do
   createDirectoryIfMissing False (destDir </> "src")
 
   -- copy files
-  result <- tryWithCS $ PathWriter.copyDirectoryRecursive False srcDir destDir
+  result <- tryWithCS $ PathWriter.copyDirectoryRecursive OverwriteNone srcDir destDir
   resultEx <- case result of
     Right _ -> assertFailure "Expected exception, received none"
     Left (ex :: PathExistsException) -> pure ex
@@ -129,7 +132,7 @@ cdrOverwriteFails getTmpDir = testCase desc $ do
   let exText = displayException resultEx
 
   assertBool exText ("Path already exists:" `L.isPrefixOf` exText)
-  assertBool exText ("monad-fs/cdrExtantFails/dest/src" `L.isSuffixOf` exText)
+  assertBool exText ("monad-fs/cdrnExtantFails/dest/src" `L.isSuffixOf` exText)
 
   -- assert original files remain
   assertSrcExists tmpDir
@@ -143,9 +146,9 @@ cdrOverwriteFails getTmpDir = testCase desc $ do
   where
     desc = "Copy to extant dest/<target> fails"
 
-cdrPartialFails :: IO FilePath -> TestTree
-cdrPartialFails getTmpDir = testCase desc $ do
-  tmpDir <- (</> "cdrPartialFails") <$> getTmpDir
+cdrnPartialFails :: IO FilePath -> TestTree
+cdrnPartialFails getTmpDir = testCase desc $ do
+  tmpDir <- (</> "cdrnPartialFails") <$> getTmpDir
   srcDir <- setupSrc tmpDir
   let destDir = tmpDir </> "dest"
 
@@ -155,7 +158,7 @@ cdrPartialFails getTmpDir = testCase desc $ do
   result <-
     tryWithCS $
       runPartialIO $
-        PathWriter.copyDirectoryRecursive False srcDir destDir
+        PathWriter.copyDirectoryRecursive OverwriteNone srcDir destDir
   resultEx <- case result of
     Right _ -> assertFailure "Expected exception, received none"
     Left (ex :: StringException) -> pure ex
@@ -172,35 +175,36 @@ cdrPartialFails getTmpDir = testCase desc $ do
   where
     desc = "Partial failure rolls back changes"
 
-cdrOverwriteTests :: IO FilePath -> TestTree
-cdrOverwriteTests getTmpDir =
+cdrOverwriteTargetTests :: IO FilePath -> TestTree
+cdrOverwriteTargetTests getTmpDir =
   testGroup
-    "Overwrite = True"
-    [ cdroFresh getTmpDir,
-      cdroDestNonExtantFails getTmpDir,
-      cdroOverwriteSucceeds getTmpDir,
-      cdroPartialFails getTmpDir,
-      cdroOverwritePartialFails getTmpDir
+    "OverwriteTarget"
+    [ cdrtFresh getTmpDir,
+      cdrtDestNonExtantFails getTmpDir,
+      cdrtOverwriteTargetSucceeds getTmpDir,
+      cdrtOverwriteFileFails getTmpDir,
+      cdrtPartialFails getTmpDir,
+      cdrtOverwritePartialFails getTmpDir
     ]
 
-cdroFresh :: IO FilePath -> TestTree
-cdroFresh getTmpDir = testCase desc $ do
-  tmpDir <- (</> "cdroFresh") <$> getTmpDir
+cdrtFresh :: IO FilePath -> TestTree
+cdrtFresh getTmpDir = testCase desc $ do
+  tmpDir <- (</> "cdrtFresh") <$> getTmpDir
   srcDir <- setupSrc tmpDir
   let destDir = tmpDir </> "dest"
 
   createDirectoryIfMissing False destDir
 
-  PathWriter.copyDirectoryRecursive True srcDir destDir
+  PathWriter.copyDirectoryRecursive OverwriteTarget srcDir destDir
 
   assertSrcExists tmpDir
   assertDestExists tmpDir
   where
     desc = "Copy to fresh directory succeeds"
 
-cdroDestNonExtantFails :: IO FilePath -> TestTree
-cdroDestNonExtantFails getTmpDir = testCase desc $ do
-  tmpDir <- (</> "cdroDestNonExtantFails") <$> getTmpDir
+cdrtDestNonExtantFails :: IO FilePath -> TestTree
+cdrtDestNonExtantFails getTmpDir = testCase desc $ do
+  tmpDir <- (</> "cdrtDestNonExtantFails") <$> getTmpDir
   srcDir <- setupSrc tmpDir
   let destDir = tmpDir </> "dest"
 
@@ -208,7 +212,7 @@ cdroDestNonExtantFails getTmpDir = testCase desc $ do
   -- createDirectoryIfMissing False destDir
 
   -- copy files
-  result <- tryWithCS $ PathWriter.copyDirectoryRecursive True srcDir destDir
+  result <- tryWithCS $ PathWriter.copyDirectoryRecursive OverwriteTarget srcDir destDir
   resultEx <- case result of
     Right _ -> assertFailure "Expected exception, received none"
     Left (ex :: PathDoesNotExistException) -> pure ex
@@ -216,7 +220,7 @@ cdroDestNonExtantFails getTmpDir = testCase desc $ do
   let exText = displayException resultEx
 
   assertBool exText ("Path does not exist:" `L.isPrefixOf` exText)
-  assertBool exText ("monad-fs/cdroDestNonExtantFails/dest" `L.isSuffixOf` exText)
+  assertBool exText ("monad-fs/cdrtDestNonExtantFails/dest" `L.isSuffixOf` exText)
 
   -- assert original files remain
   assertSrcExists tmpDir
@@ -226,9 +230,9 @@ cdroDestNonExtantFails getTmpDir = testCase desc $ do
   where
     desc = "Copy to non-extant dest fails"
 
-cdroOverwriteSucceeds :: IO FilePath -> TestTree
-cdroOverwriteSucceeds getTmpDir = testCase desc $ do
-  tmpDir <- (</> "cdroOverwriteSucceeds") <$> getTmpDir
+cdrtOverwriteTargetSucceeds :: IO FilePath -> TestTree
+cdrtOverwriteTargetSucceeds getTmpDir = testCase desc $ do
+  tmpDir <- (</> "cdrtOverwriteTargetSucceeds") <$> getTmpDir
   srcDir <- setupSrc tmpDir
   let destDir = tmpDir </> "dest"
 
@@ -240,17 +244,45 @@ cdroOverwriteSucceeds getTmpDir = testCase desc $ do
   writeFiles [(destDir </> "src/test/here", "cat")]
 
   -- copy files
-  PathWriter.copyDirectoryRecursive True srcDir destDir
+  PathWriter.copyDirectoryRecursive OverwriteTarget srcDir destDir
 
   assertSrcExists tmpDir
   assertFilesExist [destDir </> "src/test/here"]
   assertDestExists tmpDir
   where
-    desc = "Copies to extant dest/<target> succeeds"
+    desc = "copy to extant dest/<target> succeeds"
 
-cdroPartialFails :: IO FilePath -> TestTree
-cdroPartialFails getTmpDir = testCase desc $ do
-  tmpDir <- (</> "cdroPartialFails") <$> getTmpDir
+cdrtOverwriteFileFails :: IO FilePath -> TestTree
+cdrtOverwriteFileFails getTmpDir = testCase desc $ do
+  tmpDir <- (</> "cdrtOverwriteFileFails") <$> getTmpDir
+  srcDir <- setupSrc tmpDir
+  let destDir = tmpDir </> "dest"
+
+  createDirectoryIfMissing True (destDir </> "src/a/b/c")
+
+  -- NOTE: this line causes it to die
+  writeFiles [(destDir </> "src/a/b/c/f1", "cat")]
+
+  -- copy files
+  result <- tryWithCS $ PathWriter.copyDirectoryRecursive OverwriteTarget srcDir destDir
+  resultEx <- case result of
+    Right _ -> assertFailure "Expected exception, received none"
+    Left (ex :: PathExistsException) -> pure ex
+
+  let exText = displayException resultEx
+
+  assertBool exText ("Path already exists:" `L.isPrefixOf` exText)
+  assertBool exText ("monad-fs/cdrtOverwriteFileFails/dest/src/a/b/c/f1" `L.isSuffixOf` exText)
+
+  -- assert original files remain
+  assertSrcExists tmpDir
+  assertFilesExist [destDir </> "src/a/b/c/f1"]
+  where
+    desc = "copy to extant dest/<target>/file fails"
+
+cdrtPartialFails :: IO FilePath -> TestTree
+cdrtPartialFails getTmpDir = testCase desc $ do
+  tmpDir <- (</> "cdrtPartialFails") <$> getTmpDir
   srcDir <- setupSrc tmpDir
   let destDir = tmpDir </> "dest"
 
@@ -260,7 +292,7 @@ cdroPartialFails getTmpDir = testCase desc $ do
   result <-
     tryWithCS $
       runPartialIO $
-        PathWriter.copyDirectoryRecursive True srcDir destDir
+        PathWriter.copyDirectoryRecursive OverwriteTarget srcDir destDir
   resultEx <- case result of
     Right _ -> assertFailure "Expected exception, received none"
     Left (ex :: StringException) -> pure ex
@@ -277,9 +309,9 @@ cdroPartialFails getTmpDir = testCase desc $ do
   where
     desc = "Partial failure rolls back changes"
 
-cdroOverwritePartialFails :: IO FilePath -> TestTree
-cdroOverwritePartialFails getTmpDir = testCase desc $ do
-  tmpDir <- (</> "cdroOverwritePartialFails") <$> getTmpDir
+cdrtOverwritePartialFails :: IO FilePath -> TestTree
+cdrtOverwritePartialFails getTmpDir = testCase desc $ do
+  tmpDir <- (</> "cdrtOverwritePartialFails") <$> getTmpDir
   srcDir <- setupSrc tmpDir
   let destDir = tmpDir </> "dest"
 
@@ -294,7 +326,7 @@ cdroOverwritePartialFails getTmpDir = testCase desc $ do
   result <-
     tryWithCS $
       runPartialIO $
-        PathWriter.copyDirectoryRecursive True srcDir destDir
+        PathWriter.copyDirectoryRecursive OverwriteTarget srcDir destDir
   resultEx <- case result of
     Right _ -> assertFailure "Expected exception, received none"
     Left (ex :: StringException) -> pure ex
@@ -317,6 +349,35 @@ cdroOverwritePartialFails getTmpDir = testCase desc $ do
   assertFilesExist [destDir </> "src/test/here"]
   where
     desc = "Partial failure with extant dest/<target> rolls back changes"
+
+cdrOverwriteAllTests :: IO FilePath -> TestTree
+cdrOverwriteAllTests getTmpDir =
+  testGroup
+    "OverwriteAll"
+    [ cdraOverwriteFileSucceeds getTmpDir
+    ]
+
+cdraOverwriteFileSucceeds :: IO FilePath -> TestTree
+cdraOverwriteFileSucceeds getTmpDir = testCase desc $ do
+  tmpDir <- (</> "cdraOverwriteFileSucceeds") <$> getTmpDir
+  srcDir <- setupSrc tmpDir
+  let destDir = tmpDir </> "dest"
+
+  createDirectoryIfMissing True (destDir </> "src/a/b/c")
+
+  -- NOTE: this line is what is tested
+  writeFiles [(destDir </> "src/a/b/c/f1", "cat")]
+  assertFileContents [(destDir </> "src/a/b/c/f1", "cat")]
+
+  -- copy files
+  PathWriter.copyDirectoryRecursive OverwriteAll srcDir destDir
+
+  assertSrcExists tmpDir
+  -- check contents actually overwritten
+  assertFileContents [(destDir </> "src/a/b/c/f1", "1")]
+  assertDestExists tmpDir
+  where
+    desc = "Copy to extant dest/<target>/file succeeds"
 
 -------------------------------------------------------------------------------
 --                                  Setup                                    --
@@ -437,6 +498,13 @@ assertFilesExist :: HasCallStack => [Path] -> IO ()
 assertFilesExist = traverse_ $ \p -> do
   exists <- doesFileExist p
   assertBool ("Expected file to exist: " <> p) exists
+
+assertFileContents :: HasCallStack => [(Path, ByteString)] -> IO ()
+assertFileContents = traverse_ $ \(p, expected) -> do
+  exists <- doesFileExist p
+  assertBool ("Expected file to exist: " <> p) exists
+  actual <- readBinaryFile p
+  expected @=? actual
 
 assertDirsExist :: HasCallStack => [Path] -> IO ()
 assertDirsExist = traverse_ $ \p -> do
