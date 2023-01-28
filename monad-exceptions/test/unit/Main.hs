@@ -12,8 +12,8 @@ import Effects.Exception
     catchCS,
     displayException,
     displayNoCS,
-    throwM,
     throwCS,
+    throwM,
     tryAny,
   )
 import GHC.Stack (callStack)

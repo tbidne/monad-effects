@@ -2,7 +2,7 @@
 
 module Main (main) where
 
-import Control.Monad.Logger
+import Control.Monad.Logger (Loc (Loc), LogLevel (LevelWarn))
 import Data.ByteString.Lazy qualified as BSL
 import Data.Text (Text)
 import Data.Time.Calendar.OrdinalDate (fromOrdinalDate)
