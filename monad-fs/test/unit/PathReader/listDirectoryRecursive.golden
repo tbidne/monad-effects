@@ -1,12 +1,12 @@
 FILES
 
-Effects/FileSystem/PathReader.hs
-Effects/FileSystem/Path.hs
-Effects/FileSystem/HandleWriter.hs
-Effects/FileSystem/PathWriter.hs
-Effects/FileSystem/HandleReader.hs
 Effects/FileSystem/FileReader.hs
 Effects/FileSystem/FileWriter.hs
+Effects/FileSystem/HandleReader.hs
+Effects/FileSystem/HandleWriter.hs
+Effects/FileSystem/Path.hs
+Effects/FileSystem/PathReader.hs
+Effects/FileSystem/PathWriter.hs
 
 DIRECTORIES
 

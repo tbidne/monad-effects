@@ -4,6 +4,7 @@ import Data.String (IsString (fromString))
 import Effects.FileSystem.Path ((</>))
 import Effects.FileSystem.PathReader qualified as PathReader
 import Test.Tasty (TestTree, testGroup)
+import Data.List qualified as L
 import Test.Tasty.Golden (goldenVsStringDiff)
 
 tests :: TestTree
@@ -16,12 +17,13 @@ tests =
 testListDirectoryRecursive :: TestTree
 testListDirectoryRecursive = goldenVsStringDiff desc diff gpath $ do
   (files, dirs) <- PathReader.listDirectoryRecursive "./src"
-  let str =
+  let (files', dirs') = (L.sort files, L.sort dirs)
+      str =
         mconcat
           [ "FILES\n\n",
-            unlines files,
+            unlines files',
             "\nDIRECTORIES\n\n",
-            unlines dirs
+            unlines dirs'
           ]
   pure $ fromString str
   where
