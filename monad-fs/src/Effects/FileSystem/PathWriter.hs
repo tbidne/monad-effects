@@ -1,4 +1,6 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 -- | Provides the MonadPathWriter effect.
 --
@@ -9,8 +11,20 @@ module Effects.FileSystem.PathWriter
     Path,
 
     -- * Copying
+
+    -- ** Config
+    CopyDirConfig (..),
     Overwrite (..),
+    defaultCopyDirConfig,
+
+    -- ** Functions
     copyDirectoryRecursive,
+    copyDirectoryRecursiveConfig,
+
+    -- ** Optics
+    _OverwriteNone,
+    _OverwriteTarget,
+    _OverwriteAll,
 
     -- * Removing
     removeFileIfExists,
@@ -28,11 +42,13 @@ module Effects.FileSystem.PathWriter
   )
 where
 
+import Control.DeepSeq (NFData)
 import Control.Exception (Exception (displayException))
 import Control.Monad (unless, when)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Data.Foldable (for_, traverse_)
+import Data.Maybe (fromMaybe)
 import Data.Time (UTCTime (..))
 import Effects.Exception (MonadMask, addCS, mask_, onException, throwCS)
 import Effects.FileSystem.Path (Path, (</>))
@@ -47,7 +63,10 @@ import Effects.FileSystem.PathReader
 import Effects.IORef
   ( MonadIORef (modifyIORef', newIORef, readIORef),
   )
+import GHC.Generics (Generic)
 import GHC.Stack (HasCallStack)
+import Optics.Core ((^.))
+import Optics.TH (makeFieldLabelsNoPrefix, makePrisms)
 import System.Directory (Permissions (..))
 #if MIN_VERSION_filepath(1,4,100) && MIN_VERSION_directory(1,3,8)
 import System.Directory.OsPath qualified as Dir
@@ -292,35 +311,60 @@ data Overwrite
     --
     -- @since 0.1
     OverwriteAll
+  deriving stock
+    ( -- | @since 0.1
+      Eq,
+      -- | @since 0.1
+      Generic,
+      -- | @since 0.1
+      Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
+    )
 
--- | @copyDirectoryRecursive overwrite src dest@ copies the @src@ and its
--- contents into @dest@ e.g.
+-- | @since 0.1
+makePrisms ''Overwrite
+
+data CopyDirConfig = MkCopyDirConfig
+  { -- | Overwrite behavior.
+    --
+    -- @since 0.1
+    overwrite :: Overwrite,
+    -- | If a target name is given, we use that as the destination
+    -- target i.e. @dest/\<targetName\>@. Otherwise we use the src directory
+    -- name i.e. @dest/\<src\>@.
+    --
+    -- @since 0.1
+    targetName :: Maybe Path
+  }
+  deriving stock
+    ( -- | @since 0.1
+      Eq,
+      -- | @since 0.1
+      Generic,
+      -- | @since 0.1
+      Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
+    )
+
+-- | @since 0.1
+makeFieldLabelsNoPrefix ''CopyDirConfig
+
+-- | Default config for copying directories.
 --
--- @
--- copyDirectoryRecursive b "path\/to\/foo" "path\/to\/bar"
--- @
+-- >>> defaultCopyDirConfig
+-- MkCopyDirConfig {overwrite = OverwriteNone, destName = Nothing}
 --
--- will create @path\/to\/bar\/foo@.
---
--- __Throws:__
---
--- * 'PathDoesNotExistException': if @dest@ does not exist.
--- * 'PathExistsException':
---
---     * 'OverwriteNone' and @dest/\<src\>@ exists.
---     * 'OverwriteTarget' and some @dest/\<src\>\/p@ would be overwritten.
---
--- The atomicity semantics are as follows:
---
--- * 'OverwriteNone': If an error is encountered, we roll back the successful
---    writes by deleting the entire @dest\/\<src\>@.
--- * 'OverwriteTarget': If an error is encountered, we attempt to delete all
---   successfully written paths/directories. Because these deletes are
---   performed sequentially, we cannot guarantee all are removed before the
---   process is interrupted.
--- * 'OverwriteAll': Same as 'OverwriteTarget', except paths that were
---   overwritten are not restored. That is, if a path @dest\/\<src\>\/p@ is
---   overwritten and an error later encountered, @p@ is not restored.
+-- @since 0.1
+defaultCopyDirConfig :: CopyDirConfig
+defaultCopyDirConfig = MkCopyDirConfig OverwriteNone Nothing
+
+-- | 'copyDirectoryRecursiveConfig' with 'defaultCopyDirConfig'.
 --
 -- @since 0.1
 copyDirectoryRecursive ::
@@ -331,24 +375,76 @@ copyDirectoryRecursive ::
     MonadPathReader m,
     MonadPathWriter m
   ) =>
-  -- | Overwrite
-  Overwrite ->
   -- | Source
   Path ->
   -- | Destination
   Path ->
   m ()
-copyDirectoryRecursive overwrite src destRoot = do
+copyDirectoryRecursive = copyDirectoryRecursiveConfig defaultCopyDirConfig
+
+-- | @copyDirectoryRecursiveConfig cfg src dest@ copies the @src@ and its
+-- contents into @dest@ e.g.
+--
+-- @
+-- copyDirectoryRecursiveConfig cfg "path\/to\/foo" "path\/to\/bar"
+-- @
+--
+-- will create @path\/to\/bar\/foo@ or @path\/to\/bar\/\<target\>@,
+-- depending on the value of 'targetName'.
+--
+-- The atomicity semantics are as follows:
+--
+-- * 'OverwriteNone': If an error is encountered, we roll back the successful
+--    writes by deleting the entire @dest\/\<target\>@.
+-- * 'OverwriteTarget': If an error is encountered, we attempt to delete all
+--   successfully written paths/directories. Because these deletes are
+--   performed sequentially, we cannot guarantee all are removed before the
+--   process is interrupted.
+-- * 'OverwriteAll': Same as 'OverwriteTarget', except paths that were
+--   overwritten are not restored. That is, if a path @dest\/\<src\>\/p@ is
+--   overwritten and an error later encountered, @p@ is not restored.
+--
+-- __Throws:__
+--
+-- * 'PathDoesNotExistException': if @dest@ does not exist.
+-- * 'PathExistsException':
+--
+--     * 'OverwriteNone' and @dest/\<src\>@ exists.
+--     * 'OverwriteTarget' and some @dest/\<target\>\/p@ would be overwritten.
+--
+-- @since 0.1
+copyDirectoryRecursiveConfig ::
+  forall m.
+  ( HasCallStack,
+    MonadIORef m,
+    MonadMask m,
+    MonadPathReader m,
+    MonadPathWriter m
+  ) =>
+  -- | Config
+  CopyDirConfig ->
+  -- | Source
+  Path ->
+  -- | Destination
+  Path ->
+  m ()
+copyDirectoryRecursiveConfig config src destRoot = do
   destExists <- doesDirectoryExist destRoot
 
   unless destExists $
     throwCS $
       MkPathDoesNotExistException destRoot
 
-  let srcName = FP.takeBaseName $ FP.dropTrailingPathSeparator src
+  -- NOTE: Use the given name if it exists. Otherwise use the source folder's
+  -- name.
+  let srcName =
+        fromMaybe
+          (FP.takeBaseName $ FP.dropTrailingPathSeparator src)
+          (config ^. #targetName)
+
       dest = destRoot </> srcName
 
-  case overwrite of
+  case config ^. #overwrite of
     OverwriteNone -> copyDirectoryNoOverwrite src dest
     OverwriteTarget -> copyDirectoryOverwrite False src dest
     OverwriteAll -> copyDirectoryOverwrite True src dest
