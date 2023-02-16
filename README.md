@@ -2,7 +2,6 @@
 
 # monad-effects
 
-[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/tbidne/monad-effects?include_prereleases&sort=semver)](https://github.com/tbidne/monad-effects/releases/)
 ![haskell](https://img.shields.io/static/v1?label=&message=9.4&logo=haskell&logoColor=655889&labelColor=2f353e&color=655889)
 [![MIT](https://img.shields.io/github/license/tbidne/monad-effects?color=blue)](https://opensource.org/licenses/MIT)
 
@@ -38,15 +37,17 @@ This repository contains a number of monadic "effects" for writing code that imp
 usesFile :: MonadIO m => m ()
 usesFile = do
   liftIO $ readBinaryFile path
+  liftIO $ runProcess_ config
   ...
 ```
 
 We have:
 
 ```haskell
-usesFile :: MonadFileReader m => m ()
+usesFile :: (MonadFileReader m, MonadProcess m) => m ()
 usesFile = do
   readBinaryFile path
+  runProcess_ config
   ...
 ```
 
@@ -56,6 +57,8 @@ This facilitates:
 * Multiple implementations (e.g. mocking)
 
 Most effects are thin wrappers over common functionality e.g. a `base` module or popular library API.
+
+NOTE: Although this is "MTL-style", the only transformer we provide instances for is `ReaderT`.
 
 # Effects
 
