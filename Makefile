@@ -64,18 +64,18 @@ haddock:
 	rm -rf docs/monad-terminal* ;\
 	rm -rf docs/monad-thread* ;\
 	rm -rf docs/monad-typed-process* ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-async-0.1/doc/html/* docs/ ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-env-0.1/doc/html/* docs/ ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-exceptions-0.1/doc/html/* docs/ ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-fs-0.1/doc/html/* docs/ ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-ioref-0.1/doc/html/* docs/ ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-logger-namespace-0.1/doc/html/* docs/ ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-optparse-0.1/doc/html/* docs/ ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-stm-0.1/doc/html/* docs/ ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-system-time-0.1/doc/html/* docs/ ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-terminal-0.1/doc/html/* docs/ ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-thread-0.1/doc/html/* docs/ ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-typed-process-0.1/doc/html/* docs/ ;\
+	cp -r dist-newstyle/build/x86_64-linux/ghc-9.4.4/monad-async-0.1/doc/html/* docs/ ;\
+	cp -r dist-newstyle/build/x86_64-linux/ghc-9.4.4/monad-env-0.1/doc/html/* docs/ ;\
+	cp -r dist-newstyle/build/x86_64-linux/ghc-9.4.4/monad-exceptions-0.1/doc/html/* docs/ ;\
+	cp -r dist-newstyle/build/x86_64-linux/ghc-9.4.4/monad-fs-0.1/doc/html/* docs/ ;\
+	cp -r dist-newstyle/build/x86_64-linux/ghc-9.4.4/monad-ioref-0.1/doc/html/* docs/ ;\
+	cp -r dist-newstyle/build/x86_64-linux/ghc-9.4.4/monad-logger-namespace-0.1/doc/html/* docs/ ;\
+	cp -r dist-newstyle/build/x86_64-linux/ghc-9.4.4/monad-optparse-0.1/doc/html/* docs/ ;\
+	cp -r dist-newstyle/build/x86_64-linux/ghc-9.4.4/monad-stm-0.1/doc/html/* docs/ ;\
+	cp -r dist-newstyle/build/x86_64-linux/ghc-9.4.4/monad-system-time-0.1/doc/html/* docs/ ;\
+	cp -r dist-newstyle/build/x86_64-linux/ghc-9.4.4/monad-terminal-0.1/doc/html/* docs/ ;\
+	cp -r dist-newstyle/build/x86_64-linux/ghc-9.4.4/monad-thread-0.1/doc/html/* docs/ ;\
+	cp -r dist-newstyle/build/x86_64-linux/ghc-9.4.4/monad-typed-process-0.1/doc/html/* docs/ ;\
 
 .PHONY: hackage
 hackage:
