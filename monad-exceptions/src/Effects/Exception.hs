@@ -146,6 +146,10 @@ import GHC.Stack
 import GHC.Stack.Types (SrcLoc (..), fromCallSiteList, getCallStack)
 import System.Exit (ExitCode (..))
 
+-- FIXME: Post GHC 9.8, what should become of this?
+-- - Remove throwCS, etc.?
+-- - Use CPP so that throwCS etc. are aliases? And deprecate?
+
 -------------------------------------------------------------------------------
 --                           MonadGlobalException                            --
 -------------------------------------------------------------------------------
