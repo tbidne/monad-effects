@@ -32,14 +32,14 @@
     inputs.bounds.follows = "bounds";
   };
   outputs =
-    { algebra-simple
+    inputs@{ algebra-simple
     , bounds
     , flake-parts
     , self
     , smart-math
     , ...
     }:
-    flake-parts.lib.mkFlake { inherit self; } {
+    flake-parts.lib.mkFlake { inherit inputs; } {
       perSystem = { pkgs, ... }:
         let
           buildTools = c: with c; [
@@ -48,10 +48,10 @@
             pkgs.zlib
           ];
           devTools = c: with c; [
-            ghcid
+            (hlib.dontCheck ghcid)
             haskell-language-server
           ];
-          ghc-version = "ghc925";
+          ghc-version = "ghc944";
           hlib = pkgs.haskell.lib;
           compiler = pkgs.haskell.packages."${ghc-version}".override {
             overrides = final: prev: {
