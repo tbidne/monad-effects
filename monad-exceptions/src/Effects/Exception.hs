@@ -157,16 +157,16 @@ import System.Exit (ExitCode (..))
 -- | Effect for global exception mechanisms.
 --
 -- @since 0.1
-class Monad m => MonadGlobalException m where
+class (Monad m) => MonadGlobalException m where
   -- | Lifted 'Sync.setUncaughtExceptionHandler'.
   --
   -- @since 0.1
-  setUncaughtExceptionHandler :: HasCallStack => (SomeException -> m ()) -> m ()
+  setUncaughtExceptionHandler :: (HasCallStack) => (SomeException -> m ()) -> m ()
 
   -- | Lifted 'Sync.getUncaughtExceptionHandler'.
   --
   -- @since 0.1
-  getUncaughtExceptionHandler :: HasCallStack => m (SomeException -> m ())
+  getUncaughtExceptionHandler :: (HasCallStack) => m (SomeException -> m ())
 
 -- | @since 0.1
 instance MonadGlobalException IO where
@@ -177,7 +177,7 @@ instance MonadGlobalException IO where
   {-# INLINEABLE getUncaughtExceptionHandler #-}
 
 -- | @since 0.1
-instance MonadGlobalException m => MonadGlobalException (ReaderT env m) where
+instance (MonadGlobalException m) => MonadGlobalException (ReaderT env m) where
   setUncaughtExceptionHandler f =
     ask >>= \e ->
       lift $ setUncaughtExceptionHandler (\ex -> runReaderT (f ex) e)
@@ -248,11 +248,11 @@ instance Monad ExceptionCS where
 -- | Alias for 'displayException'.
 --
 -- @since 0.1
-instance Exception e => Show (ExceptionCS e) where
+instance (Exception e) => Show (ExceptionCS e) where
   show = displayException
 
 -- | @since 0.1
-instance Exception e => Exception (ExceptionCS e) where
+instance (Exception e) => Exception (ExceptionCS e) where
   -- Converting underlying exception so that we can predictably convert to
   -- ExceptionCS SomeException
   toException (MkExceptionCS ex cs) =
@@ -378,7 +378,7 @@ tryCS m = (Right <$> m) `catchCS` (pure . Left)
 -- @since 0.1
 tryAnyCS ::
   forall m a.
-  MonadCatch m =>
+  (MonadCatch m) =>
   m a ->
   m (Either SomeException a)
 tryAnyCS = tryCS
@@ -423,7 +423,7 @@ fromSrcLocOrd :: ([Char], [Char], [Char], Int, Int, Int, Int) -> SrcLoc
 fromSrcLocOrd (a, b, c, d, e, f, g) =
   SrcLoc a b c d e f g
 
-ordNub :: Ord a => [a] -> [a]
+ordNub :: (Ord a) => [a] -> [a]
 ordNub = go Set.empty
   where
     go _ [] = []
@@ -435,7 +435,7 @@ ordNub = go Set.empty
 -- found 'CallStack's.
 --
 -- @since 0.1
-displayNoCS :: forall e. Exception e => e -> String
+displayNoCS :: forall e. (Exception e) => e -> String
 displayNoCS ex =
   case fromException (toException ex) of
     Nothing -> displayException ex
@@ -491,7 +491,7 @@ onException action handler =
 -- synchronously via 'toSyncException'.
 --
 -- @since 0.1
-throwM :: HAS_CALL_STACK => (MonadThrow m, Exception e) => e -> m a
+throwM :: (HAS_CALL_STACK) => (MonadThrow m, Exception e) => e -> m a
 throwM = Ex.throwM . SafeEx.toSyncException
 
 -- | Like upstream 'Ex.catch', but will not catch asynchronous exceptions.
@@ -499,7 +499,7 @@ throwM = Ex.throwM . SafeEx.toSyncException
 -- @since 0.1
 catch ::
   forall m e a.
-  HAS_CALL_STACK =>
+  (HAS_CALL_STACK) =>
   ( MonadCatch m,
     Exception e
   ) =>
@@ -519,7 +519,7 @@ catch f g =
 -- @since 0.1
 catchAny ::
   forall m a.
-  HAS_CALL_STACK =>
+  (HAS_CALL_STACK) =>
   ( MonadCatch m
   ) =>
   m a ->
@@ -532,7 +532,7 @@ catchAny = catch
 -- @since 0.1
 handle ::
   forall m e a.
-  HAS_CALL_STACK =>
+  (HAS_CALL_STACK) =>
   ( MonadCatch m,
     Exception e
   ) =>
@@ -546,8 +546,8 @@ handle = flip catch
 -- @since 0.1
 handleAny ::
   forall m a.
-  HAS_CALL_STACK =>
-  MonadCatch m =>
+  (HAS_CALL_STACK) =>
+  (MonadCatch m) =>
   (SomeException -> m a) ->
   m a ->
   m a
@@ -558,7 +558,7 @@ handleAny = flip catchAny
 -- @since 0.1
 try ::
   forall m e a.
-  HAS_CALL_STACK =>
+  (HAS_CALL_STACK) =>
   ( MonadCatch m,
     Exception e
   ) =>
@@ -571,8 +571,8 @@ try f = catch (fmap Right f) (pure . Left)
 -- @since 0.1
 tryAny ::
   forall m a.
-  HAS_CALL_STACK =>
-  MonadCatch m =>
+  (HAS_CALL_STACK) =>
+  (MonadCatch m) =>
   m a ->
   m (Either SomeException a)
 tryAny = try
@@ -582,8 +582,8 @@ tryAny = try
 -- @since 0.1
 catches ::
   forall m a.
-  HAS_CALL_STACK =>
-  MonadCatch m =>
+  (HAS_CALL_STACK) =>
+  (MonadCatch m) =>
   m a ->
   [Handler m a] ->
   m a
@@ -591,8 +591,8 @@ catches io handlers = io `catch` catchesHandler handlers
 
 catchesHandler ::
   forall m a.
-  HAS_CALL_STACK =>
-  MonadThrow m =>
+  (HAS_CALL_STACK) =>
+  (MonadThrow m) =>
   [Handler m a] ->
   SomeException ->
   m a
@@ -611,21 +611,21 @@ catchesHandler handlers e = foldr tryHandler (throwM e) handlers
 -- | Lifted 'Exit.exitFailure'.
 --
 -- @since 0.1
-exitFailure :: HAS_CALL_STACK => MonadThrow m => m a
+exitFailure :: (HAS_CALL_STACK) => (MonadThrow m) => m a
 exitFailure = exitWith (ExitFailure 1)
 {-# INLINEABLE exitFailure #-}
 
 -- | Lifted 'Exit.exitSuccess'.
 --
 -- @since 0.1
-exitSuccess :: HAS_CALL_STACK => MonadThrow m => m a
+exitSuccess :: (HAS_CALL_STACK) => (MonadThrow m) => m a
 exitSuccess = exitWith ExitSuccess
 {-# INLINEABLE exitSuccess #-}
 
 -- | Lifted 'System.Exit.exitWith'.
 --
 -- @since 0.1
-exitWith :: HAS_CALL_STACK => MonadThrow m => ExitCode -> m a
+exitWith :: (HAS_CALL_STACK) => (MonadThrow m) => ExitCode -> m a
 exitWith ExitSuccess = throwCS ExitSuccess
 exitWith code@(ExitFailure n)
   | n /= 0 = throwCS code

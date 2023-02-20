@@ -50,91 +50,91 @@ import System.IO qualified as IO
 -- | Represents handle reader effects.
 --
 -- @since 0.1
-class Monad m => MonadHandleReader m where
+class (Monad m) => MonadHandleReader m where
   -- | Lifted 'IO.hIsEOF'.
   --
   -- @since 0.1
-  hIsEOF :: HasCallStack => Handle -> m Bool
+  hIsEOF :: (HasCallStack) => Handle -> m Bool
 
   -- | Lifted 'IO.hGetBuffering'.
   --
   -- @since 0.1
-  hGetBuffering :: HasCallStack => Handle -> m BufferMode
+  hGetBuffering :: (HasCallStack) => Handle -> m BufferMode
 
   -- | Lifted 'IO.hIsOpen'.
   --
   -- @since 0.1
-  hIsOpen :: HasCallStack => Handle -> m Bool
+  hIsOpen :: (HasCallStack) => Handle -> m Bool
 
   -- | Lifted 'IO.hIsClosed'.
   --
   -- @since 0.1
-  hIsClosed :: HasCallStack => Handle -> m Bool
+  hIsClosed :: (HasCallStack) => Handle -> m Bool
 
   -- | Lifted 'IO.hIsReadable'.
   --
   -- @since 0.1
-  hIsReadable :: HasCallStack => Handle -> m Bool
+  hIsReadable :: (HasCallStack) => Handle -> m Bool
 
   -- | Lifted 'IO.hIsWritable'.
   --
   -- @since 0.1
-  hIsWritable :: HasCallStack => Handle -> m Bool
+  hIsWritable :: (HasCallStack) => Handle -> m Bool
 
   -- | Lifted 'IO.hIsSeekable'.
   --
   -- @since 0.1
-  hIsSeekable :: HasCallStack => Handle -> m Bool
+  hIsSeekable :: (HasCallStack) => Handle -> m Bool
 
   -- | Lifted 'IO.hIsTerminalDevice'.
   --
   -- @since 0.1
-  hIsTerminalDevice :: HasCallStack => Handle -> m Bool
+  hIsTerminalDevice :: (HasCallStack) => Handle -> m Bool
 
   -- | Lifted 'IO.hGetEcho'.
   --
   -- @since 0.1
-  hGetEcho :: HasCallStack => Handle -> m Bool
+  hGetEcho :: (HasCallStack) => Handle -> m Bool
 
   -- | Lifted 'IO.hWaitForInput'.
   --
   -- @since 0.1
-  hWaitForInput :: HasCallStack => Handle -> Int -> m Bool
+  hWaitForInput :: (HasCallStack) => Handle -> Int -> m Bool
 
   -- | Lifted 'IO.hReady'.
   --
   -- @since 0.1
-  hReady :: HasCallStack => Handle -> m Bool
+  hReady :: (HasCallStack) => Handle -> m Bool
 
   -- | Lifted 'IO.hGetChar'.
   --
   -- @since 0.1
-  hGetChar :: HasCallStack => Handle -> m Char
+  hGetChar :: (HasCallStack) => Handle -> m Char
 
   -- | Lifted 'BS.hGetLine'.
   --
   -- @since 0.1
-  hGetLine :: HasCallStack => Handle -> m ByteString
+  hGetLine :: (HasCallStack) => Handle -> m ByteString
 
   -- | Lifted 'BS.hGetContents'.
   --
   -- @since 0.1
-  hGetContents :: HasCallStack => Handle -> m ByteString
+  hGetContents :: (HasCallStack) => Handle -> m ByteString
 
   -- | Lifted 'BS.hGet'.
   --
   -- @since 0.1
-  hGet :: HasCallStack => Handle -> Int -> m ByteString
+  hGet :: (HasCallStack) => Handle -> Int -> m ByteString
 
   -- | Lifted 'BS.hGetSome'.
   --
   -- @since 0.1
-  hGetSome :: HasCallStack => Handle -> Int -> m ByteString
+  hGetSome :: (HasCallStack) => Handle -> Int -> m ByteString
 
   -- | Lifted 'BS.hGetNonBlocking'.
   --
   -- @since 0.1
-  hGetNonBlocking :: HasCallStack => Handle -> Int -> m ByteString
+  hGetNonBlocking :: (HasCallStack) => Handle -> Int -> m ByteString
 
 -- | @since 0.1
 instance MonadHandleReader IO where
@@ -174,7 +174,7 @@ instance MonadHandleReader IO where
   {-# INLINEABLE hGetNonBlocking #-}
 
 -- | @since 0.1
-instance MonadHandleReader m => MonadHandleReader (ReaderT e m) where
+instance (MonadHandleReader m) => MonadHandleReader (ReaderT e m) where
   hIsEOF = lift . hIsEOF
   {-# INLINEABLE hIsEOF #-}
   hGetBuffering = lift . hGetBuffering

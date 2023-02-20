@@ -49,61 +49,61 @@ import System.IO qualified as IO
 -- | Represents handle writer effects.
 --
 -- @since 0.1
-class Monad m => MonadHandleWriter m where
+class (Monad m) => MonadHandleWriter m where
   -- | Lifted 'IO.openBinaryFile'.
   --
   -- @since 0.1
-  openBinaryFile :: HasCallStack => Path -> IOMode -> m Handle
+  openBinaryFile :: (HasCallStack) => Path -> IOMode -> m Handle
 
   -- | Lifted 'IO.withBinaryFile'.
   --
   -- @since 0.1
-  withBinaryFile :: HasCallStack => Path -> IOMode -> (Handle -> m a) -> m a
+  withBinaryFile :: (HasCallStack) => Path -> IOMode -> (Handle -> m a) -> m a
 
   -- | Lifted 'IO.hClose'.
   --
   -- @since 0.1
-  hClose :: HasCallStack => Handle -> m ()
+  hClose :: (HasCallStack) => Handle -> m ()
 
   -- | Lifted 'IO.hFlush'.
   --
   -- @since 0.1
-  hFlush :: HasCallStack => Handle -> m ()
+  hFlush :: (HasCallStack) => Handle -> m ()
 
   -- | Lifted 'IO.hSetFileSize'.
   --
   -- @since 0.1
-  hSetFileSize :: HasCallStack => Handle -> Integer -> m ()
+  hSetFileSize :: (HasCallStack) => Handle -> Integer -> m ()
 
   -- | Lifted 'IO.hSetBuffering'.
   --
   -- @since 0.1
-  hSetBuffering :: HasCallStack => Handle -> BufferMode -> m ()
+  hSetBuffering :: (HasCallStack) => Handle -> BufferMode -> m ()
 
   -- | Lifted 'IO.hSeek'.
   --
   -- @since 0.1
-  hSeek :: HasCallStack => Handle -> SeekMode -> Integer -> m ()
+  hSeek :: (HasCallStack) => Handle -> SeekMode -> Integer -> m ()
 
   -- | Lifted 'IO.hTell'.
   --
   -- @since 0.1
-  hTell :: HasCallStack => Handle -> m Integer
+  hTell :: (HasCallStack) => Handle -> m Integer
 
   -- | Lifted 'IO.hSetEcho'.
   --
   -- @since 0.1
-  hSetEcho :: HasCallStack => Handle -> Bool -> m ()
+  hSetEcho :: (HasCallStack) => Handle -> Bool -> m ()
 
   -- | Lifted 'BS.hPut'.
   --
   -- @since 0.1
-  hPut :: HasCallStack => Handle -> ByteString -> m ()
+  hPut :: (HasCallStack) => Handle -> ByteString -> m ()
 
   -- | Lifted 'BS.hPutNonBlocking'.
   --
   -- @since 0.1
-  hPutNonBlocking :: HasCallStack => Handle -> ByteString -> m ByteString
+  hPutNonBlocking :: (HasCallStack) => Handle -> ByteString -> m ByteString
 
 -- | @since 0.1
 instance MonadHandleWriter IO where
@@ -131,7 +131,7 @@ instance MonadHandleWriter IO where
   {-# INLINEABLE hPutNonBlocking #-}
 
 -- | @since 0.1
-instance MonadHandleWriter m => MonadHandleWriter (ReaderT env m) where
+instance (MonadHandleWriter m) => MonadHandleWriter (ReaderT env m) where
   openBinaryFile p = lift . openBinaryFile p
   {-# INLINEABLE openBinaryFile #-}
   withBinaryFile p m f =

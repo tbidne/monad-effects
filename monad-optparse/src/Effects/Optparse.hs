@@ -22,21 +22,21 @@ import Prelude hiding (getChar, getLine, print, putStr, putStrLn)
 -- the interface is pure. This is merely the functions needed to run a parser.
 --
 -- @since 0.1
-class Monad m => MonadOptparse m where
+class (Monad m) => MonadOptparse m where
   -- | Lifted 'OA.execParser'.
   --
   -- @since 0.1
-  execParser :: HasCallStack => ParserInfo a -> m a
+  execParser :: (HasCallStack) => ParserInfo a -> m a
 
   -- | Lifted 'OA.customExecParser'.
   --
   -- @since 0.1
-  customExecParser :: HasCallStack => ParserPrefs -> ParserInfo a -> m a
+  customExecParser :: (HasCallStack) => ParserPrefs -> ParserInfo a -> m a
 
   -- | Lifted 'OA.handleParseResult'.
   --
   -- @since 0.1
-  handleParseResult :: HasCallStack => ParserResult a -> m a
+  handleParseResult :: (HasCallStack) => ParserResult a -> m a
 
 -- | @since 0.1
 instance MonadOptparse IO where
@@ -48,7 +48,7 @@ instance MonadOptparse IO where
   {-# INLINEABLE handleParseResult #-}
 
 -- | @since 0.1
-instance MonadOptparse m => MonadOptparse (ReaderT env m) where
+instance (MonadOptparse m) => MonadOptparse (ReaderT env m) where
   execParser = lift . execParser
   {-# INLINEABLE execParser #-}
   customExecParser p = lift . customExecParser p

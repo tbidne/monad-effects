@@ -496,7 +496,7 @@ genTimeSpec = MkTimeSpec <$> genSec <*> genNSec
     genSec = Gen.integral (R.linearFrom 5 0 10)
     genNSec = Gen.integral (R.linearFrom 0 0 10_000_000_000)
 
-stableCallStack :: Exception e => e -> String
+stableCallStack :: (Exception e) => e -> String
 stableCallStack = stripPkgName . zeroNums . displayException
 
 -- A bit overzealous since we don't need all numbers zeroed, but it's not a

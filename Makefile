@@ -1,5 +1,5 @@
 .PHONY: build clean repl watch ;\
-	cic ci formatc format lint lintc haddockc ;\
+	cic ci formatc format lint lintc ;\
 	haddock hackage
 
 # core
@@ -24,29 +24,29 @@ watch:
 
 # ci
 
-cic: formatc lintc haddockc
+cic: formatc lintc
 
 ci: lint format
 
 # formatting
 
 formatc:
-	nix run github:tbidne/nix-hs-tools/0.7#cabal-fmt -- --check ;\
-	nix run github:tbidne/nix-hs-tools/0.7#ormolu -- --mode check ;\
-	nix run github:tbidne/nix-hs-tools/0.7#nixpkgs-fmt -- --check
+	nix run github:tbidne/nix-hs-tools/0.8#cabal-fmt -- --check ;\
+	nix run github:tbidne/nix-hs-tools/0.8#ormolu -- --mode check ;\
+	nix run github:tbidne/nix-hs-tools/0.8#nixpkgs-fmt -- --check
 
 format:
-	nix run github:tbidne/nix-hs-tools/0.7#cabal-fmt -- --inplace ;\
-	nix run github:tbidne/nix-hs-tools/0.7#ormolu -- --mode inplace ;\
-	nix run github:tbidne/nix-hs-tools/0.7#nixpkgs-fmt
+	nix run github:tbidne/nix-hs-tools/0.8#cabal-fmt -- --inplace ;\
+	nix run github:tbidne/nix-hs-tools/0.8#ormolu -- --mode inplace ;\
+	nix run github:tbidne/nix-hs-tools/0.8#nixpkgs-fmt
 
 # linting
 
 lint:
-	nix run github:tbidne/nix-hs-tools/0.7#hlint -- --refact
+	nix run github:tbidne/nix-hs-tools/0.8#hlint -- --refact
 
 lintc:
-	nix run github:tbidne/nix-hs-tools/0.7#hlint
+	nix run github:tbidne/nix-hs-tools/0.8#hlint
 
 # generate docs for main package, copy to docs/
 haddock:
@@ -76,37 +76,6 @@ haddock:
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-terminal-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-thread-0.1/doc/html/* docs/ ;\
 	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/monad-typed-process-0.1/doc/html/* docs/ ;\
-
-haddockc:
-	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-async \
-		-m Effects.Concurrent.Async 90 ;\
-
-	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-env \
-
-	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-exceptions ;\
-
-	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-fs \
-		-m Effects.FileSystem.PathReader 85 \
-		-m Effects.FileSystem.PathWriter 85 ;\
-
-	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-ioref ;\
-
-	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-logger-namespace \
-		-m Effects.LoggerNamespace 85 ;\
-
-	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-optparse ;\
-
-	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-stm ;\
-
-	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-system-time \
-		-m Effects.Time 75 ;\
-
-	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-terminal ;\
-
-	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-thread
-
-	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- ./monad-typed-process \
-		-m Effects.System.Process 95 ;\
 
 .PHONY: hackage
 hackage:

@@ -37,11 +37,11 @@ import GHC.Stack (HasCallStack)
 -- | Represents thread effects.
 --
 -- @since 0.1
-class Monad m => MonadThread m where
+class (Monad m) => MonadThread m where
   -- | Lifted 'CC.threadDelay'.
   --
   -- @since 0.1
-  threadDelay :: HasCallStack => Int -> m ()
+  threadDelay :: (HasCallStack) => Int -> m ()
 
   -- | Lifted 'CC.throwTo'.
   --
@@ -51,17 +51,17 @@ class Monad m => MonadThread m where
   -- | Lifted 'CC.getNumCapabilities'
   --
   -- @since 0.1
-  getNumCapabilities :: HasCallStack => m Int
+  getNumCapabilities :: (HasCallStack) => m Int
 
   -- | Lifted 'CC.setNumCapabilities'
   --
   -- @since 0.1
-  setNumCapabilities :: HasCallStack => Int -> m ()
+  setNumCapabilities :: (HasCallStack) => Int -> m ()
 
   -- | Lifted 'CC.threadCapability'
   --
   -- @since 0.1
-  threadCapability :: HasCallStack => ThreadId -> m (Int, Bool)
+  threadCapability :: (HasCallStack) => ThreadId -> m (Int, Bool)
 
 -- | @since 0.1
 instance MonadThread IO where
@@ -77,7 +77,7 @@ instance MonadThread IO where
   {-# INLINEABLE threadCapability #-}
 
 -- | @since 0.1
-instance MonadThread m => MonadThread (ReaderT e m) where
+instance (MonadThread m) => MonadThread (ReaderT e m) where
   threadDelay = lift . threadDelay
   {-# INLINEABLE threadDelay #-}
   throwTo tid = lift . throwTo tid
@@ -124,7 +124,7 @@ i2n = fromIntegral
 -- | Effect for simple semaphores.
 --
 -- @since 0.1
-class Monad m => MonadQSem m where
+class (Monad m) => MonadQSem m where
   -- | Lifted 'QSem.newQSem'.
   --
   -- @since 0.1
@@ -171,7 +171,7 @@ instance MonadQSem IO where
   {-# INLINEABLE signalQSemN #-}
 
 -- | @since 0.1
-instance MonadQSem m => MonadQSem (ReaderT e m) where
+instance (MonadQSem m) => MonadQSem (ReaderT e m) where
   newQSem = lift . newQSem
   {-# INLINEABLE newQSem #-}
   waitQSem = lift . waitQSem

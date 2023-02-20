@@ -59,136 +59,136 @@ import System.Directory qualified as Dir
 -- | Represents file-system reader effects.
 --
 -- @since 0.1
-class Monad m => MonadPathReader m where
+class (Monad m) => MonadPathReader m where
   -- | Lifted 'Dir.listDirectory'.
   --
   -- @since 0.1
-  listDirectory :: HasCallStack => Path -> m [Path]
+  listDirectory :: (HasCallStack) => Path -> m [Path]
 
   -- | Lifted 'Dir.getDirectoryContents'.
   --
   -- @since 0.1
-  getDirectoryContents :: HasCallStack => Path -> m [Path]
+  getDirectoryContents :: (HasCallStack) => Path -> m [Path]
 
   -- | Lifted 'Dir.getCurrentDirectory'.
   --
   -- @since 0.1
-  getCurrentDirectory :: HasCallStack => m Path
+  getCurrentDirectory :: (HasCallStack) => m Path
 
   -- | Lifted 'Dir.getHomeDirectory'.
   --
   -- @since 0.1
-  getHomeDirectory :: HasCallStack => m Path
+  getHomeDirectory :: (HasCallStack) => m Path
 
   -- | Lifted 'Dir.getXdgDirectory'.
   --
   -- @since 0.1
-  getXdgDirectory :: HasCallStack => XdgDirectory -> Path -> m Path
+  getXdgDirectory :: (HasCallStack) => XdgDirectory -> Path -> m Path
 
   -- | Lifted 'Dir.getXdgDirectoryList'.
   --
   -- @since 0.1
-  getXdgDirectoryList :: HasCallStack => XdgDirectoryList -> m [Path]
+  getXdgDirectoryList :: (HasCallStack) => XdgDirectoryList -> m [Path]
 
   -- | Lifted 'Dir.getAppUserDataDirectory'.
   --
   -- @since 0.1
-  getAppUserDataDirectory :: HasCallStack => Path -> m Path
+  getAppUserDataDirectory :: (HasCallStack) => Path -> m Path
 
   -- | Lifted 'Dir.getUserDocumentsDirectory'.
   --
   -- @since 0.1
-  getUserDocumentsDirectory :: HasCallStack => m Path
+  getUserDocumentsDirectory :: (HasCallStack) => m Path
 
   -- | Lifted 'Dir.getTemporaryDirectory'.
   --
   -- @since 0.1
-  getTemporaryDirectory :: HasCallStack => m Path
+  getTemporaryDirectory :: (HasCallStack) => m Path
 
   -- | Lifted 'Dir.getFileSize'.
   --
   -- @since 0.1
-  getFileSize :: HasCallStack => Path -> m Integer
+  getFileSize :: (HasCallStack) => Path -> m Integer
 
   -- | Lifted 'Dir.canonicalizePath'.
   --
   -- @since 0.1
-  canonicalizePath :: HasCallStack => Path -> m Path
+  canonicalizePath :: (HasCallStack) => Path -> m Path
 
   -- | Lifted 'Dir.makeAbsolute'.
   --
   -- @since 0.1
-  makeAbsolute :: HasCallStack => Path -> m Path
+  makeAbsolute :: (HasCallStack) => Path -> m Path
 
   -- | Lifted 'Dir.makeRelativeToCurrentDirectory'.
   --
   -- @since 0.1
-  makeRelativeToCurrentDirectory :: HasCallStack => Path -> m Path
+  makeRelativeToCurrentDirectory :: (HasCallStack) => Path -> m Path
 
   -- | Lifted 'Dir.doesPathExist'.
   --
   -- @since 0.1
-  doesPathExist :: HasCallStack => Path -> m Bool
+  doesPathExist :: (HasCallStack) => Path -> m Bool
 
   -- | Lifted 'Dir.doesFileExist'.
   --
   -- @since 0.1
-  doesFileExist :: HasCallStack => Path -> m Bool
+  doesFileExist :: (HasCallStack) => Path -> m Bool
 
   -- | Lifted 'Dir.doesDirectoryExist'.
   --
   -- @since 0.1
-  doesDirectoryExist :: HasCallStack => Path -> m Bool
+  doesDirectoryExist :: (HasCallStack) => Path -> m Bool
 
   -- | Lifted 'Dir.findExecutable'.
   --
   -- @since 0.1
-  findExecutable :: HasCallStack => Path -> m (Maybe Path)
+  findExecutable :: (HasCallStack) => Path -> m (Maybe Path)
 
   -- | Lifted 'Dir.findExecutables'.
   --
   -- @since 0.1
-  findExecutables :: HasCallStack => Path -> m [Path]
+  findExecutables :: (HasCallStack) => Path -> m [Path]
 
   -- | Lifted 'Dir.findExecutablesInDirectories'.
   --
   -- @since 0.1
-  findExecutablesInDirectories :: HasCallStack => [Path] -> Path -> m [Path]
+  findExecutablesInDirectories :: (HasCallStack) => [Path] -> Path -> m [Path]
 
   -- | Lifted 'Dir.findFileWith'.
   --
   -- @since 0.1
-  findFileWith :: HasCallStack => (Path -> m Bool) -> [Path] -> Path -> m (Maybe Path)
+  findFileWith :: (HasCallStack) => (Path -> m Bool) -> [Path] -> Path -> m (Maybe Path)
 
   -- | Lifted 'Dir.findFilesWith'.
   --
   -- @since 0.1
-  findFilesWith :: HasCallStack => (Path -> m Bool) -> [Path] -> Path -> m [Path]
+  findFilesWith :: (HasCallStack) => (Path -> m Bool) -> [Path] -> Path -> m [Path]
 
   -- | Lifted 'Dir.pathIsSymbolicLink'.
   --
   -- @since 0.1
-  pathIsSymbolicLink :: HasCallStack => Path -> m Bool
+  pathIsSymbolicLink :: (HasCallStack) => Path -> m Bool
 
   -- | Lifted 'Dir.getSymbolicLinkTarget'.
   --
   -- @since 0.1
-  getSymbolicLinkTarget :: HasCallStack => Path -> m Path
+  getSymbolicLinkTarget :: (HasCallStack) => Path -> m Path
 
   -- | Lifted 'Dir.getPermissions'.
   --
   -- @since 0.1
-  getPermissions :: HasCallStack => Path -> m Permissions
+  getPermissions :: (HasCallStack) => Path -> m Permissions
 
   -- | Lifted 'Dir.getAccessTime'.
   --
   -- @since 0.1
-  getAccessTime :: HasCallStack => Path -> m UTCTime
+  getAccessTime :: (HasCallStack) => Path -> m UTCTime
 
   -- | Lifted 'Dir.getModificationTime'.
   --
   -- @since 0.1
-  getModificationTime :: HasCallStack => Path -> m UTCTime
+  getModificationTime :: (HasCallStack) => Path -> m UTCTime
 
 instance MonadPathReader IO where
   listDirectory = addCS . Dir.listDirectory
@@ -244,7 +244,7 @@ instance MonadPathReader IO where
   getModificationTime = addCS . Dir.getModificationTime
   {-# INLINEABLE getModificationTime #-}
 
-instance MonadPathReader m => MonadPathReader (ReaderT env m) where
+instance (MonadPathReader m) => MonadPathReader (ReaderT env m) where
   listDirectory = lift . listDirectory
   {-# INLINEABLE listDirectory #-}
   getDirectoryContents = lift . getDirectoryContents

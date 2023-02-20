@@ -29,16 +29,16 @@ import GHC.Stack (HasCallStack)
 -- | Represents file-system writer effects.
 --
 -- @since 0.1
-class Monad m => MonadFileWriter m where
+class (Monad m) => MonadFileWriter m where
   -- | Writes to a file.
   --
   -- @since 0.1
-  writeBinaryFile :: HasCallStack => Path -> ByteString -> m ()
+  writeBinaryFile :: (HasCallStack) => Path -> ByteString -> m ()
 
   -- | Appends to a file.
   --
   -- @since 0.1
-  appendBinaryFile :: HasCallStack => Path -> ByteString -> m ()
+  appendBinaryFile :: (HasCallStack) => Path -> ByteString -> m ()
 
 -- | @since 0.1
 instance MonadFileWriter IO where
@@ -48,7 +48,7 @@ instance MonadFileWriter IO where
   {-# INLINEABLE appendBinaryFile #-}
 
 -- | @since 0.1
-instance MonadFileWriter m => MonadFileWriter (ReaderT env m) where
+instance (MonadFileWriter m) => MonadFileWriter (ReaderT env m) where
   writeBinaryFile p = lift . writeBinaryFile p
   {-# INLINEABLE writeBinaryFile #-}
   appendBinaryFile p = lift . appendBinaryFile p

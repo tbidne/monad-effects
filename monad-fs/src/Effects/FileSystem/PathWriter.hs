@@ -79,106 +79,106 @@ import System.FilePath qualified as FP
 -- | Represents file-system writer effects.
 --
 -- @since 0.1
-class Monad m => MonadPathWriter m where
+class (Monad m) => MonadPathWriter m where
   -- | Lifted 'Dir.createDirectory'.
   --
   -- @since 0.1
-  createDirectory :: HasCallStack => Path -> m ()
+  createDirectory :: (HasCallStack) => Path -> m ()
 
   -- | Lifted 'Dir.createDirectoryIfMissing'.
   --
   -- @since 0.1
-  createDirectoryIfMissing :: HasCallStack => Bool -> Path -> m ()
+  createDirectoryIfMissing :: (HasCallStack) => Bool -> Path -> m ()
 
   -- | Lifted 'Dir.removeDirectory'.
   --
   -- @since 0.1
-  removeDirectory :: HasCallStack => Path -> m ()
+  removeDirectory :: (HasCallStack) => Path -> m ()
 
   -- | Lifted 'Dir.removeDirectoryRecursive'.
   --
   -- @since 0.1
-  removeDirectoryRecursive :: HasCallStack => Path -> m ()
+  removeDirectoryRecursive :: (HasCallStack) => Path -> m ()
 
   -- | Lifted 'Dir.removePathForcibly'.
   --
   -- @since 0.1
-  removePathForcibly :: HasCallStack => Path -> m ()
+  removePathForcibly :: (HasCallStack) => Path -> m ()
 
   -- | Lifted 'Dir.renameDirectory'.
   --
   -- @since 0.1
-  renameDirectory :: HasCallStack => Path -> Path -> m ()
+  renameDirectory :: (HasCallStack) => Path -> Path -> m ()
 
   -- | Lifted 'Dir.setCurrentDirectory'.
   --
   -- @since 0.1
-  setCurrentDirectory :: HasCallStack => Path -> m ()
+  setCurrentDirectory :: (HasCallStack) => Path -> m ()
 
   -- | Lifted 'Dir.withCurrentDirectory'.
   --
   -- @since 0.1
-  withCurrentDirectory :: HasCallStack => Path -> m a -> m a
+  withCurrentDirectory :: (HasCallStack) => Path -> m a -> m a
 
   -- | Lifted 'Dir.removeFile'.
   --
   -- @since 0.1
-  removeFile :: HasCallStack => Path -> m ()
+  removeFile :: (HasCallStack) => Path -> m ()
 
   -- | Lifted 'Dir.renameFile'.
   --
   -- @since 0.1
-  renameFile :: HasCallStack => Path -> Path -> m ()
+  renameFile :: (HasCallStack) => Path -> Path -> m ()
 
   -- | Lifted 'Dir.renamePath'.
   --
   -- @since 0.1
-  renamePath :: HasCallStack => Path -> Path -> m ()
+  renamePath :: (HasCallStack) => Path -> Path -> m ()
 
   -- | Lifted 'Dir.copyFile'.
   --
   -- @since 0.1
-  copyFile :: HasCallStack => Path -> Path -> m ()
+  copyFile :: (HasCallStack) => Path -> Path -> m ()
 
   -- | Lifted 'Dir.copyFileWithMetadata'.
   --
   -- @since 0.1
-  copyFileWithMetadata :: HasCallStack => Path -> Path -> m ()
+  copyFileWithMetadata :: (HasCallStack) => Path -> Path -> m ()
 
   -- | Lifted 'Dir.createFileLink'.
   --
   -- @since 0.1
-  createFileLink :: HasCallStack => Path -> Path -> m ()
+  createFileLink :: (HasCallStack) => Path -> Path -> m ()
 
   -- | Lifted 'Dir.createDirectoryLink'.
   --
   -- @since 0.1
-  createDirectoryLink :: HasCallStack => Path -> Path -> m ()
+  createDirectoryLink :: (HasCallStack) => Path -> Path -> m ()
 
   -- | Lifted 'Dir.removeDirectoryLink'.
   --
   -- @since 0.1
-  removeDirectoryLink :: HasCallStack => Path -> m ()
+  removeDirectoryLink :: (HasCallStack) => Path -> m ()
 
   -- | Lifted 'Dir.setPermissions'.
   --
   -- @since 0.1
-  setPermissions :: HasCallStack => Path -> Permissions -> m ()
+  setPermissions :: (HasCallStack) => Path -> Permissions -> m ()
 
   -- | Lifted 'Dir.copyPermissions'.
   --
   -- @since 0.1
-  copyPermissions :: HasCallStack => Path -> Path -> m ()
+  copyPermissions :: (HasCallStack) => Path -> Path -> m ()
 
   -- | Lifted 'Dir.setAccessTime'.
   --
   -- @since 0.1
-  setAccessTime :: HasCallStack => Path -> UTCTime -> m ()
+  setAccessTime :: (HasCallStack) => Path -> UTCTime -> m ()
 
   -- | Lifted 'Dir.setModificationTime'.
   --
   -- @since 0.1
-  setModificationTime :: HasCallStack => Path -> UTCTime -> m ()
+  setModificationTime :: (HasCallStack) => Path -> UTCTime -> m ()
 
 -- | @since 0.1
 instance MonadPathWriter IO where
@@ -224,7 +224,7 @@ instance MonadPathWriter IO where
   {-# INLINEABLE setModificationTime #-}
 
 -- | @since 0.1
-instance MonadPathWriter m => MonadPathWriter (ReaderT env m) where
+instance (MonadPathWriter m) => MonadPathWriter (ReaderT env m) where
   createDirectory = lift . createDirectory
   {-# INLINEABLE createDirectory #-}
   createDirectoryIfMissing b = lift . createDirectoryIfMissing b
@@ -618,7 +618,7 @@ removePathForciblyIfExists =
   removeIfExists doesPathExist removePathForcibly
 {-# INLINEABLE removePathForciblyIfExists #-}
 
-removeIfExists :: Monad m => (t -> m Bool) -> (t -> m ()) -> t -> m ()
+removeIfExists :: (Monad m) => (t -> m Bool) -> (t -> m ()) -> t -> m ()
 removeIfExists existsFn deleteFn f =
   existsFn f >>= \b -> when b (deleteFn f)
 {-# INLINEABLE removeIfExists #-}

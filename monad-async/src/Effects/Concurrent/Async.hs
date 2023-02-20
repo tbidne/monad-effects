@@ -135,52 +135,52 @@ import Numeric.Data.Positive qualified as Positive
 -- being complex, and we do not want to reimplement any complex logic here.
 --
 -- @since 0.1
-class Monad m => MonadAsync m where
+class (Monad m) => MonadAsync m where
   -- | Lifted 'Async.async'.
   --
   -- @since 0.1
-  async :: HasCallStack => m a -> m (Async a)
+  async :: (HasCallStack) => m a -> m (Async a)
 
   -- | Lifted 'Async.asyncBound'.
   --
   -- @since 0.1
-  asyncBound :: HasCallStack => m a -> m (Async a)
+  asyncBound :: (HasCallStack) => m a -> m (Async a)
 
   -- | Lifted 'Async.asyncOn'.
   --
   -- @since 0.1
-  asyncOn :: HasCallStack => Int -> m a -> m (Async a)
+  asyncOn :: (HasCallStack) => Int -> m a -> m (Async a)
 
   -- | Lifted 'Async.asyncWithUnmask'.
   --
   -- @since 0.1
-  asyncWithUnmask :: HasCallStack => ((forall b. m b -> m b) -> m a) -> m (Async a)
+  asyncWithUnmask :: (HasCallStack) => ((forall b. m b -> m b) -> m a) -> m (Async a)
 
   -- | Lifted 'Async.asyncOnWithUnmask'.
   --
   -- @since 0.1
-  asyncOnWithUnmask :: HasCallStack => Int -> ((forall b. m b -> m b) -> m a) -> m (Async a)
+  asyncOnWithUnmask :: (HasCallStack) => Int -> ((forall b. m b -> m b) -> m a) -> m (Async a)
 
   -- | Lifted 'Async.withAsync'.
   --
   -- @since 0.1
-  withAsync :: HasCallStack => m a -> (Async a -> m b) -> m b
+  withAsync :: (HasCallStack) => m a -> (Async a -> m b) -> m b
 
   -- | Lifted 'Async.withAsyncBound'.
   --
   -- @since 0.1
-  withAsyncBound :: HasCallStack => m a -> (Async a -> m b) -> m b
+  withAsyncBound :: (HasCallStack) => m a -> (Async a -> m b) -> m b
 
   -- | Lifted 'Async.withAsyncOn'.
   --
   -- @since 0.1
-  withAsyncOn :: HasCallStack => Int -> m a -> (Async a -> m b) -> m b
+  withAsyncOn :: (HasCallStack) => Int -> m a -> (Async a -> m b) -> m b
 
   -- | Lifted 'Async.withAsyncWithUnmask'.
   --
   -- @since 0.1
   withAsyncWithUnmask ::
-    HasCallStack =>
+    (HasCallStack) =>
     ((forall c. m c -> m c) -> m a) ->
     (Async a -> m b) ->
     m b
@@ -189,7 +189,7 @@ class Monad m => MonadAsync m where
   --
   -- @since 0.1
   withAsyncOnWithUnmask ::
-    HasCallStack =>
+    (HasCallStack) =>
     Int ->
     ((forall c. m c -> m c) -> m a) ->
     (Async a -> m b) ->
@@ -198,27 +198,27 @@ class Monad m => MonadAsync m where
   -- | Lifted 'Async.linkOnly'.
   --
   -- @since 0.1
-  linkOnly :: HasCallStack => (SomeException -> Bool) -> Async a -> m ()
+  linkOnly :: (HasCallStack) => (SomeException -> Bool) -> Async a -> m ()
 
   -- | Lifted 'Async.link2Only'.
   --
   -- @since 0.1
-  link2Only :: HasCallStack => (SomeException -> Bool) -> Async a -> Async b -> m ()
+  link2Only :: (HasCallStack) => (SomeException -> Bool) -> Async a -> Async b -> m ()
 
   -- | Lifted 'Async.race'.
   --
   -- @since 0.1
-  race :: HasCallStack => m a -> m b -> m (Either a b)
+  race :: (HasCallStack) => m a -> m b -> m (Either a b)
 
   -- | Lifted 'Async.concurrently'.
   --
   -- @since 0.1
-  concurrently :: HasCallStack => m a -> m b -> m (a, b)
+  concurrently :: (HasCallStack) => m a -> m b -> m (a, b)
 
   -- | Lifted 'Async.concurrently_'.
   --
   -- @since 0.1
-  concurrently_ :: HasCallStack => m a -> m b -> m ()
+  concurrently_ :: (HasCallStack) => m a -> m b -> m ()
 
 -- | @since 0.1
 instance MonadAsync IO where
@@ -254,7 +254,7 @@ instance MonadAsync IO where
   {-# INLINEABLE concurrently_ #-}
 
 -- | @since 0.1
-instance forall m env. MonadAsync m => MonadAsync (ReaderT env m) where
+instance forall m env. (MonadAsync m) => MonadAsync (ReaderT env m) where
   async = mapReaderT async
   {-# INLINEABLE async #-}
   asyncBound = mapReaderT asyncBound
@@ -348,7 +348,7 @@ usingReaderT = flip runReaderT
 -- | Lifted 'Async.poll'.
 --
 -- @since 0.1
-poll :: forall m a. MonadSTM m => Async a -> m (Maybe (Either SomeException a))
+poll :: forall m a. (MonadSTM m) => Async a -> m (Maybe (Either SomeException a))
 poll = atomically . Async.pollSTM
 {-# INLINE poll #-}
 
@@ -437,7 +437,7 @@ waitCatch ::
 waitCatch = tryAgain . atomically . Async.waitCatchSTM
 {-# INLINE waitCatch #-}
 
-tryAgain :: forall m a. MonadCatch m => m a -> m a
+tryAgain :: forall m a. (MonadCatch m) => m a -> m a
 tryAgain f = f `Ex.catch` \BlockedIndefinitelyOnSTM -> f
 {-# INLINE tryAgain #-}
 
@@ -595,7 +595,7 @@ waitBoth left right = tryAgain $ atomically (Async.waitBothSTM left right)
 -- | Lifted 'Async.race_'.
 --
 -- @since 0.1
-race_ :: forall m a b. MonadAsync m => m a -> m b -> m ()
+race_ :: forall m a b. (MonadAsync m) => m a -> m b -> m ()
 race_ left = void . race left
 {-# INLINEABLE race_ #-}
 
@@ -608,11 +608,11 @@ newtype Concurrently m a = Concurrently
   }
 
 -- | @since 0.1
-instance Functor m => Functor (Concurrently m) where
+instance (Functor m) => Functor (Concurrently m) where
   fmap f (Concurrently a) = Concurrently $ f <$> a
 
 -- | @since 0.1
-instance MonadAsync m => Applicative (Concurrently m) where
+instance (MonadAsync m) => Applicative (Concurrently m) where
   pure = Concurrently . pure
   Concurrently fs <*> Concurrently as =
     Concurrently $ (\(f, a) -> f a) <$> concurrently fs as
@@ -691,14 +691,14 @@ forConcurrently_ = flip mapConcurrently_
 -- | Lifted 'Async.replicateConcurrently'.
 --
 -- @since 0.1
-replicateConcurrently :: forall m a. MonadAsync m => Int -> m a -> m [a]
+replicateConcurrently :: forall m a. (MonadAsync m) => Int -> m a -> m [a]
 replicateConcurrently cnt = runConcurrently . replicateM cnt . Concurrently
 {-# INLINEABLE replicateConcurrently #-}
 
 -- | Lifted 'Async.replicateConcurrently_'.
 --
 -- @since 0.1
-replicateConcurrently_ :: forall m a. MonadAsync m => Int -> m a -> m ()
+replicateConcurrently_ :: forall m a. (MonadAsync m) => Int -> m a -> m ()
 replicateConcurrently_ cnt =
   runConcurrently . fold . replicate cnt . Concurrently . void
 {-# INLINEABLE replicateConcurrently_ #-}

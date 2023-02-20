@@ -23,36 +23,36 @@ import GHC.Stack (HasCallStack)
 -- | 'IORef' effect.
 --
 -- @since 0.1
-class Monad m => MonadIORef m where
+class (Monad m) => MonadIORef m where
   -- | Lifted 'IORef.newIORef'.
   --
   -- @since 0.1
-  newIORef :: HasCallStack => a -> m (IORef a)
+  newIORef :: (HasCallStack) => a -> m (IORef a)
 
   -- | Lifted 'IORef.readIORef'.
   --
   -- @since 0.1
-  readIORef :: HasCallStack => IORef a -> m a
+  readIORef :: (HasCallStack) => IORef a -> m a
 
   -- | Lifted 'IORef.writeIORef'.
   --
   -- @since 0.1
-  writeIORef :: HasCallStack => IORef a -> a -> m ()
+  writeIORef :: (HasCallStack) => IORef a -> a -> m ()
 
   -- | Lifted 'IORef.atomicWriteIORef'.
   --
   -- @since 0.1
-  atomicWriteIORef :: HasCallStack => IORef a -> a -> m ()
+  atomicWriteIORef :: (HasCallStack) => IORef a -> a -> m ()
 
   -- | Lifted 'IORef.modifyIORef''.
   --
   -- @since 0.1
-  modifyIORef' :: HasCallStack => IORef a -> (a -> a) -> m ()
+  modifyIORef' :: (HasCallStack) => IORef a -> (a -> a) -> m ()
 
   -- | Lifted 'IORef.atomicModifyIORef''.
   --
   -- @since 0.1
-  atomicModifyIORef' :: HasCallStack => IORef a -> (a -> (a, b)) -> m b
+  atomicModifyIORef' :: (HasCallStack) => IORef a -> (a -> (a, b)) -> m b
 
 -- | @since 0.1
 instance MonadIORef IO where
@@ -70,7 +70,7 @@ instance MonadIORef IO where
   {-# INLINEABLE atomicModifyIORef' #-}
 
 -- | @since 0.1
-instance MonadIORef m => MonadIORef (ReaderT e m) where
+instance (MonadIORef m) => MonadIORef (ReaderT e m) where
   newIORef = lift . newIORef
   {-# INLINEABLE newIORef #-}
   readIORef = lift . readIORef
@@ -87,6 +87,6 @@ instance MonadIORef m => MonadIORef (ReaderT e m) where
 -- | Variant of 'atomicModifyIORef'' which ignores the return value
 --
 -- @since 0.1
-atomicModifyIORef'_ :: MonadIORef m => IORef a -> (a -> a) -> m ()
+atomicModifyIORef'_ :: (MonadIORef m) => IORef a -> (a -> a) -> m ()
 atomicModifyIORef'_ ref f = atomicModifyIORef' ref $ \a -> (f a, ())
 {-# INLINEABLE atomicModifyIORef'_ #-}

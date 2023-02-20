@@ -227,17 +227,17 @@ normalizeTimeSpec = fromNanoSeconds . toNanoSeconds
 -- | Time effect.
 --
 -- @since 0.1
-class Monad m => MonadTime m where
+class (Monad m) => MonadTime m where
   -- | Returns the zoned system time.
   --
   -- @since 0.1
-  getSystemZonedTime :: HasCallStack => m ZonedTime
+  getSystemZonedTime :: (HasCallStack) => m ZonedTime
 
   -- | Return monotonic time in seconds, since some unspecified starting
   -- point.
   --
   -- @since 0.1
-  getMonotonicTime :: HasCallStack => m Double
+  getMonotonicTime :: (HasCallStack) => m Double
 
 -- | @since 0.1
 instance MonadTime IO where
@@ -247,7 +247,7 @@ instance MonadTime IO where
   {-# INLINEABLE getMonotonicTime #-}
 
 -- | @since 0.1
-instance MonadTime m => MonadTime (ReaderT e m) where
+instance (MonadTime m) => MonadTime (ReaderT e m) where
   getSystemZonedTime = lift getSystemZonedTime
   {-# INLINEABLE getSystemZonedTime #-}
   getMonotonicTime = lift getMonotonicTime
@@ -321,7 +321,7 @@ getSystemZonedTimeString = fmap formatZonedTime getSystemZonedTime
 -- 'parseLocalTimeCallStack'.
 --
 -- @since 0.1
-parseLocalTime :: MonadFail f => String -> f LocalTime
+parseLocalTime :: (MonadFail f) => String -> f LocalTime
 parseLocalTime =
   Format.parseTimeM
     True
@@ -363,7 +363,7 @@ parseLocalTimeCallStack = addCS . parseLocalTime
 -- * +HHMM (e.g. +1300)
 --
 -- @since 0.1
-parseZonedTime :: MonadFail f => String -> f ZonedTime
+parseZonedTime :: (MonadFail f) => String -> f ZonedTime
 parseZonedTime =
   Format.parseTimeM
     True

@@ -455,7 +455,7 @@ cdraOverwriteFileSucceeds getTmpDir = testCase desc $ do
 --                                  Setup                                    --
 -------------------------------------------------------------------------------
 
-setupSrc :: HasCallStack => Path -> IO Path
+setupSrc :: (HasCallStack) => Path -> IO Path
 setupSrc baseDir = do
   let files = ["a/b/c/f1", "a/f2", "a/b/f3", "a/f4", "a/f5", "a/b/f5"]
       srcDir = baseDir </> "src"
@@ -471,7 +471,7 @@ setupSrc baseDir = do
   assertSrcExists baseDir
   pure srcDir
 
-writeFiles :: HasCallStack => [(Path, ByteString)] -> IO ()
+writeFiles :: (HasCallStack) => [(Path, ByteString)] -> IO ()
 writeFiles = traverse_ (uncurry writeBinaryFile)
 
 overwriteConfig :: Overwrite -> CopyDirConfig
@@ -523,7 +523,7 @@ instance MonadPathWriter PartialIO where
 --                                Assertions                                 --
 -------------------------------------------------------------------------------
 
-assertSrcExists :: HasCallStack => Path -> IO ()
+assertSrcExists :: (HasCallStack) => Path -> IO ()
 assertSrcExists baseDir = do
   let srcDir = baseDir </> "src"
   assertFilesExist $
@@ -541,7 +541,7 @@ assertSrcExists baseDir = do
             "empty/d"
           ]
 
-assertDestExists :: HasCallStack => Path -> IO ()
+assertDestExists :: (HasCallStack) => Path -> IO ()
 assertDestExists baseDir = do
   let destDir = baseDir </> "dest"
   assertFilesExist $
@@ -559,24 +559,24 @@ assertDestExists baseDir = do
             "src/empty/d"
           ]
 
-assertFilesExist :: HasCallStack => [Path] -> IO ()
+assertFilesExist :: (HasCallStack) => [Path] -> IO ()
 assertFilesExist = traverse_ $ \p -> do
   exists <- doesFileExist p
   assertBool ("Expected file to exist: " <> p) exists
 
-assertFileContents :: HasCallStack => [(Path, ByteString)] -> IO ()
+assertFileContents :: (HasCallStack) => [(Path, ByteString)] -> IO ()
 assertFileContents = traverse_ $ \(p, expected) -> do
   exists <- doesFileExist p
   assertBool ("Expected file to exist: " <> p) exists
   actual <- readBinaryFile p
   expected @=? actual
 
-assertDirsExist :: HasCallStack => [Path] -> IO ()
+assertDirsExist :: (HasCallStack) => [Path] -> IO ()
 assertDirsExist = traverse_ $ \p -> do
   exists <- doesDirectoryExist p
   assertBool ("Expected directory to exist: " <> p) exists
 
-assertDirsDoNotExist :: HasCallStack => [Path] -> IO ()
+assertDirsDoNotExist :: (HasCallStack) => [Path] -> IO ()
 assertDirsDoNotExist = traverse_ $ \p -> do
   exists <- doesDirectoryExist p
   assertBool ("Expected directory not to exist: " <> p) (not exists)

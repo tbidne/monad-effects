@@ -48,7 +48,7 @@ data Ex = MkEx
   deriving stock (Eq, Show)
   deriving anyclass (Exception)
 
-throwsCallStack :: HasCallStack => TestTree
+throwsCallStack :: (HasCallStack) => TestTree
 throwsCallStack =
   goldenVsStringDiff desc diff gpath $
     tryAny (throwCS MkEx) <&> \case
@@ -78,7 +78,7 @@ throwsExitSuccess =
     desc = "Calls exitSuccess"
     gpath = goldenPath </> "calls-exitSuccess.golden"
 
-catchTests :: HasCallStack => TestTree
+catchTests :: (HasCallStack) => TestTree
 catchTests =
   testGroup
     "Catching"
@@ -87,7 +87,7 @@ catchTests =
       catchesCallStackAny
     ]
 
-catchesCallStackWrapped :: HasCallStack => TestTree
+catchesCallStackWrapped :: (HasCallStack) => TestTree
 catchesCallStackWrapped = goldenVsStringDiff desc diff gpath $ do
   (throwCS MkEx $> "Error: did not catch expected exception.")
     `catchCS` \(e :: ExceptionCS Ex) ->
@@ -96,7 +96,7 @@ catchesCallStackWrapped = goldenVsStringDiff desc diff gpath $ do
     desc = "catchCS catches wrapped exception"
     gpath = goldenPath </> "catches-callstack-wrapped.golden"
 
-catchesCallStackOriginal :: HasCallStack => TestTree
+catchesCallStackOriginal :: (HasCallStack) => TestTree
 catchesCallStackOriginal = goldenVsStringDiff desc diff gpath $ do
   (throwCS MkEx $> "Error: did not catch expected exception.")
     `catchCS` \(e :: Ex) ->
@@ -105,7 +105,7 @@ catchesCallStackOriginal = goldenVsStringDiff desc diff gpath $ do
     desc = "catchCS catches the original exception"
     gpath = goldenPath </> "catches-callstack-original.golden"
 
-catchesCallStackAny :: HasCallStack => TestTree
+catchesCallStackAny :: (HasCallStack) => TestTree
 catchesCallStackAny = goldenVsStringDiff desc diff gpath $ do
   (throwCS MkEx $> "Error: did not catch expected exception.")
     `catchCS` \(e :: ExceptionCS SomeException) ->
@@ -114,7 +114,7 @@ catchesCallStackAny = goldenVsStringDiff desc diff gpath $ do
     desc = "catchCS catches any exception"
     gpath = goldenPath </> "catches-callstack-any.golden"
 
-toExceptionTests :: HasCallStack => TestTree
+toExceptionTests :: (HasCallStack) => TestTree
 toExceptionTests =
   testGroup
     "toException"
@@ -122,7 +122,7 @@ toExceptionTests =
       toExceptionNested
     ]
 
-toExceptionBasic :: HasCallStack => TestTree
+toExceptionBasic :: (HasCallStack) => TestTree
 toExceptionBasic = goldenVsStringDiff desc diff gpath $ do
   pure $ displayExceptionBS $ toException ex
   where
@@ -130,7 +130,7 @@ toExceptionBasic = goldenVsStringDiff desc diff gpath $ do
     desc = "Converts basic"
     gpath = goldenPath </> "toException.golden"
 
-toExceptionNested :: HasCallStack => TestTree
+toExceptionNested :: (HasCallStack) => TestTree
 toExceptionNested = goldenVsStringDiff desc diff gpath $ do
   pure $ displayExceptionBS $ toException ex
   where
@@ -138,7 +138,7 @@ toExceptionNested = goldenVsStringDiff desc diff gpath $ do
     desc = "Flattens nested"
     gpath = goldenPath </> "toException-nested.golden"
 
-fromExceptionTests :: HasCallStack => TestTree
+fromExceptionTests :: (HasCallStack) => TestTree
 fromExceptionTests =
   testGroup
     "fromException"
@@ -147,7 +147,7 @@ fromExceptionTests =
       fromExceptionDirect
     ]
 
-fromExceptionWrapped :: HasCallStack => TestTree
+fromExceptionWrapped :: (HasCallStack) => TestTree
 fromExceptionWrapped = goldenVsStringDiff desc diff gpath $ do
   pure $ showBS $ fromException @(ExceptionCS Ex) ex
   where
@@ -155,7 +155,7 @@ fromExceptionWrapped = goldenVsStringDiff desc diff gpath $ do
     desc = "Converts to (ExceptionCS Ex)"
     gpath = goldenPath </> "fromException-wrapped.golden"
 
-fromExceptionWrappedNested :: HasCallStack => TestTree
+fromExceptionWrappedNested :: (HasCallStack) => TestTree
 fromExceptionWrappedNested = goldenVsStringDiff desc diff gpath $ do
   pure $ showBS $ fromException @(ExceptionCS Ex) ex
   where
@@ -171,7 +171,7 @@ fromExceptionDirect = goldenVsStringDiff desc diff gpath $ do
     desc = "Converts to Ex"
     gpath = goldenPath </> "fromException-direct.golden"
 
-addsCallStack :: HasCallStack => TestTree
+addsCallStack :: (HasCallStack) => TestTree
 addsCallStack =
   goldenVsStringDiff desc diff gpath $
     tryAny (addCS $ throwM MkEx) <&> \case
@@ -181,7 +181,7 @@ addsCallStack =
     desc = "Adds callstack"
     gpath = goldenPath </> "add-callstack.golden"
 
-addsCallStackMerges :: HasCallStack => TestTree
+addsCallStackMerges :: (HasCallStack) => TestTree
 addsCallStackMerges =
   goldenVsStringDiff desc diff gpath $
     tryAny (addCS $ throwCS MkEx) <&> \case
@@ -191,7 +191,7 @@ addsCallStackMerges =
     desc = "Adds callstack merges callstacks"
     gpath = goldenPath </> "add-callstack-merges.golden"
 
-displaysNoCallStack :: HasCallStack => TestTree
+displaysNoCallStack :: (HasCallStack) => TestTree
 displaysNoCallStack =
   goldenVsStringDiff desc diff gpath $
     tryAny (throwCS MkEx) <&> \case
@@ -201,7 +201,7 @@ displaysNoCallStack =
     desc = "Does not display callstack"
     gpath = goldenPath </> "no-callstack.golden"
 
-displaysNoCallStackNested :: HasCallStack => TestTree
+displaysNoCallStackNested :: (HasCallStack) => TestTree
 displaysNoCallStackNested =
   goldenVsStringDiff desc diff gpath $
     pure $
@@ -224,10 +224,10 @@ goldenPath = "test/unit/"
 diff :: FilePath -> FilePath -> [FilePath]
 diff ref new = ["diff", "-u", ref, new]
 
-showBS :: Show a => a -> BSL.ByteString
+showBS :: (Show a) => a -> BSL.ByteString
 showBS = fromString . zeroNums . show
 
-displayExceptionBS :: Exception e => e -> BSL.ByteString
+displayExceptionBS :: (Exception e) => e -> BSL.ByteString
 displayExceptionBS = fromString . stripPkgName . zeroNums . displayException
 
 zeroNums :: String -> String

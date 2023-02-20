@@ -111,16 +111,16 @@ displayNamespace =
 -- | Adds namespaces to 'MonadLogger'.
 --
 -- @since 0.1
-class MonadLogger m => MonadLoggerNamespace m where
+class (MonadLogger m) => MonadLoggerNamespace m where
   -- | Retrieves the namespace.
   --
   -- @since 0.1
-  getNamespace :: HasCallStack => m Namespace
+  getNamespace :: (HasCallStack) => m Namespace
 
   -- | Locally modifies the namespace.
   --
   -- @since 0.1
-  localNamespace :: HasCallStack => (Namespace -> Namespace) -> m a -> m a
+  localNamespace :: (HasCallStack) => (Namespace -> Namespace) -> m a -> m a
 
 -- | Adds to the namespace.
 --

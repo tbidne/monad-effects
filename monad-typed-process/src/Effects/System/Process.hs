@@ -115,12 +115,12 @@ import System.Process.Typed qualified as P
 -- [typed-process](https://hackage.haskell.org/package/typed-process).
 --
 -- @since 0.1
-class Monad m => MonadProcess m where
+class (Monad m) => MonadProcess m where
   -- | Lifted 'P.readProcessInterleaved'.
   --
   -- @since 0.1
   readProcessInterleaved ::
-    HasCallStack =>
+    (HasCallStack) =>
     -- | .
     ProcessConfig stdin stdoutIgnored stderrIgnored ->
     m (ExitCode, BSL.ByteString)
@@ -129,7 +129,7 @@ class Monad m => MonadProcess m where
   --
   -- @since 0.1
   withProcessTerm ::
-    HasCallStack =>
+    (HasCallStack) =>
     -- | .
     ProcessConfig stdin stdout stderr ->
     (Process stdin stdout stderr -> m a) ->
@@ -139,7 +139,7 @@ class Monad m => MonadProcess m where
   --
   -- @since 0.1
   startProcess ::
-    HasCallStack =>
+    (HasCallStack) =>
     -- | .
     ProcessConfig stdin stdout stderr ->
     m (Process stdin stdout stderr)
@@ -147,13 +147,13 @@ class Monad m => MonadProcess m where
   -- | Lifted 'P.startProcess'.
   --
   -- @since 0.1
-  stopProcess :: HasCallStack => Process stdin stdout stderr -> m ()
+  stopProcess :: (HasCallStack) => Process stdin stdout stderr -> m ()
 
   -- | Lifted 'P.readProcessInterleaved_'.
   --
   -- @since 0.1
   readProcessInterleaved_ ::
-    HasCallStack =>
+    (HasCallStack) =>
     -- | .
     ProcessConfig stdin stdoutIgnored stderrIgnored ->
     m BSL.ByteString
@@ -172,7 +172,7 @@ instance MonadProcess IO where
   {-# INLINEABLE readProcessInterleaved_ #-}
 
 -- | @since 0.1
-instance MonadProcess m => MonadProcess (ReaderT env m) where
+instance (MonadProcess m) => MonadProcess (ReaderT env m) where
   readProcessInterleaved = lift . readProcessInterleaved
   {-# INLINEABLE readProcessInterleaved #-}
   withProcessTerm pc onProcess =

@@ -41,11 +41,11 @@ import Numeric.Natural (Natural)
 -- | 'STM' effect.
 --
 -- @since 0.1
-class Monad m => MonadSTM m where
+class (Monad m) => MonadSTM m where
   -- | Lifted 'STM.atomically'.
   --
   -- @since 0.1
-  atomically :: HasCallStack => STM a -> m a
+  atomically :: (HasCallStack) => STM a -> m a
 
 -- | @since 0.1
 instance MonadSTM IO where
@@ -53,7 +53,7 @@ instance MonadSTM IO where
   {-# INLINEABLE atomically #-}
 
 -- | @since 0.1
-instance MonadSTM m => MonadSTM (ReaderT e m) where
+instance (MonadSTM m) => MonadSTM (ReaderT e m) where
   atomically = lift . atomically
   {-# INLINEABLE atomically #-}
 

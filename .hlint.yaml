@@ -1,0 +1,21 @@
+- ignore:
+    name: "Redundant bracket"
+    within:
+      - "Effects.Concurrent.Async.MonadAsync"
+      - "Effects.Concurrent.STM.MonadSTM"
+      - "Effects.Concurrent.Thread.MonadThread"
+      - "Effects.Exception.MonadGlobalException"
+      - "Effects.FileSystem.FileReader.MonadFileReader"
+      - "Effects.FileSystem.FileWriter.MonadFileWriter"
+      - "Effects.FileSystem.HandleReader.MonadHandleReader"
+      - "Effects.FileSystem.HandleWriter.MonadHandleWriter"
+      - "Effects.FileSystem.PathReader.MonadPathReader"
+      - "Effects.FileSystem.PathWriter.MonadPathWriter"
+      - "Effects.IORef.MonadIORef"
+      - "Effects.LoggerNamespace.MonadLoggerNamespace"
+      - "Effects.Optparse.MonadOptparse"
+      - "Effects.Time.MonadTime"
+      - "Effects.System.Process.MonadProcess"
+      # Tests
+      - "Main"
+      - "PathWriter"

@@ -140,11 +140,6 @@
             withHoogle = true;
             buildInputs = (buildTools compiler) ++ (devTools compiler);
           };
-          devShells.ci = hsOverlay.shellFor {
-            inherit packages;
-            withHoogle = false;
-            buildInputs = buildTools compiler;
-          };
         };
       systems = [
         "x86_64-linux"

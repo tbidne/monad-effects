@@ -36,11 +36,11 @@ import GHC.Stack (HasCallStack)
 -- | Represents file-system reader effects.
 --
 -- @since 0.1
-class Monad m => MonadFileReader m where
+class (Monad m) => MonadFileReader m where
   -- | Reads a file.
   --
   -- @since 0.1
-  readBinaryFile :: HasCallStack => Path -> m ByteString
+  readBinaryFile :: (HasCallStack) => Path -> m ByteString
 
 -- | @since 0.1
 instance MonadFileReader IO where
@@ -48,7 +48,7 @@ instance MonadFileReader IO where
   {-# INLINEABLE readBinaryFile #-}
 
 -- | @since 0.1
-instance MonadFileReader m => MonadFileReader (ReaderT e m) where
+instance (MonadFileReader m) => MonadFileReader (ReaderT e m) where
   readBinaryFile = lift . readBinaryFile
   {-# INLINEABLE readBinaryFile #-}
 
