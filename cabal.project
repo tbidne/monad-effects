@@ -117,16 +117,16 @@ package monad-typed-process
 source-repository-package
     type: git
     location: https://github.com/tbidne/algebra-simple.git
-    tag: 814f878e740f80a7231b97e7faa893392039ea85
+    tag: a2e206727241931cd55f26cd12816bc8a8b5bfcf
 
 source-repository-package
     type: git
     location: https://github.com/tbidne/bounds.git
-    tag: 8dcff65c1b72ed4d587ff6d38219f73facf77d18
+    tag: c898e79ff31151e11d69e3fd2ae9c71011e4f558
 
 source-repository-package
     type: git
     location: https://github.com/tbidne/smart-math.git
-    tag: a8a1594a8c1d94c1e0177daf6f49a40c6ec56584
+    tag: 1b84af8a57a27a8919f73d3b5376c26c120410b6
 
 test-show-details: direct

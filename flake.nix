@@ -49,7 +49,15 @@
           ];
           devTools = c: with c; [
             (hlib.dontCheck ghcid)
-            haskell-language-server
+            (hlib.overrideCabal haskell-language-server (old: {
+              configureFlags = (old.configureFlags or [ ]) ++
+                [
+                  "-f -brittany"
+                  "-f -floskell"
+                  "-f -fourmolu"
+                  "-f -stylishhaskell"
+                ];
+            }))
           ];
           ghc-version = "ghc944";
           hlib = pkgs.haskell.lib;
