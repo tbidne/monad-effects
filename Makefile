@@ -1,6 +1,20 @@
 .PHONY: build clean repl watch ;\
 	cic ci formatc format lint lintc ;\
-	haddock hackage
+	haddock hackage outdated
+
+PKGS := \
+	monad-async \
+	monad-env \
+	monad-exceptions \
+	monad-fs \
+	monad-ioref \
+	monad-logger-namespace \
+	monad-optparse \
+	monad-stm \
+	monad-system-time \
+	monad-terminal \
+	monad-thread \
+	monad-typed-process
 
 # core
 
@@ -52,32 +66,21 @@ lintc:
 haddock:
 	cabal haddock all --haddock-hyperlink-source --haddock-quickjump ;\
 	mkdir -p docs/ ;\
-	rm -rf docs/monad-async* ;\
-	rm -rf docs/monad-env* ;\
-	rm -rf docs/monad-exceptions* ;\
-	rm -rf docs/monad-fs* ;\
-	rm -rf docs/monad-ioref* ;\
-	rm -rf docs/monad-logger-namespace* ;\
-	rm -rf docs/monad-optparse* ;\
-	rm -rf docs/monad-stm* ;\
-	rm -rf docs/monad-system-time* ;\
-	rm -rf docs/monad-terminal* ;\
-	rm -rf docs/monad-thread* ;\
-	rm -rf docs/monad-typed-process* ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.4.4/monad-async-0.1/doc/html/* docs/ ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.4.4/monad-env-0.1/doc/html/* docs/ ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.4.4/monad-exceptions-0.1/doc/html/* docs/ ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.4.4/monad-fs-0.1/doc/html/* docs/ ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.4.4/monad-ioref-0.1/doc/html/* docs/ ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.4.4/monad-logger-namespace-0.1/doc/html/* docs/ ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.4.4/monad-optparse-0.1/doc/html/* docs/ ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.4.4/monad-stm-0.1/doc/html/* docs/ ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.4.4/monad-system-time-0.1/doc/html/* docs/ ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.4.4/monad-terminal-0.1/doc/html/* docs/ ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.4.4/monad-thread-0.1/doc/html/* docs/ ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.4.4/monad-typed-process-0.1/doc/html/* docs/ ;\
 
-.PHONY: hackage
+	for p in $(PKGS); do \
+		rm -rf docs/$$p* ;\
+		cp -r dist-newstyle/build/x86_64-linux/ghc-9.4.4/$$p-0.1/doc/html/* docs/ ;\
+	done
+
 hackage:
 	cabal sdist ;\
 	cabal haddock --haddock-for-hackage --enable-doc
+
+outdated:
+	for p in $(PKGS); do \
+		echo $$p ;\
+		cd $$p ;\
+		cabal outdated ;\
+		echo "" ;\
+		cd ../ ;\
+	done
