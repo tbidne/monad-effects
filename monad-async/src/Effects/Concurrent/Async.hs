@@ -136,47 +136,71 @@ import Numeric.Data.Positive qualified as Positive
 --
 -- @since 0.1
 class (Monad m) => MonadAsync m where
-  -- | Lifted 'Async.async'.
+  -- | Spawn an asynchronous action in a separate thread.
+  --
+  -- Like for 'forkIO', the action may be left running unintentinally
+  -- (see module-level documentation for details).
+  --
+  -- __Use 'withAsync' style functions wherever you can instead!__
   --
   -- @since 0.1
   async :: (HasCallStack) => m a -> m (Async a)
 
-  -- | Lifted 'Async.asyncBound'.
+  -- | Like 'async' but using 'forkOS' internally.
   --
   -- @since 0.1
   asyncBound :: (HasCallStack) => m a -> m (Async a)
 
-  -- | Lifted 'Async.asyncOn'.
+  -- | Like 'async' but using 'forkOn' internally.
   --
   -- @since 0.1
   asyncOn :: (HasCallStack) => Int -> m a -> m (Async a)
 
-  -- | Lifted 'Async.asyncWithUnmask'.
+  -- | Like 'async' but using 'forkIOWithUnmask' internally.  The child
+  -- thread is passed a function that can be used to unmask asynchronous
+  -- exceptions.
   --
   -- @since 0.1
   asyncWithUnmask :: (HasCallStack) => ((forall b. m b -> m b) -> m a) -> m (Async a)
 
-  -- | Lifted 'Async.asyncOnWithUnmask'.
+  -- | Like 'asyncOn' but using 'forkOnWithUnmask' internally.  The
+  -- child thread is passed a function that can be used to unmask
+  -- asynchronous exceptions.
   --
   -- @since 0.1
   asyncOnWithUnmask :: (HasCallStack) => Int -> ((forall b. m b -> m b) -> m a) -> m (Async a)
 
-  -- | Lifted 'Async.withAsync'.
+  -- | Spawn an asynchronous action in a separate thread, and pass its
+  -- @Async@ handle to the supplied function.  When the function returns
+  -- or throws an exception, 'uninterruptibleCancel' is called on the @Async@.
+  --
+  -- > withAsync action inner = mask $ \restore -> do
+  -- >   a <- async (restore action)
+  -- >   restore (inner a) `finally` uninterruptibleCancel a
+  --
+  -- This is a useful variant of 'async' that ensures an @Async@ is
+  -- never left running unintentionally.
+  --
+  -- Note: a reference to the child thread is kept alive until the call
+  -- to `withAsync` returns, so nesting many `withAsync` calls requires
+  -- linear memory.
   --
   -- @since 0.1
   withAsync :: (HasCallStack) => m a -> (Async a -> m b) -> m b
 
-  -- | Lifted 'Async.withAsyncBound'.
+  -- | Like 'withAsync' but uses 'forkOS' internally.
   --
   -- @since 0.1
   withAsyncBound :: (HasCallStack) => m a -> (Async a -> m b) -> m b
 
-  -- | Lifted 'Async.withAsyncOn'.
+  -- | Like 'withAsync' but uses 'forkOn' internally.
   --
   -- @since 0.1
   withAsyncOn :: (HasCallStack) => Int -> m a -> (Async a -> m b) -> m b
 
-  -- | Lifted 'Async.withAsyncWithUnmask'.
+  -- | Like 'withAsync' but uses 'forkIOWithUnmask' internally.  The
+  -- child thread is passed a function that can be used to unmask
+  -- asynchronous exceptions.
   --
   -- @since 0.1
   withAsyncWithUnmask ::
@@ -185,7 +209,9 @@ class (Monad m) => MonadAsync m where
     (Async a -> m b) ->
     m b
 
-  -- | Lifted 'Async.withAsyncOnWithUnmask'.
+  -- | Like 'withAsyncOn' but uses 'forkOnWithUnmask' internally.  The
+  -- child thread is passed a function that can be used to unmask
+  -- asynchronous exceptions.
   --
   -- @since 0.1
   withAsyncOnWithUnmask ::
@@ -195,27 +221,52 @@ class (Monad m) => MonadAsync m where
     (Async a -> m b) ->
     m b
 
-  -- | Lifted 'Async.linkOnly'.
+  -- | Link the given @Async@ to the current thread, such that if the
+  -- @Async@ raises an exception, that exception will be re-thrown in
+  -- the current thread, wrapped in 'ExceptionInLinkedThread'.
+  --
+  -- The supplied predicate determines which exceptions in the target
+  -- thread should be propagated to the source thread.
   --
   -- @since 0.1
   linkOnly :: (HasCallStack) => (SomeException -> Bool) -> Async a -> m ()
 
-  -- | Lifted 'Async.link2Only'.
+  -- | Link two @Async@s together, such that if either raises an
+  -- exception, the same exception is re-thrown in the other @Async@,
+  -- wrapped in 'ExceptionInLinkedThread'.
+  --
+  -- The supplied predicate determines which exceptions in the target
+  -- thread should be propagated to the source thread.
   --
   -- @since 0.1
   link2Only :: (HasCallStack) => (SomeException -> Bool) -> Async a -> Async b -> m ()
 
-  -- | Lifted 'Async.race'.
+  -- | Run two @IO@ actions concurrently, and return the first to
+  -- finish. The loser of the race is 'cancel'led.
+  --
+  -- > race left right =
+  -- >   withAsync left $ \a ->
+  -- >   withAsync right $ \b ->
+  -- >   waitEither a b
+  --
   --
   -- @since 0.1
   race :: (HasCallStack) => m a -> m b -> m (Either a b)
 
-  -- | Lifted 'Async.concurrently'.
+  -- | Run two @IO@ actions concurrently, and return both results.  If
+  -- either action throws an exception at any time, then the other
+  -- action is 'cancel'led, and the exception is re-thrown by
+  -- 'concurrently'.
+  --
+  -- > concurrently left right =
+  -- >   withAsync left $ \a ->
+  -- >   withAsync right $ \b ->
+  -- >   waitBoth a b
   --
   -- @since 0.1
   concurrently :: (HasCallStack) => m a -> m b -> m (a, b)
 
-  -- | Lifted 'Async.concurrently_'.
+  -- | 'concurrently', but ignore the result values
   --
   -- @since 0.1
   concurrently_ :: (HasCallStack) => m a -> m b -> m ()
@@ -345,21 +396,45 @@ usingReaderT = flip runReaderT
 -- base's Control.Exception), and we do not want to deviate from its
 -- behavior.
 
--- | Lifted 'Async.poll'.
+-- | Check whether an 'Async' has completed yet.  If it has not
+-- completed yet, then the result is @Nothing@, otherwise the result
+-- is @Just e@ where @e@ is @Left x@ if the @Async@ raised an
+-- exception @x@, or @Right a@ if it returned a value @a@.
+--
+-- > poll = atomically . pollSTM
 --
 -- @since 0.1
 poll :: forall m a. (MonadSTM m) => Async a -> m (Maybe (Either SomeException a))
 poll = atomically . Async.pollSTM
 {-# INLINE poll #-}
 
--- | Lifted 'Async.wait'.
+-- | Wait for an asynchronous action to complete, and return its
+-- value. If the asynchronous action threw an exception, then the
+-- exception is re-thrown by 'wait'.
+--
+-- > wait = atomically . waitSTM
 --
 -- @since 0.1
 wait :: forall m a. (MonadCatch m, MonadSTM m) => Async a -> m a
 wait = tryAgain . atomically . Async.waitSTM
 {-# INLINE wait #-}
 
--- | Lifted 'Async.cancel'.
+-- | Cancel an asynchronous action by throwing the @AsyncCancelled@
+-- exception to it, and waiting for the `Async` thread to quit.
+-- Has no effect if the 'Async' has already completed.
+--
+-- > cancel a = throwTo (asyncThreadId a) AsyncCancelled <* waitCatch a
+--
+-- Note that 'cancel' will not terminate until the thread the 'Async'
+-- refers to has terminated. This means that 'cancel' will block for
+-- as long said thread blocks when receiving an asynchronous exception.
+--
+-- For example, it could block if:
+--
+-- * It's executing a foreign call, and thus cannot receive the asynchronous
+-- exception;
+-- * It's executing some cleanup handler after having received the exception,
+-- and the handler is blocking.
 --
 -- @since 0.1
 cancel ::
@@ -376,7 +451,13 @@ cancel ::
 cancel a = throwTo (Async.asyncThreadId a) Async.AsyncCancelled <* waitCatch a
 {-# INLINE cancel #-}
 
--- | Lifted 'Async.cancelWith'.
+-- | Cancel an asynchronous action by throwing the supplied exception
+-- to it.
+--
+-- > cancelWith a x = throwTo (asyncThreadId a) x
+--
+-- The notes about the synchronous nature of 'cancel' also apply to
+-- 'cancelWith'.
 --
 -- @since 0.1
 cancelWith ::
@@ -399,14 +480,21 @@ cancelWith a e =
     <* waitCatch a
 {-# INLINEABLE cancelWith #-}
 
--- | Lifted 'Async.waitAny'.
+-- | Wait for any of the supplied @Async@s to complete.  If the first
+-- to complete throws an exception, then that exception is re-thrown
+-- by 'waitAny'.
+--
+-- If multiple 'Async's complete or have completed, then the value
+-- returned corresponds to the first completed 'Async' in the list.
 --
 -- @since 0.1
 waitAny :: forall m a. (HasCallStack, MonadSTM m) => [Async a] -> m (Async a, a)
 waitAny = atomically . Async.waitAnySTM
 {-# INLINE waitAny #-}
 
--- | Lifted 'Async.uninterruptibleCancel'.
+-- | Cancel an asynchronous action.
+--
+-- This is a variant of `cancel`, but it is not interruptible.
 --
 -- @since 0.1
 uninterruptibleCancel ::
@@ -422,7 +510,11 @@ uninterruptibleCancel ::
 uninterruptibleCancel = Ex.uninterruptibleMask_ . cancel
 {-# INLINE uninterruptibleCancel #-}
 
--- | Lifted 'Async.waitCatch'.
+-- | Wait for an asynchronous action to complete, and return either
+-- @Left e@ if the action raised an exception @e@, or @Right a@ if it
+-- returned a value @a@.
+--
+-- > waitCatch = atomically . waitCatchSTM
 --
 -- @since 0.1
 waitCatch ::
@@ -441,7 +533,12 @@ tryAgain :: forall m a. (MonadCatch m) => m a -> m a
 tryAgain f = f `Ex.catch` \BlockedIndefinitelyOnSTM -> f
 {-# INLINE tryAgain #-}
 
--- | Lifted 'Async.waitAnyCatch'.
+-- | Wait for any of the supplied asynchronous operations to complete.
+-- The value returned is a pair of the 'Async' that completed, and the
+-- result that would be returned by 'wait' on that 'Async'.
+--
+-- If multiple 'Async's complete or have completed, then the value
+-- returned corresponds to the first completed 'Async' in the list.
 --
 -- @since 0.1
 waitAnyCatch ::
@@ -455,7 +552,8 @@ waitAnyCatch ::
 waitAnyCatch = atomically . Async.waitAnyCatchSTM
 {-# INLINE waitAnyCatch #-}
 
--- | Lifted 'Async.waitAnyCancel'.
+-- | Like 'waitAny', but also cancels the other asynchronous
+-- operations as soon as one has completed.
 --
 -- @since 0.1
 waitAnyCancel ::
@@ -473,7 +571,8 @@ waitAnyCancel asyncs =
   waitAny asyncs `Ex.finally` mapM_ cancel asyncs
 {-# INLINEABLE waitAnyCancel #-}
 
--- | Lifted 'Async.waitAnyCatchCancel'.
+-- | Like 'waitAnyCatch', but also cancels the other asynchronous
+-- operations as soon as one has completed.
 --
 -- @since 0.1
 waitAnyCatchCancel ::
@@ -491,7 +590,9 @@ waitAnyCatchCancel asyncs =
   waitAnyCatch asyncs `Ex.finally` mapM_ cancel asyncs
 {-# INLINEABLE waitAnyCatchCancel #-}
 
--- | Lifted 'Async.waitEither'.
+-- | Wait for the first of two @Async@s to finish.  If the @Async@
+-- that finished first raised an exception, then the exception is
+-- re-thrown by 'waitEither'.
 --
 -- @since 0.1
 waitEither ::
@@ -505,7 +606,7 @@ waitEither ::
 waitEither left right = atomically (Async.waitEitherSTM left right)
 {-# INLINE waitEither #-}
 
--- | Lifted 'Async.waitEitherCatch'.
+-- | Wait for the first of two @Async@s to finish.
 --
 -- @since 0.1
 waitEitherCatch ::
@@ -520,7 +621,8 @@ waitEitherCatch ::
 waitEitherCatch left right = atomically (Async.waitEitherCatchSTM left right)
 {-# INLINE waitEitherCatch #-}
 
--- | Lifted 'Async.waitEitherCancel'.
+-- | Like 'waitEither', but also 'cancel's both @Async@s before
+-- returning.
 --
 -- @since 0.1
 waitEitherCancel ::
@@ -539,7 +641,8 @@ waitEitherCancel left right =
   waitEither left right `Ex.finally` (cancel left *> cancel right)
 {-# INLINE waitEitherCancel #-}
 
--- | Lifted 'Async.waitEitherCatchCancel'.
+-- | Like 'waitEitherCatch', but also 'cancel's both @Async@s before
+-- returning.
 --
 -- @since 0.1
 waitEitherCatchCancel ::
@@ -562,7 +665,7 @@ waitEitherCatchCancel left right =
   waitEitherCatch left right `Ex.finally` (cancel left *> cancel right)
 {-# INLINEABLE waitEitherCatchCancel #-}
 
--- | Lifted 'Async.waitEither_'.
+-- | Like 'waitEither', but the result is ignored.
 --
 -- @since 0.1
 waitEither_ ::
@@ -576,7 +679,9 @@ waitEither_ ::
 waitEither_ left right = atomically (Async.waitEitherSTM_ left right)
 {-# INLINE waitEither_ #-}
 
--- | Lifted 'Async.waitBoth'.
+-- | Waits for both @Async@s to finish, but if either of them throws
+-- an exception before they have both finished, then the exception is
+-- re-thrown by 'waitBoth'.
 --
 -- @since 0.1
 waitBoth ::
@@ -592,14 +697,28 @@ waitBoth ::
 waitBoth left right = tryAgain $ atomically (Async.waitBothSTM left right)
 {-# INLINE waitBoth #-}
 
--- | Lifted 'Async.race_'.
+-- | Like 'race', but the result is ignored.
 --
 -- @since 0.1
 race_ :: forall m a b. (MonadAsync m) => m a -> m b -> m ()
 race_ left = void . race left
 {-# INLINEABLE race_ #-}
 
--- | Like 'Async.Concurrently', but lifted to some @m@.
+-- | A value of type @Concurrently a@ is an @m@ operation that can be
+-- composed with other @Concurrently@ values, using the @Applicative@
+-- and @Alternative@ instances.
+--
+-- Calling @runConcurrently@ on a value of type @Concurrently a@ will
+-- execute the @IO@ operations it contains concurrently, before
+-- delivering the result of type @a@.
+--
+-- For example
+--
+-- > (page1, page2, page3)
+-- >     <- runConcurrently $ (,,)
+-- >     <$> Concurrently (getURL "url1")
+-- >     <*> Concurrently (getURL "url2")
+-- >     <*> Concurrently (getURL "url3")
 --
 -- @since 0.1
 newtype Concurrently m a = Concurrently
@@ -632,7 +751,22 @@ instance (MonadAsync m, Monoid a) => Monoid (Concurrently m a) where
   mempty = pure mempty
   mappend = (<>)
 
--- | Lifted 'Async.mapConcurrently'.
+-- | Maps an @m@-performing function over any 'Traversable' data
+-- type, performing all the @m@ actions concurrently, and returning
+-- the original data structure with the arguments replaced by the
+-- results.
+--
+-- If any of the actions throw an exception, then all other actions are
+-- cancelled and the exception is re-thrown.
+--
+-- For example, @mapConcurrently@ works with lists:
+--
+-- > pages <- mapConcurrently getURL ["url1", "url2", "url3"]
+--
+-- Take into account that @async@ will try to immediately spawn a thread
+-- for each element of the @Traversable@, so running this on large
+-- inputs without care may lead to resource exhaustion (of memory,
+-- file descriptors, or other limited resources).
 --
 -- @since 0.1
 mapConcurrently ::
@@ -646,7 +780,9 @@ mapConcurrently ::
 mapConcurrently f = runConcurrently . traverse (Concurrently . f)
 {-# INLINEABLE mapConcurrently #-}
 
--- | Lifted 'Async.forConcurrently'.
+-- | `forConcurrently` is `mapConcurrently` with its arguments flipped.
+--
+-- > pages <- forConcurrently ["url1", "url2", "url3"] $ \url -> getURL url
 --
 -- @since 0.1
 forConcurrently ::
@@ -660,7 +796,8 @@ forConcurrently ::
 forConcurrently = flip mapConcurrently
 {-# INLINEABLE forConcurrently #-}
 
--- | Lifted 'Async.mapConcurrently_'.
+-- | `mapConcurrently_` is `mapConcurrently` with the return value discarded;
+-- a concurrent equivalent of 'mapM_'.
 --
 -- @since 0.1
 mapConcurrently_ ::
@@ -674,7 +811,8 @@ mapConcurrently_ ::
 mapConcurrently_ f = runConcurrently . foldMap (Concurrently . void . f)
 {-# INLINEABLE mapConcurrently_ #-}
 
--- | Lifted 'Async.forConcurrently_'.
+-- | `forConcurrently_` is `forConcurrently` with the return value discarded;
+-- a concurrent equivalent of 'forM_'.
 --
 -- @since 0.1
 forConcurrently_ ::
@@ -688,14 +826,14 @@ forConcurrently_ ::
 forConcurrently_ = flip mapConcurrently_
 {-# INLINEABLE forConcurrently_ #-}
 
--- | Lifted 'Async.replicateConcurrently'.
+-- | Perform the action in the given number of threads.
 --
 -- @since 0.1
 replicateConcurrently :: forall m a. (MonadAsync m) => Int -> m a -> m [a]
 replicateConcurrently cnt = runConcurrently . replicateM cnt . Concurrently
 {-# INLINEABLE replicateConcurrently #-}
 
--- | Lifted 'Async.replicateConcurrently_'.
+-- | Same as 'replicateConcurrently', but ignore the results.
 --
 -- @since 0.1
 replicateConcurrently_ :: forall m a. (MonadAsync m) => Int -> m a -> m ()
@@ -703,14 +841,26 @@ replicateConcurrently_ cnt =
   runConcurrently . fold . replicate cnt . Concurrently . void
 {-# INLINEABLE replicateConcurrently_ #-}
 
--- | Lifted 'Async.link'.
+-- | Link the given @Async@ to the current thread, such that if the
+-- @Async@ raises an exception, that exception will be re-thrown in
+-- the current thread, wrapped in 'ExceptionInLinkedThread'.
+--
+-- 'link' ignores 'AsyncCancelled' exceptions thrown in the other thread,
+-- so that it's safe to 'cancel' a thread you're linked to.  If you want
+-- different behaviour, use 'linkOnly'.
 --
 -- @since 0.1
 link :: (HasCallStack, MonadAsync m) => Async a -> m ()
 link = linkOnly (not . isCancel)
 {-# INLINEABLE link #-}
 
--- | Lifted 'Async.link2'.
+-- | Link two @Async@s together, such that if either raises an
+-- exception, the same exception is re-thrown in the other @Async@,
+-- wrapped in 'ExceptionInLinkedThread'.
+--
+-- 'link2' ignores 'AsyncCancelled' exceptions, so that it's possible
+-- to 'cancel' either thread without cancelling the other.  If you
+-- want different behaviour, use 'link2Only'.
 --
 -- @since 0.1
 link2 :: (HasCallStack, MonadAsync m) => Async a -> Async b -> m ()
@@ -728,7 +878,9 @@ isCancel e
 -- These functions mirror those defined in
 -- [unliftio](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#g:9).
 
--- | @unliftio@'s [pooledMapConcurrently](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#v:pooledMapConcurrently).
+-- | Similar to 'pooledMapConcurrentlyN' but with number of threads
+-- set from 'getNumCapabilities'. Usually this is useful for CPU bound
+-- tasks.
 --
 -- @since 0.1
 pooledMapConcurrently ::
@@ -748,7 +900,7 @@ pooledMapConcurrently f xs = do
   pooledMapConcurrentlyN (numProcs +!) f xs
 {-# INLINEABLE pooledMapConcurrently #-}
 
--- | @unliftio@'s [pooledMapConcurrently_](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#v:pooledMapConcurrently_)
+-- | Like 'pooledMapConcurrently' but with the return value discarded.
 --
 -- @since 0.1
 pooledMapConcurrently_ ::
@@ -768,7 +920,7 @@ pooledMapConcurrently_ f t = do
   pooledMapConcurrentlyN_ (numProcs +!) f t
 {-# INLINEABLE pooledMapConcurrently_ #-}
 
--- | @unliftio@'s [pooledForConcurrentlyN](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#v:pooledForConcurrentlyN).
+-- | Similar to 'pooledMapConcurrentlyN' but with flipped arguments.
 --
 -- @since 0.1
 pooledForConcurrentlyN ::
@@ -786,7 +938,9 @@ pooledForConcurrentlyN ::
 pooledForConcurrentlyN numProcs = flip (pooledMapConcurrentlyN numProcs)
 {-# INLINEABLE pooledForConcurrentlyN #-}
 
--- | @unliftio@'s [pooledForConcurrently](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#v:pooledForConcurrently).
+-- | Similar to 'pooledForConcurrentlyN' but with number of threads
+-- set from 'getNumCapabilities'. Usually this is useful for CPU bound
+-- tasks.
 --
 -- @since 0.1
 pooledForConcurrently ::
@@ -804,7 +958,7 @@ pooledForConcurrently ::
 pooledForConcurrently = flip pooledMapConcurrently
 {-# INLINEABLE pooledForConcurrently #-}
 
--- | @unliftio@'s [pooledForConcurrentlyN_](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#v:pooledForConcurrentlyN_).
+-- | Like 'pooledMapConcurrentlyN_' but with flipped arguments.
 --
 -- @since 0.1
 pooledForConcurrentlyN_ ::
@@ -822,7 +976,7 @@ pooledForConcurrentlyN_ ::
 pooledForConcurrentlyN_ numProcs = flip (pooledMapConcurrentlyN_ numProcs)
 {-# INLINEABLE pooledForConcurrentlyN_ #-}
 
--- | @unliftio@'s [pooledForConcurrently_](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#v:pooledForConcurrently_).
+-- | Like 'pooledMapConcurrently_' but with flipped arguments.
 --
 -- @since 0.1
 pooledForConcurrently_ ::
@@ -840,7 +994,8 @@ pooledForConcurrently_ ::
 pooledForConcurrently_ = flip pooledMapConcurrently_
 {-# INLINEABLE pooledForConcurrently_ #-}
 
--- | @unliftio@'s [pooledReplicateConcurrentlyN](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#v:pooledReplicateConcurrentlyN).
+-- | Pooled version of 'replicateConcurrently'. Performs the action in
+-- the pooled threads.
 --
 -- @since 0.1
 pooledReplicateConcurrentlyN ::
@@ -861,7 +1016,9 @@ pooledReplicateConcurrentlyN numProcs cnt task =
     else pooledMapConcurrentlyN numProcs (const task) [1 .. cnt]
 {-# INLINEABLE pooledReplicateConcurrentlyN #-}
 
--- | @unliftio@'s [pooledReplicateConcurrently](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#v:pooledReplicateConcurrently).
+-- | Similar to 'pooledReplicateConcurrentlyN' but with number of
+-- threads set from 'getNumCapabilities'. Usually this is useful for
+-- CPU bound tasks.
 --
 -- @since 0.1
 pooledReplicateConcurrently ::
@@ -881,7 +1038,8 @@ pooledReplicateConcurrently (MkPositive cnt) task =
     else pooledMapConcurrently (const task) [1 .. cnt]
 {-# INLINEABLE pooledReplicateConcurrently #-}
 
--- | @unliftio@'s [pooledReplicateConcurrentlyN_](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#v:pooledReplicateConcurrentlyN_).
+-- | Pooled version of 'replicateConcurrently_'. Performs the action in
+-- the pooled threads.
 --
 -- @since 0.1
 pooledReplicateConcurrentlyN_ ::
@@ -902,7 +1060,9 @@ pooledReplicateConcurrentlyN_ numProcs cnt task =
     else pooledMapConcurrentlyN_ numProcs (const task) [1 .. cnt]
 {-# INLINEABLE pooledReplicateConcurrentlyN_ #-}
 
--- | @unliftio@'s [pooledReplicateConcurrently_](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#v:pooledReplicateConcurrently_).
+-- | Similar to 'pooledReplicateConcurrently_' but with number of
+-- threads set from 'getNumCapabilities'. Usually this is useful for
+-- CPU bound tasks.
 --
 -- @since 0.1
 pooledReplicateConcurrently_ ::
@@ -922,7 +1082,71 @@ pooledReplicateConcurrently_ cnt task =
     else pooledMapConcurrently_ (const task) [1 .. cnt]
 {-# INLINEABLE pooledReplicateConcurrently_ #-}
 
--- | @unliftio@'s [pooledMapConcurrentlyN](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#v:pooledMapConcurrentlyN).
+-- | Like 'mapConcurrently' from async, but instead of one thread per
+-- element, it does pooling from a set of threads. This is useful in
+-- scenarios where resource consumption is bounded and for use cases
+-- where too many concurrent tasks aren't allowed.
+--
+-- === __Example usage__
+--
+-- @
+-- import Say
+--
+-- action :: Int -> IO Int
+-- action n = do
+--   tid <- myThreadId
+--   sayString $ show tid
+--   threadDelay (2 * 10^6) -- 2 seconds
+--   return n
+--
+-- main :: IO ()
+-- main = do
+--   yx \<- pooledMapConcurrentlyN 5 (\\x -\> action x) [1..5]
+--   print yx
+-- @
+--
+-- On executing you can see that five threads have been spawned:
+--
+-- @
+-- \$ ./pool
+-- ThreadId 36
+-- ThreadId 38
+-- ThreadId 40
+-- ThreadId 42
+-- ThreadId 44
+-- [1,2,3,4,5]
+-- @
+--
+--
+-- Let's modify the above program such that there are less threads
+-- than the number of items in the list:
+--
+-- @
+-- import Say
+--
+-- action :: Int -> IO Int
+-- action n = do
+--   tid <- myThreadId
+--   sayString $ show tid
+--   threadDelay (2 * 10^6) -- 2 seconds
+--   return n
+--
+-- main :: IO ()
+-- main = do
+--   yx \<- pooledMapConcurrentlyN 3 (\\x -\> action x) [1..5]
+--   print yx
+-- @
+-- On executing you can see that only three threads are active totally:
+--
+-- @
+-- \$ ./pool
+-- ThreadId 35
+-- ThreadId 37
+-- ThreadId 39
+-- ThreadId 35
+-- ThreadId 39
+-- [1,2,3,4,5]
+-- @
 --
 -- @since 0.1
 pooledMapConcurrentlyN ::
@@ -958,7 +1182,8 @@ pooledMapConcurrentlyN numProcs f xs = do
   for jobs (\(_, outputRef) -> readIORef outputRef)
 {-# INLINEABLE pooledMapConcurrentlyN #-}
 
--- | @unliftio@'s [pooledMapConcurrentlyN_](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#v:pooledMapConcurrentlyN_).
+-- | Like 'pooledMapConcurrentlyN' but with the return value
+-- discarded.
 --
 -- @since 0.1
 pooledMapConcurrentlyN_ ::
@@ -977,9 +1202,6 @@ pooledMapConcurrentlyN_ numProcs f =
   pooledMapConcurrentlyN_' numProcs (\x -> f x $> ())
 {-# INLINEABLE pooledMapConcurrentlyN_ #-}
 
--- | @unliftio@'s [pooledMapConcurrentlyN_'](https://hackage.haskell.org/package/unliftio-0.2.23.0/docs/UnliftIO-Async.html#v:pooledMapConcurrentlyN_').
---
--- @since 0.1
 pooledMapConcurrentlyN_' ::
   forall m f a.
   ( HasCallStack,
