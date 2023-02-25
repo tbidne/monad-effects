@@ -52,7 +52,6 @@ library
     , bytestring        >=0.10.12.0 && <0.12
     , monad-exceptions  ^>=0.1
     , monad-stm         ^>=0.1
-    , safe-exceptions   ^>=0.1.7.0
     , transformers      >=0.5.6.2   && <0.7
     , typed-process     >=0.1.0.0   && <0.3
 

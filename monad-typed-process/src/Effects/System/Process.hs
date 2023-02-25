@@ -93,12 +93,11 @@ module Effects.System.Process
   )
 where
 
-import Control.Exception.Safe (MonadMask, bracket, finally)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Data.ByteString.Lazy qualified as BSL
 import Effects.Concurrent.STM (MonadSTM (..))
-import Effects.Exception (addCS)
+import Effects.Exception (MonadMask, addCS, bracket, finally)
 import GHC.Conc (catchSTM, throwSTM)
 import GHC.Stack (HasCallStack)
 import System.Exit (ExitCode)
@@ -405,7 +404,7 @@ withProcessWait_ config f =
     (\p -> f p <* checkExitCode p)
 {-# INLINEABLE withProcessWait_ #-}
 
--- | Lifted Same as 'withProcessTerm', but also calls 'checkExitCode'
+-- | Lifted Same as 'withProcessTerm', but also calls 'checkExitCode'.
 --
 -- To interact with a @Process@ use the functions from the section
 -- [Interact with a process](#interactwithaprocess).
