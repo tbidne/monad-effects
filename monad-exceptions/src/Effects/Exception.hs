@@ -146,10 +146,6 @@ import GHC.Stack
 import GHC.Stack.Types (SrcLoc (..), fromCallSiteList, getCallStack)
 import System.Exit (ExitCode (..))
 
--- FIXME: Post GHC 9.8, what should become of this?
--- - Remove throwCS, etc.?
--- - Use CPP so that throwCS etc. are aliases? And deprecate?
-
 -------------------------------------------------------------------------------
 --                           MonadGlobalException                            --
 -------------------------------------------------------------------------------
@@ -190,6 +186,9 @@ instance (MonadGlobalException m) => MonadGlobalException (ReaderT env m) where
 -------------------------------------------------------------------------------
 --                                 CallStack                                 --
 -------------------------------------------------------------------------------
+
+-- NOTE: Post GHC 9.8, this entire section will be removed. We will instead
+-- use GHC's native exception handling.
 
 -- $callstack
 -- The callstack API and implementation is heavily inspired by the excellent
