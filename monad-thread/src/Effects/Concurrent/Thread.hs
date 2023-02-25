@@ -38,27 +38,97 @@ import GHC.Stack (HasCallStack)
 --
 -- @since 0.1
 class (Monad m) => MonadThread m where
-  -- | Lifted 'CC.threadDelay'.
+  -- | Suspends the current thread for a given number of microseconds
+  -- (GHC only).
+  --
+  -- There is no guarantee that the thread will be rescheduled promptly
+  -- when the delay has expired, but the thread will never continue to
+  -- run /earlier/ than specified.
   --
   -- @since 0.1
   threadDelay :: (HasCallStack) => Int -> m ()
 
-  -- | Lifted 'CC.throwTo'.
+  -- | 'throwTo' raises an arbitrary exception in the target thread (GHC only).
+  --
+  -- Exception delivery synchronizes between the source and target thread:
+  -- 'throwTo' does not return until the exception has been raised in the
+  -- target thread. The calling thread can thus be certain that the target
+  -- thread has received the exception. Exception delivery is also atomic
+  -- with respect to other exceptions. Atomicity is a useful property to have
+  -- when dealing with race conditions: e.g. if there are two threads that
+  -- can kill each other, it is guaranteed that only one of the threads
+  -- will get to kill the other.
+  --
+  -- Whatever work the target thread was doing when the exception was
+  -- raised is not lost: the computation is suspended until required by
+  -- another thread.
+  --
+  -- If the target thread is currently making a foreign call, then the
+  -- exception will not be raised (and hence 'throwTo' will not return)
+  -- until the call has completed. This is the case regardless of whether
+  -- the call is inside a 'mask' or not. However, in GHC a foreign call
+  -- can be annotated as @interruptible@, in which case a 'throwTo' will
+  -- cause the RTS to attempt to cause the call to return; see the GHC
+  -- documentation for more details.
+  --
+  -- Important note: the behaviour of 'throwTo' differs from that described in
+  -- the paper \"Asynchronous exceptions in Haskell\"
+  -- (<http://research.microsoft.com/~simonpj/Papers/asynch-exns.htm>).
+  -- In the paper, 'throwTo' is non-blocking; but the library implementation
+  -- adopts a more synchronous design in which 'throwTo' does not return until
+  -- the exception is received by the target thread. The trade-off is
+  -- discussed in Section 9 of the paper. Like any blocking operation,
+  -- 'throwTo' is therefore interruptible (see Section 5.3 of the paper).
+  -- Unlike other interruptible operations, however, 'throwTo' is /always/
+  -- interruptible, even if it does not actually block.
+  --
+  -- There is no guarantee that the exception will be delivered promptly,
+  -- although the runtime will endeavour to ensure that arbitrary
+  -- delays don't occur. In GHC, an exception can only be raised when a
+  -- thread reaches a /safe point/, where a safe point is where memory
+  -- allocation occurs. Some loops do not perform any memory allocation
+  -- inside the loop and therefore cannot be interrupted by a 'throwTo'.
+  --
+  -- If the target of 'throwTo' is the calling thread, then the behaviour
+  -- is the same as 'Control.Exception.throwIO', except that the exception
+  -- is thrown as an asynchronous exception. This means that if there is
+  -- an enclosing pure computation, which would be the case if the current
+  -- IO operation is inside 'unsafePerformIO' or 'unsafeInterleaveIO', that
+  -- computation is not permanently replaced by the exception, but is
+  -- suspended as if it had received an asynchronous exception.
+  --
+  -- Note that if 'throwTo' is called with the current thread as the
+  -- target, the exception will be thrown even if the thread is currently
+  -- inside 'mask' or 'uninterruptibleMask'.
   --
   -- @since 0.1
   throwTo :: (Exception e, HasCallStack) => ThreadId -> e -> m ()
 
-  -- | Lifted 'CC.getNumCapabilities'
+  -- | Returns the number of Haskell threads that can run truly
+  -- simultaneously (on separate physical processors) at any given time.
+  -- To change this value, use 'setNumCapabilities'.
   --
   -- @since 0.1
   getNumCapabilities :: (HasCallStack) => m Int
 
-  -- | Lifted 'CC.setNumCapabilities'
+  -- | Set the number of Haskell threads that can run truly simultaneously
+  -- (on separate physical processors) at any given time. The number
+  -- passed to `forkOn` is interpreted modulo this value. The initial
+  -- value is given by the @+RTS -N@ runtime flag.
+  --
+  -- This is also the number of threads that will participate in parallel
+  -- garbage collection. It is strongly recommended that the number of
+  -- capabilities is not set larger than the number of physical processor
+  -- cores, and it may often be beneficial to leave one or more cores free
+  -- to avoid contention with other processes in the machine.
   --
   -- @since 0.1
   setNumCapabilities :: (HasCallStack) => Int -> m ()
 
-  -- | Lifted 'CC.threadCapability'
+  -- | Returns the number of the capability on which the thread is currently
+  -- running, and a boolean indicating whether the thread is locked to
+  -- that capability or not. A thread is locked to a capability if it
+  -- was created with @forkOn@.
   --
   -- @since 0.1
   threadCapability :: (HasCallStack) => ThreadId -> m (Int, Bool)
@@ -125,32 +195,34 @@ i2n = fromIntegral
 --
 -- @since 0.1
 class (Monad m) => MonadQSem m where
-  -- | Lifted 'QSem.newQSem'.
+  -- | Build a new 'QSem' with a supplied initial quantity.
+  -- The initial quantity must be at least 0.
   --
   -- @since 0.1
   newQSem :: Int -> m QSem
 
-  -- | Lifted 'QSem.waitQSem'.
+  -- | Wait for a unit to become available.
   --
   -- @since 0.1
   waitQSem :: QSem -> m ()
 
-  -- | Lifted 'QSem.signalQSem'.
+  -- | Signal that a unit of the 'QSem' is available.
   --
   -- @since 0.1
   signalQSem :: QSem -> m ()
 
-  -- | Lifted 'QSemN.newQSemN'.
+  -- | Build a new 'QSemN' with a supplied initial quantity.
+  -- The initial quantity must be at least 0.
   --
   -- @since 0.1
   newQSemN :: Int -> m QSemN
 
-  -- | Lifted 'QSemN.waitQSemN'.
+  -- | Wait for the specified quantity to become available.
   --
   -- @since 0.1
   waitQSemN :: QSemN -> Int -> m ()
 
-  -- | Lifted 'QSemN.signalQSemN'.
+  -- | Signal that a given quantity is now available from the 'QSemN'.
   --
   -- @since 0.1
   signalQSemN :: QSemN -> Int -> m ()
