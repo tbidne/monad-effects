@@ -73,39 +73,44 @@ instance Exception TermSizeException where
 --
 -- @since 0.1
 class Monad m => MonadTerminal m where
-  -- | Lifted 'IO.putStr'.
+  -- | Write a character to the standard output device
+  -- (same as 'hPutChar' 'stdout').
   --
   -- @since 0.1
   putStr :: HasCallStack => String -> m ()
   putStr = putBinary . Char8.pack
   {-# INLINEABLE putStr #-}
 
-  -- | Lifted 'IO.putStrLn'.
+  -- | The same as 'putStr', but adds a newline character.
   --
   -- @since 0.1
   putStrLn :: HasCallStack => String -> m ()
   putStrLn = putStr . (<> "\n")
   {-# INLINEABLE putStrLn #-}
 
-  -- | Lifted 'BS.putStr'.
+  -- | Write a ByteString to 'stdout'.
   --
   -- @since 0.1
   putBinary :: HasCallStack => ByteString -> m ()
   putBinary = putStr . Char8.unpack
   {-# INLINEABLE putBinary #-}
 
-  -- | Lifted 'IO.getChar'.
+  -- | Read a character from the standard input device
+  -- (same as 'hGetChar' 'stdin').
   --
   -- @since 0.1
   getChar :: HasCallStack => m Char
 
-  -- | Lifted 'IO.getLine'.
+  -- | Read a line from the standard input device
+  -- (same as 'hGetLine' 'stdin').
   --
   -- @since 0.1
   getLine :: HasCallStack => m String
 
 #if MIN_VERSION_base(4,15,0)
-  -- | Lifted 'IO.getContents''.
+  -- | The 'getContents'' operation returns all user input as a single string,
+  -- which is fully read before being returned
+  -- (same as 'hGetContents'' 'stdin').
   --
   -- @since 0.1
   getContents' :: HasCallStack => m String
@@ -165,7 +170,16 @@ instance MonadTerminal m => MonadTerminal (ReaderT e m) where
 
 {- ORMOLU_ENABLE -}
 
--- | Lifted 'IO.print'.
+-- | The 'print' function outputs a value of any printable type to the
+-- standard output device.
+-- Printable types are those that are instances of class 'Show'; 'print'
+-- converts values to strings for output using the 'show' operation and
+-- adds a newline.
+--
+-- For example, a program to print the first 20 integers and their
+-- powers of 2 could be written as:
+--
+-- > main = print ([(n, 2^n) | n <- [0..19]])
 --
 -- @since 0.1
 print :: (HasCallStack, MonadTerminal m) => String -> m ()
