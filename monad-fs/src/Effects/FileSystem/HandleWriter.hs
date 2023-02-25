@@ -33,7 +33,8 @@ import Data.ByteString.Char8 qualified as Char8
 import Data.Text (Text)
 import Effects.Exception (MonadThrow, addCS, exitFailure)
 import Effects.FileSystem.FileWriter (encodeLatin1, encodeUtf8)
-import Effects.FileSystem.Path (Path, openBinaryFileIO, withBinaryFileIO)
+import Effects.FileSystem.Internal (openBinaryFileIO, withBinaryFileIO)
+import Effects.FileSystem.Path (Path)
 import GHC.Stack (HasCallStack)
 import System.IO (BufferMode (..), Handle, IOMode (..), SeekMode (..))
 import System.IO qualified as IO

@@ -28,7 +28,8 @@ import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TEnc
 import Effects.Exception (addCS)
-import Effects.FileSystem.Path (Path, appendBinaryFileIO, writeBinaryFileIO)
+import Effects.FileSystem.Internal (appendBinaryFileIO, writeBinaryFileIO)
+import Effects.FileSystem.Path (Path)
 import GHC.Stack (HasCallStack)
 
 -- | Represents file-system writer effects.

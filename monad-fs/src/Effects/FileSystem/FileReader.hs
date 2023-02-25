@@ -32,7 +32,8 @@ import Data.Text.Encoding qualified as TEnc
 import Data.Text.Encoding.Error (UnicodeException)
 import Data.Text.Encoding.Error qualified as TEncError
 import Effects.Exception (MonadThrow, addCS, throwCS)
-import Effects.FileSystem.Path (Path, readBinaryFileIO)
+import Effects.FileSystem.Internal (readBinaryFileIO)
+import Effects.FileSystem.Path (Path)
 import GHC.Stack (HasCallStack)
 
 -- | Represents file-system reader effects.

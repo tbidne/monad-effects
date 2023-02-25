@@ -50,6 +50,7 @@ library
     Effects.FileSystem.FileWriter
     Effects.FileSystem.HandleReader
     Effects.FileSystem.HandleWriter
+    Effects.FileSystem.Internal
     Effects.FileSystem.Path
     Effects.FileSystem.PathReader
     Effects.FileSystem.PathWriter
