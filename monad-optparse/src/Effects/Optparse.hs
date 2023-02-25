@@ -23,17 +23,20 @@ import Prelude hiding (getChar, getLine, print, putStr, putStrLn)
 --
 -- @since 0.1
 class (Monad m) => MonadOptparse m where
-  -- | Lifted 'OA.execParser'.
+  -- | Run a program description.
+  --
+  -- Parse command line arguments. Display help text and exit if any parse error
+  -- occurs.
   --
   -- @since 0.1
   execParser :: (HasCallStack) => ParserInfo a -> m a
 
-  -- | Lifted 'OA.customExecParser'.
+  -- | Run a program description with custom preferences.
   --
   -- @since 0.1
   customExecParser :: (HasCallStack) => ParserPrefs -> ParserInfo a -> m a
 
-  -- | Lifted 'OA.handleParseResult'.
+  -- | Handle `ParserResult`.
   --
   -- @since 0.1
   handleParseResult :: (HasCallStack) => ParserResult a -> m a
