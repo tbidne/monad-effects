@@ -6,13 +6,15 @@ module Effects.FileSystem.FileReader
     MonadFileReader (..),
     Path,
 
-    -- * UTF-8 Utils
+    -- * Text Utils
     readFileUtf8,
     readFileUtf8Lenient,
     readFileUtf8ThrowM,
+    readFileLatin1,
     decodeUtf8,
     decodeUtf8Lenient,
     decodeUtf8ThrowM,
+    TEnc.decodeLatin1,
 
     -- * Reexports
     ByteString,
@@ -115,6 +117,18 @@ readFileUtf8ThrowM ::
   m Text
 readFileUtf8ThrowM = readBinaryFile >=> decodeUtf8ThrowM
 {-# INLINEABLE readFileUtf8ThrowM #-}
+
+-- | Reads a file as Latin-1.
+--
+-- @since 0.1
+readFileLatin1 ::
+  ( HasCallStack,
+    MonadFileReader m
+  ) =>
+  Path ->
+  m Text
+readFileLatin1 = fmap TEnc.decodeLatin1 . readBinaryFile
+{-# INLINEABLE readFileLatin1 #-}
 
 (>.>) :: (a -> b) -> (b -> c) -> a -> c
 (>.>) = flip (.)

@@ -5,22 +5,27 @@ module Effects.FileSystem.HandleReader
   ( -- * Effect
     MonadHandleReader (..),
 
-    -- * UTF-8 Utils
+    -- * Text Utils
     hGetLineUtf8,
     hGetLineUtf8Lenient,
     hGetLineUtf8ThrowM,
+    hGetLineLatin1,
     hGetContentsUtf8,
     hGetContentsUtf8Lenient,
     hGetContentsUtf8ThrowM,
+    hGetContentsLatin1,
     hGetUtf8,
     hGetUtf8Lenient,
     hGetUtf8ThrowM,
+    hGetLatin1,
     hGetSomeUtf8,
     hGetSomeUtf8Lenient,
     hGetSomeUtf8ThrowM,
+    hGetSomeLatin1,
     hGetNonBlockingUtf8,
     hGetNonBlockingUtf8Lenient,
     hGetNonBlockingUtf8ThrowM,
+    hGetNonBlockingLatin1,
 
     -- * Reexports
     ByteString,
@@ -39,7 +44,8 @@ import Data.Text (Text)
 import Data.Text.Encoding.Error (UnicodeException)
 import Effects.Exception (MonadThrow, addCS)
 import Effects.FileSystem.FileReader
-  ( decodeUtf8,
+  ( decodeLatin1,
+    decodeUtf8,
     decodeUtf8Lenient,
     decodeUtf8ThrowM,
   )
@@ -322,6 +328,13 @@ hGetLineUtf8ThrowM ::
 hGetLineUtf8ThrowM = hGetLine >=> decodeUtf8ThrowM
 {-# INLINEABLE hGetLineUtf8ThrowM #-}
 
+-- | 'hGetLine' that converts to Latin-1.
+--
+-- @since 0.1
+hGetLineLatin1 :: (HasCallStack, MonadHandleReader m) => Handle -> m Text
+hGetLineLatin1 = fmap decodeLatin1 . hGetLine
+{-# INLINEABLE hGetLineLatin1 #-}
+
 -- | 'hGetContents' that attempts a UTF-8 conversion.
 --
 -- @since 0.1
@@ -358,6 +371,18 @@ hGetContentsUtf8ThrowM ::
   m Text
 hGetContentsUtf8ThrowM = hGetContents >=> decodeUtf8ThrowM
 {-# INLINEABLE hGetContentsUtf8ThrowM #-}
+
+-- | 'hGetContents' that converts to Latin-1.
+--
+-- @since 0.1
+hGetContentsLatin1 ::
+  ( HasCallStack,
+    MonadHandleReader m
+  ) =>
+  Handle ->
+  m Text
+hGetContentsLatin1 = fmap decodeLatin1 . hGetContents
+{-# INLINEABLE hGetContentsLatin1 #-}
 
 -- | 'hGet' that attempts a UTF-8 conversion.
 --
@@ -399,6 +424,19 @@ hGetUtf8ThrowM ::
 hGetUtf8ThrowM h = hGet h >=> decodeUtf8ThrowM
 {-# INLINEABLE hGetUtf8ThrowM #-}
 
+-- | 'hGet' that converts to Latin-1.
+--
+-- @since 0.1
+hGetLatin1 ::
+  ( HasCallStack,
+    MonadHandleReader m
+  ) =>
+  Handle ->
+  Int ->
+  m Text
+hGetLatin1 h = fmap decodeLatin1 . hGet h
+{-# INLINEABLE hGetLatin1 #-}
+
 -- | 'hGetSome' that attempts a UTF-8 conversion.
 --
 -- @since 0.1
@@ -439,6 +477,19 @@ hGetSomeUtf8ThrowM ::
 hGetSomeUtf8ThrowM h = hGetSome h >=> decodeUtf8ThrowM
 {-# INLINEABLE hGetSomeUtf8ThrowM #-}
 
+-- | 'hGetSome' that converts to Latin-1.
+--
+-- @since 0.1
+hGetSomeLatin1 ::
+  ( HasCallStack,
+    MonadHandleReader m
+  ) =>
+  Handle ->
+  Int ->
+  m Text
+hGetSomeLatin1 h = fmap decodeLatin1 . hGetSome h
+{-# INLINEABLE hGetSomeLatin1 #-}
+
 -- | 'hGetNonBlocking' that attempts a UTF-8 conversion.
 --
 -- @since 0.1
@@ -478,3 +529,16 @@ hGetNonBlockingUtf8ThrowM ::
   m Text
 hGetNonBlockingUtf8ThrowM h = hGetNonBlocking h >=> decodeUtf8ThrowM
 {-# INLINEABLE hGetNonBlockingUtf8ThrowM #-}
+
+-- | 'hGetNonBlocking' that converts to Latin-1.
+--
+-- @since 0.1
+hGetNonBlockingLatin1 ::
+  ( HasCallStack,
+    MonadHandleReader m
+  ) =>
+  Handle ->
+  Int ->
+  m Text
+hGetNonBlockingLatin1 h = fmap decodeLatin1 . hGetNonBlocking h
+{-# INLINEABLE hGetNonBlockingLatin1 #-}

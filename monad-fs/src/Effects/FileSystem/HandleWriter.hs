@@ -6,12 +6,11 @@ module Effects.FileSystem.HandleWriter
     MonadHandleWriter (..),
     Path,
 
-    -- * UTF-8 Utils
+    -- * Text Utils
     hPutUtf8,
-    hPutNonBlockingUtf8',
+    hPutLatin1,
     hPutNonBlockingUtf8,
-    hPutNonBlockingUtf8Lenient,
-    hPutNonBlockingUtf8ThrowM,
+    hPutNonBlockingLatin1,
 
     -- * Misc
     die,
@@ -26,7 +25,6 @@ module Effects.FileSystem.HandleWriter
   )
 where
 
-import Control.Monad ((>=>))
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Data.ByteString (ByteString)
@@ -34,13 +32,7 @@ import Data.ByteString qualified as BS
 import Data.ByteString.Char8 qualified as Char8
 import Data.Text (Text)
 import Effects.Exception (MonadThrow, addCS, exitFailure)
-import Effects.FileSystem.FileReader
-  ( UnicodeException,
-    decodeUtf8,
-    decodeUtf8Lenient,
-    decodeUtf8ThrowM,
-  )
-import Effects.FileSystem.FileWriter (encodeUtf8)
+import Effects.FileSystem.FileWriter (encodeLatin1, encodeUtf8)
 import Effects.FileSystem.Path (Path, openBinaryFileIO, withBinaryFileIO)
 import GHC.Stack (HasCallStack)
 import System.IO (BufferMode (..), Handle, IOMode (..), SeekMode (..))
@@ -232,21 +224,14 @@ hPutUtf8 :: (HasCallStack, MonadHandleWriter m) => Handle -> Text -> m ()
 hPutUtf8 h = hPut h . encodeUtf8
 {-# INLINEABLE hPutUtf8 #-}
 
--- | Writes UTF-8 text to handle, returning leftover bytes.
+-- | Writes the Latin-1 text to the handle.
 --
 -- @since 0.1
-hPutNonBlockingUtf8' ::
-  ( HasCallStack,
-    MonadHandleWriter m
-  ) =>
-  Handle ->
-  Text ->
-  m ByteString
-hPutNonBlockingUtf8' h = hPutNonBlocking h . encodeUtf8
-{-# INLINEABLE hPutNonBlockingUtf8' #-}
+hPutLatin1 :: (HasCallStack, MonadHandleWriter m) => Handle -> Text -> m ()
+hPutLatin1 h = hPut h . encodeLatin1
+{-# INLINEABLE hPutLatin1 #-}
 
--- | Writes UTF-8 text to handle. Any leftover bytes are returned, after
--- attempted UTF-8 decoding.
+-- | Writes UTF-8 text to handle, returning leftover bytes.
 --
 -- @since 0.1
 hPutNonBlockingUtf8 ::
@@ -255,43 +240,22 @@ hPutNonBlockingUtf8 ::
   ) =>
   Handle ->
   Text ->
-  m (Either UnicodeException Text)
-hPutNonBlockingUtf8 h = fmap decodeUtf8 . hPutNonBlocking h . encodeUtf8
+  m ByteString
+hPutNonBlockingUtf8 h = hPutNonBlocking h . encodeUtf8
 {-# INLINEABLE hPutNonBlockingUtf8 #-}
 
--- | Writes UTF-8 text to handle. Any leftover bytes are returned, after
--- lenient UTF-8 conversion.
+-- | Writes Latin-1 text to handle, returning leftover bytes.
 --
 -- @since 0.1
-hPutNonBlockingUtf8Lenient ::
+hPutNonBlockingLatin1 ::
   ( HasCallStack,
     MonadHandleWriter m
   ) =>
   Handle ->
   Text ->
-  m Text
-hPutNonBlockingUtf8Lenient h =
-  fmap decodeUtf8Lenient
-    . hPutNonBlocking h
-    . encodeUtf8
-{-# INLINEABLE hPutNonBlockingUtf8Lenient #-}
-
--- | Writes UTF-8 text to handle. Any leftover bytes are returned, after
--- UTF-8 conversion. Throws 'UnicodeException' if there are any decode
--- errors.
---
--- @since 0.1
-hPutNonBlockingUtf8ThrowM ::
-  ( HasCallStack,
-    MonadHandleWriter m,
-    MonadThrow m
-  ) =>
-  Handle ->
-  Text ->
-  m Text
-hPutNonBlockingUtf8ThrowM h =
-  (hPutNonBlocking h . encodeUtf8) >=> decodeUtf8ThrowM
-{-# INLINEABLE hPutNonBlockingUtf8ThrowM #-}
+  m ByteString
+hPutNonBlockingLatin1 h = hPutNonBlocking h . encodeLatin1
+{-# INLINEABLE hPutNonBlockingLatin1 #-}
 
 -- | Write given error message to `stderr` and terminate with `exitFailure`.
 --
