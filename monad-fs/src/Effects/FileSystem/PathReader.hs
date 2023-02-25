@@ -717,7 +717,7 @@ getXdgCache = getXdgDirectory XdgCache
 {-# INLINEABLE getXdgCache #-}
 
 #if MIN_VERSION_directory(1,3,7)
--- | Retrieves the Xdg state directory e.g. @~/.local/state@.
+-- | Retrieves the Xdg state directory e.g. @~/.local\/state@.
 --
 -- @since 0.1
 getXdgState :: (HasCallStack, MonadPathReader m) => Path -> m Path
