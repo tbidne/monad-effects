@@ -116,7 +116,10 @@ import System.Process.Typed qualified as P
 --
 -- @since 0.1
 class (Monad m) => MonadProcess m where
-  -- | Lifted 'P.readProcessInterleaved'.
+  -- | Same as 'readProcess', but interleaves stderr with stdout.
+  --
+  -- Motivation: Use this function if you need stdout interleaved with stderr
+  -- output (e.g. from an HTTP server) in order to debug failures.
   --
   -- @since 0.1
   readProcessInterleaved ::
@@ -125,7 +128,12 @@ class (Monad m) => MonadProcess m where
     ProcessConfig stdin stdoutIgnored stderrIgnored ->
     m (ExitCode, BSL.ByteString)
 
-  -- | Lifted 'P.runProcess'.
+  -- | Uses the bracket pattern to call 'startProcess' and ensures that
+  -- 'stopProcess' is called.
+  --
+  -- This function is usually /not/ what you want. You're likely better
+  -- off using 'withProcessWait'. See
+  -- <https://github.com/fpco/typed-process/issues/25>.
   --
   -- @since 0.1
   withProcessTerm ::
@@ -135,7 +143,10 @@ class (Monad m) => MonadProcess m where
     (Process stdin stdout stderr -> m a) ->
     m a
 
-  -- | Lifted 'P.startProcess'.
+  -- | Launch a process based on the given 'ProcessConfig'. You should
+  -- ensure that you call 'stopProcess' on the result. It's usually
+  -- better to use one of the functions in this module which ensures
+  -- 'stopProcess' is called, such as 'withProcessWait'.
   --
   -- @since 0.1
   startProcess ::
@@ -144,12 +155,19 @@ class (Monad m) => MonadProcess m where
     ProcessConfig stdin stdout stderr ->
     m (Process stdin stdout stderr)
 
-  -- | Lifted 'P.startProcess'.
+  -- | Close a process and release any resources acquired. This will
+  -- ensure 'P.terminateProcess' is called, wait for the process to
+  -- actually exit, and then close out resources allocated for the
+  -- streams. In the event of any cleanup exceptions being thrown this
+  -- will throw an exception.
   --
   -- @since 0.1
   stopProcess :: (HasCallStack) => Process stdin stdout stderr -> m ()
 
-  -- | Lifted 'P.readProcessInterleaved_'.
+  -- | Same as 'readProcessInterleaved', but instead of returning the 'ExitCode',
+  -- checks it with 'checkExitCode'.
+  --
+  -- Exceptions thrown by this function will include stdout.
   --
   -- @since 0.1
   readProcessInterleaved_ ::
@@ -185,7 +203,8 @@ instance (MonadProcess m) => MonadProcess (ReaderT env m) where
   readProcessInterleaved_ = lift . readProcessInterleaved_
   {-# INLINEABLE readProcessInterleaved_ #-}
 
--- | Lifted 'P.runProcess'.
+-- | Run the given process, wait for it to exit, and returns its
+-- 'ExitCode'.
 --
 -- @since 0.1
 runProcess ::
@@ -196,7 +215,12 @@ runProcess ::
 runProcess pc = withProcessTerm pc waitExitCode
 {-# INLINEABLE runProcess #-}
 
--- | Lifted 'P.readProcess'.
+-- | Run a process, capture its standard output and error as a
+-- 'BSL.ByteString', wait for it to complete, and then return its exit
+-- code, output, and error.
+--
+-- Note that any previously used 'setStdout' or 'setStderr' will be
+-- overridden.
 --
 -- @since 0.1
 readProcess ::
@@ -217,7 +241,8 @@ readProcess pc =
         P.setStderr P.byteStringOutput pc
 {-# INLINEABLE readProcess #-}
 
--- | Lifted 'P.readProcessStdout'.
+-- | Same as 'readProcess', but only read the stdout of the process.
+-- Original settings for stderr remain.
 --
 -- @since 0.1
 readProcessStdout ::
@@ -235,7 +260,8 @@ readProcessStdout pc =
     pc' = P.setStdout P.byteStringOutput pc
 {-# INLINEABLE readProcessStdout #-}
 
--- | Lifted 'P.readProcessStderr'.
+-- | Same as 'readProcess', but only read the stderr of the process.
+-- Original settings for stdout remain.
 --
 -- @since 0.1
 readProcessStderr ::
@@ -253,7 +279,13 @@ readProcessStderr pc =
     pc' = P.setStderr P.byteStringOutput pc
 {-# INLINEABLE readProcessStderr #-}
 
--- | Lifted 'P.withProcessWait'.
+-- | Uses the bracket pattern to call 'startProcess'. Unlike
+-- 'withProcessTerm', this function will wait for the child process to
+-- exit, and only kill it with 'stopProcess' in the event that the
+-- inner function throws an exception.
+--
+-- To interact with a @Process@ use the functions from the section
+-- [Interact with a process](#interactwithaprocess).
 --
 -- @since 0.1
 withProcessWait ::
@@ -269,7 +301,8 @@ withProcessWait config f =
     (\p -> f p <* waitExitCode p)
 {-# INLINEABLE withProcessWait #-}
 
--- | Lifted 'P.runProcess'.
+-- | Same as 'runProcess', but instead of returning the 'ExitCode', checks it
+-- with 'checkExitCode'.
 --
 -- @since 0.1
 runProcess_ ::
@@ -280,7 +313,10 @@ runProcess_ ::
 runProcess_ pc = withProcessTerm pc checkExitCode
 {-# INLINEABLE runProcess_ #-}
 
--- | Lifted 'P.readProcess_'.
+-- | Same as 'readProcess', but instead of returning the 'ExitCode',
+-- checks it with 'checkExitCode'.
+--
+-- Exceptions thrown by this function will include stdout and stderr.
 --
 -- @since 0.1
 readProcess_ ::
@@ -305,7 +341,10 @@ readProcess_ pc =
         P.setStderr P.byteStringOutput pc
 {-# INLINEABLE readProcess_ #-}
 
--- | Lifted 'P.readProcessStdout_'.
+-- | Same as 'readProcessStdout', but instead of returning the
+-- 'ExitCode', checks it with 'checkExitCode'.
+--
+-- Exceptions thrown by this function will include stdout.
 --
 -- @since 0.1
 readProcessStdout_ ::
@@ -326,7 +365,10 @@ readProcessStdout_ pc =
     pc' = P.setStdout P.byteStringOutput pc
 {-# INLINEABLE readProcessStdout_ #-}
 
--- | Lifted 'P.readProcessStderr_'.
+-- | Same as 'readProcessStderr', but instead of returning the
+-- 'ExitCode', checks it with 'checkExitCode'.
+--
+-- Exceptions thrown by this function will include stderr.
 --
 -- @since 0.1
 readProcessStderr_ ::
@@ -347,7 +389,7 @@ readProcessStderr_ pc =
     pc' = P.setStderr P.byteStringOutput pc
 {-# INLINEABLE readProcessStderr_ #-}
 
--- | Lifted 'P.withProcessWait_'.
+-- | Same as 'withProcessWait', but also calls 'checkExitCode'
 --
 -- @since 0.1
 withProcessWait_ ::
@@ -363,7 +405,10 @@ withProcessWait_ config f =
     (\p -> f p <* checkExitCode p)
 {-# INLINEABLE withProcessWait_ #-}
 
--- | Lifted 'P.withProcessTerm_'.
+-- | Lifted Same as 'withProcessTerm', but also calls 'checkExitCode'
+--
+-- To interact with a @Process@ use the functions from the section
+-- [Interact with a process](#interactwithaprocess).
 --
 -- @since 0.1
 withProcessTerm_ ::
@@ -378,7 +423,7 @@ withProcessTerm_ config =
     (\p -> stopProcess p `finally` checkExitCode p)
 {-# INLINEABLE withProcessTerm_ #-}
 
--- | Lifted 'P.waitExitCode'.
+-- | Wait for the process to exit and then return its 'ExitCode'.
 --
 -- @since 0.1
 waitExitCode ::
@@ -388,7 +433,7 @@ waitExitCode ::
 waitExitCode = atomically . P.waitExitCodeSTM
 {-# INLINEABLE waitExitCode #-}
 
--- | Lifted 'getExitCode'.
+-- | Check if a process has exited and, if so, return its 'ExitCode'.
 --
 -- @since 0.1
 getExitCode ::
@@ -398,7 +443,13 @@ getExitCode ::
 getExitCode = atomically . P.getExitCodeSTM
 {-# INLINEABLE getExitCode #-}
 
--- | Lifted 'P.checkExitCode'.
+-- | Wait for a process to exit, and ensure that it exited successfully.
+-- If not, throws an 'ExitCodeException'.
+--
+-- Exceptions thrown by this function will not include stdout or stderr
+-- (This prevents unbounded memory usage from reading them into memory).
+-- However, some callers such as 'readProcess_' catch the exception, add the
+-- stdout and stderr, and rethrow.
 --
 -- @since 0.1
 checkExitCode ::
