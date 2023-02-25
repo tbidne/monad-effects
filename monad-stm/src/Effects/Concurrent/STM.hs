@@ -42,7 +42,27 @@ import Numeric.Natural (Natural)
 --
 -- @since 0.1
 class (Monad m) => MonadSTM m where
-  -- | Lifted 'STM.atomically'.
+  -- | Perform a series of STM actions atomically.
+  --
+  -- Using 'atomically' inside an 'unsafePerformIO' or 'unsafeInterleaveIO'
+  -- subverts some of guarantees that STM provides. It makes it possible to
+  -- run a transaction inside of another transaction, depending on when the
+  -- thunk is evaluated. If a nested transaction is attempted, an exception
+  -- is thrown by the runtime. It is possible to safely use 'atomically' inside
+  -- 'unsafePerformIO' or 'unsafeInterleaveIO', but the typechecker does not
+  -- rule out programs that may attempt nested transactions, meaning that
+  -- the programmer must take special care to prevent these.
+  --
+  -- However, there are functions for creating transactional variables that
+  -- can always be safely called in 'unsafePerformIO'. See: 'newTVarIO',
+  -- 'Control.Concurrent.STM.TChan.newTChanIO',
+  -- 'Control.Concurrent.STM.TChan.newBroadcastTChanIO',
+  -- 'Control.Concurrent.STM.TQueue.newTQueueIO',
+  -- 'Control.Concurrent.STM.TBQueue.newTBQueueIO', and
+  -- 'Control.Concurrent.STM.TMVar.newTMVarIO'.
+  --
+  -- Using 'unsafePerformIO' inside of 'atomically' is also dangerous but for
+  -- different reasons. See 'unsafeIOToSTM' for more on this.
   --
   -- @since 0.1
   atomically :: (HasCallStack) => STM a -> m a
@@ -57,63 +77,74 @@ instance (MonadSTM m) => MonadSTM (ReaderT e m) where
   atomically = lift . atomically
   {-# INLINEABLE atomically #-}
 
--- | Lifted 'TVar.newTVar'.
+-- | Create a new 'TVar' holding a value supplied and lifts the result via
+-- 'atomically'.
 --
 -- @since 0.1
 newTVarM :: (HasCallStack, MonadSTM m) => a -> m (TVar a)
 newTVarM = atomically . TVar.newTVar
 {-# INLINEABLE newTVarM #-}
 
--- | Lifted 'TVar.readTVar'.
+-- | Return the current value stored in a 'TVar' and lifts the result via
+-- 'atomically'.
 --
 -- @since 0.1
 readTVarM :: (HasCallStack, MonadSTM m) => TVar a -> m a
 readTVarM = atomically . TVar.readTVar
 {-# INLINEABLE readTVarM #-}
 
--- | Lifted 'TVar.writeTVar'.
+-- | Write the supplied value into a 'TVar' and lifts the action via
+-- 'atomically'.
 --
 -- @since 0.1
 writeTVarM :: (HasCallStack, MonadSTM m) => TVar a -> a -> m ()
 writeTVarM r = atomically . TVar.writeTVar r
 {-# INLINEABLE writeTVarM #-}
 
--- | Lifted 'TVar.modifyTVar''.
+-- | Strict version of 'TVar.modifyTVar', lifting the action via
+-- 'atomically'.
 --
 -- @since 0.1
 modifyTVarM' :: (HasCallStack, MonadSTM m) => TVar a -> (a -> a) -> m ()
 modifyTVarM' r = atomically . TVar.modifyTVar' r
 {-# INLINEABLE modifyTVarM' #-}
 
--- | Lifted 'TBQueue.newTBQueue'.
+-- | Builds and returns a new instance of 'TBQueue', lifting via 'atomically'.
 --
 -- @since 0.1
-newTBQueueM :: (HasCallStack, MonadSTM m) => Natural -> m (TBQueue a)
+newTBQueueM ::
+  (HasCallStack, MonadSTM m) =>
+  -- | maximum number of elements the queue can hold
+  Natural ->
+  m (TBQueue a)
 newTBQueueM = atomically . TBQueue.newTBQueue
 {-# INLINEABLE newTBQueueM #-}
 
--- | Lifted 'TBQueue.readTBQueue'.
+-- | Read the next value from the 'TBQueue', lifting via 'atomically'.
 --
 -- @since 0.1
 readTBQueueM :: (HasCallStack, MonadSTM m) => TBQueue a -> m a
 readTBQueueM = atomically . TBQueue.readTBQueue
 {-# INLINEABLE readTBQueueM #-}
 
--- | Lifted 'TBQueue.tryReadTBQueue'.
+-- | A version of 'readTBQueue' which does not retry. Instead it
+-- returns @Nothing@ if no value is available. Lifts via 'atomically'.
 --
 -- @since 0.1
 tryReadTBQueueM :: (HasCallStack, MonadSTM m) => TBQueue a -> m (Maybe a)
 tryReadTBQueueM = atomically . TBQueue.tryReadTBQueue
 {-# INLINEABLE tryReadTBQueueM #-}
 
--- | Lifted 'TBQueue.writeTBQueue'.
+-- | Write a value to a 'TBQueue'; blocks if the queue is full. Lifts via
+-- 'atomically'.
 --
 -- @since 0.1
 writeTBQueueM :: (HasCallStack, MonadSTM m) => TBQueue a -> a -> m ()
 writeTBQueueM q = atomically . TBQueue.writeTBQueue q
 {-# INLINEABLE writeTBQueueM #-}
 
--- | Lifted 'TBQueue.flushTBQueue'.
+-- | Efficiently read the entire contents of a 'TBQueue' into a list. This
+-- function never retries. Lifts via 'atomically'.
 --
 -- @since 0.1
 flushTBQueueM :: (HasCallStack, MonadSTM m) => TBQueue a -> m [a]
