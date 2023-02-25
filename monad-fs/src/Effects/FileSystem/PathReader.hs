@@ -208,7 +208,7 @@ class (Monad m) => MonadPathReader m where
   -- prefer the the XDG-conformant location provided by 'getXdgDirectory'
   -- (<https://github.com/haskell/directory/issues/6#issuecomment-96521020 migration guide>).
   --
-  -- The argument is usually the name of the application.  Since it will be
+  -- The argument is usually the name of the application. Since it will be
   -- integrated into the path, it must consist of valid path characters.
   --
   -- * On Unix-like systems, the path is @~\/./\<app\>/@.
@@ -240,7 +240,7 @@ class (Monad m) => MonadPathReader m where
   -- 'getAppUserDataDirectory' instead.
   --
   -- On Unix, 'getUserDocumentsDirectory' returns the value of the @HOME@
-  -- environment variable.  On Windows, the system is queried for a
+  -- environment variable. On Windows, the system is queried for a
   -- suitable path; a typical path might be @C:\/Users\//\<user\>/\/Documents@.
   --
   -- The operation may fail with:
@@ -307,7 +307,7 @@ class (Monad m) => MonadPathReader m where
   -- canonicalization and indirection removal are skipped as they are impossible
   -- to do on a nonexistent path.
   --
-  -- Most programs should not worry about the canonicity of a path.  In
+  -- Most programs should not worry about the canonicity of a path. In
   -- particular, despite the name, the function does not truly guarantee
   -- canonicity of the returned path due to the presence of hard links, mount
   -- points, etc.
@@ -337,7 +337,7 @@ class (Monad m) => MonadPathReader m where
   -- to passing the current directory.
   --
   -- @canonicalizePath@ can resolve at least 64 indirections in a single path,
-  -- more than what is supported by most operating systems.  Therefore, it may
+  -- more than what is supported by most operating systems. Therefore, it may
   -- return the fully resolved path even though the operating system itself
   -- would have long given up.
   --
@@ -677,7 +677,7 @@ instance (MonadPathReader m) => MonadPathReader (ReaderT env m) where
 -- | Search through the given list of directories for the given file.
 --
 -- The behavior is equivalent to 'findFileWith', returning only the first
--- occurrence.  Details can be found in the documentation of 'findFileWith'.
+-- occurrence. Details can be found in the documentation of 'findFileWith'.
 --
 -- @since 0.1
 findFile :: (HasCallStack, MonadPathReader m) => [Path] -> Path -> m (Maybe Path)
@@ -687,7 +687,7 @@ findFile = findFileWith (\_ -> pure True)
 -- | Search through the given list of directories for the given file and
 -- returns all paths where the given file exists.
 --
--- The behavior is equivalent to 'findFilesWith'.  Details can be found in the
+-- The behavior is equivalent to 'findFilesWith'. Details can be found in the
 -- documentation of 'findFilesWith'.
 --
 -- @since 0.1

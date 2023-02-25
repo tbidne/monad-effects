@@ -43,12 +43,12 @@ class Monad m => MonadEnv m where
   -- | Get an action to query the absolute pathname of the current executable.
   --
   -- If the operating system provides a reliable way to determine the current
-  -- executable, return the query action, otherwise return @Nothing@.  The action
+  -- executable, return the query action, otherwise return @Nothing@. The action
   -- is defined on FreeBSD, Linux, MacOS, NetBSD, and Windows.
   --
   -- Even where the query action is defined, there may be situations where no
   -- result is available, e.g. if the executable file was deleted while the
-  -- program is running.  Therefore the result of the query action is a @Maybe
+  -- program is running. Therefore the result of the query action is a @Maybe
   -- FilePath@.
   --
   -- Note that for scripts and interactive sessions, the result is the path to
@@ -70,7 +70,7 @@ class Monad m => MonadEnv m where
   -- returns the absolute path of the original executable.
   --
   -- If the executable has been deleted, behaviour is ill-defined and
-  -- varies by operating system.  See 'executablePath' for a more
+  -- varies by operating system. See 'executablePath' for a more
   -- reliable way to query the current executable.
   --
   -- @since 0.1
@@ -98,8 +98,8 @@ class Monad m => MonadEnv m where
   --
   -- Early versions of this function operated under the mistaken belief that
   -- setting an environment variable to the /empty string/ on Windows removes
-  -- that environment variable from the environment.  For the sake of
-  -- compatibility, it adopted that behavior on POSIX.  In particular
+  -- that environment variable from the environment. For the sake of
+  -- compatibility, it adopted that behavior on POSIX. In particular
   --
   -- @
   -- setEnv name \"\"

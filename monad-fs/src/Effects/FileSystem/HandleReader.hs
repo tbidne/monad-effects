@@ -54,7 +54,7 @@ class (Monad m) => MonadHandleReader m where
   -- | For a readable handle @hdl@, 'hIsEOF' @hdl@ returns
   -- 'True' if no further input can be taken from @hdl@ or for a
   -- physical file, if the current I\/O position is equal to the length of
-  -- the file.  Otherwise, it returns 'False'.
+  -- the file. Otherwise, it returns 'False'.
   --
   -- NOTE: 'hIsEOF' may block, because it has to attempt to read from
   -- the stream to determine whether there is any more data to be read.
@@ -113,7 +113,7 @@ class (Monad m) => MonadHandleReader m where
   -- | Computation 'hWaitForInput' @hdl t@
   -- waits until input is available on handle @hdl@.
   -- It returns 'True' as soon as input is available on @hdl@,
-  -- or 'False' if no input is available within @t@ milliseconds.  Note that
+  -- or 'False' if no input is available within @t@ milliseconds. Note that
   -- 'hWaitForInput' waits until one or more full /characters/ are available,
   -- which means that it needs to do decoding, and hence may fail
   -- with a decoding error.
@@ -129,7 +129,7 @@ class (Monad m) => MonadHandleReader m where
   --
   -- NOTE for GHC users: unless you use the @-threaded@ flag,
   -- @hWaitForInput hdl t@ where @t >= 0@ will block all other Haskell
-  -- threads for the duration of the call.  It behaves like a
+  -- threads for the duration of the call. It behaves like a
   -- @safe@ foreign call in this respect.
   --
   -- @since 0.1

@@ -131,10 +131,10 @@ class (Monad m) => MonadPathWriter m where
     Path ->
     m ()
 
-  -- | @'removeDirectory' dir@ removes an existing directory /dir/.  The
+  -- | @'removeDirectory' dir@ removes an existing directory /dir/. The
   -- implementation may specify additional constraints which must be
   -- satisfied before a directory can be removed (e.g. the directory has to
-  -- be empty, or may not be in use by other processes).  It is not legal
+  -- be empty, or may not be in use by other processes). It is not legal
   -- for an implementation to partially remove a directory unless the
   -- entire directory is removed. A conformant implementation need not
   -- support directory removal in all situations (e.g. removal of the root
@@ -206,11 +206,11 @@ class (Monad m) => MonadPathWriter m where
   removePathForcibly :: (HasCallStack) => Path -> m ()
 
   -- | @'renameDirectory' old new@ changes the name of an existing
-  -- directory from /old/ to /new/.  If the /new/ directory
+  -- directory from /old/ to /new/. If the /new/ directory
   -- already exists, it is atomically replaced by the /old/ directory.
   -- If the /new/ directory is neither the /old/ directory nor an
   -- alias of the /old/ directory, it is removed as if by
-  -- 'removeDirectory'.  A conformant implementation need not support
+  -- 'removeDirectory'. A conformant implementation need not support
   -- renaming directories in all situations (e.g. renaming to an existing
   -- directory, or across different physical devices), but the constraints
   -- must be documented.
@@ -258,7 +258,7 @@ class (Monad m) => MonadPathWriter m where
   -- | Change the working directory to the given path.
   --
   -- In a multithreaded program, the current working directory is a global state
-  -- shared among all threads of the process.  Therefore, when performing
+  -- shared among all threads of the process. Therefore, when performing
   -- filesystem operations from multiple threads, it is highly recommended to
   -- use absolute rather than relative paths (see: 'makeAbsolute').
   --
@@ -487,12 +487,12 @@ class (Monad m) => MonadPathWriter m where
   -- symbolic links does not exist on POSIX systems, on Windows this is an
   -- intrinsic property of every symbolic link and cannot be changed without
   -- recreating the link. A file symbolic link that actually points to a
-  -- directory will fail to dereference and vice versa.  Moreover, creating
+  -- directory will fail to dereference and vice versa. Moreover, creating
   -- symbolic links on Windows may require privileges unavailable to users
   -- outside the Administrators group. Portable programs that use symbolic
   -- links should take both into consideration.
   --
-  -- On Windows, the function is implemented using @CreateSymbolicLink@.  Since
+  -- On Windows, the function is implemented using @CreateSymbolicLink@. Since
   -- 1.3.3.0, the @SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE@ flag is included
   -- if supported by the operating system. On POSIX, the function uses @symlink@
   -- and is therefore atomic.
@@ -512,7 +512,7 @@ class (Monad m) => MonadPathWriter m where
     m ()
 
   -- | Create a /directory/ symbolic link. The target path can be either
-  -- absolute or relative and need not refer to an existing directory.  The
+  -- absolute or relative and need not refer to an existing directory. The
   -- order of arguments follows the POSIX convention.
   --
   -- To remove an existing directory symbolic link, use 'removeDirectoryLink'.
@@ -521,7 +521,7 @@ class (Monad m) => MonadPathWriter m where
   -- symbolic links does not exist on POSIX systems, on Windows this is an
   -- intrinsic property of every symbolic link and cannot be changed without
   -- recreating the link. A file symbolic link that actually points to a
-  -- directory will fail to dereference and vice versa.  Moreover, creating
+  -- directory will fail to dereference and vice versa. Moreover, creating
   -- symbolic links on Windows may require privileges unavailable to users
   -- outside the Administrators group. Portable programs that use symbolic
   -- links should take both into consideration.
@@ -548,7 +548,7 @@ class (Monad m) => MonadPathWriter m where
 
   -- | Remove an existing /directory/ symbolic link.
   --
-  -- On Windows, this is an alias for 'removeDirectory'.  On POSIX systems, this
+  -- On Windows, this is an alias for 'removeDirectory'. On POSIX systems, this
   -- is an alias for 'removeFile'.
   --
   -- See also: 'removeFile', which can remove an existing /file/ symbolic link.
@@ -590,12 +590,12 @@ class (Monad m) => MonadPathWriter m where
   --
   -- * Not all systems support @utimensat@, in which case the function can only
   --   emulate the behavior by reading the modification time and then setting
-  --   both the access and modification times together.  On systems where
+  --   both the access and modification times together. On systems where
   --   @utimensat@ is supported, the access time is set atomically with
   --   nanosecond precision.
   --
   -- * If compiled against a version of @unix@ prior to @2.7.0.0@, the function
-  --   would not be able to set timestamps with sub-second resolution.  In this
+  --   would not be able to set timestamps with sub-second resolution. In this
   --   case, there would also be loss of precision in the modification time.
   --
   -- @since 0.1
@@ -614,12 +614,12 @@ class (Monad m) => MonadPathWriter m where
   --
   -- * Not all systems support @utimensat@, in which case the function can only
   --   emulate the behavior by reading the access time and then setting both the
-  --   access and modification times together.  On systems where @utimensat@ is
+  --   access and modification times together. On systems where @utimensat@ is
   --   supported, the modification time is set atomically with nanosecond
   --   precision.
   --
   -- * If compiled against a version of @unix@ prior to @2.7.0.0@, the function
-  --   would not be able to set timestamps with sub-second resolution.  In this
+  --   would not be able to set timestamps with sub-second resolution. In this
   --   case, there would also be loss of precision in the access time.
   --
   -- @since 0.1

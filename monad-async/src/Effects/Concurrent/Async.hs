@@ -156,14 +156,14 @@ class (Monad m) => MonadAsync m where
   -- @since 0.1
   asyncOn :: (HasCallStack) => Int -> m a -> m (Async a)
 
-  -- | Like 'async' but using 'forkIOWithUnmask' internally.  The child
+  -- | Like 'async' but using 'forkIOWithUnmask' internally. The child
   -- thread is passed a function that can be used to unmask asynchronous
   -- exceptions.
   --
   -- @since 0.1
   asyncWithUnmask :: (HasCallStack) => ((forall b. m b -> m b) -> m a) -> m (Async a)
 
-  -- | Like 'asyncOn' but using 'forkOnWithUnmask' internally.  The
+  -- | Like 'asyncOn' but using 'forkOnWithUnmask' internally. The
   -- child thread is passed a function that can be used to unmask
   -- asynchronous exceptions.
   --
@@ -171,7 +171,7 @@ class (Monad m) => MonadAsync m where
   asyncOnWithUnmask :: (HasCallStack) => Int -> ((forall b. m b -> m b) -> m a) -> m (Async a)
 
   -- | Spawn an asynchronous action in a separate thread, and pass its
-  -- @Async@ handle to the supplied function.  When the function returns
+  -- @Async@ handle to the supplied function. When the function returns
   -- or throws an exception, 'uninterruptibleCancel' is called on the @Async@.
   --
   -- > withAsync action inner = mask $ \restore -> do
@@ -198,7 +198,7 @@ class (Monad m) => MonadAsync m where
   -- @since 0.1
   withAsyncOn :: (HasCallStack) => Int -> m a -> (Async a -> m b) -> m b
 
-  -- | Like 'withAsync' but uses 'forkIOWithUnmask' internally.  The
+  -- | Like 'withAsync' but uses 'forkIOWithUnmask' internally. The
   -- child thread is passed a function that can be used to unmask
   -- asynchronous exceptions.
   --
@@ -209,7 +209,7 @@ class (Monad m) => MonadAsync m where
     (Async a -> m b) ->
     m b
 
-  -- | Like 'withAsyncOn' but uses 'forkOnWithUnmask' internally.  The
+  -- | Like 'withAsyncOn' but uses 'forkOnWithUnmask' internally. The
   -- child thread is passed a function that can be used to unmask
   -- asynchronous exceptions.
   --
@@ -253,7 +253,7 @@ class (Monad m) => MonadAsync m where
   -- @since 0.1
   race :: (HasCallStack) => m a -> m b -> m (Either a b)
 
-  -- | Run two @IO@ actions concurrently, and return both results.  If
+  -- | Run two @IO@ actions concurrently, and return both results. If
   -- either action throws an exception at any time, then the other
   -- action is 'cancel'led, and the exception is re-thrown by
   -- 'concurrently'.
@@ -396,7 +396,7 @@ usingReaderT = flip runReaderT
 -- base's Control.Exception), and we do not want to deviate from its
 -- behavior.
 
--- | Check whether an 'Async' has completed yet.  If it has not
+-- | Check whether an 'Async' has completed yet. If it has not
 -- completed yet, then the result is @Nothing@, otherwise the result
 -- is @Just e@ where @e@ is @Left x@ if the @Async@ raised an
 -- exception @x@, or @Right a@ if it returned a value @a@.
@@ -480,7 +480,7 @@ cancelWith a e =
     <* waitCatch a
 {-# INLINEABLE cancelWith #-}
 
--- | Wait for any of the supplied @Async@s to complete.  If the first
+-- | Wait for any of the supplied @Async@s to complete. If the first
 -- to complete throws an exception, then that exception is re-thrown
 -- by 'waitAny'.
 --
@@ -590,7 +590,7 @@ waitAnyCatchCancel asyncs =
   waitAnyCatch asyncs `Ex.finally` mapM_ cancel asyncs
 {-# INLINEABLE waitAnyCatchCancel #-}
 
--- | Wait for the first of two @Async@s to finish.  If the @Async@
+-- | Wait for the first of two @Async@s to finish. If the @Async@
 -- that finished first raised an exception, then the exception is
 -- re-thrown by 'waitEither'.
 --
@@ -846,7 +846,7 @@ replicateConcurrently_ cnt =
 -- the current thread, wrapped in 'ExceptionInLinkedThread'.
 --
 -- 'link' ignores 'AsyncCancelled' exceptions thrown in the other thread,
--- so that it's safe to 'cancel' a thread you're linked to.  If you want
+-- so that it's safe to 'cancel' a thread you're linked to. If you want
 -- different behaviour, use 'linkOnly'.
 --
 -- @since 0.1
@@ -859,7 +859,7 @@ link = linkOnly (not . isCancel)
 -- wrapped in 'ExceptionInLinkedThread'.
 --
 -- 'link2' ignores 'AsyncCancelled' exceptions, so that it's possible
--- to 'cancel' either thread without cancelling the other.  If you
+-- to 'cancel' either thread without cancelling the other. If you
 -- want different behaviour, use 'link2Only'.
 --
 -- @since 0.1

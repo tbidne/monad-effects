@@ -60,11 +60,11 @@ class (Monad m) => MonadHandleWriter m where
   -- @since 0.1
   withBinaryFile :: (HasCallStack) => Path -> IOMode -> (Handle -> m a) -> m a
 
-  -- | Computation 'hClose' @hdl@ makes handle @hdl@ closed.  Before the
+  -- | Computation 'hClose' @hdl@ makes handle @hdl@ closed. Before the
   -- computation finishes, if @hdl@ is writable its buffer is flushed as
   -- for 'hFlush'.
   -- Performing 'hClose' on a handle that has already been closed has no effect;
-  -- doing so is not an error.  All other operations on a closed handle will fail.
+  -- doing so is not an error. All other operations on a closed handle will fail.
   -- If 'hClose' fails for any reason, any further operations (apart from
   -- 'hClose') on the handle will still fail as if @hdl@ had been successfully
   -- closed.
