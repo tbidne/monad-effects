@@ -27,7 +27,7 @@ import Prelude hiding (FilePath)
 
 #if MIN_VERSION_filepath(1,4,100) && MIN_VERSION_directory(1,3,8)
 import Control.Monad ((>=>))
-import System.OsPath (OsPath, (</>))
+import System.OsPath (OsPath, decodeUtf, (</>))
 
 -- | For @filepath >= 1.4.100@ and @directory >= 1.3.8@, 'Path' = 'OsPath'.
 -- Below that it is a 'FilePath'.
@@ -35,27 +35,35 @@ import System.OsPath (OsPath, (</>))
 -- @since 0.1
 type Path = OsPath
 
--- REVIEW: should this be decodeUtf instead?
+-- NOTE: decodeUtf vs. decodeFs
+--
+-- The latter (decodeFs) is closer to what base used to do, so using it
+-- would most closely keep the previous semantics. So why do we use decodeUtf
+-- instead? Because the latter relies on the environment locale and seems
+-- more likely to cause strange errors. See the haddocks and also the
+-- following blog post.
+--
+-- https://hasufell.github.io/posts/2022-06-29-fixing-haskell-filepaths.html
 
 -- | @since 0.1
 readBinaryFileIO :: OsPath -> IO ByteString
-readBinaryFileIO = decodeFS >=> BS.readFile
+readBinaryFileIO = decodeUtf >=> BS.readFile
 
 -- | @since 0.1
 writeBinaryFileIO :: OsPath -> ByteString -> IO ()
-writeBinaryFileIO = decodeFS >=> BS.writeFile
+writeBinaryFileIO = decodeUtf >=> BS.writeFile
 
 -- | @since 0.1
 appendBinaryFileIO :: OsPath -> ByteString -> IO ()
-appendBinaryFileIO = decodeFS >=> BS.appendFile
+appendBinaryFileIO = decodeUtf >=> BS.appendFile
 
 -- | @since 0.1
 openBinaryFileIO :: OsPath -> IOMode -> IO Handle
-openBinaryFileIO p m = decodeFS p >>= \h -> IO.openBinaryFile h m
+openBinaryFileIO p m = decodeUtf p >>= \h -> IO.openBinaryFile h m
 
 -- | @since 0.1
 withBinaryFileIO :: OsPath -> IOMode -> (Handle -> IO a) -> IO a
-withBinaryFileIO p m f = decodeFS p >>= \h -> IO.withBinaryFile h m f
+withBinaryFileIO p m f = decodeUtf p >>= \h -> IO.withBinaryFile h m f
 
 #else
 import System.FilePath (FilePath, (</>))
