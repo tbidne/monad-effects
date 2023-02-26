@@ -75,32 +75,32 @@
           };
           hsOverlay =
             (compiler.extend (hlib.compose.packageSourceOverrides {
-              monad-async = ./monad-async;
-              monad-env = ./monad-env;
-              monad-exceptions = ./monad-exceptions;
-              monad-fs = ./monad-fs;
-              monad-ioref = ./monad-ioref;
-              monad-logger-namespace = ./monad-logger-namespace;
-              monad-optparse = ./monad-optparse;
-              monad-stm = ./monad-stm;
-              monad-system-time = ./monad-system-time;
-              monad-terminal = ./monad-terminal;
-              monad-thread = ./monad-thread;
-              monad-typed-process = ./monad-typed-process;
+              effects-async = ./effects-async;
+              effects-env = ./effects-env;
+              effects-exceptions = ./effects-exceptions;
+              effects-fs = ./effects-fs;
+              effects-ioref = ./effects-ioref;
+              effects-logger-ns = ./effects-logger-ns;
+              effects-optparse = ./effects-optparse;
+              effects-stm = ./effects-stm;
+              effects-terminal = ./effects-terminal;
+              effects-thread = ./effects-thread;
+              effects-time = ./effects-time;
+              effects-typed-process = ./effects-typed-process;
             }));
           packages = p: [
-            p.monad-async
-            p.monad-env
-            p.monad-exceptions
-            p.monad-fs
-            p.monad-ioref
-            p.monad-logger-namespace
-            p.monad-optparse
-            p.monad-stm
-            p.monad-system-time
-            p.monad-terminal
-            p.monad-thread
-            p.monad-typed-process
+            p.effects-async
+            p.effects-env
+            p.effects-exceptions
+            p.effects-fs
+            p.effects-ioref
+            p.effects-logger-ns
+            p.effects-optparse
+            p.effects-stm
+            p.effects-terminal
+            p.effects-thread
+            p.effects-time
+            p.effects-typed-process
           ];
 
           mkPkg = name: root: source-overrides: compiler.developPackage {
@@ -108,39 +108,39 @@
             returnShellEnv = false;
           };
           mkPkgsException = name: root: mkPkg name root {
-            monad-exceptions = ./monad-exceptions;
+            effects-exceptions = ./effects-exceptions;
           };
         in
         {
-          packages.monad-async =
-            mkPkg "monad-async" ./monad-async {
-              monad-exceptions = ./monad-exceptions;
-              monad-ioref = ./monad-ioref;
-              monad-stm = ./monad-stm;
-              monad-thread = ./monad-thread;
+          packages.effects-async =
+            mkPkg "effects-async" ./effects-async {
+              effects-exceptions = ./effects-exceptions;
+              effects-ioref = ./effects-ioref;
+              effects-stm = ./effects-stm;
+              effects-thread = ./effects-thread;
             };
-          packages.monad-env = mkPkgsException "monad-env" ./monad-env;
-          packages.monad-exceptions = mkPkg "monad-exceptions" ./monad-exceptions { };
-          packages.monad-fs =
-            mkPkg "monad-fs" ./monad-fs {
-              monad-exceptions = ./monad-exceptions;
-              monad-ioref = ./monad-ioref;
+          packages.effects-env = mkPkgsException "effects-env" ./effects-env;
+          packages.effects-exceptions = mkPkg "effects-exceptions" ./effects-exceptions { };
+          packages.effects-fs =
+            mkPkg "effects-fs" ./effects-fs {
+              effects-exceptions = ./effects-exceptions;
+              effects-ioref = ./effects-ioref;
             };
-          packages.monad-ioref = mkPkgsException "monad-ioref" ./monad-ioref;
-          packages.monad-logger-namespace =
-            mkPkg "monad-logger-namespace" ./monad-logger-namespace {
-              monad-exceptions = ./monad-exceptions;
-              monad-system-time = ./monad-system-time;
+          packages.effects-ioref = mkPkgsException "effects-ioref" ./effects-ioref;
+          packages.effects-logger-ns =
+            mkPkg "effects-logger-ns" ./effects-logger-ns {
+              effects-exceptions = ./effects-exceptions;
+              effects-time = ./effects-time;
             };
-          packages.monad-optparse = mkPkgsException "monad-optparse" ./monad-optparse;
-          packages.monad-stm = mkPkgsException "monad-stm" ./monad-stm;
-          packages.monad-system-time = mkPkgsException "monad-system-time" ./monad-system-time;
-          packages.monad-terminal = mkPkgsException "monad-terminal" ./monad-terminal;
-          packages.monad-thread = mkPkgsException "monad-thread" ./monad-thread;
-          packages.monad-typed-process =
-            mkPkg "monad-typed-process" ./monad-typed-process {
-              monad-exceptions = ./monad-exceptions;
-              monad-stm = ./monad-stm;
+          packages.effects-optparse = mkPkgsException "effects-optparse" ./effects-optparse;
+          packages.effects-stm = mkPkgsException "effects-stm" ./effects-stm;
+          packages.effects-time = mkPkgsException "effects-time" ./effects-time;
+          packages.effects-terminal = mkPkgsException "effects-terminal" ./effects-terminal;
+          packages.effects-thread = mkPkgsException "effects-thread" ./effects-thread;
+          packages.effects-typed-process =
+            mkPkg "effects-typed-process" ./effects-typed-process {
+              effects-exceptions = ./effects-exceptions;
+              effects-stm = ./effects-stm;
             };
 
           devShells.default = hsOverlay.shellFor {

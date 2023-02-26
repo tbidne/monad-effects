@@ -16,18 +16,18 @@
 ### Table of Contents
 - [Introduction](#introduction)
 - [Effects](#effects)
-  - [monad-async](#monad-async)
-  - [monad-env](#monad-env)
-  - [monad-exceptions](#monad-exceptions)
-  - [monad-fs](#monad-fs)
-  - [monad-ioref](#monad-ioref)
-  - [monad-logger-namespace](#monad-logger-namespace)
-  - [monad-optparse](#monad-optparse)
-  - [monad-stm](#monad-stm)
-  - [monad-system-time](#monad-system-time)
-  - [monad-terminal](#monad-terminal)
-  - [monad-thread](#monad-thread)
-  - [monad-typed-process](#monad-typed-process)
+  - [effects-async](#effects-async)
+  - [effects-env](#effects-env)
+  - [effects-exceptions](#effects-exceptions)
+  - [effects-fs](#effects-fs)
+  - [effects-ioref](#effects-ioref)
+  - [effects-logger-ns](#effects-logger-ns)
+  - [effects-optparse](#effects-optparse)
+  - [effects-stm](#effects-stm)
+  - [effects-terminal](#effects-terminal)
+  - [effects-thread](#effects-thread)
+  - [effects-time](#effects-time)
+  - [effects-typed-process](#effects-typed-process)
 
 # Introduction
 
@@ -64,7 +64,7 @@ NOTE: Although this is "MTL-style", the only transformer we provide instances fo
 
 The following lists the supported effects, along with the libraries/modules they represent.
 
-## monad-async
+## effects-async
 
 ### Library: `async`
 
@@ -75,7 +75,7 @@ The following lists the supported effects, along with the libraries/modules they
 
 Effect for the `async` library. The implementation is nearly identical to `async`'s API, with the additions of `unliftio`'s "pooled concurrency" functions.
 
-## monad-env
+## effects-env
 
 ### Library: `base`
 
@@ -86,7 +86,7 @@ Effect for the `async` library. The implementation is nearly identical to `async
 
 Effect for `System.Environment`.
 
-## monad-exceptions
+## effects-exceptions
 
 ### Library: `exceptions`, `safe-exceptions`
 
@@ -105,7 +105,7 @@ Provides:
 The `CallStack` machinery may be removed once GHC natively supports adding `CallStack` to exceptions (GHC 9.8?). See
 https://github.com/ghc-proposals/ghc-proposals/pull/330.
 
-## monad-fs
+## effects-fs
 
 ### Library: `base`, `bytestring`, `directory`
 
@@ -127,7 +127,7 @@ Filesystem effects. In particular:
 
 These are written to be compatible with the upcoming `FilePath -> OsPath` change, i.e. if `filepath` and `directory` libraries are new enough (>= `1.4.100` and `1.3.8`, respectively), then the APIs require `OsPath`, not `FilePath`.
 
-## monad-ioref
+## effects-ioref
 
 ### Library: `base`
 
@@ -138,18 +138,18 @@ These are written to be compatible with the upcoming `FilePath -> OsPath` change
 
 `IORef` effects.
 
-## monad-logger-namespace
+## effects-logger-ns
 
-### Library: `monad-logger`
+### Library: `effects-logger`
 
 ### Modules
-* `Effects.LoggerNamespace`
+* `Effects.LoggerNS`
 
 ### Description
 
 Builds on top of the `monad-logger` library to add the concept of "namespacing" to logs. Includes helper functions for formatting.
 
-## monad-optparse
+## effects-optparse
 
 ### Library: `optparse-applicative`
 
@@ -160,7 +160,7 @@ Builds on top of the `monad-logger` library to add the concept of "namespacing" 
 
 Most of `optparse-applicative`'s API is pure, so there is not much here, just functions for running the parser.
 
-## monad-stm
+## effects-stm
 
 ### Library: `stm`
 
@@ -171,18 +171,7 @@ Most of `optparse-applicative`'s API is pure, so there is not much here, just fu
 
 Provides a single function `atomically :: MonadSTM m => STM a -> m a` and helper combinators for other `STM` concepts (e.g. `readTVarM :: MonadSTM m => TVar a -> m a`).
 
-## monad-system-time
-
-### Library: `time`
-
-### Modules
-* `Effects.Time`
-
-### Description
-
-Provides functions for retrieving the current system time and monotonic time.
-
-## monad-terminal
+## effects-terminal
 
 ### Library: `base`
 
@@ -193,7 +182,7 @@ Provides functions for retrieving the current system time and monotonic time.
 
 Implements typical terminal functions e.g. `putStrLn`.
 
-## monad-thread
+## effects-thread
 
 ### Library: `base`
 
@@ -204,7 +193,18 @@ Implements typical terminal functions e.g. `putStrLn`.
 
 Implements functions from `Control.Concurrent` along with `Control.Concurrent.QSem` and `Control.Concurrent.QSemN`.
 
-## monad-typed-process
+## effects-time
+
+### Library: `time`
+
+### Modules
+* `Effects.Time`
+
+### Description
+
+Provides functions for retrieving the current system time and monotonic time.
+
+## effects-typed-process
 
 ### Library: `typed-process`
 

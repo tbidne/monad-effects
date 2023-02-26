@@ -12,7 +12,7 @@
       - "Effects.FileSystem.PathReader.MonadPathReader"
       - "Effects.FileSystem.PathWriter.MonadPathWriter"
       - "Effects.IORef.MonadIORef"
-      - "Effects.LoggerNamespace.MonadLoggerNamespace"
+      - "Effects.LoggerNS.MonadLoggerNS"
       - "Effects.Optparse.MonadOptparse"
       - "Effects.Time.MonadTime"
       - "Effects.System.Process.MonadProcess"

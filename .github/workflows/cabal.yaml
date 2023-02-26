@@ -35,14 +35,14 @@ jobs:
       - name: Compile
         run: cabal build all
 
-      - name: Test monad-exceptions
-        run: cabal test monad-exceptions
+      - name: Test effects-exceptions
+        run: cabal test effects-exceptions
 
-      - name: Test monad-fs
-        run: cabal test monad-fs
+      - name: Test effects-fs
+        run: cabal test effects-fs
 
-      - name: Test monad-logger-namespace
-        run: cabal test monad-logger-namespace
+      - name: Test effects-logger-ns
+        run: cabal test effects-logger-ns
 
-      - name: Test monad-system-time
-        run: cabal test monad-system-time --test-options '--hedgehog-tests 100000'
+      - name: Test effects-time
+        run: cabal test effects-time --test-options '--hedgehog-tests 100000'

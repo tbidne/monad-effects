@@ -1,0 +1,4 @@
+user error (parseTimeM: no parse of "0-0-0 0:0:0 UTC")
+CallStack (from HasCallStack):
+  addCS, called at src/Effects/Time.hs:0:0 in effects-time-0.0-<pkg>:Effects.Time
+  parseLocalTimeCallStack, called at test/unit/Main.hs:0:0 in main:Main

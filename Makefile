@@ -3,18 +3,18 @@
 	haddock hackage outdated
 
 PKGS := \
-	monad-async \
-	monad-env \
-	monad-exceptions \
-	monad-fs \
-	monad-ioref \
-	monad-logger-namespace \
-	monad-optparse \
-	monad-stm \
-	monad-system-time \
-	monad-terminal \
-	monad-thread \
-	monad-typed-process
+	effects-async \
+	effects-env \
+	effects-exceptions \
+	effects-fs \
+	effects-ioref \
+	effects-logger-ns \
+	effects-optparse \
+	effects-stm \
+	effects-terminal \
+	effects-thread \
+	effects-time \
+	effects-typed-process
 
 # core
 

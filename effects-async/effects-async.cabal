@@ -1,0 +1,63 @@
+cabal-version:      2.4
+name:               effects-async
+version:            0.1
+license:            MIT
+license-file:       LICENSE
+tested-with:        GHC ==8.10.7 || ==9.0.2 || ==9.2.5 || ==9.4.4
+copyright:          2022-2023 Thomas Bidne
+author:             Thomas Bidne
+maintainer:         tbidne@protonmail.com
+homepage:           https://github.com/tbidne/monad-effects/
+bug-reports:        https://github.com/tbidne/monad-effects/issues
+synopsis:           Async effects
+description:        Async effects
+category:           Effects
+extra-source-files: CHANGELOG.md
+
+source-repository head
+  type:     git
+  location: https://github.com/tbidne/monad-effects
+
+common common
+  default-extensions:
+    DataKinds
+    DeriveAnyClass
+    DeriveFunctor
+    DeriveFunctor
+    DeriveGeneric
+    DerivingStrategies
+    DerivingVia
+    FlexibleInstances
+    GADTs
+    GeneralizedNewtypeDeriving
+    ImportQualifiedPost
+    LambdaCase
+    MultiParamTypeClasses
+    NumericUnderscores
+    OverloadedLabels
+    OverloadedStrings
+    RankNTypes
+    ScopedTypeVariables
+    StandaloneDeriving
+    TupleSections
+    TypeApplications
+    TypeFamilies
+    TypeOperators
+
+library
+  import:           common
+  exposed-modules:  Effects.Concurrent.Async
+  build-depends:
+    , async               ^>=2.2.2
+    , base                >=4.14.0.0 && <4.18
+    , effects-exceptions  ^>=0.1
+    , effects-ioref       ^>=0.1
+    , effects-stm         ^>=0.1
+    , effects-thread      ^>=0.1
+    , exceptions          ^>=0.10.4
+    , smart-math          ^>=0.1
+    , stm                 ^>=2.5.0.0
+    , transformers        >=0.5.6.2  && <0.7
+
+  hs-source-dirs:   src
+  default-language: Haskell2010

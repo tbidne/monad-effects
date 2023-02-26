@@ -1,16 +1,16 @@
 packages:
-  ./monad-async
-  ./monad-env
-  ./monad-exceptions
-  ./monad-fs
-  ./monad-ioref
-  ./monad-logger-namespace
-  ./monad-optparse
-  ./monad-stm
-  ./monad-system-time
-  ./monad-terminal
-  ./monad-thread
-  ./monad-typed-process
+  ./effects-async
+  ./effects-env
+  ./effects-exceptions
+  ./effects-fs
+  ./effects-ioref
+  ./effects-logger-ns
+  ./effects-optparse
+  ./effects-stm
+  ./effects-terminal
+  ./effects-thread
+  ./effects-time
+  ./effects-typed-process
 
 -- Supposedly 'program-options' (cabal 3.8) obviates the following workaround
 -- for not running ghc-options on dependencies, but it seems to be having
@@ -18,7 +18,7 @@ packages:
 --
 -- Might be due to CI having a cabal that is too old?
 
-package monad-async
+package effects-async
   ghc-options:
     -Wall -Wcompat -Werror -Widentities
     -Wincomplete-record-updates -Wincomplete-uni-patterns
@@ -26,7 +26,7 @@ package monad-async
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
     -Wprepositive-qualified-module
 
-package monad-env
+package effects-env
   ghc-options:
     -Wall -Wcompat -Werror -Widentities
     -Wincomplete-record-updates -Wincomplete-uni-patterns
@@ -34,7 +34,7 @@ package monad-env
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
     -Wprepositive-qualified-module
 
-package monad-exceptions
+package effects-exceptions
   ghc-options:
     -Wall -Wcompat -Werror -Widentities
     -Wincomplete-record-updates -Wincomplete-uni-patterns
@@ -42,7 +42,7 @@ package monad-exceptions
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
     -Wprepositive-qualified-module
 
-package monad-fs
+package effects-fs
   ghc-options:
     -Wall -Wcompat -Werror -Widentities
     -Wincomplete-record-updates -Wincomplete-uni-patterns
@@ -50,7 +50,7 @@ package monad-fs
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
     -Wprepositive-qualified-module
 
-package monad-ioref
+package effects-ioref
   ghc-options:
     -Wall -Wcompat -Werror -Widentities
     -Wincomplete-record-updates -Wincomplete-uni-patterns
@@ -58,7 +58,7 @@ package monad-ioref
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
     -Wprepositive-qualified-module
 
-package monad-logger-namespace
+package effects-logger-ns
   ghc-options:
     -Wall -Wcompat -Werror -Widentities
     -Wincomplete-record-updates -Wincomplete-uni-patterns
@@ -66,7 +66,7 @@ package monad-logger-namespace
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
     -Wprepositive-qualified-module
 
-package monad-optparse
+package effects-optparse
   ghc-options:
     -Wall -Wcompat -Werror -Widentities
     -Wincomplete-record-updates -Wincomplete-uni-patterns
@@ -74,7 +74,7 @@ package monad-optparse
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
     -Wprepositive-qualified-module
 
-package monad-stm
+package effects-stm
   ghc-options:
     -Wall -Wcompat -Werror -Widentities
     -Wincomplete-record-updates -Wincomplete-uni-patterns
@@ -82,7 +82,7 @@ package monad-stm
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
     -Wprepositive-qualified-module
 
-package monad-system-time
+package effects-terminal
   ghc-options:
     -Wall -Wcompat -Werror -Widentities
     -Wincomplete-record-updates -Wincomplete-uni-patterns
@@ -90,7 +90,7 @@ package monad-system-time
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
     -Wprepositive-qualified-module
 
-package monad-terminal
+package effects-thread
   ghc-options:
     -Wall -Wcompat -Werror -Widentities
     -Wincomplete-record-updates -Wincomplete-uni-patterns
@@ -98,7 +98,7 @@ package monad-terminal
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
     -Wprepositive-qualified-module
 
-package monad-thread
+package effects-time
   ghc-options:
     -Wall -Wcompat -Werror -Widentities
     -Wincomplete-record-updates -Wincomplete-uni-patterns
@@ -106,7 +106,7 @@ package monad-thread
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
     -Wprepositive-qualified-module
 
-package monad-typed-process
+package effects-typed-process
   ghc-options:
     -Wall -Wcompat -Werror -Widentities
     -Wincomplete-record-updates -Wincomplete-uni-patterns
