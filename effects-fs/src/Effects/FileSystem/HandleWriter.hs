@@ -6,11 +6,9 @@ module Effects.FileSystem.HandleWriter
     MonadHandleWriter (..),
     Path,
 
-    -- * Text Utils
+    -- * UTF-8 Utils
     hPutUtf8,
-    hPutLatin1,
     hPutNonBlockingUtf8,
-    hPutNonBlockingLatin1,
 
     -- * Misc
     die,
@@ -32,7 +30,7 @@ import Data.ByteString qualified as BS
 import Data.ByteString.Char8 qualified as Char8
 import Data.Text (Text)
 import Effects.Exception (MonadThrow, addCS, exitFailure)
-import Effects.FileSystem.FileWriter (encodeLatin1, encodeUtf8)
+import Effects.FileSystem.FileWriter (encodeUtf8)
 import Effects.FileSystem.Internal (openBinaryFileIO, withBinaryFileIO)
 import Effects.FileSystem.Path (Path)
 import GHC.Stack (HasCallStack)
@@ -225,13 +223,6 @@ hPutUtf8 :: (HasCallStack, MonadHandleWriter m) => Handle -> Text -> m ()
 hPutUtf8 h = hPut h . encodeUtf8
 {-# INLINEABLE hPutUtf8 #-}
 
--- | Writes the Latin-1 text to the handle.
---
--- @since 0.1
-hPutLatin1 :: (HasCallStack, MonadHandleWriter m) => Handle -> Text -> m ()
-hPutLatin1 h = hPut h . encodeLatin1
-{-# INLINEABLE hPutLatin1 #-}
-
 -- | Writes UTF-8 text to handle, returning leftover bytes.
 --
 -- @since 0.1
@@ -244,19 +235,6 @@ hPutNonBlockingUtf8 ::
   m ByteString
 hPutNonBlockingUtf8 h = hPutNonBlocking h . encodeUtf8
 {-# INLINEABLE hPutNonBlockingUtf8 #-}
-
--- | Writes Latin-1 text to handle, returning leftover bytes.
---
--- @since 0.1
-hPutNonBlockingLatin1 ::
-  ( HasCallStack,
-    MonadHandleWriter m
-  ) =>
-  Handle ->
-  Text ->
-  m ByteString
-hPutNonBlockingLatin1 h = hPutNonBlocking h . encodeLatin1
-{-# INLINEABLE hPutNonBlockingLatin1 #-}
 
 -- | Write given error message to `stderr` and terminate with `exitFailure`.
 --
