@@ -169,7 +169,7 @@ Most of `optparse-applicative`'s API is pure, so there is not much here, just fu
 
 ### Description
 
-Provides a single function `atomically :: MonadSTM m => STM a -> m a` and helper combinators for other `STM` concepts (e.g. `readTVarM :: MonadSTM m => TVar a -> m a`).
+Provides a single function `atomically :: MonadSTM m => STM a -> m a` and helper combinators for other `STM` concepts (e.g. `readTVarA :: MonadSTM m => TVar a -> m a`).
 
 ## effects-terminal
 
