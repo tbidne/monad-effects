@@ -13,6 +13,7 @@ module Effects.Concurrent.Thread
 
     -- * QSem Effect
     MonadQSem (..),
+    MonadQSemN (..),
 
     -- * Reexports
     QSem,
@@ -191,7 +192,7 @@ n2i = fromIntegral
 i2n :: Int -> Natural
 i2n = fromIntegral
 
--- | Effect for simple semaphores.
+-- | Effect for 'QSem' semaphore.
 --
 -- @since 0.1
 class (Monad m) => MonadQSem m where
@@ -211,6 +212,28 @@ class (Monad m) => MonadQSem m where
   -- @since 0.1
   signalQSem :: QSem -> m ()
 
+-- | @since 0.1
+instance MonadQSem IO where
+  newQSem = QSem.newQSem
+  {-# INLINEABLE newQSem #-}
+  waitQSem = QSem.waitQSem
+  {-# INLINEABLE waitQSem #-}
+  signalQSem = QSem.signalQSem
+  {-# INLINEABLE signalQSem #-}
+
+-- | @since 0.1
+instance (MonadQSem m) => MonadQSem (ReaderT e m) where
+  newQSem = lift . newQSem
+  {-# INLINEABLE newQSem #-}
+  waitQSem = lift . waitQSem
+  {-# INLINEABLE waitQSem #-}
+  signalQSem = lift . signalQSem
+  {-# INLINEABLE signalQSem #-}
+
+-- | Effect for 'QSemN' semaphore.
+--
+-- @since 0.1
+class (Monad m) => MonadQSemN m where
   -- | Build a new 'QSemN' with a supplied initial quantity.
   -- The initial quantity must be at least 0.
   --
@@ -228,13 +251,7 @@ class (Monad m) => MonadQSem m where
   signalQSemN :: QSemN -> Int -> m ()
 
 -- | @since 0.1
-instance MonadQSem IO where
-  newQSem = QSem.newQSem
-  {-# INLINEABLE newQSem #-}
-  waitQSem = QSem.waitQSem
-  {-# INLINEABLE waitQSem #-}
-  signalQSem = QSem.signalQSem
-  {-# INLINEABLE signalQSem #-}
+instance MonadQSemN IO where
   newQSemN = QSemN.newQSemN
   {-# INLINEABLE newQSemN #-}
   waitQSemN = QSemN.waitQSemN
@@ -243,13 +260,7 @@ instance MonadQSem IO where
   {-# INLINEABLE signalQSemN #-}
 
 -- | @since 0.1
-instance (MonadQSem m) => MonadQSem (ReaderT e m) where
-  newQSem = lift . newQSem
-  {-# INLINEABLE newQSem #-}
-  waitQSem = lift . waitQSem
-  {-# INLINEABLE waitQSem #-}
-  signalQSem = lift . signalQSem
-  {-# INLINEABLE signalQSem #-}
+instance (MonadQSemN m) => MonadQSemN (ReaderT e m) where
   newQSemN = lift . newQSemN
   {-# INLINEABLE newQSemN #-}
   waitQSemN q = lift . waitQSemN q
