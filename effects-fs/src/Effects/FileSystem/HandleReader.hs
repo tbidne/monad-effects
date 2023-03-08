@@ -6,18 +6,23 @@ module Effects.FileSystem.HandleReader
     MonadHandleReader (..),
 
     -- * UTF-8 Utils
+    -- ** GetLine
     hGetLineUtf8,
     hGetLineUtf8Lenient,
     hGetLineUtf8ThrowM,
+    -- ** GetContents
     hGetContentsUtf8,
     hGetContentsUtf8Lenient,
     hGetContentsUtf8ThrowM,
+    -- ** Get
     hGetUtf8,
     hGetUtf8Lenient,
     hGetUtf8ThrowM,
+    -- ** GetSome
     hGetSomeUtf8,
     hGetSomeUtf8Lenient,
     hGetSomeUtf8ThrowM,
+    -- ** GetNonBlocking
     hGetNonBlockingUtf8,
     hGetNonBlockingUtf8Lenient,
     hGetNonBlockingUtf8ThrowM,
