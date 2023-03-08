@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 -- | Provides the MonadPathWriter effect.
@@ -65,8 +64,14 @@ import Effects.IORef
   )
 import GHC.Generics (Generic)
 import GHC.Stack (HasCallStack)
-import Optics.Core ((^.))
-import Optics.TH (makeFieldLabelsNoPrefix, makePrisms)
+import Optics.Core
+  ( A_Lens,
+    LabelOptic (labelOptic),
+    Prism',
+    lensVL,
+    prism,
+    (^.),
+  )
 import System.Directory (Permissions (..))
 #if MIN_VERSION_filepath(1,4,100) && MIN_VERSION_directory(1,3,8)
 import System.Directory.OsPath qualified as Dir
@@ -770,7 +775,37 @@ data Overwrite
     )
 
 -- | @since 0.1
-makePrisms ''Overwrite
+_OverwriteNone :: Prism' Overwrite ()
+_OverwriteNone =
+  prism
+    (\() -> OverwriteNone)
+    ( \x -> case x of
+        OverwriteNone -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _OverwriteNone #-}
+
+-- | @since 0.1
+_OverwriteTarget :: Prism' Overwrite ()
+_OverwriteTarget =
+  prism
+    (\() -> OverwriteTarget)
+    ( \x -> case x of
+        OverwriteTarget -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _OverwriteTarget #-}
+
+-- | @since 0.1
+_OverwriteAll :: Prism' Overwrite ()
+_OverwriteAll =
+  prism
+    (\() -> OverwriteAll)
+    ( \x -> case x of
+        OverwriteAll -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _OverwriteAll #-}
 
 data CopyDirConfig = MkCopyDirConfig
   { -- | Overwrite behavior.
@@ -798,7 +833,22 @@ data CopyDirConfig = MkCopyDirConfig
     )
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''CopyDirConfig
+instance
+  (k ~ A_Lens, a ~ Overwrite, b ~ Overwrite) =>
+  LabelOptic "overwrite" k CopyDirConfig CopyDirConfig a b
+  where
+  labelOptic = lensVL $ \f (MkCopyDirConfig _overwrite _targetName) ->
+    fmap (`MkCopyDirConfig` _targetName) (f _overwrite)
+  {-# INLINE labelOptic #-}
+
+-- | @since 0.1
+instance
+  (k ~ A_Lens, a ~ Maybe Path, b ~ Maybe Path) =>
+  LabelOptic "targetName" k CopyDirConfig CopyDirConfig a b
+  where
+  labelOptic = lensVL $ \f (MkCopyDirConfig _overwrite _targetName) ->
+    fmap (MkCopyDirConfig _overwrite) (f _targetName)
+  {-# INLINE labelOptic #-}
 
 -- | Default config for copying directories.
 --

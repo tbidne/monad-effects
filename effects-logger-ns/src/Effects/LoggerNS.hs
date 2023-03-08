@@ -1,4 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 -- | Provides namespaced logging functionality on top of 'MonadLogger'.
@@ -42,7 +41,7 @@ import Control.Monad.Logger
 import Data.ByteString (ByteString)
 import Data.ByteString.Builder (Builder)
 import Data.Foldable (Foldable (foldMap'))
-import Data.Sequence (Seq, (|>))
+import Data.Sequence (Seq ((:|>)))
 import Data.Sequence qualified as Seq
 import Data.String (IsString (fromString))
 import Data.Text (Text)
@@ -55,8 +54,21 @@ import GHC.Exts (IsList (Item, fromList, toList))
 import GHC.Generics (Generic)
 import GHC.Stack (HasCallStack)
 import Language.Haskell.TH (Loc (loc_filename, loc_start))
-import Optics.Core (over', view, (%), (^.), _1, _2)
-import Optics.TH (makeFieldLabelsNoPrefix, makePrisms)
+import Optics.Core
+  ( A_Lens,
+    An_Iso,
+    Field1 (_1),
+    Field2 (_2),
+    LabelOptic (labelOptic),
+    Prism',
+    iso,
+    lensVL,
+    over',
+    prism,
+    view,
+    (%),
+    (^.),
+  )
 import System.Log.FastLogger qualified as FL
 
 -- | Logging namespace.
@@ -87,7 +99,12 @@ newtype Namespace = MkNamespace
     )
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''Namespace
+instance
+  (k ~ An_Iso, a ~ Seq Text, b ~ Seq Text) =>
+  LabelOptic "unNamespace" k Namespace Namespace a b
+  where
+  labelOptic = iso (\(MkNamespace ns) -> ns) MkNamespace
+  {-# INLINE labelOptic #-}
 
 -- | @since 0.1
 instance IsString Namespace where
@@ -131,7 +148,7 @@ addNamespace ::
   Text ->
   m a ->
   m a
-addNamespace txt = localNamespace (over' #unNamespace (|> txt))
+addNamespace txt = localNamespace (over' #unNamespace (:|> txt))
 {-# INLINEABLE addNamespace #-}
 
 -- | Determines how we log location data.
@@ -160,7 +177,37 @@ data LocStrategy
     )
 
 -- | @since 0.1
-makePrisms ''LocStrategy
+_LocPartial :: Prism' LocStrategy Loc
+_LocPartial =
+  prism
+    LocPartial
+    ( \x -> case x of
+        LocPartial loc -> Right loc
+        _ -> Left x
+    )
+{-# INLINE _LocPartial #-}
+
+-- | @since 0.1
+_LocStable :: Prism' LocStrategy Loc
+_LocStable =
+  prism
+    LocStable
+    ( \x -> case x of
+        LocStable loc -> Right loc
+        _ -> Left x
+    )
+{-# INLINE _LocStable #-}
+
+-- | @since 0.1
+_LocNone :: Prism' LocStrategy ()
+_LocNone =
+  prism
+    (\() -> LocNone)
+    ( \x -> case x of
+        LocNone -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _LocNone #-}
 
 -- | Formatter for logs.
 --
@@ -189,7 +236,31 @@ data LogFormatter = MkLogFormatter
     )
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''LogFormatter
+instance
+  (k ~ A_Lens, a ~ Bool, b ~ Bool) =>
+  LabelOptic "newline" k LogFormatter LogFormatter a b
+  where
+  labelOptic = lensVL $ \f (MkLogFormatter _newline _locStrategy _timezone) ->
+    fmap (\newline' -> MkLogFormatter newline' _locStrategy _timezone) (f _newline)
+  {-# INLINE labelOptic #-}
+
+-- | @since 0.1
+instance
+  (k ~ A_Lens, a ~ LocStrategy, b ~ LocStrategy) =>
+  LabelOptic "locStrategy" k LogFormatter LogFormatter a b
+  where
+  labelOptic = lensVL $ \f (MkLogFormatter _newline _locStrategy _timezone) ->
+    fmap (\locStrategy' -> MkLogFormatter _newline locStrategy' _timezone) (f _locStrategy)
+  {-# INLINE labelOptic #-}
+
+-- | @since 0.1
+instance
+  (k ~ A_Lens, a ~ Bool, b ~ Bool) =>
+  LabelOptic "timezone" k LogFormatter LogFormatter a b
+  where
+  labelOptic = lensVL $ \f (MkLogFormatter _newline _locStrategy _timezone) ->
+    fmap (MkLogFormatter _newline _locStrategy) (f _timezone)
+  {-# INLINE labelOptic #-}
 
 -- | 'LogFormatter' with:
 --
