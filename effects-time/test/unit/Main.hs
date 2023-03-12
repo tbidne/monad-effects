@@ -251,8 +251,10 @@ normalizeInvariant = testPropertyNamed desc "normalizeInvariant" $
 timesAction :: TestTree
 timesAction = testCase "Times an action" $ do
   ts <- MonadTime.withTiming_ (threadDelay 1_000_000)
-  assertBool (show ts <> " >= 0.9 s") $ ts >= MkTimeSpec 0 900_000_000
-  assertBool (show ts <> " <= 1.1 s") $ ts <= MkTimeSpec 1 100_000_000
+  -- NOTE: Evidently this is pretty imprecise on a mac, so we make the
+  -- threshold up to +/- 0.9s.
+  assertBool (show ts <> " >= 0.1 s") $ ts >= MkTimeSpec 0 100_000_000
+  assertBool (show ts <> " <= 1.9 s") $ ts <= MkTimeSpec 1 900_000_000
 
 localTimeTests :: TestTree
 localTimeTests =
