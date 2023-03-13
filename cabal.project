@@ -117,16 +117,16 @@ package effects-typed-process
 source-repository-package
     type: git
     location: https://github.com/tbidne/algebra-simple.git
-    tag: a2e206727241931cd55f26cd12816bc8a8b5bfcf
+    tag: 1f2e11d0a0d7753f6a2a89b193ec76ce74a52552
 
 source-repository-package
     type: git
     location: https://github.com/tbidne/bounds.git
-    tag: c898e79ff31151e11d69e3fd2ae9c71011e4f558
+    tag: 6c48304f75c42f91060bfaaaf25ef7fac8b24804
 
 source-repository-package
     type: git
     location: https://github.com/tbidne/smart-math.git
-    tag: 1b84af8a57a27a8919f73d3b5376c26c120410b6
+    tag: d46dc5041c1e816d816a38e134f7f13a3874f658
 
 test-show-details: direct

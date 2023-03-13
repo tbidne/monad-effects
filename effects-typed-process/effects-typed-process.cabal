@@ -43,6 +43,8 @@ common common
     TypeApplications
     TypeFamilies
     TypeOperators
+  if os(windows)
+    cpp-options: -DWINDOWS
 
 library
   import:           common

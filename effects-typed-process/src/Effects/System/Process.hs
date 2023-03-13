@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 -- | Provides the 'MonadProcess' typeclass for process effects.
 --
 -- @since 0.1
@@ -29,10 +31,12 @@ module Effects.System.Process
     P.setDetachConsole,
     P.setCreateNewConsole,
     P.setNewSession,
+#if !WINDOWS
     P.setChildGroup,
     P.setChildGroupInherit,
     P.setChildUser,
     P.setChildUserInherit,
+#endif
 
     -- * Stream specs
 
