@@ -29,10 +29,10 @@ jobs:
           - "effects-thread"
           - "effects-time"
           - "effects-typed-process"
-        platform:
+        os:
           - "macos-latest"
           - "ubuntu-latest"
-    runs-on: ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3.3.0
 
