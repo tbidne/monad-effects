@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 module PathReader (tests) where
 
 import Control.Monad (zipWithM_)
@@ -20,6 +22,7 @@ testListDirectoryRecursive = testCase "Recursively lists sub-files/dirs" $ do
   zipWithM_ (@=?) expectedFiles files'
   zipWithM_ (@=?) expectedDirs dirs'
   where
+#if !WINDOWS
     expectedFiles =
       [ "Effects/FileSystem/FileReader.hs",
         "Effects/FileSystem/FileWriter.hs",
@@ -34,3 +37,19 @@ testListDirectoryRecursive = testCase "Recursively lists sub-files/dirs" $ do
       [ "Effects",
         "Effects/FileSystem"
       ]
+#else
+    expectedFiles =
+      [ "Effects\\FileSystem\\FileReader.hs",
+        "Effects\\FileSystem\\FileWriter.hs",
+        "Effects\\FileSystem\\HandleReader.hs",
+        "Effects\\FileSystem\\HandleWriter.hs",
+        "Effects\\FileSystem\\Internal.hs",
+        "Effects\\FileSystem\\Path.hs",
+        "Effects\\FileSystem\\PathReader.hs",
+        "Effects\\FileSystem\\PathWriter.hs"
+      ]
+    expectedDirs =
+      [ "Effects",
+        "Effects\\FileSystem"
+      ]
+#endif

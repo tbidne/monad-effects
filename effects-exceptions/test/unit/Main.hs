@@ -1,9 +1,13 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ViewPatterns #-}
 
 module Main (main) where
 
 import Control.Monad (when, zipWithM_)
 import Data.List qualified as L
+#if WINDOWS
+import Data.Text qualified as T
+#endif
 import Effects.Exception
   ( Exception (..),
     ExceptionCS (MkExceptionCS),
@@ -51,11 +55,13 @@ throwsCallStack = testCase "Throws with callstack" $ do
     Right _ -> assertFailure "Error: did not catch expected exception."
   where
     expected =
-      [ "MkEx",
-        "CallStack (from HasCallStack):",
-        "  throwCS, called at test/unit/Main.hs:0:0 in main:Main",
-        "  throwsCallStack, called at test/unit/Main.hs:0:0 in main:Main"
-      ]
+      fmap
+        portPaths
+        [ "MkEx",
+          "CallStack (from HasCallStack):",
+          "  throwCS, called at test/unit/Main.hs:0:0 in main:Main",
+          "  throwsCallStack, called at test/unit/Main.hs:0:0 in main:Main"
+        ]
 
 throwsExitFailure :: TestTree
 throwsExitFailure = testCase "Calls exitFailure" $ do
@@ -64,10 +70,12 @@ throwsExitFailure = testCase "Calls exitFailure" $ do
     Right _ -> assertFailure "Error: did not catch expected exception."
   where
     expected =
-      [ "ExitFailure 0",
-        "CallStack (from HasCallStack):",
-        "  throwCS, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception"
-      ]
+      fmap
+        portPaths
+        [ "ExitFailure 0",
+          "CallStack (from HasCallStack):",
+          "  throwCS, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception"
+        ]
 
 throwsExitSuccess :: TestTree
 throwsExitSuccess =
@@ -94,12 +102,14 @@ catchesCallStackWrapped = testCase "catchCS catches wrapped exception" $ do
     Right _ -> assertFailure "Error: did not catch expected exception."
   where
     expected =
-      [ "MkEx",
-        "CallStack (from HasCallStack):",
-        "  throwCS, called at test/unit/Main.hs:0:0 in main:Main",
-        "  catchesCallStackWrapped, called at test/unit/Main.hs:0:0 in main:Main",
-        "  catchTests, called at test/unit/Main.hs:0:0 in main:Main"
-      ]
+      fmap
+        portPaths
+        [ "MkEx",
+          "CallStack (from HasCallStack):",
+          "  throwCS, called at test/unit/Main.hs:0:0 in main:Main",
+          "  catchesCallStackWrapped, called at test/unit/Main.hs:0:0 in main:Main",
+          "  catchTests, called at test/unit/Main.hs:0:0 in main:Main"
+        ]
 
 catchesCallStackOriginal :: (HasCallStack) => TestTree
 catchesCallStackOriginal = testCase "catchCS catches the original exception" $ do
@@ -116,12 +126,14 @@ catchesCallStackAny = testCase "catchCS catches any exception" $ do
     Right _ -> assertFailure "Error: did not catch expected exception."
   where
     expected =
-      [ "MkEx",
-        "CallStack (from HasCallStack):",
-        "  throwCS, called at test/unit/Main.hs:0:0 in main:Main",
-        "  catchesCallStackAny, called at test/unit/Main.hs:0:0 in main:Main",
-        "  catchTests, called at test/unit/Main.hs:0:0 in main:Main"
-      ]
+      fmap
+        portPaths
+        [ "MkEx",
+          "CallStack (from HasCallStack):",
+          "  throwCS, called at test/unit/Main.hs:0:0 in main:Main",
+          "  catchesCallStackAny, called at test/unit/Main.hs:0:0 in main:Main",
+          "  catchTests, called at test/unit/Main.hs:0:0 in main:Main"
+        ]
 
 toExceptionTests :: (HasCallStack) => TestTree
 toExceptionTests =
@@ -138,11 +150,13 @@ toExceptionBasic =
   where
     ex = MkExceptionCS MkEx callStack
     expected =
-      [ "MkEx",
-        "CallStack (from HasCallStack):",
-        "  toExceptionBasic, called at test/unit/Main.hs:0:0 in main:Main",
-        "  toExceptionTests, called at test/unit/Main.hs:0:0 in main:Main"
-      ]
+      fmap
+        portPaths
+        [ "MkEx",
+          "CallStack (from HasCallStack):",
+          "  toExceptionBasic, called at test/unit/Main.hs:0:0 in main:Main",
+          "  toExceptionTests, called at test/unit/Main.hs:0:0 in main:Main"
+        ]
 
 toExceptionNested :: (HasCallStack) => TestTree
 toExceptionNested =
@@ -151,11 +165,13 @@ toExceptionNested =
   where
     ex = MkExceptionCS (MkExceptionCS MkEx callStack) callStack
     expected =
-      [ "MkEx",
-        "CallStack (from HasCallStack):",
-        "  toExceptionNested, called at test/unit/Main.hs:0:0 in main:Main",
-        "  toExceptionTests, called at test/unit/Main.hs:0:0 in main:Main"
-      ]
+      fmap
+        portPaths
+        [ "MkEx",
+          "CallStack (from HasCallStack):",
+          "  toExceptionNested, called at test/unit/Main.hs:0:0 in main:Main",
+          "  toExceptionTests, called at test/unit/Main.hs:0:0 in main:Main"
+        ]
 
 fromExceptionTests :: (HasCallStack) => TestTree
 fromExceptionTests =
@@ -173,11 +189,13 @@ fromExceptionWrapped =
   where
     ex = toException $ MkExceptionCS MkEx callStack
     expected =
-      [ "Just MkEx",
-        "CallStack (from HasCallStack):",
-        "  fromExceptionWrapped, called at test/unit/Main.hs:0:0 in main:Main",
-        "  fromExceptionTests, called at test/unit/Main.hs:0:0 in main:Main"
-      ]
+      fmap
+        portPaths
+        [ "Just MkEx",
+          "CallStack (from HasCallStack):",
+          "  fromExceptionWrapped, called at test/unit/Main.hs:0:0 in main:Main",
+          "  fromExceptionTests, called at test/unit/Main.hs:0:0 in main:Main"
+        ]
 
 fromExceptionWrappedNested :: (HasCallStack) => TestTree
 fromExceptionWrappedNested =
@@ -186,11 +204,13 @@ fromExceptionWrappedNested =
   where
     ex = toException $ MkExceptionCS (toException MkEx) callStack
     expected =
-      [ "Just MkEx",
-        "CallStack (from HasCallStack):",
-        "  fromExceptionWrappedNested, called at test/unit/Main.hs:0:0 in main:Main",
-        "  fromExceptionTests, called at test/unit/Main.hs:0:0 in main:Main"
-      ]
+      fmap
+        portPaths
+        [ "Just MkEx",
+          "CallStack (from HasCallStack):",
+          "  fromExceptionWrappedNested, called at test/unit/Main.hs:0:0 in main:Main",
+          "  fromExceptionTests, called at test/unit/Main.hs:0:0 in main:Main"
+        ]
 
 fromExceptionDirect :: TestTree
 fromExceptionDirect =
@@ -206,11 +226,13 @@ addsCallStack = testCase "Adds callstack" $ do
     Right _ -> assertFailure "Error: did not catch expected exception."
   where
     expected =
-      [ "MkEx",
-        "CallStack (from HasCallStack):",
-        "  addCS, called at test/unit/Main.hs:0:0 in main:Main",
-        "  addsCallStack, called at test/unit/Main.hs:0:0 in main:Main"
-      ]
+      fmap
+        portPaths
+        [ "MkEx",
+          "CallStack (from HasCallStack):",
+          "  addCS, called at test/unit/Main.hs:0:0 in main:Main",
+          "  addsCallStack, called at test/unit/Main.hs:0:0 in main:Main"
+        ]
 
 addsCallStackMerges :: (HasCallStack) => TestTree
 addsCallStackMerges = testCase "Adds callstack merges callstacks" $ do
@@ -219,12 +241,14 @@ addsCallStackMerges = testCase "Adds callstack merges callstacks" $ do
     Right _ -> assertFailure "Error: did not catch expected exception."
   where
     expected =
-      [ "MkEx",
-        "CallStack (from HasCallStack):",
-        "  throwCS, called at test/unit/Main.hs:0:0 in main:Main",
-        "  addsCallStackMerges, called at test/unit/Main.hs:0:0 in main:Main",
-        "  addCS, called at test/unit/Main.hs:0:0 in main:Main"
-      ]
+      fmap
+        portPaths
+        [ "MkEx",
+          "CallStack (from HasCallStack):",
+          "  throwCS, called at test/unit/Main.hs:0:0 in main:Main",
+          "  addsCallStackMerges, called at test/unit/Main.hs:0:0 in main:Main",
+          "  addCS, called at test/unit/Main.hs:0:0 in main:Main"
+        ]
 
 displaysNoCallStack :: (HasCallStack) => TestTree
 displaysNoCallStack = testCase "Does not display callstack" $ do
@@ -288,3 +312,12 @@ assertResults expected results = do
   where
     lenExpected = length expected
     lenResults = length results
+
+portPaths :: String -> String
+#if WINDOWS && GHC_9_4
+portPaths = T.unpack . (T.replace "/" "\\") . T.pack
+#elif WINDOWS
+portPaths = T.unpack . (T.replace "/" "\\\\") . T.pack
+#else
+portPaths = id
+#endif

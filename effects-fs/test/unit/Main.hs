@@ -23,7 +23,7 @@ main =
 
 setup :: IO FilePath
 setup = do
-  tmpDir <- (</> "effects-fs/unit") <$> getTemporaryDirectory
+  tmpDir <- (</> "effects-fs" </> "unit") <$> getTemporaryDirectory
   createDirectoryIfMissing True tmpDir
   pure tmpDir
 

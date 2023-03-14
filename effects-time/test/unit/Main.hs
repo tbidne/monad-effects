@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ViewPatterns #-}
 
 module Main (main) where
@@ -282,12 +283,28 @@ parsesLocalTimeCallStack = testCase "Parses LocalTime failure gives CallStack" $
     Right _ -> assertFailure "Error: did not catch expected exception."
   where
     parseAction = MonadTime.parseLocalTimeCallStack "2022-02-08 10:20:05 UTC"
+#if WINDOWS && GHC_9_4
+    expected =
+      [ "user error (parseTimeM: no parse of \"0-0-0 0:0:0 UTC\")",
+        "CallStack (from HasCallStack):",
+        "  addCS, called at src\\Effects\\Time.hs:0:0 in effects-time-0.0-<pkg>:Effects.Time",
+        "  parseLocalTimeCallStack, called at test\\unit\\Main.hs:0:0 in main:Main"
+      ]
+#elif WINDOWS
+    expected =
+      [ "user error (parseTimeM: no parse of \"0-0-0 0:0:0 UTC\")",
+        "CallStack (from HasCallStack):",
+        "  addCS, called at src\\\\Effects\\\\Time.hs:0:0 in effects-time-0.0-<pkg>:Effects.Time",
+        "  parseLocalTimeCallStack, called at test\\\\unit\\\\Main.hs:0:0 in main:Main"
+      ]
+#else
     expected =
       [ "user error (parseTimeM: no parse of \"0-0-0 0:0:0 UTC\")",
         "CallStack (from HasCallStack):",
         "  addCS, called at src/Effects/Time.hs:0:0 in effects-time-0.0-<pkg>:Effects.Time",
         "  parseLocalTimeCallStack, called at test/unit/Main.hs:0:0 in main:Main"
       ]
+#endif
 
 formatsZonedTime :: TestTree
 formatsZonedTime =
@@ -335,12 +352,28 @@ parsesZonedTimeCallStack =
       Right _ -> assertFailure "Error: did not catch expected exception."
   where
     parseAction = MonadTime.parseZonedTimeCallStack "2022-02-08 10:20:05"
+#if WINDOWS && GHC_9_4
+    expected =
+      [ "user error (parseTimeM: no parse of \"0-0-0 0:0:0\")",
+        "CallStack (from HasCallStack):",
+        "  addCS, called at src\\Effects\\Time.hs:0:0 in effects-time-0.0-<pkg>:Effects.Time",
+        "  parseZonedTimeCallStack, called at test\\unit\\Main.hs:0:0 in main:Main"
+      ]
+#elif WINDOWS
+    expected =
+      [ "user error (parseTimeM: no parse of \"0-0-0 0:0:0\")",
+        "CallStack (from HasCallStack):",
+        "  addCS, called at src\\\\Effects\\\\Time.hs:0:0 in effects-time-0.0-<pkg>:Effects.Time",
+        "  parseZonedTimeCallStack, called at test\\\\unit\\\\Main.hs:0:0 in main:Main"
+      ]
+#else
     expected =
       [ "user error (parseTimeM: no parse of \"0-0-0 0:0:0\")",
         "CallStack (from HasCallStack):",
         "  addCS, called at src/Effects/Time.hs:0:0 in effects-time-0.0-<pkg>:Effects.Time",
         "  parseZonedTimeCallStack, called at test/unit/Main.hs:0:0 in main:Main"
       ]
+#endif
 
 localTime :: LocalTime
 localTime = LocalTime day tod

@@ -44,6 +44,11 @@ common common
     TypeFamilies
     TypeOperators
 
+  if os(windows)
+    cpp-options: -DWINDOWS
+  if impl(ghc >=9.4.0)
+    cpp-options: -DGHC_9_4
+
 library
   import:           common
   exposed-modules:  Effects.Time

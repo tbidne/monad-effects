@@ -24,41 +24,8 @@ jobs:
         os:
           - "macos-latest"
           - "ubuntu-latest"
+          - "windows-latest"
     runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v3.3.0
-
-      - uses: haskell/actions/setup@v2.3.4
-        with:
-          ghc-version: ${{ matrix.ghc }}
-
-      - name: Configure
-        run: cabal configure --enable-tests
-
-      - name: Compile
-        run: cabal build all
-
-      - name: Test effects-exceptions
-        run: cabal test effects-exceptions
-
-      - name: Test effects-fs
-        run: cabal test effects-fs
-
-      - name: Test effects-logger-ns
-        run: cabal test effects-logger-ns
-
-      - name: Test effects-time
-        run: cabal test effects-time --test-options '--hedgehog-tests 100000'
-  cabal_windows:
-    strategy:
-      fail-fast: false
-      matrix:
-        ghc:
-          - "8.10.7"
-          - "9.0.2"
-          - "9.2.7"
-          - "9.4.4"
-    runs-on: "windows-latest"
     steps:
       - uses: actions/checkout@v3.3.0
 

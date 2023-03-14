@@ -44,6 +44,12 @@ common common
     TypeFamilies
     TypeOperators
 
+  if os(windows)
+    cpp-options: -DWINDOWS
+
+  if impl(ghc >=9.4.0)
+    cpp-options: -DGHC_9_4
+
 library
   import:           common
   exposed-modules:  Effects.Exception
@@ -67,6 +73,9 @@ test-suite unit
     , effects-exceptions
     , tasty               >=1.1.0.3 && <1.5
     , tasty-hunit         >=0.9     && <0.11
+
+  if os(windows)
+    build-depends: text >=1.2.4.0 && <2.1
 
   hs-source-dirs:   test/unit
   default-language: Haskell2010

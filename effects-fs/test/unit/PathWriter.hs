@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -Wno-missing-methods #-}
 
 module PathWriter (tests) where
@@ -144,7 +145,7 @@ cdrnDestNonExtantFails getTmpDir = testCase desc $ do
   let exText = displayException resultEx
 
   assertBool exText ("Path does not exist:" `L.isPrefixOf` exText)
-  assertBool exText ("effects-fs/unit/cdrnDestNonExtantFails/dest" `L.isSuffixOf` exText)
+  assertBool exText (suffix `L.isSuffixOf` exText)
 
   -- assert original files remain
   assertSrcExists tmpDir
@@ -153,6 +154,11 @@ cdrnDestNonExtantFails getTmpDir = testCase desc $ do
   assertDirsDoNotExist [destDir]
   where
     desc = "Copy to non-extant dest fails"
+#if !WINDOWS
+    suffix = "effects-fs/unit/cdrnDestNonExtantFails/dest"
+#else
+    suffix = "effects-fs\\unit\\cdrnDestNonExtantFails\\dest"
+#endif
 
 cdrnOverwriteFails :: IO FilePath -> TestTree
 cdrnOverwriteFails getTmpDir = testCase desc $ do
@@ -179,7 +185,7 @@ cdrnOverwriteFails getTmpDir = testCase desc $ do
   let exText = displayException resultEx
 
   assertBool exText ("Path already exists:" `L.isPrefixOf` exText)
-  assertBool exText ("effects-fs/unit/cdrnExtantFails/dest/src" `L.isSuffixOf` exText)
+  assertBool exText (suffix `L.isSuffixOf` exText)
 
   -- assert original files remain
   assertSrcExists tmpDir
@@ -192,6 +198,11 @@ cdrnOverwriteFails getTmpDir = testCase desc $ do
           ]
   where
     desc = "Copy to extant dest/<target> fails"
+#if !WINDOWS
+    suffix = "effects-fs/unit/cdrnExtantFails/dest/src"
+#else
+    suffix = "effects-fs\\unit\\cdrnExtantFails\\dest\\src"
+#endif
 
 cdrnPartialFails :: IO FilePath -> TestTree
 cdrnPartialFails getTmpDir = testCase desc $ do
@@ -275,7 +286,7 @@ cdrtDestNonExtantFails getTmpDir = testCase desc $ do
   let exText = displayException resultEx
 
   assertBool exText ("Path does not exist:" `L.isPrefixOf` exText)
-  assertBool exText ("effects-fs/unit/cdrtDestNonExtantFails/dest" `L.isSuffixOf` exText)
+  assertBool exText (suffix `L.isSuffixOf` exText)
 
   -- assert original files remain
   assertSrcExists tmpDir
@@ -284,6 +295,11 @@ cdrtDestNonExtantFails getTmpDir = testCase desc $ do
   assertDirsDoNotExist [destDir]
   where
     desc = "Copy to non-extant dest fails"
+#if !WINDOWS
+    suffix = "effects-fs/unit/cdrtDestNonExtantFails/dest"
+#else
+    suffix = "effects-fs\\unit\\cdrtDestNonExtantFails\\dest"
+#endif
 
 cdrtOverwriteTargetSucceeds :: IO FilePath -> TestTree
 cdrtOverwriteTargetSucceeds getTmpDir = testCase desc $ do
@@ -335,13 +351,18 @@ cdrtOverwriteFileFails getTmpDir = testCase desc $ do
   let exText = displayException resultEx
 
   assertBool exText ("Path already exists:" `L.isPrefixOf` exText)
-  assertBool exText ("effects-fs/unit/cdrtOverwriteFileFails/dest/src/a/b/c/f1" `L.isSuffixOf` exText)
+  assertBool exText (suffix `L.isSuffixOf` exText)
 
   -- assert original files remain
   assertSrcExists tmpDir
   assertFilesExist [destDir </> "src/a/b/c/f1"]
   where
     desc = "copy to extant dest/<target>/file fails"
+#if !WINDOWS
+    suffix = "effects-fs/unit/cdrtOverwriteFileFails/dest/src/a/b/c/f1"
+#else
+    suffix = "effects-fs\\unit\\cdrtOverwriteFileFails\\dest\\src\\a\\b\\c\\f1"
+#endif
 
 cdrtPartialFails :: IO FilePath -> TestTree
 cdrtPartialFails getTmpDir = testCase desc $ do
