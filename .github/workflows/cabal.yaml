@@ -72,18 +72,14 @@ jobs:
       - name: Compile
         run: cabal build all
 
-      # FIXME: Unfortunately, all of our test suites include golden tests
-      # i.e. rely on string comparison. This plays poorly with windows.
-      # Fix these then reenable the tests.
-      #
-      #- name: Test effects-exceptions
-      #  run: cabal test effects-exceptions
-      #
-      #- name: Test effects-fs
-      #  run: cabal test effects-fs
-      #
-      #- name: Test effects-logger-ns
-      #  run: cabal test effects-logger-ns
-      #
-      #- name: Test effects-time
-      #  run: cabal test effects-time --test-options '--hedgehog-tests 100000'
+      - name: Test effects-exceptions
+        run: cabal test effects-exceptions
+
+      - name: Test effects-fs
+        run: cabal test effects-fs
+
+      - name: Test effects-logger-ns
+        run: cabal test effects-logger-ns
+
+      - name: Test effects-time
+        run: cabal test effects-time --test-options '--hedgehog-tests 100000'

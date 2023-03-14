@@ -2,29 +2,25 @@
 
 module Main (main) where
 
-import Data.ByteString.Lazy qualified as BSL
-import Data.Functor (($>), (<&>))
+import Control.Monad (when, zipWithM_)
 import Data.List qualified as L
-import Data.String (IsString (fromString))
 import Effects.Exception
   ( Exception (..),
     ExceptionCS (MkExceptionCS),
-    HasCallStack,
     SomeException,
     addCS,
-    catchCS,
     displayException,
     displayNoCS,
     exitFailure,
     throwCS,
     throwM,
     tryAny,
+    tryCS,
   )
 import GHC.Stack (callStack)
 import System.Exit (exitSuccess)
-import System.FilePath ((</>))
 import Test.Tasty (TestTree, defaultMain, testGroup)
-import Test.Tasty.Golden (goldenVsStringDiff)
+import Test.Tasty.HUnit (HasCallStack, assertFailure, testCase, (@=?))
 import Text.Read qualified as TR
 
 main :: IO ()
@@ -49,34 +45,38 @@ data Ex = MkEx
   deriving anyclass (Exception)
 
 throwsCallStack :: (HasCallStack) => TestTree
-throwsCallStack =
-  goldenVsStringDiff desc diff gpath $
-    tryAny (throwCS MkEx) <&> \case
-      Left e -> displayExceptionBS e
-      Right _ -> "Error: did not catch expected exception."
+throwsCallStack = testCase "Throws with callstack" $ do
+  tryAny (throwCS MkEx) >>= \case
+    Left e -> assertResults expected (L.lines $ displayException' e)
+    Right _ -> assertFailure "Error: did not catch expected exception."
   where
-    desc = "Throws with callstack"
-    gpath = goldenPath </> "throw-callstack.golden"
+    expected =
+      [ "MkEx",
+        "CallStack (from HasCallStack):",
+        "  throwCS, called at test/unit/Main.hs:0:0 in main:Main",
+        "  throwsCallStack, called at test/unit/Main.hs:0:0 in main:Main"
+      ]
 
 throwsExitFailure :: TestTree
-throwsExitFailure =
-  goldenVsStringDiff desc diff gpath $
-    tryAny exitFailure <&> \case
-      Left e -> displayExceptionBS e
-      Right _ -> "Error: did not catch expected exception."
+throwsExitFailure = testCase "Calls exitFailure" $ do
+  tryAny exitFailure >>= \case
+    Left e -> assertResults expected (L.lines $ displayException' e)
+    Right _ -> assertFailure "Error: did not catch expected exception."
   where
-    desc = "Calls exitFailure"
-    gpath = goldenPath </> "calls-exitFailure.golden"
+    expected =
+      [ "ExitFailure 0",
+        "CallStack (from HasCallStack):",
+        "  throwCS, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception"
+      ]
 
 throwsExitSuccess :: TestTree
 throwsExitSuccess =
-  goldenVsStringDiff desc diff gpath $
-    tryAny exitSuccess <&> \case
-      Left e -> displayExceptionBS e
-      Right _ -> "Error: did not catch expected exception."
+  testCase "Calls exitSuccess" $
+    tryAny exitSuccess >>= \case
+      Left e -> assertResults expected (L.lines $ displayException' e)
+      Right _ -> assertFailure "Error: did not catch expected exception."
   where
-    desc = "Calls exitSuccess"
-    gpath = goldenPath </> "calls-exitSuccess.golden"
+    expected = ["ExitSuccess"]
 
 catchTests :: (HasCallStack) => TestTree
 catchTests =
@@ -88,31 +88,40 @@ catchTests =
     ]
 
 catchesCallStackWrapped :: (HasCallStack) => TestTree
-catchesCallStackWrapped = goldenVsStringDiff desc diff gpath $ do
-  (throwCS MkEx $> "Error: did not catch expected exception.")
-    `catchCS` \(e :: ExceptionCS Ex) ->
-      pure $ displayExceptionBS e
+catchesCallStackWrapped = testCase "catchCS catches wrapped exception" $ do
+  tryCS @_ @(ExceptionCS Ex) (throwCS MkEx) >>= \case
+    Left e -> assertResults expected (L.lines $ displayException' e)
+    Right _ -> assertFailure "Error: did not catch expected exception."
   where
-    desc = "catchCS catches wrapped exception"
-    gpath = goldenPath </> "catches-callstack-wrapped.golden"
+    expected =
+      [ "MkEx",
+        "CallStack (from HasCallStack):",
+        "  throwCS, called at test/unit/Main.hs:0:0 in main:Main",
+        "  catchesCallStackWrapped, called at test/unit/Main.hs:0:0 in main:Main",
+        "  catchTests, called at test/unit/Main.hs:0:0 in main:Main"
+      ]
 
 catchesCallStackOriginal :: (HasCallStack) => TestTree
-catchesCallStackOriginal = goldenVsStringDiff desc diff gpath $ do
-  (throwCS MkEx $> "Error: did not catch expected exception.")
-    `catchCS` \(e :: Ex) ->
-      pure $ displayExceptionBS e
+catchesCallStackOriginal = testCase "catchCS catches the original exception" $ do
+  tryCS @_ @Ex (throwCS MkEx) >>= \case
+    Left e -> assertResults expected (L.lines $ displayException' e)
+    Right _ -> assertFailure "Error: did not catch expected exception."
   where
-    desc = "catchCS catches the original exception"
-    gpath = goldenPath </> "catches-callstack-original.golden"
+    expected = ["MkEx"]
 
 catchesCallStackAny :: (HasCallStack) => TestTree
-catchesCallStackAny = goldenVsStringDiff desc diff gpath $ do
-  (throwCS MkEx $> "Error: did not catch expected exception.")
-    `catchCS` \(e :: ExceptionCS SomeException) ->
-      pure $ displayExceptionBS e
+catchesCallStackAny = testCase "catchCS catches any exception" $ do
+  tryCS @_ @(ExceptionCS SomeException) (throwCS MkEx) >>= \case
+    Left e -> assertResults expected (L.lines $ displayException' e)
+    Right _ -> assertFailure "Error: did not catch expected exception."
   where
-    desc = "catchCS catches any exception"
-    gpath = goldenPath </> "catches-callstack-any.golden"
+    expected =
+      [ "MkEx",
+        "CallStack (from HasCallStack):",
+        "  throwCS, called at test/unit/Main.hs:0:0 in main:Main",
+        "  catchesCallStackAny, called at test/unit/Main.hs:0:0 in main:Main",
+        "  catchTests, called at test/unit/Main.hs:0:0 in main:Main"
+      ]
 
 toExceptionTests :: (HasCallStack) => TestTree
 toExceptionTests =
@@ -123,20 +132,30 @@ toExceptionTests =
     ]
 
 toExceptionBasic :: (HasCallStack) => TestTree
-toExceptionBasic = goldenVsStringDiff desc diff gpath $ do
-  pure $ displayExceptionBS $ toException ex
+toExceptionBasic =
+  testCase "Converts basic" $
+    assertResults expected (L.lines $ displayException' $ toException ex)
   where
     ex = MkExceptionCS MkEx callStack
-    desc = "Converts basic"
-    gpath = goldenPath </> "toException.golden"
+    expected =
+      [ "MkEx",
+        "CallStack (from HasCallStack):",
+        "  toExceptionBasic, called at test/unit/Main.hs:0:0 in main:Main",
+        "  toExceptionTests, called at test/unit/Main.hs:0:0 in main:Main"
+      ]
 
 toExceptionNested :: (HasCallStack) => TestTree
-toExceptionNested = goldenVsStringDiff desc diff gpath $ do
-  pure $ displayExceptionBS $ toException ex
+toExceptionNested =
+  testCase "Flattens nested" $
+    assertResults expected (L.lines $ displayException' $ toException ex)
   where
     ex = MkExceptionCS (MkExceptionCS MkEx callStack) callStack
-    desc = "Flattens nested"
-    gpath = goldenPath </> "toException-nested.golden"
+    expected =
+      [ "MkEx",
+        "CallStack (from HasCallStack):",
+        "  toExceptionNested, called at test/unit/Main.hs:0:0 in main:Main",
+        "  toExceptionTests, called at test/unit/Main.hs:0:0 in main:Main"
+      ]
 
 fromExceptionTests :: (HasCallStack) => TestTree
 fromExceptionTests =
@@ -148,65 +167,74 @@ fromExceptionTests =
     ]
 
 fromExceptionWrapped :: (HasCallStack) => TestTree
-fromExceptionWrapped = goldenVsStringDiff desc diff gpath $ do
-  pure $ showBS $ fromException @(ExceptionCS Ex) ex
+fromExceptionWrapped =
+  testCase "Flattens nested" $
+    assertResults expected (L.lines $ show' $ fromException @(ExceptionCS Ex) ex)
   where
     ex = toException $ MkExceptionCS MkEx callStack
-    desc = "Converts to (ExceptionCS Ex)"
-    gpath = goldenPath </> "fromException-wrapped.golden"
+    expected =
+      [ "Just MkEx",
+        "CallStack (from HasCallStack):",
+        "  fromExceptionWrapped, called at test/unit/Main.hs:0:0 in main:Main",
+        "  fromExceptionTests, called at test/unit/Main.hs:0:0 in main:Main"
+      ]
 
 fromExceptionWrappedNested :: (HasCallStack) => TestTree
-fromExceptionWrappedNested = goldenVsStringDiff desc diff gpath $ do
-  pure $ showBS $ fromException @(ExceptionCS Ex) ex
+fromExceptionWrappedNested =
+  testCase "Converts nested to (ExceptionCS Ex)" $
+    assertResults expected (L.lines $ show' $ fromException @(ExceptionCS Ex) ex)
   where
     ex = toException $ MkExceptionCS (toException MkEx) callStack
-    desc = "Converts nested to (ExceptionCS Ex)"
-    gpath = goldenPath </> "fromException-wrapped-nested.golden"
+    expected =
+      [ "Just MkEx",
+        "CallStack (from HasCallStack):",
+        "  fromExceptionWrappedNested, called at test/unit/Main.hs:0:0 in main:Main",
+        "  fromExceptionTests, called at test/unit/Main.hs:0:0 in main:Main"
+      ]
 
 fromExceptionDirect :: TestTree
-fromExceptionDirect = goldenVsStringDiff desc diff gpath $ do
-  pure $ showBS $ fromException @(ExceptionCS Ex) ex
+fromExceptionDirect =
+  testCase "Converts to Ex" $
+    "Just MkEx\n" @=? show' (fromException @(ExceptionCS Ex) ex)
   where
     ex = toException MkEx
-    desc = "Converts to Ex"
-    gpath = goldenPath </> "fromException-direct.golden"
 
 addsCallStack :: (HasCallStack) => TestTree
-addsCallStack =
-  goldenVsStringDiff desc diff gpath $
-    tryAny (addCS $ throwM MkEx) <&> \case
-      Left e -> displayExceptionBS e
-      Right _ -> "Error: did not catch expected exception."
+addsCallStack = testCase "Adds callstack" $ do
+  tryAny (addCS $ throwM MkEx) >>= \case
+    Left e -> assertResults expected (L.lines $ displayException' e)
+    Right _ -> assertFailure "Error: did not catch expected exception."
   where
-    desc = "Adds callstack"
-    gpath = goldenPath </> "add-callstack.golden"
+    expected =
+      [ "MkEx",
+        "CallStack (from HasCallStack):",
+        "  addCS, called at test/unit/Main.hs:0:0 in main:Main",
+        "  addsCallStack, called at test/unit/Main.hs:0:0 in main:Main"
+      ]
 
 addsCallStackMerges :: (HasCallStack) => TestTree
-addsCallStackMerges =
-  goldenVsStringDiff desc diff gpath $
-    tryAny (addCS $ throwCS MkEx) <&> \case
-      Left e -> displayExceptionBS e
-      Right _ -> "Error: did not catch expected exception."
+addsCallStackMerges = testCase "Adds callstack merges callstacks" $ do
+  tryAny (addCS $ throwCS MkEx) >>= \case
+    Left e -> assertResults expected (L.lines $ displayException' e)
+    Right _ -> assertFailure "Error: did not catch expected exception."
   where
-    desc = "Adds callstack merges callstacks"
-    gpath = goldenPath </> "add-callstack-merges.golden"
+    expected =
+      [ "MkEx",
+        "CallStack (from HasCallStack):",
+        "  throwCS, called at test/unit/Main.hs:0:0 in main:Main",
+        "  addsCallStackMerges, called at test/unit/Main.hs:0:0 in main:Main",
+        "  addCS, called at test/unit/Main.hs:0:0 in main:Main"
+      ]
 
 displaysNoCallStack :: (HasCallStack) => TestTree
-displaysNoCallStack =
-  goldenVsStringDiff desc diff gpath $
-    tryAny (throwCS MkEx) <&> \case
-      Left e -> fromString $ displayNoCS e
-      Right _ -> "Error: did not catch expected exception."
-  where
-    desc = "Does not display callstack"
-    gpath = goldenPath </> "no-callstack.golden"
+displaysNoCallStack = testCase "Does not display callstack" $ do
+  tryAny (throwCS MkEx) >>= \case
+    Left e -> "MkEx" @=? displayNoCS e
+    Right _ -> assertFailure "Error: did not catch expected exception."
 
 displaysNoCallStackNested :: (HasCallStack) => TestTree
-displaysNoCallStackNested =
-  goldenVsStringDiff desc diff gpath $
-    pure $
-      fromString $
-        displayNoCS ex
+displaysNoCallStackNested = testCase "Does not display nested callstack" $ do
+  "MkEx" @=? displayNoCS ex
   where
     ex =
       MkExceptionCS
@@ -215,20 +243,12 @@ displaysNoCallStackNested =
             callStack
         )
         callStack
-    desc = "Does not display nested callstack"
-    gpath = goldenPath </> "no-callstack-nested.golden"
 
-goldenPath :: FilePath
-goldenPath = "test/unit/"
+show' :: (Show a) => a -> String
+show' = zeroNums . show
 
-diff :: FilePath -> FilePath -> [FilePath]
-diff ref new = ["diff", "-u", ref, new]
-
-showBS :: (Show a) => a -> BSL.ByteString
-showBS = fromString . zeroNums . show
-
-displayExceptionBS :: (Exception e) => e -> BSL.ByteString
-displayExceptionBS = fromString . stripPkgName . zeroNums . displayException
+displayException' :: (Exception e) => e -> String
+displayException' = stripPkgName . zeroNums . displayException
 
 zeroNums :: String -> String
 zeroNums [] = []
@@ -252,3 +272,19 @@ skipUntilColon :: String -> String
 skipUntilColon [] = []
 skipUntilColon (':' : rest) = ':' : rest
 skipUntilColon (_ : xs) = skipUntilColon xs
+
+assertResults :: (Eq a, Show a) => [a] -> [a] -> IO ()
+assertResults expected results = do
+  when (lenExpected /= lenResults) $
+    assertFailure $
+      mconcat
+        [ "Expected length (",
+          show lenExpected,
+          ") did not match results length (",
+          show lenResults,
+          ")."
+        ]
+  zipWithM_ (@=?) expected results
+  where
+    lenExpected = length expected
+    lenResults = length results

@@ -1,4 +1,0 @@
-MkEx
-CallStack (from HasCallStack):
-  addCS, called at test/unit/Main.hs:0:0 in main:Main
-  addsCallStack, called at test/unit/Main.hs:0:0 in main:Main

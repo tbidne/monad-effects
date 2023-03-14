@@ -4,12 +4,10 @@ module Main (main) where
 
 import Control.Concurrent (threadDelay)
 import Control.Exception (Exception, SomeException, displayException, try)
-import Control.Monad (void)
+import Control.Monad (void, when, zipWithM_)
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Data.Fixed (Fixed (MkFixed))
-import Data.Functor ((<&>))
 import Data.List qualified as L
-import Data.String (IsString (fromString))
 import Data.Time.Calendar.OrdinalDate (fromOrdinalDate)
 import Data.Time.LocalTime (TimeOfDay (TimeOfDay), utc)
 import Effects.Time
@@ -23,10 +21,8 @@ import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as R
 import Numeric.Natural (Natural)
 import Optics.Core (view)
-import System.FilePath ((</>))
 import Test.Tasty (TestTree, defaultMain, testGroup)
-import Test.Tasty.Golden (goldenVsStringDiff)
-import Test.Tasty.HUnit (assertBool, testCase, (@=?))
+import Test.Tasty.HUnit (assertBool, assertFailure, testCase, (@=?))
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import Text.Read qualified as TR
 
@@ -102,37 +98,22 @@ eqEquivClass = testPropertyNamed desc "eqEquivClass" $
 
 createFromSeconds :: TestTree
 createFromSeconds =
-  goldenVsStringDiff desc gdiff gpath $
-    pure $
-      fromString $
-        show $
-          MonadTime.fromSeconds 10.123456789
+  testCase "Creates TimeSpec from Double seconds" $
+    expected @=? MonadTime.fromSeconds 10.123456789
   where
-    desc = "Creates TimeSpec from Double seconds"
-    gpath = goldenPath </> "timespec-create-seconds.golden"
+    expected = MkTimeSpec 10 123456789
 
 createFromNanoSeconds :: TestTree
 createFromNanoSeconds =
-  goldenVsStringDiff desc gdiff gpath $
-    pure $
-      fromString $
-        show $
-          MonadTime.fromNanoSeconds 10_123_456_789
+  testCase "Creates TimeSpec from Natural nanoseconds" $
+    expected @=? MonadTime.fromNanoSeconds 10_123_456_789
   where
-    desc = "Creates TimeSpec from Natural nanoseconds"
-    gpath = goldenPath </> "timespec-create-nanoseconds.golden"
+    expected = MkTimeSpec 10 123456789
 
 elimToSeconds :: TestTree
 elimToSeconds =
-  goldenVsStringDiff desc gdiff gpath $
-    pure $
-      fromString $
-        show $
-          MonadTime.toSeconds $
-            MkTimeSpec 10 123_456_789
-  where
-    desc = "Maps TimeSpec to seconds"
-    gpath = goldenPath </> "timespec-elim-seconds.golden"
+  testCase "Maps TimeSpec to seconds" $
+    10.123456789 @=? MonadTime.toSeconds (MkTimeSpec 10 123_456_789)
 
 toFromSecondsEpsilon :: TestTree
 toFromSecondsEpsilon = testPropertyNamed desc "toFromSecondsEpsilon" $
@@ -183,31 +164,16 @@ fromToNatRoundTrip = testPropertyNamed desc "fromToNatRoundTrip" $
 
 elimToNanoseconds :: TestTree
 elimToNanoseconds =
-  goldenVsStringDiff desc gdiff gpath $
-    pure $
-      fromString $
-        show $
-          MonadTime.toNanoSeconds $
-            MkTimeSpec 10 123_456_789
-  where
-    desc = "Maps TimeSpec to nanoseconds"
-    gpath = goldenPath </> "timespec-elim-nanoseconds.golden"
+  testCase "Maps TimeSpec to nanoseconds" $
+    10123456789 @=? MonadTime.toNanoSeconds (MkTimeSpec 10 123_456_789)
 
 diffsTimeSpec :: TestTree
-diffsTimeSpec =
-  goldenVsStringDiff desc gdiff gpath $
-    pure $
-      fromString $
-        unlines
-          [ show $ MonadTime.diffTimeSpec t1 t2,
-            show $ MonadTime.diffTimeSpec t2 t1,
-            show $ MonadTime.diffTimeSpec t1 t2 == MonadTime.diffTimeSpec t2 t1
-          ]
+diffsTimeSpec = testCase "Diffs TimeSpecs" $ do
+  MkTimeSpec 10 864197532 @=? MonadTime.diffTimeSpec t1 t2
+  MkTimeSpec 10 864197532 @=? MonadTime.diffTimeSpec t2 t1
   where
     t1 = MkTimeSpec 10 123_456_789
     t2 = MkTimeSpec 20 987_654_321
-    desc = "Diffs TimeSpecs"
-    gpath = goldenPath </> "timespec-diff.golden"
 
 diffTimeSpecCommutes :: TestTree
 diffTimeSpecCommutes = testPropertyNamed desc "diffsTimeSpec2" $
@@ -222,15 +188,10 @@ diffTimeSpecCommutes = testPropertyNamed desc "diffsTimeSpec2" $
 
 normalizesTimeSpec :: TestTree
 normalizesTimeSpec =
-  goldenVsStringDiff desc gdiff gpath $
-    pure $
-      fromString $
-        show $
-          MonadTime.normalizeTimeSpec t
+  testCase "Normalizes TimeSpec" $
+    MkTimeSpec 55 123456789 @=? MonadTime.normalizeTimeSpec t
   where
     t = MkTimeSpec 10 45_123_456_789
-    desc = "Normalizes TimeSpec"
-    gpath = goldenPath </> "timespec-normalize.golden"
 
 normalizeInvariant :: TestTree
 normalizeInvariant = testPropertyNamed desc "normalizeInvariant" $
@@ -280,13 +241,8 @@ zonedTimeTests =
 
 formatsLocalTime :: TestTree
 formatsLocalTime =
-  goldenVsStringDiff desc gdiff gpath $
-    pure $
-      fromString $
-        MonadTime.formatLocalTime localTime
-  where
-    desc = "Formats LocalTime"
-    gpath = goldenPath </> "localtime-format.golden"
+  testCase "Formats LocalTime" $
+    "2022-02-08 10:20:05" @=? MonadTime.formatLocalTime localTime
 
 parsesLocalTime :: TestTree
 parsesLocalTime = testCase "Parses LocalTime" $ do
@@ -320,25 +276,23 @@ parseFormatLocalTimeEpsilon = testPropertyNamed desc "parseFormatLocalTimeEpsilo
     desc = "(parseLocalTime . formatLocalTime) x ~= x (up to < 1 second)"
 
 parsesLocalTimeCallStack :: TestTree
-parsesLocalTimeCallStack =
-  goldenVsStringDiff desc gdiff gpath $
-    try @SomeException parseAction <&> \case
-      Left e -> fromString $ stableCallStack e
-      Right _ -> "Error: did not catch expected exception."
+parsesLocalTimeCallStack = testCase "Parses LocalTime failure gives CallStack" $ do
+  try @SomeException parseAction >>= \case
+    Left e -> assertResults expected (L.lines $ stableCallStack e)
+    Right _ -> assertFailure "Error: did not catch expected exception."
   where
     parseAction = MonadTime.parseLocalTimeCallStack "2022-02-08 10:20:05 UTC"
-    desc = "Parses LocalTime failure gives CallStack"
-    gpath = goldenPath </> "localtime-parse-callstack.golden"
+    expected =
+      [ "user error (parseTimeM: no parse of \"0-0-0 0:0:0 UTC\")",
+        "CallStack (from HasCallStack):",
+        "  addCS, called at src/Effects/Time.hs:0:0 in effects-time-0.0-<pkg>:Effects.Time",
+        "  parseLocalTimeCallStack, called at test/unit/Main.hs:0:0 in main:Main"
+      ]
 
 formatsZonedTime :: TestTree
 formatsZonedTime =
-  goldenVsStringDiff desc gdiff gpath $
-    pure $
-      fromString $
-        MonadTime.formatZonedTime zonedTime
-  where
-    desc = "Formats ZonedTime"
-    gpath = goldenPath </> "zonedtime-format.golden"
+  testCase "Formats ZonedTime" $
+    "2022-02-08 10:20:05 UTC" @=? MonadTime.formatZonedTime zonedTime
 
 parsesZonedTime :: TestTree
 parsesZonedTime = testCase "Parses ZonedTime" $ do
@@ -375,14 +329,18 @@ parseFormatZonedTimeEpsilon = testPropertyNamed desc "parseFormatZonedTimeEpsilo
 
 parsesZonedTimeCallStack :: TestTree
 parsesZonedTimeCallStack =
-  goldenVsStringDiff desc gdiff gpath $
-    try @SomeException parseAction <&> \case
-      Left e -> fromString $ stableCallStack e
-      Right _ -> "Error: did not catch expected exception."
+  testCase "Parses ZonedTime failure gives CallStack" $
+    try @SomeException parseAction >>= \case
+      Left e -> assertResults expected (L.lines $ stableCallStack e)
+      Right _ -> assertFailure "Error: did not catch expected exception."
   where
     parseAction = MonadTime.parseZonedTimeCallStack "2022-02-08 10:20:05"
-    desc = "Parses ZonedTime failure gives CallStack"
-    gpath = goldenPath </> "zonedtime-parse-callstack.golden"
+    expected =
+      [ "user error (parseTimeM: no parse of \"0-0-0 0:0:0\")",
+        "CallStack (from HasCallStack):",
+        "  addCS, called at src/Effects/Time.hs:0:0 in effects-time-0.0-<pkg>:Effects.Time",
+        "  parseZonedTimeCallStack, called at test/unit/Main.hs:0:0 in main:Main"
+      ]
 
 localTime :: LocalTime
 localTime = LocalTime day tod
@@ -392,12 +350,6 @@ localTime = LocalTime day tod
 
 zonedTime :: ZonedTime
 zonedTime = ZonedTime localTime utc
-
-goldenPath :: FilePath
-goldenPath = "test/unit/"
-
-gdiff :: FilePath -> FilePath -> [FilePath]
-gdiff ref new = ["diff", "-u", ref, new]
 
 eqLocalTimeEpsilon :: LocalTime -> LocalTime -> Bool
 eqLocalTimeEpsilon
@@ -525,3 +477,19 @@ skipUntilColon :: String -> String
 skipUntilColon [] = []
 skipUntilColon (':' : rest) = ':' : rest
 skipUntilColon (_ : xs) = skipUntilColon xs
+
+assertResults :: (Eq a, Show a) => [a] -> [a] -> IO ()
+assertResults expected results = do
+  when (lenExpected /= lenResults) $
+    assertFailure $
+      mconcat
+        [ "Expected length (",
+          show lenExpected,
+          ") did not match results length (",
+          show lenResults,
+          ")."
+        ]
+  zipWithM_ (@=?) expected results
+  where
+    lenExpected = length expected
+    lenResults = length results

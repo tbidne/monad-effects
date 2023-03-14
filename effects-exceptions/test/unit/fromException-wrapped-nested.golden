@@ -1,4 +1,0 @@
-Just MkEx
-CallStack (from HasCallStack):
-  fromExceptionWrappedNested, called at test/unit/Main.hs:0:0 in main:Main
-  fromExceptionTests, called at test/unit/Main.hs:0:0 in main:Main

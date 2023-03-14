@@ -86,9 +86,8 @@ test-suite unit
     , effects-fs
     , effects-ioref
     , env-guard           ^>=0.2
-    , tasty               >=1.1.0.3  && <1.5
-    , tasty-golden        ^>=2.3.1.1
-    , tasty-hunit         >=0.9      && <0.11
+    , tasty               >=1.1.0.3 && <1.5
+    , tasty-hunit         >=0.9     && <0.11
     , transformers
 
   hs-source-dirs:   test/unit

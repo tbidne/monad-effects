@@ -1,5 +1,0 @@
-MkEx
-CallStack (from HasCallStack):
-  throwCS, called at test/unit/Main.hs:0:0 in main:Main
-  addsCallStackMerges, called at test/unit/Main.hs:0:0 in main:Main
-  addCS, called at test/unit/Main.hs:0:0 in main:Main

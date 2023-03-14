@@ -1,3 +1,0 @@
-ExitFailure 0
-CallStack (from HasCallStack):
-  throwCS, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception

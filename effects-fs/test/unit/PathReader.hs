@@ -1,11 +1,10 @@
 module PathReader (tests) where
 
+import Control.Monad (zipWithM_)
 import Data.List qualified as L
-import Data.String (IsString (fromString))
-import Effects.FileSystem.Path ((</>))
 import Effects.FileSystem.PathReader qualified as PathReader
 import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.Golden (goldenVsStringDiff)
+import Test.Tasty.HUnit (testCase, (@=?))
 
 tests :: TestTree
 tests =
@@ -15,23 +14,23 @@ tests =
     ]
 
 testListDirectoryRecursive :: TestTree
-testListDirectoryRecursive = goldenVsStringDiff desc diff gpath $ do
+testListDirectoryRecursive = testCase "Recursively lists sub-files/dirs" $ do
   (files, dirs) <- PathReader.listDirectoryRecursive "./src"
   let (files', dirs') = (L.sort files, L.sort dirs)
-      str =
-        mconcat
-          [ "FILES\n\n",
-            unlines files',
-            "\nDIRECTORIES\n\n",
-            unlines dirs'
-          ]
-  pure $ fromString str
+  zipWithM_ (@=?) expectedFiles files'
+  zipWithM_ (@=?) expectedDirs dirs'
   where
-    desc = "Recursively lists sub-files/dirs"
-    gpath = goldenPath </> "listDirectoryRecursive.golden"
-
-goldenPath :: FilePath
-goldenPath = "test/unit/PathReader"
-
-diff :: FilePath -> FilePath -> [FilePath]
-diff ref new = ["diff", "-u", ref, new]
+    expectedFiles =
+      [ "Effects/FileSystem/FileReader.hs",
+        "Effects/FileSystem/FileWriter.hs",
+        "Effects/FileSystem/HandleReader.hs",
+        "Effects/FileSystem/HandleWriter.hs",
+        "Effects/FileSystem/Internal.hs",
+        "Effects/FileSystem/Path.hs",
+        "Effects/FileSystem/PathReader.hs",
+        "Effects/FileSystem/PathWriter.hs"
+      ]
+    expectedDirs =
+      [ "Effects",
+        "Effects/FileSystem"
+      ]
