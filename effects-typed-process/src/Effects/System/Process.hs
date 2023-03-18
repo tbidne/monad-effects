@@ -1,5 +1,7 @@
 {-# LANGUAGE CPP #-}
 
+{- ORMOLU_DISABLE -}
+
 -- | Provides the 'MonadProcess' typeclass for process effects.
 --
 -- @since 0.1
@@ -96,6 +98,8 @@ module Effects.System.Process
     P.unsafeProcessHandle,
   )
 where
+
+{- ORMOLU_ENABLE -}
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)

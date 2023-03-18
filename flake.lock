@@ -13,16 +13,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1678738512,
-        "narHash": "sha256-EpWvAjxiFDCmvVSaS5adAv63YumBmnSwlzIo9dTLB8o=",
+        "lastModified": 1679004597,
+        "narHash": "sha256-eMCoDhb+Ou86e08XFTVq9VOXA8ouziNHq4SwXWotVFs=",
         "owner": "tbidne",
         "repo": "algebra-simple",
-        "rev": "1f2e11d0a0d7753f6a2a89b193ec76ce74a52552",
+        "rev": "63f86638145baa32fdd21d87344701b9c8c93c23",
         "type": "github"
       },
       "original": {
         "owner": "tbidne",
-        "ref": "windows",
         "repo": "algebra-simple",
         "type": "github"
       }
@@ -40,16 +39,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1678743060,
-        "narHash": "sha256-AY/PGZnwYaPPyjMdChONltIPyI6qJawViQjHG7/CT+U=",
+        "lastModified": 1679008965,
+        "narHash": "sha256-UdQhtrvPSZu0eQ0D8k5fpS3rh2v4bIc1MN7kJPmDZUc=",
         "owner": "tbidne",
         "repo": "bounds",
-        "rev": "6c48304f75c42f91060bfaaaf25ef7fac8b24804",
+        "rev": "aeb822deb5593a0e774105f94e65527e63931cfa",
         "type": "github"
       },
       "original": {
         "owner": "tbidne",
-        "ref": "windows",
         "repo": "bounds",
         "type": "github"
       }
@@ -151,16 +149,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1678746250,
-        "narHash": "sha256-V+lHcWkRe84Ny7+N3t2KvQWogD5LOY6jSAsppK9B5Tk=",
+        "lastModified": 1679019790,
+        "narHash": "sha256-e9isXa24qqP1nmIp4uIRnd6b/2bybkZixy8aI8sPI+g=",
         "owner": "tbidne",
         "repo": "smart-math",
-        "rev": "d46dc5041c1e816d816a38e134f7f13a3874f658",
+        "rev": "3deb61a9862dc56b56fb6d7ce3fef93faa24d278",
         "type": "github"
       },
       "original": {
         "owner": "tbidne",
-        "ref": "windows",
         "repo": "smart-math",
         "type": "github"
       }

@@ -11,19 +11,19 @@
 
   # haskell
   inputs.algebra-simple = {
-    url = "github:tbidne/algebra-simple/windows";
+    url = "github:tbidne/algebra-simple";
     inputs.flake-compat.follows = "flake-compat";
     inputs.flake-parts.follows = "flake-parts";
     inputs.nixpkgs.follows = "nixpkgs";
   };
   inputs.bounds = {
-    url = "github:tbidne/bounds/windows";
+    url = "github:tbidne/bounds";
     inputs.flake-compat.follows = "flake-compat";
     inputs.flake-parts.follows = "flake-parts";
     inputs.nixpkgs.follows = "nixpkgs";
   };
   inputs.smart-math = {
-    url = "github:tbidne/smart-math/windows";
+    url = "github:tbidne/smart-math";
     inputs.flake-compat.follows = "flake-compat";
     inputs.flake-parts.follows = "flake-parts";
     inputs.nixpkgs.follows = "nixpkgs";
@@ -42,22 +42,14 @@
     flake-parts.lib.mkFlake { inherit inputs; } {
       perSystem = { pkgs, ... }:
         let
-          buildTools = c: with c; [
-            cabal-install
+          buildTools = c: [
+            c.cabal-install
             pkgs.gnumake
             pkgs.zlib
           ];
-          devTools = c: with c; [
-            (hlib.dontCheck ghcid)
-            (hlib.overrideCabal haskell-language-server (old: {
-              configureFlags = (old.configureFlags or [ ]) ++
-                [
-                  "-f -brittany"
-                  "-f -floskell"
-                  "-f -fourmolu"
-                  "-f -stylishhaskell"
-                ];
-            }))
+          devTools = c: [
+            (hlib.dontCheck c.ghcid)
+            (hlib.dontCheck c.haskell-language-server)
           ];
           ghc-version = "ghc944";
           hlib = pkgs.haskell.lib;

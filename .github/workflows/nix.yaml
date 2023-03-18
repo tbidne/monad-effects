@@ -44,11 +44,4 @@ jobs:
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
 
       - name: ${{ matrix.lib }}
-        run: |
-          nix build .#${{ matrix.lib }}
-          if [ -d "./result/lib" ]; then
-            echo "Build succeeded"
-          else
-            echo "Build failed"
-            exit -1
-          fi
+        run: nix build .#${{ matrix.lib }}
