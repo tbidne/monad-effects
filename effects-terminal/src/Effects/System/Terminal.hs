@@ -182,7 +182,7 @@ instance MonadTerminal m => MonadTerminal (ReaderT e m) where
 -- > main = print ([(n, 2^n) | n <- [0..19]])
 --
 -- @since 0.1
-print :: (HasCallStack, MonadTerminal m) => String -> m ()
+print :: (HasCallStack, MonadTerminal m, Show a) => a -> m ()
 print = putStrLn . show
 {-# INLINEABLE print #-}
 
