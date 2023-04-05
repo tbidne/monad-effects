@@ -3,7 +3,9 @@ name:               effects-thread
 version:            0.1
 license:            MIT
 license-file:       LICENSE
-tested-with:        GHC ==8.10.7 || ==9.0.2 || ==9.2.7 || ==9.4.4
+tested-with:
+  GHC ==8.10.7 || ==9.0.2 || ==9.2.7 || ==9.4.4 || ==9.6.1
+
 copyright:          2022-2023 Thomas Bidne
 author:             Thomas Bidne
 maintainer:         tbidne@protonmail.com
@@ -18,7 +20,7 @@ source-repository head
   type:     git
   location: https://github.com/tbidne/monad-effects
 
-common common
+common common-lang
   default-extensions:
     DataKinds
     DeriveAnyClass
@@ -44,10 +46,10 @@ common common
     TypeOperators
 
 library
-  import:           common
+  import:           common-lang
   exposed-modules:  Effects.Concurrent.Thread
   build-depends:
-    , base                >=4.14.0.0 && <4.18
+    , base                >=4.14.0.0 && <4.19
     , effects-exceptions  ^>=0.1
     , transformers        >=0.5.6.2  && <0.7
 

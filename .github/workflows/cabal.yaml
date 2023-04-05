@@ -16,34 +16,40 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ghc:
-          - "8.10.7"
-          - "9.0.2"
-          - "9.2.7"
-          - "9.4.4"
+        compiler:
+          - ghc: "8.10.7"
+            proj: "--project-file cabal.project.legacy"
+          - ghc: "9.0.2"
+            proj: "--project-file cabal.project.legacy"
+          - ghc: "9.2.7"
+            proj: "--project-file cabal.project.legacy"
+          - ghc: "9.4.4"
+            proj: "--project-file cabal.project.legacy"
+          - ghc: "9.6.1"
+            proj: ""
         os:
           - "macos-latest"
           - "ubuntu-latest"
           - "windows-latest"
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3.3.0
+      - uses: actions/checkout@v3.5.0
 
-      - uses: haskell/actions/setup@v2.3.4
+      - uses: haskell/actions/setup@v2.3.7
         with:
-          ghc-version: ${{ matrix.ghc }}
+          ghc-version: ${{ matrix.compiler.ghc }}
 
       - name: Configure
         run: cabal configure --enable-tests
 
       - name: Compile
-        run: cabal build all
+        run: cabal build all ${{ matrix.compiler.proj }}
 
       - name: Test effects-exceptions
         run: cabal test effects-exceptions
 
       - name: Test effects-fs
-        run: cabal test effects-fs
+        run: cabal test effects-fs ${{ matrix.compiler.proj }}
 
       - name: Test effects-logger-ns
         run: cabal test effects-logger-ns

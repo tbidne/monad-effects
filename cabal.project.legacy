@@ -1,3 +1,6 @@
+-- Intended for GHC < 9.6 as we need to set the 'os_path' flag to false
+-- below.
+
 packages:
   ./effects-async
   ./effects-env
@@ -20,6 +23,10 @@ program-options
     -Wmissing-home-modules -Wmissing-export-lists -Wpartial-fields
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
     -Wprepositive-qualified-module
+
+-- do not use os_path since it is not available
+package effects-fs
+  flags: -os_path
 
 source-repository-package
     type: git

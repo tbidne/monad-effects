@@ -84,7 +84,6 @@ import Numeric.Algebra
     ASemigroup ((.+.)),
     MSemiSpace ((.*)),
     MSpace ((.%)),
-    NonZero (MkNonZero),
     Normed (norm),
     Semimodule,
     SemivectorSpace,
@@ -175,7 +174,7 @@ instance MSemiSpace TimeSpec Natural where
 
 -- | @since 0.1
 instance MSpace TimeSpec Natural where
-  ts .% MkNonZero k = fromSeconds (toSeconds ts / fromIntegral k)
+  ts .% k = fromSeconds (toSeconds ts / fromIntegral k)
   {-# INLINEABLE (.%) #-}
 
 -- | @since 0.1

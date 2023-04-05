@@ -113,11 +113,22 @@
             };
           packages.effects-env = mkPkgsException "effects-env" ./effects-env;
           packages.effects-exceptions = mkPkg "effects-exceptions" ./effects-exceptions { };
-          packages.effects-fs =
-            mkPkg "effects-fs" ./effects-fs {
+          packages.effects-fs = compiler.developPackage {
+            name = "effects-fs";
+            root = ./effects-fs;
+            returnShellEnv = false;
+            source-overrides = {
               effects-exceptions = ./effects-exceptions;
               effects-ioref = ./effects-ioref;
             };
+
+            modifier = drv: hlib.overrideCabal drv (old: {
+              # It would be nice if we could override the project file rather
+              # than the flag. Oh well, this will be moot once we can use GHC
+              # 9.6.
+              configureFlags = (old.configureFlags or [ ]) ++ [ "-f -os_path" ];
+            });
+          };
           packages.effects-ioref = mkPkgsException "effects-ioref" ./effects-ioref;
           packages.effects-logger-ns =
             mkPkg "effects-logger-ns" ./effects-logger-ns {

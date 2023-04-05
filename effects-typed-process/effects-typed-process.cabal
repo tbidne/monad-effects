@@ -3,7 +3,9 @@ name:               effects-typed-process
 version:            0.1
 license:            MIT
 license-file:       LICENSE
-tested-with:        GHC ==8.10.7 || ==9.0.2 || ==9.2.7 || ==9.4.4
+tested-with:
+  GHC ==8.10.7 || ==9.0.2 || ==9.2.7 || ==9.4.4 || ==9.6.1
+
 copyright:          2022-2023 Thomas Bidne
 author:             Thomas Bidne
 maintainer:         tbidne@protonmail.com
@@ -18,7 +20,7 @@ source-repository head
   type:     git
   location: https://github.com/tbidne/monad-effects
 
-common common
+common common-lang
   default-extensions:
     DataKinds
     DeriveAnyClass
@@ -48,10 +50,10 @@ common common
     cpp-options: -DWINDOWS
 
 library
-  import:           common
+  import:           common-lang
   exposed-modules:  Effects.System.Process
   build-depends:
-    , base                >=4.14.0.0  && <4.18
+    , base                >=4.14.0.0  && <4.19
     , bytestring          >=0.10.12.0 && <0.12
     , effects-exceptions  ^>=0.1
     , effects-stm         ^>=0.1

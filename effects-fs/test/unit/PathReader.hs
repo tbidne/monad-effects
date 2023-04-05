@@ -7,6 +7,7 @@ import Data.List qualified as L
 import Effects.FileSystem.PathReader qualified as PathReader
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCase, (@=?))
+import Utils qualified as U
 
 tests :: TestTree
 tests =
@@ -17,10 +18,10 @@ tests =
 
 testListDirectoryRecursive :: TestTree
 testListDirectoryRecursive = testCase "Recursively lists sub-files/dirs" $ do
-  (files, dirs) <- PathReader.listDirectoryRecursive "./src"
+  (files, dirs) <- PathReader.listDirectoryRecursive (U.strToPath "./src")
   let (files', dirs') = (L.sort files, L.sort dirs)
-  zipWithM_ (@=?) expectedFiles files'
-  zipWithM_ (@=?) expectedDirs dirs'
+  zipWithM_ (@=?) expectedFiles (U.pathToStr <$> files')
+  zipWithM_ (@=?) expectedDirs (U.pathToStr <$> dirs')
   where
 #if !WINDOWS
     expectedFiles =

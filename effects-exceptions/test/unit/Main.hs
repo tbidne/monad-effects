@@ -72,10 +72,19 @@ throwsExitFailure = testCase "Calls exitFailure" $ do
     expected =
       fmap
         portPaths
+#if MIN_VERSION_base(4, 18, 0)
+        [ "ExitFailure 0",
+          "CallStack (from HasCallStack):",
+          "  throwCS, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception",
+          "  exitWith, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-inplace:Effects.Exception",
+          "  exitFailure, called at test/unit/Main.hs:0:0 in main:Main"
+        ]
+#else
         [ "ExitFailure 0",
           "CallStack (from HasCallStack):",
           "  throwCS, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception"
         ]
+#endif
 
 throwsExitSuccess :: TestTree
 throwsExitSuccess =
@@ -306,7 +315,10 @@ assertResults expected results = do
           show lenExpected,
           ") did not match results length (",
           show lenResults,
-          ")."
+          ").\n\nExpected:\n",
+          show expected,
+          "\n\nResults:\n",
+          show results
         ]
   zipWithM_ (@=?) expected results
   where

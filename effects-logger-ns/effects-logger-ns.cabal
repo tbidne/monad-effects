@@ -3,7 +3,9 @@ name:               effects-logger-ns
 version:            0.1
 license:            MIT
 license-file:       LICENSE
-tested-with:        GHC ==8.10.7 || ==9.0.2 || ==9.2.7 || ==9.4.4
+tested-with:
+  GHC ==8.10.7 || ==9.0.2 || ==9.2.7 || ==9.4.4 || ==9.6.1
+
 copyright:          2022-2023 Thomas Bidne
 author:             Thomas Bidne
 maintainer:         tbidne@protonmail.com
@@ -18,7 +20,7 @@ source-repository head
   type:     git
   location: https://github.com/tbidne/monad-effects
 
-common common
+common common-lang
   default-extensions:
     DataKinds
     DeriveAnyClass
@@ -44,10 +46,10 @@ common common
     TypeOperators
 
 library
-  import:           common
+  import:           common-lang
   exposed-modules:  Effects.LoggerNS
   build-depends:
-    , base              >=4.14.0.0  && <4.18
+    , base              >=4.14.0.0  && <4.19
     , bytestring        >=0.10.12.0 && <0.12
     , containers        ^>=0.6.3.1
     , deepseq           ^>=1.4.4.0
@@ -55,14 +57,14 @@ library
     , fast-logger       >=2.1       && <3.3
     , monad-logger      ^>=0.3.30
     , optics-core       ^>=0.4
-    , template-haskell  >=2.16.0.0  && <2.20
+    , template-haskell  >=2.16.0.0  && <2.21
     , text              >=1.2.4.0   && <2.1
 
   hs-source-dirs:   src
   default-language: Haskell2010
 
 test-suite unit
-  import:           common
+  import:           common-lang
   type:             exitcode-stdio-1.0
   main-is:          Main.hs
   build-depends:

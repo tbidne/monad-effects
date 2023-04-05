@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE PostfixOperators #-}
 
 -- | Provides the 'MonadAsync' typeclass for async effects.
@@ -84,7 +85,11 @@ module Effects.Concurrent.Async
   )
 where
 
+#if MIN_VERSION_base(4, 18, 0)
+import Control.Applicative (Alternative (..))
+#else
 import Control.Applicative (Alternative (..), Applicative (liftA2))
+#endif
 import Control.Concurrent.Async (Async)
 import Control.Concurrent.Async qualified as Async
 import Control.Concurrent.STM (STM)

@@ -25,7 +25,7 @@ import System.IO (Handle, IOMode)
 import System.IO qualified as IO
 import Prelude hiding (FilePath)
 
-#if MIN_VERSION_filepath(1,4,100) && MIN_VERSION_directory(1,3,8)
+#if USE_OS_PATH
 import Control.Monad ((>=>))
 import System.OsPath (OsPath, decodeUtf, (</>))
 
@@ -51,11 +51,11 @@ readBinaryFileIO = decodeUtf >=> BS.readFile
 
 -- | @since 0.1
 writeBinaryFileIO :: OsPath -> ByteString -> IO ()
-writeBinaryFileIO = decodeUtf >=> BS.writeFile
+writeBinaryFileIO p bs = decodeUtf p >>= \p' -> BS.writeFile p' bs
 
 -- | @since 0.1
 appendBinaryFileIO :: OsPath -> ByteString -> IO ()
-appendBinaryFileIO = decodeUtf >=> BS.appendFile
+appendBinaryFileIO p bs = decodeUtf p >>= \p' -> BS.appendFile p' bs
 
 -- | @since 0.1
 openBinaryFileIO :: OsPath -> IOMode -> IO Handle

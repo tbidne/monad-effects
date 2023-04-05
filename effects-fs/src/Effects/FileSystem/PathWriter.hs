@@ -73,7 +73,7 @@ import Optics.Core
     (^.),
   )
 import System.Directory (Permissions (..))
-#if MIN_VERSION_filepath(1,4,100) && MIN_VERSION_directory(1,3,8)
+#if USE_OS_PATH
 import System.Directory.OsPath qualified as Dir
 import System.OsPath qualified as FP
 #else
@@ -729,7 +729,7 @@ newtype PathExistsException = MkPathExistsException Path
 -- | @since 0.1
 instance Exception PathExistsException where
   displayException (MkPathExistsException path) =
-    "Path already exists: " <> path
+    "Path already exists: " <> pathToStr path
 
 -- | Exception for trying to create a path that already exists.
 --
@@ -743,7 +743,7 @@ newtype PathDoesNotExistException = MkPathDoesNotExistException Path
 -- | @since 0.1
 instance Exception PathDoesNotExistException where
   displayException (MkPathDoesNotExistException path) =
-    "Path does not exist: " <> path
+    "Path does not exist: " <> pathToStr path
 
 -- | Determines file/directory overwrite behavior.
 --
@@ -1117,3 +1117,10 @@ removeIfExists :: (Monad m) => (t -> m Bool) -> (t -> m ()) -> t -> m ()
 removeIfExists existsFn deleteFn f =
   existsFn f >>= \b -> when b (deleteFn f)
 {-# INLINEABLE removeIfExists #-}
+
+pathToStr :: Path -> String
+#if USE_OS_PATH
+pathToStr = fmap FP.toChar . FP.unpack
+#else
+pathToStr = id
+#endif

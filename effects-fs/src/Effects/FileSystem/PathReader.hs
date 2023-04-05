@@ -45,7 +45,7 @@ import System.Directory
     XdgDirectory (..),
     XdgDirectoryList (..),
   )
-#if MIN_VERSION_filepath(1,4,100) && MIN_VERSION_directory(1,3,8)
+#if USE_OS_PATH
 import System.Directory.OsPath qualified as Dir
 #else
 import System.Directory qualified as Dir
@@ -738,7 +738,7 @@ listDirectoryRecursive ::
   Path ->
   -- | (files, directories)
   m ([Path], [Path])
-listDirectoryRecursive root = recurseDirs [""]
+listDirectoryRecursive root = recurseDirs [emptyPath]
   where
     recurseDirs :: [Path] -> m ([Path], [Path])
     recurseDirs [] = pure ([], [])
@@ -746,6 +746,7 @@ listDirectoryRecursive root = recurseDirs [""]
       (files, dirs) <- splitPaths root d [] [] =<< listDirectory (root </> d)
       (files', dirs') <- recurseDirs (dirs ++ ds)
       pure (files ++ files', dirs ++ dirs')
+    emptyPath = mempty
 
 splitPaths ::
   forall m.
