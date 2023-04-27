@@ -44,23 +44,34 @@ ci: lint format
 
 # formatting
 
+EXCLUDE_BUILD := ! -path "./.*" ! -path "./*dist-newstyle/*" ! -path "./*stack-work/*"
+FIND_HS := find . -type f -name "*hs" $(EXCLUDE_BUILD)
+FIND_CABAL := find . -type f -name "*.cabal" $(EXCLUDE_BUILD)
+
 formatc:
-	nix run github:tbidne/nix-hs-tools/0.8#cabal-fmt -- --check ;\
-	nix run github:tbidne/nix-hs-tools/0.8#ormolu -- --mode check ;\
-	nix run github:tbidne/nix-hs-tools/0.8#nixpkgs-fmt -- --check
+	nixpkgs-fmt ./ --check && \
+	$(FIND_CABAL) | xargs cabal-fmt --check && \
+	$(FIND_HS) | xargs ormolu --mode check
 
 format:
-	nix run github:tbidne/nix-hs-tools/0.8#cabal-fmt -- --inplace ;\
-	nix run github:tbidne/nix-hs-tools/0.8#ormolu -- --mode inplace ;\
-	nix run github:tbidne/nix-hs-tools/0.8#nixpkgs-fmt
+	nixpkgs-fmt ./ && \
+	$(FIND_CABAL) | xargs cabal-fmt --inplace && \
+	$(FIND_HS) | xargs ormolu -i
 
 # linting
 
 lint:
-	nix run github:tbidne/nix-hs-tools/0.8#hlint -- --refact
+	$(FIND_HS) | xargs -I % sh -c " \
+		hlint \
+		--ignore-glob=dist-newstyle \
+		--ignore-glob=stack-work \
+		--refactor \
+		--with-refactor=refactor \
+		--refactor-options=-i \
+		%"
 
 lintc:
-	nix run github:tbidne/nix-hs-tools/0.8#hlint
+	hlint . --ignore-glob=dist-newstyle --ignore-glob=stack-work
 
 # generate docs for main package, copy to docs/
 haddock:

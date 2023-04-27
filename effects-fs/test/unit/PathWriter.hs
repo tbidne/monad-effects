@@ -355,10 +355,10 @@ cdrtOverwriteTargetMergeSucceeds getTmpDir = testCase desc $ do
   createDirectoryIfMissing False s1
   createDirectoryIfMissing False s2
   writeFiles $
-    (zip d1Files (repeat "cat"))
-      ++ (zip d2Files (repeat "cat"))
-      ++ (zip s1Files (repeat "cat"))
-      ++ (zip s2Files (repeat "cat"))
+    (map (,"cat") d1Files)
+      ++ (map (,"cat") d2Files)
+      ++ (map (,"cat") s1Files)
+      ++ (map (,"cat") s2Files)
 
   -- copy files
   PathWriter.copyDirectoryRecursiveConfig
@@ -424,10 +424,10 @@ cdrtOverwriteTargetMergeFails getTmpDir = testCase desc $ do
   createDirectoryIfMissing False s1
   createDirectoryIfMissing False s2
   writeFiles $
-    (zip d1Files (repeat "cat"))
-      ++ (zip d2Files (repeat "cat"))
-      ++ (zip s1Files (repeat "cat"))
-      ++ (zip s2Files (repeat "cat"))
+    (map (,"cat") d1Files)
+      ++ (map (,"cat") d2Files)
+      ++ (map (,"cat") s1Files)
+      ++ (map (,"cat") s2Files)
 
   -- copy files
   result <-

@@ -25,7 +25,7 @@ jobs:
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
 
       - name: Formatting
-        run: make formatc
+        run: nix develop .#ci -c bash -c "make formatc"
 
       - name: HLint
-        run: make lintc
+        run: nix develop .#ci -c bash -c "make lintc"

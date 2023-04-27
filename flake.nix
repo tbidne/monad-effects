@@ -50,6 +50,12 @@
           devTools = c: [
             (hlib.dontCheck c.haskell-language-server)
           ];
+          formatters = c: [
+            (hlib.dontCheck c.cabal-fmt)
+            (hlib.dontCheck c.hlint)
+            (hlib.dontCheck c.ormolu)
+            pkgs.nixpkgs-fmt
+          ];
           ghc-version = "ghc944";
           hlib = pkgs.haskell.lib;
           compiler = pkgs.haskell.packages."${ghc-version}".override {
@@ -148,7 +154,16 @@
           devShells.default = hsOverlay.shellFor {
             inherit packages;
             withHoogle = true;
-            buildInputs = (buildTools compiler) ++ (devTools compiler);
+            buildInputs =
+              (buildTools compiler)
+              ++ (devTools compiler)
+              ++ (formatters compiler);
+          };
+
+          devShells.ci = hsOverlay.shellFor {
+            inherit packages;
+            withHoogle = false;
+            buildInputs = (buildTools compiler) ++ (formatters compiler);
           };
         };
       systems = [
