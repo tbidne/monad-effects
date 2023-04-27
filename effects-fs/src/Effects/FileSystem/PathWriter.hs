@@ -14,6 +14,7 @@ module Effects.FileSystem.PathWriter
     -- ** Config
     CopyDirConfig (..),
     Overwrite (..),
+    TargetName (..),
     defaultCopyDirConfig,
 
     -- ** Functions
@@ -24,6 +25,9 @@ module Effects.FileSystem.PathWriter
     _OverwriteNone,
     _OverwriteTarget,
     _OverwriteAll,
+    _TargetNameSrc,
+    _TargetNameLiteral,
+    _TargetNameDest,
 
     -- * Removing
     removeFileIfExists,
@@ -47,7 +51,6 @@ import Control.Monad (unless, when)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Data.Foldable (for_, traverse_)
-import Data.Maybe (fromMaybe)
 import Data.Time (UTCTime (..))
 import Effects.Exception (MonadMask, addCS, mask_, onException, throwCS)
 import Effects.FileSystem.Path (Path, (</>))
@@ -731,7 +734,7 @@ instance Exception PathExistsException where
   displayException (MkPathExistsException path) =
     "Path already exists: " <> pathToStr path
 
--- | Exception for trying to create a path that already exists.
+-- | Exception for when a path does not exist.
 --
 -- @since 0.1
 newtype PathDoesNotExistException = MkPathDoesNotExistException Path
@@ -807,6 +810,71 @@ _OverwriteAll =
     )
 {-# INLINE _OverwriteAll #-}
 
+-- | Determines how to name the target.
+--
+-- @since 0.1
+data TargetName
+  = -- | Uses the src dir as the dest name i.e. @dest/\<src\>@.
+    --
+    -- @since 0.1
+    TargetNameSrc
+  | -- | Uses the given literal as the dest name i.e. @dest/\<targetName\>@.
+    --
+    -- @since 0.1
+    TargetNameLiteral Path
+  | -- | Uses dest itself as the target i.e. @dest/@ (top-level copy).
+    --
+    -- @since 0.1
+    TargetNameDest
+  deriving stock
+    ( -- | @since 0.1
+      Eq,
+      -- | @since 0.1
+      Generic,
+      -- | @since 0.1
+      Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
+    )
+
+-- | @since 0.1
+_TargetNameSrc :: Prism' TargetName ()
+_TargetNameSrc =
+  prism
+    (\() -> TargetNameSrc)
+    ( \x -> case x of
+        TargetNameSrc -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _TargetNameSrc #-}
+
+-- | @since 0.1
+_TargetNameLiteral :: Prism' TargetName Path
+_TargetNameLiteral =
+  prism
+    TargetNameLiteral
+    ( \x -> case x of
+        TargetNameLiteral p -> Right p
+        _ -> Left x
+    )
+{-# INLINE _TargetNameLiteral #-}
+
+-- | @since 0.1
+_TargetNameDest :: Prism' TargetName ()
+_TargetNameDest =
+  prism
+    (\() -> TargetNameDest)
+    ( \x -> case x of
+        TargetNameDest -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _TargetNameDest #-}
+
+-- | Directory copying config.
+--
+-- @since 0.1
 data CopyDirConfig = MkCopyDirConfig
   { -- | Overwrite behavior.
     --
@@ -817,7 +885,7 @@ data CopyDirConfig = MkCopyDirConfig
     -- name i.e. @dest/\<src\>@.
     --
     -- @since 0.1
-    targetName :: Maybe Path
+    targetName :: TargetName
   }
   deriving stock
     ( -- | @since 0.1
@@ -843,7 +911,7 @@ instance
 
 -- | @since 0.1
 instance
-  (k ~ A_Lens, a ~ Maybe Path, b ~ Maybe Path) =>
+  (k ~ A_Lens, a ~ TargetName, b ~ TargetName) =>
   LabelOptic "targetName" k CopyDirConfig CopyDirConfig a b
   where
   labelOptic = lensVL $ \f (MkCopyDirConfig _overwrite _targetName) ->
@@ -853,11 +921,11 @@ instance
 -- | Default config for copying directories.
 --
 -- >>> defaultCopyDirConfig
--- MkCopyDirConfig {overwrite = OverwriteNone, destName = Nothing}
+-- MkCopyDirConfig {overwrite = OverwriteNone, destName = TargetNameSrc}
 --
 -- @since 0.1
 defaultCopyDirConfig :: CopyDirConfig
-defaultCopyDirConfig = MkCopyDirConfig OverwriteNone Nothing
+defaultCopyDirConfig = MkCopyDirConfig OverwriteNone TargetNameSrc
 
 -- | 'copyDirectoryRecursiveConfig' with 'defaultCopyDirConfig'.
 --
@@ -884,8 +952,9 @@ copyDirectoryRecursive = copyDirectoryRecursiveConfig defaultCopyDirConfig
 -- copyDirectoryRecursiveConfig cfg "path\/to\/foo" "path\/to\/bar"
 -- @
 --
--- will create @path\/to\/bar\/foo@ or @path\/to\/bar\/\<target\>@,
--- depending on the value of 'targetName'.
+-- will create @path\/to\/bar\/foo@, @path\/to\/bar\/\<target\>@, or copy
+-- @foo@'s contents directly into @bar@, depending on the value of
+-- 'targetName'.
 --
 -- The atomicity semantics are as follows:
 --
@@ -932,12 +1001,14 @@ copyDirectoryRecursiveConfig config src destRoot = do
 
   -- NOTE: Use the given name if it exists. Otherwise use the source folder's
   -- name.
-  let srcName =
-        fromMaybe
-          (FP.takeBaseName $ FP.dropTrailingPathSeparator src)
-          (config ^. #targetName)
-
-      dest = destRoot </> srcName
+  let dest = case config ^. #targetName of
+        -- Use source directory's name
+        TargetNameSrc ->
+          destRoot </> FP.takeBaseName (FP.dropTrailingPathSeparator src)
+        -- Use the give name
+        TargetNameLiteral p -> destRoot </> p
+        -- Use dest itself (i.e. top-level copy)
+        TargetNameDest -> destRoot
 
   case config ^. #overwrite of
     OverwriteNone -> copyDirectoryNoOverwrite src dest

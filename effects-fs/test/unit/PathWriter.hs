@@ -38,6 +38,7 @@ import Effects.FileSystem.PathWriter
     Overwrite (..),
     PathDoesNotExistException,
     PathExistsException,
+    TargetName (..),
     createDirectoryIfMissing,
   )
 import Effects.FileSystem.PathWriter qualified as PathWriter
@@ -101,7 +102,7 @@ cdrnCustomTarget getTmpDir = testCase desc $ do
   createDirectoryIfMissing False destDir
 
   PathWriter.copyDirectoryRecursiveConfig
-    (MkCopyDirConfig OverwriteNone (Just target))
+    (MkCopyDirConfig OverwriteNone (TargetNameLiteral target))
     srcDir
     destDir
 
@@ -244,6 +245,8 @@ cdrOverwriteTargetTests getTmpDir =
     [ cdrtFresh getTmpDir,
       cdrtDestNonExtantFails getTmpDir,
       cdrtOverwriteTargetSucceeds getTmpDir,
+      cdrtOverwriteTargetMergeSucceeds getTmpDir,
+      cdrtOverwriteTargetMergeFails getTmpDir,
       cdrtOverwriteFileFails getTmpDir,
       cdrtPartialFails getTmpDir,
       cdrtOverwritePartialFails getTmpDir
@@ -326,6 +329,162 @@ cdrtOverwriteTargetSucceeds getTmpDir = testCase desc $ do
   assertDestExists tmpDir
   where
     desc = "copy to extant dest/<target> succeeds"
+
+cdrtOverwriteTargetMergeSucceeds :: IO Path -> TestTree
+cdrtOverwriteTargetMergeSucceeds getTmpDir = testCase desc $ do
+  tmpDir <- mkTestPath getTmpDir "cdrtOverwriteTargetMergeSucceeds"
+  let srcDir = tmpDir </> U.strToPath "src"
+      destDir = tmpDir </> U.strToPath "dest"
+
+  createDirectoryIfMissing True destDir
+  createDirectoryIfMissing True srcDir
+
+  -- NOTE: test that dir already exists and succeeds
+  let d1 = destDir </> U.strToPath "one/"
+      d1Files = (\f -> d1 </> U.strToPath f) <$> ["f1", "f2"]
+      d2 = destDir </> U.strToPath "two/"
+      d2Files = (\f -> d2 </> U.strToPath f) <$> ["f1", "f2"]
+
+      s1 = srcDir </> U.strToPath "one/"
+      s1Files = (\f -> s1 </> U.strToPath f) <$> ["f3", "f4"]
+      s2 = srcDir </> U.strToPath "two/"
+      s2Files = (\f -> s2 </> U.strToPath f) <$> ["f3", "f4"]
+
+  createDirectoryIfMissing False d1
+  createDirectoryIfMissing False d2
+  createDirectoryIfMissing False s1
+  createDirectoryIfMissing False s2
+  writeFiles $
+    (zip d1Files (repeat "cat"))
+      ++ (zip d2Files (repeat "cat"))
+      ++ (zip s1Files (repeat "cat"))
+      ++ (zip s2Files (repeat "cat"))
+
+  -- copy files
+  PathWriter.copyDirectoryRecursiveConfig
+    config
+    srcDir
+    destDir
+
+  -- assert copy correctly merged directories
+  assertFilesExist $
+    (\s -> destDir </> (U.strToPath s))
+      <$> [ "one/f1",
+            "one/f2",
+            "one/f3",
+            "one/f4",
+            "two/f1",
+            "two/f2",
+            "two/f3",
+            "two/f4"
+          ]
+
+  -- src still exists
+  assertFilesExist $
+    (\s -> srcDir </> (U.strToPath s))
+      <$> [ "one/f3",
+            "one/f4",
+            "two/f3",
+            "two/f4"
+          ]
+  assertFilesDoNotExist $
+    (\s -> srcDir </> (U.strToPath s))
+      <$> [ "one/f1",
+            "one/f2",
+            "two/f1",
+            "two/f2"
+          ]
+  where
+    desc = "copy to extant dest/<target> merges successfully"
+    config = MkCopyDirConfig OverwriteTarget TargetNameDest
+
+cdrtOverwriteTargetMergeFails :: IO Path -> TestTree
+cdrtOverwriteTargetMergeFails getTmpDir = testCase desc $ do
+  tmpDir <- mkTestPath getTmpDir "cdrtOverwriteTargetMergeFails"
+  let srcDir = tmpDir </> U.strToPath "src"
+      destDir = tmpDir </> U.strToPath "dest"
+
+  createDirectoryIfMissing True destDir
+  createDirectoryIfMissing True srcDir
+
+  -- NOTE: test that dir already exists and succeeds
+  let d1 = destDir </> U.strToPath "one/"
+      d1Files = (\f -> d1 </> U.strToPath f) <$> ["f1", "f2"]
+      d2 = destDir </> U.strToPath "two/"
+      -- f3 introduces the collision failure we want
+      d2Files = (\f -> d2 </> U.strToPath f) <$> ["f1", "f2", "f3"]
+
+      s1 = srcDir </> U.strToPath "one/"
+      s1Files = (\f -> s1 </> U.strToPath f) <$> ["f3", "f4"]
+      s2 = srcDir </> U.strToPath "two/"
+      s2Files = (\f -> s2 </> U.strToPath f) <$> ["f3", "f4"]
+
+  createDirectoryIfMissing False d1
+  createDirectoryIfMissing False d2
+  createDirectoryIfMissing False s1
+  createDirectoryIfMissing False s2
+  writeFiles $
+    (zip d1Files (repeat "cat"))
+      ++ (zip d2Files (repeat "cat"))
+      ++ (zip s1Files (repeat "cat"))
+      ++ (zip s2Files (repeat "cat"))
+
+  -- copy files
+  result <-
+    tryCS $
+      PathWriter.copyDirectoryRecursiveConfig
+        config
+        srcDir
+        destDir
+  resultEx <- case result of
+    Right _ -> assertFailure "Expected exception, received none"
+    Left (ex :: PathExistsException) -> pure ex
+
+  let exText = displayException resultEx
+
+  assertBool exText ("Path already exists:" `L.isPrefixOf` exText)
+  assertBool exText (suffix `L.isSuffixOf` exText)
+
+  -- assert dest unchanged from bad copy
+  assertFilesExist $
+    (\s -> destDir </> (U.strToPath s))
+      <$> [ "one/f1",
+            "one/f2",
+            "two/f1",
+            "two/f2",
+            "two/f3"
+          ]
+
+  assertFilesDoNotExist $
+    (\s -> destDir </> (U.strToPath s))
+      <$> [ "one/f3",
+            "one/f4",
+            "two/f4"
+          ]
+
+  -- src still exists
+  assertFilesExist $
+    (\s -> srcDir </> (U.strToPath s))
+      <$> [ "one/f3",
+            "one/f4",
+            "two/f3",
+            "two/f4"
+          ]
+  assertFilesDoNotExist $
+    (\s -> srcDir </> (U.strToPath s))
+      <$> [ "one/f1",
+            "one/f2",
+            "two/f1",
+            "two/f2"
+          ]
+  where
+    desc = "copy to extant dest/<target> merge fails"
+    config = MkCopyDirConfig OverwriteTarget TargetNameDest
+#if !WINDOWS
+    suffix = "effects-fs/unit/cdrtOverwriteTargetMergeFails/dest/two/f3"
+#else
+    suffix = "effects-fs\\unit\\cdrtOverwriteTargetMergeFails\\dest\\two\\f3"
+#endif
 
 cdrtOverwriteFileFails :: IO Path -> TestTree
 cdrtOverwriteFileFails getTmpDir = testCase desc $ do
@@ -497,7 +656,7 @@ writeFiles :: (HasCallStack) => [(Path, ByteString)] -> IO ()
 writeFiles = traverse_ (uncurry writeBinaryFile)
 
 overwriteConfig :: Overwrite -> CopyDirConfig
-overwriteConfig ow = MkCopyDirConfig ow Nothing
+overwriteConfig ow = MkCopyDirConfig ow TargetNameSrc
 
 -------------------------------------------------------------------------------
 --                                  Mock                                     --
@@ -585,6 +744,11 @@ assertFilesExist :: (HasCallStack) => [Path] -> IO ()
 assertFilesExist = traverse_ $ \p -> do
   exists <- doesFileExist p
   assertBool ("Expected file to exist: " <> U.pathToStr p) exists
+
+assertFilesDoNotExist :: (HasCallStack) => [Path] -> IO ()
+assertFilesDoNotExist = traverse_ $ \p -> do
+  exists <- doesFileExist p
+  assertBool ("Expected file not to exist: " <> U.pathToStr p) (not exists)
 
 assertFileContents :: (HasCallStack) => [(Path, ByteString)] -> IO ()
 assertFileContents = traverse_ $ \(p, expected) -> do

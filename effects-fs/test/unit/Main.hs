@@ -4,6 +4,7 @@ import Effects.FileSystem.Path (Path, (</>))
 import Effects.FileSystem.PathReader (getTemporaryDirectory)
 import Effects.FileSystem.PathWriter
   ( createDirectoryIfMissing,
+    removeDirectoryRecursiveIfExists,
     removePathForcibly,
   )
 import PathReader qualified
@@ -27,6 +28,7 @@ setup = do
   tmpDir <-
     (\s -> s </> U.strToPath "effects-fs" </> U.strToPath "unit")
       <$> getTemporaryDirectory
+  removeDirectoryRecursiveIfExists tmpDir
   createDirectoryIfMissing True tmpDir
   pure tmpDir
 
