@@ -48,7 +48,6 @@
             pkgs.zlib
           ];
           devTools = c: [
-            (hlib.dontCheck c.ghcid)
             (hlib.dontCheck c.haskell-language-server)
           ];
           ghc-version = "ghc944";
