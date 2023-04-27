@@ -75,7 +75,8 @@ lintc:
 
 # generate docs for main package, copy to docs/
 haddock:
-	cabal haddock all --haddock-hyperlink-source --haddock-quickjump ;\
+	set -e ;\
+	cabal haddock all --haddock-hyperlink-source --haddock-quickjump --project-file cabal.project.legacy ;\
 	mkdir -p docs/ ;\
 
 	for p in $(PKGS); do \
