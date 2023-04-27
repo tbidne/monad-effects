@@ -880,9 +880,7 @@ data CopyDirConfig = MkCopyDirConfig
     --
     -- @since 0.1
     overwrite :: Overwrite,
-    -- | If a target name is given, we use that as the destination
-    -- target i.e. @dest/\<targetName\>@. Otherwise we use the src directory
-    -- name i.e. @dest/\<src\>@.
+    -- | TargetName behavior.
     --
     -- @since 0.1
     targetName :: TargetName
