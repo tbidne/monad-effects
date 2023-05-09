@@ -28,9 +28,9 @@ jobs:
           - ghc: "9.6.1"
             proj: ""
         os:
-        - "macos-latest"
-        - "ubuntu-latest"
-        - "windows-latest"
+          - "macos-latest"
+          - "ubuntu-latest"
+          - "windows-latest"
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -60,22 +60,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        lib:
-          - "effects-async"
-          - "effects-env"
-          - "effects-exceptions"
-          - "effects-fs"
-          - "effects-ioref"
-          - "effects-logger-ns"
-          - "effects-optparse"
-          - "effects-stm"
-          - "effects-terminal"
-          - "effects-thread"
-          - "effects-time"
-          - "effects-typed-process"
         os:
-        - "macos-latest"
-        - "ubuntu-latest"
+          - "macos-latest"
+          - "ubuntu-latest"
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -87,8 +74,22 @@ jobs:
           extra_nix_config: |
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
 
-      - name: ${{ matrix.lib }}
-        run: nix build .#${{ matrix.lib }}
+      - name: Build & Test
+        run: |
+          nix build \
+            .#effects-async \
+            .#effects-env \
+            .#effects-exceptions \
+            .#effects-fs \
+            .#effects-ioref \
+            .#effects-logger-ns \
+            .#effects-optparse \
+            .#effects-stm \
+            .#effects-terminal \
+            .#effects-thread \
+            .#effects-time \
+            .#effects-typed-process
+
   lint:
     runs-on: "ubuntu-latest"
     steps:
