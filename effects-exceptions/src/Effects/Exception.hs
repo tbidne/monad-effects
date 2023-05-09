@@ -316,7 +316,7 @@ catchCS ::
   (e -> m a) ->
   m a
 catchCS action handler =
-  withFrozenCallStack $
+  withFrozenCallStack
     catches
       action
       [ Handler $ \ex -> addCS $ handler ex,
@@ -388,7 +388,7 @@ tryAnyCS = tryCS
 --
 -- @since 0.1
 addCS :: forall m a. (HasCallStack, MonadCatch m) => m a -> m a
-addCS m = withFrozenCallStack $ addOuterCS callStack m
+addCS = withFrozenCallStack addOuterCS callStack
 {-# INLINEABLE addCS #-}
 
 -- | Like 'addCS', except it merges the given "outer callstack" with
@@ -473,7 +473,7 @@ displayNoCS ex =
 -- @since 0.1
 onException :: forall m a b. (HasCallStack, MonadCatch m) => m a -> m b -> m a
 onException action handler =
-  withFrozenCallStack $ catchAny action (\e -> handler *> throwM e)
+  withFrozenCallStack catchAny action (\e -> handler *> throwM e)
 {-# INLINEABLE onException #-}
 
 -- Using the same idea from exceptions. We generally want HasCallStack on our
