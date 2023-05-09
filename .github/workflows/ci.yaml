@@ -1,0 +1,110 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+jobs:
+  cabal:
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler:
+          - ghc: "8.10.7"
+            proj: "--project-file cabal.project.legacy"
+          - ghc: "9.0.2"
+            proj: "--project-file cabal.project.legacy"
+          - ghc: "9.2.7"
+            proj: "--project-file cabal.project.legacy"
+          - ghc: "9.4.4"
+            proj: "--project-file cabal.project.legacy"
+          - ghc: "9.6.1"
+            proj: ""
+        os:
+        - "macos-latest"
+        - "ubuntu-latest"
+        - "windows-latest"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: haskell/actions/setup@v2
+        with:
+          ghc-version: ${{ matrix.ghc }}
+
+      - name: Configure
+        run: cabal configure --enable-tests
+
+      - name: Compile
+        run: cabal build all ${{ matrix.compiler.proj }}
+
+      - name: Test effects-exceptions
+        run: cabal test effects-exceptions
+
+      - name: Test effects-fs
+        run: cabal test effects-fs ${{ matrix.compiler.proj }}
+
+      - name: Test effects-logger-ns
+        run: cabal test effects-logger-ns
+
+      - name: Test effects-time
+        run: cabal test effects-time --test-options '--hedgehog-tests 100000'
+  nix:
+    strategy:
+      fail-fast: false
+      matrix:
+        lib:
+          - "effects-async"
+          - "effects-env"
+          - "effects-exceptions"
+          - "effects-fs"
+          - "effects-ioref"
+          - "effects-logger-ns"
+          - "effects-optparse"
+          - "effects-stm"
+          - "effects-terminal"
+          - "effects-thread"
+          - "effects-time"
+          - "effects-typed-process"
+        os:
+        - "macos-latest"
+        - "ubuntu-latest"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup nix
+        uses: cachix/install-nix-action@v20
+        with:
+          nix_path: nixpkgs=https://github.com/NixOS/nixpkgs/archive/897876e4c484f1e8f92009fd11b7d988a121a4e7.tar.gz
+          extra_nix_config: |
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+
+      - name: ${{ matrix.lib }}
+        run: nix build .#${{ matrix.lib }}
+  lint:
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup nix
+        uses: cachix/install-nix-action@v20
+        with:
+          nix_path: nixpkgs=https://github.com/NixOS/nixpkgs/archive/897876e4c484f1e8f92009fd11b7d988a121a4e7.tar.gz
+          extra_nix_config: |
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+
+      - name: Formatting
+        run: |
+          nix run .#format
+          git diff --exit-code --color=always
+
+      - name: HLint
+        run: nix run .#lint

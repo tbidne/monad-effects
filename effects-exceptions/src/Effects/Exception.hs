@@ -318,11 +318,11 @@ catchCS ::
 catchCS action handler =
   withFrozenCallStack
     catches
-      action
-      [ Handler $ \ex -> addCS $ handler ex,
-        -- "Forget" about the callstack unless another is raised.
-        Handler $ \(MkExceptionCS ex cs) -> addOuterCS cs $ handler ex
-      ]
+    action
+    [ Handler $ \ex -> addCS $ handler ex,
+      -- "Forget" about the callstack unless another is raised.
+      Handler $ \(MkExceptionCS ex cs) -> addOuterCS cs $ handler ex
+    ]
 {-# INLINEABLE catchCS #-}
 
 -- | 'catchCS' specialized to all synchronous exceptions.
