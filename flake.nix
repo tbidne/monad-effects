@@ -8,6 +8,10 @@
   };
   inputs.flake-parts.url = "github:hercules-ci/flake-parts";
   inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+  inputs.nix-hs-utils = {
+    url = "github:tbidne/nix-hs-utils";
+    inputs.flake-compat.follows = "flake-compat";
+  };
 
   # haskell
   inputs.algebra-simple = {
@@ -35,6 +39,7 @@
     inputs@{ algebra-simple
     , bounds
     , flake-parts
+    , nix-hs-utils
     , self
     , smart-math
     , ...
@@ -42,19 +47,6 @@
     flake-parts.lib.mkFlake { inherit inputs; } {
       perSystem = { pkgs, ... }:
         let
-          buildTools = c: [
-            c.cabal-install
-            pkgs.zlib
-          ];
-          devTools = c: [
-            (hlib.dontCheck c.haskell-language-server)
-          ];
-          formatters = c: [
-            (hlib.dontCheck c.cabal-fmt)
-            (hlib.dontCheck c.hlint)
-            (hlib.dontCheck c.ormolu)
-            pkgs.nixpkgs-fmt
-          ];
           ghc-version = "ghc944";
           hlib = pkgs.haskell.lib;
           compiler = pkgs.haskell.packages."${ghc-version}".override {
@@ -107,10 +99,7 @@
           mkPkgsException = name: root: mkPkg name root {
             effects-exceptions = ./effects-exceptions;
           };
-          mkApp = drv: {
-            type = "app";
-            program = "${drv}/bin/${drv.name}";
-          };
+          hs-dirs = "effects-*";
         in
         {
           packages.effects-async =
@@ -159,37 +148,20 @@
             inherit packages;
             withHoogle = true;
             buildInputs =
-              (buildTools compiler)
-              ++ (devTools compiler)
-              ++ (formatters compiler);
+              (nix-hs-utils.mkBuildTools pkgs compiler)
+              ++ (nix-hs-utils.mkDevTools pkgs compiler);
           };
 
           apps = {
-            format = mkApp (
-              pkgs.writeShellApplication {
-                name = "format";
-                text = builtins.readFile ./tools/format.sh;
-                runtimeInputs = [
-                  compiler.cabal-fmt
-                  compiler.ormolu
-                  pkgs.nixpkgs-fmt
-                ];
-              }
-            );
-            lint = mkApp (
-              pkgs.writeShellApplication {
-                name = "lint";
-                text = builtins.readFile ./tools/lint.sh;
-                runtimeInputs = [ compiler.hlint ];
-              }
-            );
-            lint-refactor = mkApp (
-              pkgs.writeShellApplication {
-                name = "lint-refactor";
-                text = builtins.readFile ./tools/lint-refactor.sh;
-                runtimeInputs = [ compiler.apply-refact compiler.hlint ];
-              }
-            );
+            format = nix-hs-utils.format {
+              inherit compiler hs-dirs pkgs;
+            };
+            lint = nix-hs-utils.lint {
+              inherit compiler hs-dirs pkgs;
+            };
+            lint-refactor = nix-hs-utils.lint-refactor {
+              inherit compiler hs-dirs pkgs;
+            };
           };
         };
       systems = [
