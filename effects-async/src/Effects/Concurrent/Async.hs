@@ -81,6 +81,7 @@ module Effects.Concurrent.Async
     -- $positive
     Positive (MkPositive),
     Positive.mkPositive,
+    Positive.mkPositiveTH,
     (+!),
   )
 where
