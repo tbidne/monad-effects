@@ -120,8 +120,6 @@ data TimeSpec = MkTimeSpec
     )
 
 -- | @since 0.1
--- makeFieldLabelsNoPrefix ''TimeSpec
--- | @since 0.1
 instance
   (k ~ A_Lens, a ~ Natural, b ~ Natural) =>
   LabelOptic "sec" k TimeSpec TimeSpec a b
