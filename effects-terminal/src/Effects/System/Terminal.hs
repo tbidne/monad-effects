@@ -40,7 +40,6 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
-import Data.ByteString.Char8 qualified as Char8
 import Data.Text (Text)
 import Data.Text qualified as T
 import Effects.Exception
@@ -78,8 +77,6 @@ class Monad m => MonadTerminal m where
   --
   -- @since 0.1
   putStr :: HasCallStack => String -> m ()
-  putStr = putBinary . Char8.pack
-  {-# INLINEABLE putStr #-}
 
   -- | The same as 'putStr', but adds a newline character.
   --
@@ -92,8 +89,6 @@ class Monad m => MonadTerminal m where
   --
   -- @since 0.1
   putBinary :: HasCallStack => ByteString -> m ()
-  putBinary = putStr . Char8.unpack
-  {-# INLINEABLE putBinary #-}
 
   -- | Read a character from the standard input device
   -- (same as 'hGetChar' 'stdin').
@@ -122,9 +117,9 @@ class Monad m => MonadTerminal m where
   getTerminalSize :: HasCallStack => m (Window Natural)
 
 #if MIN_VERSION_base(4,15,0)
-  {-# MINIMAL (putStr | putBinary), getChar, getLine, getContents', getTerminalSize #-}
+  {-# MINIMAL putStr, putBinary, getChar, getLine, getContents', getTerminalSize #-}
 #else
-  {-# MINIMAL (putStr | putBinary), getChar, getLine, getTerminalSize #-}
+  {-# MINIMAL putStr , putBinary, getChar, getLine, getTerminalSize #-}
 #endif
 
 -- | @since 0.1
