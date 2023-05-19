@@ -4,14 +4,13 @@ export LANG="C.UTF-8"
 
 export dirs="effects-*"
 
-cabal update
 # shellcheck disable=SC2086
 cabal haddock all --haddock-hyperlink-source --haddock-quickjump --project-file cabal.project.legacy
 
 mkdir -p docs/
 
 # shellcheck disable=SC2038
-find docs/ -type f | xargs -I % sh -c "rm -r %"
+find docs/* ! -path docs/index.html ! -path docs/linuwial.css | xargs -I % sh -c "rm -r %"
 
 for d in $dirs; do
   # shellcheck disable=SC2086
