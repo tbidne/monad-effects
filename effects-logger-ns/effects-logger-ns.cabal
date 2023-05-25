@@ -79,4 +79,5 @@ test-suite unit
     , time               >=1.9.3   && <1.14
 
   hs-source-dirs:   test/unit
+  ghc-options:      -threaded -with-rtsopts=-N
   default-language: Haskell2010

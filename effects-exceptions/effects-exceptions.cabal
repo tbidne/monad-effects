@@ -80,4 +80,5 @@ test-suite unit
     build-depends: text >=1.2.4.0 && <2.1
 
   hs-source-dirs:   test/unit
+  ghc-options:      -threaded -with-rtsopts=-N
   default-language: Haskell2010
