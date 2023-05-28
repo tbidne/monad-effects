@@ -23,7 +23,7 @@ module Effects.FileSystem.PathWriter
 
     -- ** Optics
     _OverwriteNone,
-    _OverwriteTarget,
+    _OverwriteDirectories,
     _OverwriteAll,
     _TargetNameSrc,
     _TargetNameLiteral,
@@ -756,10 +756,10 @@ data Overwrite
     --
     -- @since 0.1
     OverwriteNone
-  | -- | Allow overwriting the target directory.
+  | -- | Allow overwriting directories.
     --
     -- @since 0.1
-    OverwriteTarget
+    OverwriteDirectories
   | -- | Allow overwriting the target directory and all subpaths.
     --
     -- @since 0.1
@@ -789,15 +789,15 @@ _OverwriteNone =
 {-# INLINE _OverwriteNone #-}
 
 -- | @since 0.1
-_OverwriteTarget :: Prism' Overwrite ()
-_OverwriteTarget =
+_OverwriteDirectories :: Prism' Overwrite ()
+_OverwriteDirectories =
   prism
-    (\() -> OverwriteTarget)
+    (\() -> OverwriteDirectories)
     ( \x -> case x of
-        OverwriteTarget -> Right ()
+        OverwriteDirectories -> Right ()
         _ -> Left x
     )
-{-# INLINE _OverwriteTarget #-}
+{-# INLINE _OverwriteDirectories #-}
 
 -- | @since 0.1
 _OverwriteAll :: Prism' Overwrite ()
@@ -821,7 +821,7 @@ data TargetName
   | -- | Uses the given literal as the dest name i.e. @dest/\<targetName\>@.
     --
     -- @since 0.1
-    TargetNameLiteral Path
+    TargetNameLiteral !Path
   | -- | Uses dest itself as the target i.e. @dest/@ (top-level copy).
     --
     -- @since 0.1
@@ -879,11 +879,11 @@ data CopyDirConfig = MkCopyDirConfig
   { -- | Overwrite behavior.
     --
     -- @since 0.1
-    overwrite :: Overwrite,
+    overwrite :: !Overwrite,
     -- | TargetName behavior.
     --
     -- @since 0.1
-    targetName :: TargetName
+    targetName :: !TargetName
   }
   deriving stock
     ( -- | @since 0.1
@@ -958,11 +958,11 @@ copyDirectoryRecursive = copyDirectoryRecursiveConfig defaultCopyDirConfig
 --
 -- * 'OverwriteNone': If an error is encountered, we roll back the successful
 --    writes by deleting the entire @dest\/\<target\>@.
--- * 'OverwriteTarget': If an error is encountered, we attempt to delete all
---   successfully written paths/directories. Because these deletes are
+-- * 'OverwriteDirectories': If an error is encountered, we attempt to delete
+--   all successfully written paths/directories. Because these deletes are
 --   performed sequentially, we cannot guarantee all are removed before the
 --   process is interrupted.
--- * 'OverwriteAll': Same as 'OverwriteTarget', except paths that were
+-- * 'OverwriteAll': Same as 'OverwriteDirectories', except paths that were
 --   overwritten are not restored. That is, if a path @dest\/\<src\>\/p@ is
 --   overwritten and an error later encountered, @p@ is not restored.
 --
@@ -972,7 +972,8 @@ copyDirectoryRecursive = copyDirectoryRecursiveConfig defaultCopyDirConfig
 -- * 'PathExistsException':
 --
 --     * 'OverwriteNone' and @dest/\<src\>@ exists.
---     * 'OverwriteTarget' and some @dest/\<target\>\/p@ would be overwritten.
+--     * 'OverwriteDirectories' and some @dest/\<target\>\/p@ would be
+--        overwritten.
 --
 -- @since 0.1
 copyDirectoryRecursiveConfig ::
@@ -1010,7 +1011,7 @@ copyDirectoryRecursiveConfig config src destRoot = do
 
   case config ^. #overwrite of
     OverwriteNone -> copyDirectoryNoOverwrite src dest
-    OverwriteTarget -> copyDirectoryOverwrite False src dest
+    OverwriteDirectories -> copyDirectoryOverwrite False src dest
     OverwriteAll -> copyDirectoryOverwrite True src dest
 
 copyDirectoryOverwrite ::

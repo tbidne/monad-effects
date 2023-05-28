@@ -241,7 +241,7 @@ cdrnPartialFails getTmpDir = testCase desc $ do
 cdrOverwriteTargetTests :: IO Path -> TestTree
 cdrOverwriteTargetTests getTmpDir =
   testGroup
-    "OverwriteTarget"
+    "OverwriteDirectories"
     [ cdrtFresh getTmpDir,
       cdrtDestNonExtantFails getTmpDir,
       cdrtOverwriteTargetSucceeds getTmpDir,
@@ -261,7 +261,7 @@ cdrtFresh getTmpDir = testCase desc $ do
   createDirectoryIfMissing False destDir
 
   PathWriter.copyDirectoryRecursiveConfig
-    (overwriteConfig OverwriteTarget)
+    (overwriteConfig OverwriteDirectories)
     srcDir
     destDir
 
@@ -282,7 +282,7 @@ cdrtDestNonExtantFails getTmpDir = testCase desc $ do
   -- copy files
   result <-
     tryCS $
-      PathWriter.copyDirectoryRecursiveConfig (overwriteConfig OverwriteTarget) srcDir destDir
+      PathWriter.copyDirectoryRecursiveConfig (overwriteConfig OverwriteDirectories) srcDir destDir
   resultEx <- case result of
     Right _ -> assertFailure "Expected exception, received none"
     Left (ex :: PathDoesNotExistException) -> pure ex
@@ -320,7 +320,7 @@ cdrtOverwriteTargetSucceeds getTmpDir = testCase desc $ do
 
   -- copy files
   PathWriter.copyDirectoryRecursiveConfig
-    (overwriteConfig OverwriteTarget)
+    (overwriteConfig OverwriteDirectories)
     srcDir
     destDir
 
@@ -396,7 +396,7 @@ cdrtOverwriteTargetMergeSucceeds getTmpDir = testCase desc $ do
           ]
   where
     desc = "copy to extant dest/<target> merges successfully"
-    config = MkCopyDirConfig OverwriteTarget TargetNameDest
+    config = MkCopyDirConfig OverwriteDirectories TargetNameDest
 
 cdrtOverwriteTargetMergeFails :: IO Path -> TestTree
 cdrtOverwriteTargetMergeFails getTmpDir = testCase desc $ do
@@ -479,7 +479,7 @@ cdrtOverwriteTargetMergeFails getTmpDir = testCase desc $ do
           ]
   where
     desc = "copy to extant dest/<target> merge fails"
-    config = MkCopyDirConfig OverwriteTarget TargetNameDest
+    config = MkCopyDirConfig OverwriteDirectories TargetNameDest
 #if !WINDOWS
     suffix = "effects-fs/unit/cdrtOverwriteTargetMergeFails/dest/two/f3"
 #else
@@ -501,7 +501,7 @@ cdrtOverwriteFileFails getTmpDir = testCase desc $ do
   result <-
     tryCS $
       PathWriter.copyDirectoryRecursiveConfig
-        (overwriteConfig OverwriteTarget)
+        (overwriteConfig OverwriteDirectories)
         srcDir
         destDir
   resultEx <- case result of
@@ -537,7 +537,7 @@ cdrtPartialFails getTmpDir = testCase desc $ do
     tryCS $
       runPartialIO $
         PathWriter.copyDirectoryRecursiveConfig
-          (overwriteConfig OverwriteTarget)
+          (overwriteConfig OverwriteDirectories)
           srcDir
           destDir
   resultEx <- case result of
@@ -574,7 +574,7 @@ cdrtOverwritePartialFails getTmpDir = testCase desc $ do
     tryCS $
       runPartialIO $
         PathWriter.copyDirectoryRecursiveConfig
-          (overwriteConfig OverwriteTarget)
+          (overwriteConfig OverwriteDirectories)
           srcDir
           destDir
   resultEx <- case result of
