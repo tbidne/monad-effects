@@ -88,7 +88,8 @@ jobs:
             .#effects-terminal \
             .#effects-thread \
             .#effects-time \
-            .#effects-typed-process
+            .#effects-typed-process \
+            .#effects-unix-compat
 
   lint:
     runs-on: "ubuntu-latest"

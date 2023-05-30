@@ -24,6 +24,7 @@
   - [effects-thread](#effects-thread)
   - [effects-time](#effects-time)
   - [effects-typed-process](#effects-typed-process)
+  - [effects-unix-compat](#effects-unix-compat)
 
 # Introduction
 
@@ -210,3 +211,14 @@ Provides functions for retrieving the current system time and monotonic time.
 ### Description
 
 Effect for the `typed-process` library.
+
+## effects-unix-compat
+
+### Library: `unix-compat`
+
+### Modules
+* `Effects.System.PosixCompat (System.PosixCompat)`
+
+### Description
+
+Effect for the `unix-compat` library.

@@ -1,0 +1,57 @@
+cabal-version:      2.4
+name:               effects-unix-compat
+version:            0.1
+license:            MIT
+license-file:       LICENSE
+tested-with:
+  GHC ==8.10.7 || ==9.0.2 || ==9.2.7 || ==9.4.4 || ==9.6.1
+
+copyright:          2022-2023 Thomas Bidne
+author:             Thomas Bidne
+maintainer:         tbidne@protonmail.com
+homepage:           https://github.com/tbidne/monad-effects/
+bug-reports:        https://github.com/tbidne/monad-effects/issues
+synopsis:           Unix-compat effects
+description:        Unix-compat effects
+category:           Effects
+extra-source-files: CHANGELOG.md
+
+source-repository head
+  type:     git
+  location: https://github.com/tbidne/monad-effects
+
+common common-lang
+  default-extensions:
+    DataKinds
+    DeriveAnyClass
+    DeriveFunctor
+    DeriveGeneric
+    DerivingStrategies
+    DerivingVia
+    FlexibleInstances
+    GADTs
+    GeneralizedNewtypeDeriving
+    ImportQualifiedPost
+    LambdaCase
+    MultiParamTypeClasses
+    NumericUnderscores
+    OverloadedLabels
+    OverloadedStrings
+    RankNTypes
+    ScopedTypeVariables
+    StandaloneDeriving
+    TupleSections
+    TypeApplications
+    TypeFamilies
+    TypeOperators
+
+library
+  import:           common-lang
+  exposed-modules:  Effects.System.PosixCompat
+  build-depends:
+    , base          >=4.14.0.0 && <4.19
+    , transformers  >=0.5.6.2  && <0.7
+    , unix-compat   >=0.6      && <0.8
+
+  hs-source-dirs:   src
+  default-language: Haskell2010

@@ -14,6 +14,7 @@ packages:
   ./effects-thread
   ./effects-time
   ./effects-typed-process
+  ./effects-unix-compat
 
 -- See: https://github.com/haskell/cabal/pull/7973
 program-options

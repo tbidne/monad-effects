@@ -60,6 +60,7 @@
               hedgehog = prev.hedgehog_1_2;
               smart-math = final.callCabal2nix "smart-math" smart-math { };
               tasty-hedgehog = prev.tasty-hedgehog_1_4_0_0;
+              unix-compat = prev.unix-compat_0_6;
             };
           };
           hsOverlay =
@@ -76,6 +77,7 @@
               effects-thread = ./effects-thread;
               effects-time = ./effects-time;
               effects-typed-process = ./effects-typed-process;
+              effects-unix-compat = ./effects-unix-compat;
             }));
           packages = p: [
             p.effects-async
@@ -90,6 +92,7 @@
             p.effects-thread
             p.effects-time
             p.effects-typed-process
+            p.effects-unix-compat
           ];
 
           mkPkg = name: root: source-overrides: compiler.developPackage {
@@ -143,6 +146,7 @@
               effects-exceptions = ./effects-exceptions;
               effects-stm = ./effects-stm;
             };
+          packages.effects-unix-compat = mkPkg "effects-unix-compat" ./effects-unix-compat { };
 
           devShells.default = hsOverlay.shellFor {
             inherit packages;

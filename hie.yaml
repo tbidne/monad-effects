@@ -2,33 +2,51 @@ cradle:
   cabal:
     - path: "./effects-async/src"
       component: "lib:effects-async"
+
     - path: "./effects-env/src"
       component: "lib:effects-env"
+
     - path: "./effects-exceptions/src"
       component: "lib:effects-exceptions"
+
     - path: "./effects-exceptions/test/unit"
       component: "effects-exceptions:test:unit"
+
     - path: "./effects-fs/src"
       component: "lib:effects-fs"
+
     - path: "./effects-fs/test/unit"
       component: "effects-fs:test:unit"
+
     - path: "./effects-ioref/src"
       component: "lib:effects-ioref"
+
     - path: "./effects-logger-ns/src"
       component: "lib:effects-logger-ns"
+
     - path: "./effects-logger-ns/test/unit"
       component: "effects-logger-ns:test:unit"
+
     - path: "./effects-optparse/src"
       component: "lib:effects-optparse"
+
     - path: "./effects-stm/src"
       component: "lib:effects-stm"
+
     - path: "./effects-terminal/src"
       component: "lib:effects-terminal"
+
     - path: "./effects-thread/src"
       component: "lib:effects-thread"
+
     - path: "./effects-time/src"
       component: "lib:effects-time"
+
     - path: "./effects-time/test/unit"
       component: "effects-time:test:unit"
+
     - path: "./effects-typed-process/src"
       component: "lib:effects-typed-process"
+
+    - path: "./effects-unix-compat/src"
+      component: "lib:effects-unix-compat"
