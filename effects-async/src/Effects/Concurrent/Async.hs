@@ -82,6 +82,7 @@ module Effects.Concurrent.Async
     Positive (MkPositive),
     Positive.mkPositive,
     Positive.mkPositiveTH,
+    Positive.unsafePositive,
     (+!),
   )
 where
@@ -1175,7 +1176,7 @@ pooledMapConcurrentlyN numProcs f xs = do
       ( \x ->
           (x,)
             <$> newIORef
-              (error "Effects.MonadAsync.pooledMapConcurrentlyN: empty IORef")
+              (error "Effects.Concurrent.Async.pooledMapConcurrentlyN: empty IORef")
       )
   -- ...put all the inputs in a queue..
   jobsVar :: IORef [(a, IORef b)] <- newIORef (toList jobs)
