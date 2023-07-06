@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 -- | Provides namespaced logging functionality on top of 'MonadLogger'.
@@ -33,7 +34,8 @@ where
 
 import Control.DeepSeq (NFData)
 import Control.Monad.Logger
-  ( LogLevel (LevelDebug, LevelError, LevelInfo, LevelOther, LevelWarn),
+  ( Loc (Loc),
+    LogLevel (LevelDebug, LevelError, LevelInfo, LevelOther, LevelWarn),
     LogStr,
     MonadLogger (monadLoggerLog),
     ToLogStr (toLogStr),
@@ -57,8 +59,6 @@ import Language.Haskell.TH (Loc (loc_filename, loc_start))
 import Optics.Core
   ( A_Lens,
     An_Iso,
-    Field1 (_1),
-    Field2 (_2),
     LabelOptic (labelOptic),
     Prism',
     iso,
@@ -66,7 +66,6 @@ import Optics.Core
     over',
     prism,
     view,
-    (%),
     (^.),
   )
 import System.Log.FastLogger qualified as FL
@@ -317,26 +316,26 @@ formatLog formatter lvl msg = do
           ]
   pure formatted
   where
-    timeFn
-      | formatter ^. #timezone =
-          toLogStr . MonadTime.formatZonedTime <$> getSystemZonedTime
-      | otherwise =
-          toLogStr . MonadTime.formatLocalTime <$> getSystemTime
+    timeFn =
+      if formatter ^. #timezone
+        then toLogStr . MonadTime.formatZonedTime <$> getSystemZonedTime
+        else toLogStr . MonadTime.formatLocalTime <$> getSystemTime
 {-# INLINEABLE formatLog #-}
 
 partialLoc :: Loc -> Builder
-partialLoc loc =
+partialLoc Loc {loc_filename, loc_start} =
   mconcat
-    [ fromString $ view #loc_filename loc,
-      ":" <> mkLine loc,
-      ":" <> mkChar loc
+    [ fromString loc_filename,
+      ":" <> line,
+      ":" <> char
     ]
   where
-    mkLine = fromString . show . view (#loc_start % _1)
-    mkChar = fromString . show . view (#loc_start % _2)
+    (locLine, locChar) = loc_start
+    line = fromString $ show locLine
+    char = fromString $ show locChar
 
 stableLoc :: Loc -> Builder
-stableLoc loc = fromString $ view #loc_filename loc
+stableLoc = fromString . view #loc_filename
 
 showLevel :: LogLevel -> Text
 showLevel LevelDebug = "Debug"
