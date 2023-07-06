@@ -1083,9 +1083,10 @@ copyDirectoryOverwrite overwriteFiles src dest = do
 
         -- copy files
         for_ subFiles $ \f -> do
-          checkOverwrites (dest </> f)
-          copyFileWithMetadata (src </> f) (dest </> f)
-          modifyIORef' copiedFilesRef ((dest </> f) :)
+          let f' = dest </> f
+          checkOverwrites f'
+          copyFileWithMetadata (src </> f) f'
+          modifyIORef' copiedFilesRef (f' :)
 
       cleanup =
         if destExists
