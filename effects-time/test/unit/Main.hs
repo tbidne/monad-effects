@@ -54,7 +54,7 @@ getsSystemTime =
 
 getsSystemZonedTime :: TestTree
 getsSystemZonedTime =
-  testCase "Retrieves system zoned timeee" $
+  testCase "Retrieves system zoned time" $
     void MonadTime.getSystemZonedTime
 
 getsMonotonicTime :: TestTree
