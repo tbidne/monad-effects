@@ -8,10 +8,7 @@
   };
   inputs.flake-parts.url = "github:hercules-ci/flake-parts";
   inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-  inputs.nix-hs-utils = {
-    url = "github:tbidne/nix-hs-utils";
-    inputs.flake-compat.follows = "flake-compat";
-  };
+  inputs.nix-hs-utils.url = "github:tbidne/nix-hs-utils";
 
   # haskell
   inputs.algebra-simple = {
@@ -36,12 +33,9 @@
     inputs.bounds.follows = "bounds";
   };
   outputs =
-    inputs@{ algebra-simple
-    , bounds
-    , flake-parts
+    inputs@{ flake-parts
     , nix-hs-utils
     , self
-    , smart-math
     , ...
     }:
     flake-parts.lib.mkFlake { inherit inputs; } {
@@ -52,16 +46,17 @@
           compiler = pkgs.haskell.packages."${ghc-version}".override {
             overrides = final: prev: {
               apply-refact = prev.apply-refact_0_11_0_0;
-              algebra-simple = final.callCabal2nix "algebra-simple" algebra-simple { };
-              bounds = final.callCabal2nix "bounds" bounds { };
               # These tests seems to hang, see:
               # https://github.com/ddssff/listlike/issues/23
               ListLike = hlib.dontCheck prev.ListLike;
               hedgehog = prev.hedgehog_1_2;
-              smart-math = final.callCabal2nix "smart-math" smart-math { };
               tasty-hedgehog = prev.tasty-hedgehog_1_4_0_0;
               unix-compat = prev.unix-compat_0_6;
-            };
+            } // nix-hs-utils.mkLibs inputs final [
+              "algebra-simple"
+              "bounds"
+              "smart-math"
+            ];
           };
           hsOverlay =
             (compiler.extend (hlib.compose.packageSourceOverrides {
@@ -153,7 +148,7 @@
             withHoogle = true;
             buildInputs =
               (nix-hs-utils.mkBuildTools pkgs compiler)
-              ++ (nix-hs-utils.mkDevTools pkgs compiler);
+              ++ (nix-hs-utils.mkDevTools { inherit pkgs compiler; });
           };
 
           apps = {

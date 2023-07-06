@@ -87,17 +87,12 @@
       }
     },
     "nix-hs-utils": {
-      "inputs": {
-        "flake-compat": [
-          "flake-compat"
-        ]
-      },
       "locked": {
-        "lastModified": 1684025842,
-        "narHash": "sha256-ThbM8bcQRUOSlJiXN24VZXRC2DXPc7p9mzzFYcwWLWY=",
+        "lastModified": 1687996294,
+        "narHash": "sha256-ChEf2PhlO7L+JYDnV4/un8LxRnC3AWw3zX90bbBq6UE=",
         "owner": "tbidne",
         "repo": "nix-hs-utils",
-        "rev": "ac6629beb6006f51f03174f3db4c2760c023c44c",
+        "rev": "224cb4540fb3791d90b8249fa3fe9ec248009a87",
         "type": "github"
       },
       "original": {
