@@ -1,11 +1,11 @@
 {-# LANGUAGE CPP #-}
 
--- | Provides the 'MonadPosix' typeclass.
+-- | Provides the 'MonadPosixCompat' typeclass.
 --
 -- @since 0.1
 module Effects.System.PosixCompat
   ( -- * Effect
-    MonadPosix (..),
+    MonadPosixCompat (..),
   )
 where
 
@@ -34,7 +34,7 @@ import System.PosixCompat.Types
 -- | Class for unix-compat effects.
 --
 -- @since 0.1
-class (Monad m) => MonadPosix m where
+class (Monad m) => MonadPosixCompat m where
   -- System.PosixCompat.Files
 
   -- | @since 0.1
@@ -110,7 +110,7 @@ class (Monad m) => MonadPosix m where
   getFdPathVar :: (HasCallStack) => Fd -> PathVar -> m Limit
 
 -- | @since 0.1
-instance MonadPosix IO where
+instance MonadPosixCompat IO where
   setFileMode = PFiles.setFileMode
   {-# INLINEABLE setFileMode #-}
   setFdMode = PFiles.setFdMode
@@ -161,7 +161,7 @@ instance MonadPosix IO where
   {-# INLINEABLE getFdPathVar #-}
 
 -- | @since 0.1
-instance (MonadPosix m) => MonadPosix (ReaderT e m) where
+instance (MonadPosixCompat m) => MonadPosixCompat (ReaderT e m) where
   setFileMode p = lift . setFileMode p
   {-# INLINEABLE setFileMode #-}
   setFdMode fd = lift . setFdMode fd
