@@ -97,7 +97,7 @@
           mkPkgsException = name: root: mkPkg name root {
             effects-exceptions = ./effects-exceptions;
           };
-          hs-dirs = "effects-*";
+          hsDirs = "effects-*";
         in
         {
           packages.effects-async =
@@ -153,13 +153,13 @@
 
           apps = {
             format = nix-hs-utils.format {
-              inherit compiler hs-dirs pkgs;
+              inherit compiler hsDirs pkgs;
             };
             lint = nix-hs-utils.lint {
-              inherit compiler hs-dirs pkgs;
+              inherit compiler hsDirs pkgs;
             };
             lint-refactor = nix-hs-utils.lint-refactor {
-              inherit compiler hs-dirs pkgs;
+              inherit compiler hsDirs pkgs;
             };
           };
         };
