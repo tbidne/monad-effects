@@ -1,6 +1,6 @@
 module Main (main) where
 
-import Effects.FileSystem.Path (Path, (</>))
+import Effects.FileSystem.Path (OsPath, (</>))
 import Effects.FileSystem.PathReader (getTemporaryDirectory)
 import Effects.FileSystem.PathWriter
   ( createDirectoryIfMissing,
@@ -23,7 +23,7 @@ main =
           PathWriter.tests args
         ]
 
-setup :: IO Path
+setup :: IO OsPath
 setup = do
   tmpDir <-
     (\s -> s </> U.strToPath "effects-fs" </> U.strToPath "unit")
@@ -32,7 +32,7 @@ setup = do
   createDirectoryIfMissing True tmpDir
   pure tmpDir
 
-teardown :: Path -> IO ()
+teardown :: OsPath -> IO ()
 teardown fp = guardOrElse' "NO_CLEANUP" ExpectEnvSet doNothing cleanup
   where
     cleanup = removePathForcibly fp

@@ -24,7 +24,7 @@ import Effects.Exception
 import Effects.FileSystem.FileReader (MonadFileReader (readBinaryFile))
 import Effects.FileSystem.FileWriter
   ( MonadFileWriter (writeBinaryFile),
-    Path,
+    OsPath,
   )
 import Effects.FileSystem.Path ((</>))
 import Effects.FileSystem.PathReader
@@ -47,14 +47,14 @@ import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (assertBool, assertFailure, testCase, (@=?))
 import Utils qualified as U
 
-tests :: IO Path -> TestTree
+tests :: IO OsPath -> TestTree
 tests getTmpDir = do
   testGroup
     "PathWriter"
     [ copyDirectoryRecursiveTests getTmpDir
     ]
 
-copyDirectoryRecursiveTests :: IO Path -> TestTree
+copyDirectoryRecursiveTests :: IO OsPath -> TestTree
 copyDirectoryRecursiveTests getTmpDir =
   testGroup
     "copyDirectoryRecursive"
@@ -63,7 +63,7 @@ copyDirectoryRecursiveTests getTmpDir =
       cdrOverwriteAllTests getTmpDir
     ]
 
-cdrOverwriteNoneTests :: IO Path -> TestTree
+cdrOverwriteNoneTests :: IO OsPath -> TestTree
 cdrOverwriteNoneTests getTmpDir =
   testGroup
     "OverwriteNone"
@@ -74,7 +74,7 @@ cdrOverwriteNoneTests getTmpDir =
       cdrnPartialFails getTmpDir
     ]
 
-cdrnFresh :: IO Path -> TestTree
+cdrnFresh :: IO OsPath -> TestTree
 cdrnFresh getTmpDir = testCase desc $ do
   tmpDir <- mkTestPath getTmpDir "cdrnFresh"
   srcDir <- setupSrc tmpDir
@@ -92,7 +92,7 @@ cdrnFresh getTmpDir = testCase desc $ do
   where
     desc = "Copy to fresh directory succeeds"
 
-cdrnCustomTarget :: IO Path -> TestTree
+cdrnCustomTarget :: IO OsPath -> TestTree
 cdrnCustomTarget getTmpDir = testCase desc $ do
   tmpDir <- mkTestPath getTmpDir "cdrnCustomTarget"
   srcDir <- setupSrc tmpDir
@@ -124,7 +124,7 @@ cdrnCustomTarget getTmpDir = testCase desc $ do
   where
     desc = "Copy with custom directory succeeds"
 
-cdrnDestNonExtantFails :: IO Path -> TestTree
+cdrnDestNonExtantFails :: IO OsPath -> TestTree
 cdrnDestNonExtantFails getTmpDir = testCase desc $ do
   tmpDir <- mkTestPath getTmpDir "cdrnDestNonExtantFails"
   srcDir <- setupSrc tmpDir
@@ -162,7 +162,7 @@ cdrnDestNonExtantFails getTmpDir = testCase desc $ do
     suffix = "effects-fs\\unit\\cdrnDestNonExtantFails\\dest"
 #endif
 
-cdrnOverwriteFails :: IO Path -> TestTree
+cdrnOverwriteFails :: IO OsPath -> TestTree
 cdrnOverwriteFails getTmpDir = testCase desc $ do
   tmpDir <- mkTestPath getTmpDir "cdrnExtantFails"
   srcDir <- setupSrc tmpDir
@@ -206,7 +206,7 @@ cdrnOverwriteFails getTmpDir = testCase desc $ do
     suffix = "effects-fs\\unit\\cdrnExtantFails\\dest\\src"
 #endif
 
-cdrnPartialFails :: IO Path -> TestTree
+cdrnPartialFails :: IO OsPath -> TestTree
 cdrnPartialFails getTmpDir = testCase desc $ do
   tmpDir <- mkTestPath getTmpDir "cdrnPartialFails"
   srcDir <- setupSrc tmpDir
@@ -238,7 +238,7 @@ cdrnPartialFails getTmpDir = testCase desc $ do
   where
     desc = "Partial failure rolls back changes"
 
-cdrOverwriteTargetTests :: IO Path -> TestTree
+cdrOverwriteTargetTests :: IO OsPath -> TestTree
 cdrOverwriteTargetTests getTmpDir =
   testGroup
     "OverwriteDirectories"
@@ -252,7 +252,7 @@ cdrOverwriteTargetTests getTmpDir =
       cdrtOverwritePartialFails getTmpDir
     ]
 
-cdrtFresh :: IO Path -> TestTree
+cdrtFresh :: IO OsPath -> TestTree
 cdrtFresh getTmpDir = testCase desc $ do
   tmpDir <- mkTestPath getTmpDir "cdrtFresh"
   srcDir <- setupSrc tmpDir
@@ -270,7 +270,7 @@ cdrtFresh getTmpDir = testCase desc $ do
   where
     desc = "Copy to fresh directory succeeds"
 
-cdrtDestNonExtantFails :: IO Path -> TestTree
+cdrtDestNonExtantFails :: IO OsPath -> TestTree
 cdrtDestNonExtantFails getTmpDir = testCase desc $ do
   tmpDir <- mkTestPath getTmpDir "cdrtDestNonExtantFails"
   srcDir <- setupSrc tmpDir
@@ -305,7 +305,7 @@ cdrtDestNonExtantFails getTmpDir = testCase desc $ do
     suffix = "effects-fs\\unit\\cdrtDestNonExtantFails\\dest"
 #endif
 
-cdrtOverwriteTargetSucceeds :: IO Path -> TestTree
+cdrtOverwriteTargetSucceeds :: IO OsPath -> TestTree
 cdrtOverwriteTargetSucceeds getTmpDir = testCase desc $ do
   tmpDir <- mkTestPath getTmpDir "cdrtOverwriteTargetSucceeds"
   srcDir <- setupSrc tmpDir
@@ -330,7 +330,7 @@ cdrtOverwriteTargetSucceeds getTmpDir = testCase desc $ do
   where
     desc = "copy to extant dest/<target> succeeds"
 
-cdrtOverwriteTargetMergeSucceeds :: IO Path -> TestTree
+cdrtOverwriteTargetMergeSucceeds :: IO OsPath -> TestTree
 cdrtOverwriteTargetMergeSucceeds getTmpDir = testCase desc $ do
   tmpDir <- mkTestPath getTmpDir "cdrtOverwriteTargetMergeSucceeds"
   let srcDir = tmpDir </> U.strToPath "src"
@@ -398,7 +398,7 @@ cdrtOverwriteTargetMergeSucceeds getTmpDir = testCase desc $ do
     desc = "copy to extant dest/<target> merges successfully"
     config = MkCopyDirConfig OverwriteDirectories TargetNameDest
 
-cdrtOverwriteTargetMergeFails :: IO Path -> TestTree
+cdrtOverwriteTargetMergeFails :: IO OsPath -> TestTree
 cdrtOverwriteTargetMergeFails getTmpDir = testCase desc $ do
   tmpDir <- mkTestPath getTmpDir "cdrtOverwriteTargetMergeFails"
   let srcDir = tmpDir </> U.strToPath "src"
@@ -486,7 +486,7 @@ cdrtOverwriteTargetMergeFails getTmpDir = testCase desc $ do
     suffix = "effects-fs\\unit\\cdrtOverwriteTargetMergeFails\\dest\\two\\f3"
 #endif
 
-cdrtOverwriteFileFails :: IO Path -> TestTree
+cdrtOverwriteFileFails :: IO OsPath -> TestTree
 cdrtOverwriteFileFails getTmpDir = testCase desc $ do
   tmpDir <- mkTestPath getTmpDir "cdrtOverwriteFileFails"
   srcDir <- setupSrc tmpDir
@@ -524,7 +524,7 @@ cdrtOverwriteFileFails getTmpDir = testCase desc $ do
     suffix = "effects-fs\\unit\\cdrtOverwriteFileFails\\dest\\src\\a\\b\\c\\f1"
 #endif
 
-cdrtPartialFails :: IO Path -> TestTree
+cdrtPartialFails :: IO OsPath -> TestTree
 cdrtPartialFails getTmpDir = testCase desc $ do
   tmpDir <- mkTestPath getTmpDir "cdrtPartialFails"
   srcDir <- setupSrc tmpDir
@@ -556,7 +556,7 @@ cdrtPartialFails getTmpDir = testCase desc $ do
   where
     desc = "Partial failure rolls back changes"
 
-cdrtOverwritePartialFails :: IO Path -> TestTree
+cdrtOverwritePartialFails :: IO OsPath -> TestTree
 cdrtOverwritePartialFails getTmpDir = testCase desc $ do
   tmpDir <- mkTestPath getTmpDir "cdrtOverwritePartialFails"
   srcDir <- setupSrc tmpDir
@@ -600,14 +600,14 @@ cdrtOverwritePartialFails getTmpDir = testCase desc $ do
   where
     desc = "Partial failure with extant dest/<target> rolls back changes"
 
-cdrOverwriteAllTests :: IO Path -> TestTree
+cdrOverwriteAllTests :: IO OsPath -> TestTree
 cdrOverwriteAllTests getTmpDir =
   testGroup
     "OverwriteAll"
     [ cdraOverwriteFileSucceeds getTmpDir
     ]
 
-cdraOverwriteFileSucceeds :: IO Path -> TestTree
+cdraOverwriteFileSucceeds :: IO OsPath -> TestTree
 cdraOverwriteFileSucceeds getTmpDir = testCase desc $ do
   tmpDir <- mkTestPath getTmpDir "cdraOverwriteFileSucceeds"
   srcDir <- setupSrc tmpDir
@@ -636,7 +636,7 @@ cdraOverwriteFileSucceeds getTmpDir = testCase desc $ do
 --                                  Setup                                    --
 -------------------------------------------------------------------------------
 
-setupSrc :: (HasCallStack) => Path -> IO Path
+setupSrc :: (HasCallStack) => OsPath -> IO OsPath
 setupSrc baseDir = do
   let files = U.strToPath <$> ["a/b/c/f1", "a/f2", "a/b/f3", "a/f4", "a/f5", "a/b/f5"]
       srcDir = baseDir </> U.strToPath "src"
@@ -652,7 +652,7 @@ setupSrc baseDir = do
   assertSrcExists baseDir
   pure srcDir
 
-writeFiles :: (HasCallStack) => [(Path, ByteString)] -> IO ()
+writeFiles :: (HasCallStack) => [(OsPath, ByteString)] -> IO ()
 writeFiles = traverse_ (uncurry writeBinaryFile)
 
 overwriteConfig :: Overwrite -> CopyDirConfig
@@ -704,7 +704,7 @@ instance MonadPathWriter PartialIO where
 --                                Assertions                                 --
 -------------------------------------------------------------------------------
 
-assertSrcExists :: (HasCallStack) => Path -> IO ()
+assertSrcExists :: (HasCallStack) => OsPath -> IO ()
 assertSrcExists baseDir = do
   let srcDir = baseDir </> U.strToPath "src"
   assertFilesExist $
@@ -722,7 +722,7 @@ assertSrcExists baseDir = do
             "empty/d"
           ]
 
-assertDestExists :: (HasCallStack) => Path -> IO ()
+assertDestExists :: (HasCallStack) => OsPath -> IO ()
 assertDestExists baseDir = do
   let destDir = baseDir </> U.strToPath "dest"
   assertFilesExist $
@@ -740,34 +740,34 @@ assertDestExists baseDir = do
             "src/empty/d"
           ]
 
-assertFilesExist :: (HasCallStack) => [Path] -> IO ()
+assertFilesExist :: (HasCallStack) => [OsPath] -> IO ()
 assertFilesExist = traverse_ $ \p -> do
   exists <- doesFileExist p
   assertBool ("Expected file to exist: " <> U.pathToStr p) exists
 
-assertFilesDoNotExist :: (HasCallStack) => [Path] -> IO ()
+assertFilesDoNotExist :: (HasCallStack) => [OsPath] -> IO ()
 assertFilesDoNotExist = traverse_ $ \p -> do
   exists <- doesFileExist p
   assertBool ("Expected file not to exist: " <> U.pathToStr p) (not exists)
 
-assertFileContents :: (HasCallStack) => [(Path, ByteString)] -> IO ()
+assertFileContents :: (HasCallStack) => [(OsPath, ByteString)] -> IO ()
 assertFileContents = traverse_ $ \(p, expected) -> do
   exists <- doesFileExist p
   assertBool ("Expected file to exist: " <> U.pathToStr p) exists
   actual <- readBinaryFile p
   expected @=? actual
 
-assertDirsExist :: (HasCallStack) => [Path] -> IO ()
+assertDirsExist :: (HasCallStack) => [OsPath] -> IO ()
 assertDirsExist = traverse_ $ \p -> do
   exists <- doesDirectoryExist p
   assertBool ("Expected directory to exist: " <> U.pathToStr p) exists
 
-assertDirsDoNotExist :: (HasCallStack) => [Path] -> IO ()
+assertDirsDoNotExist :: (HasCallStack) => [OsPath] -> IO ()
 assertDirsDoNotExist = traverse_ $ \p -> do
   exists <- doesDirectoryExist p
   assertBool ("Expected directory not to exist: " <> U.pathToStr p) (not exists)
 
-mkTestPath :: IO Path -> String -> IO Path
+mkTestPath :: IO OsPath -> String -> IO OsPath
 mkTestPath getPath s = do
   p <- getPath
   pure $ p </> U.strToPath s

@@ -1,27 +1,20 @@
-{-# LANGUAGE CPP #-}
-
-{- ORMOLU_DISABLE -}
-
 -- | Provides the MonadPathReader effect.
 --
 -- @since 0.1
 module Effects.FileSystem.PathReader
   ( -- * Effect
     MonadPathReader (..),
-    Path,
+    OsPath,
 
     -- ** Functions
     findFile,
     findFiles,
 
-
     -- * XDG Utils
     getXdgData,
     getXdgConfig,
     getXdgCache,
-#if MIN_VERSION_directory(1,3,7)
     getXdgState,
-#endif
 
     -- * Misc
     listDirectoryRecursive,
@@ -38,20 +31,14 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Data.Time (UTCTime (..))
 import Effects.Exception (addCS)
-import Effects.FileSystem.Path (Path, (</>))
+import Effects.FileSystem.Path (OsPath, (</>))
 import GHC.Stack (HasCallStack)
 import System.Directory
   ( Permissions (..),
     XdgDirectory (..),
     XdgDirectoryList (..),
   )
-#if USE_OS_PATH
 import System.Directory.OsPath qualified as Dir
-#else
-import System.Directory qualified as Dir
-#endif
-
-{- ORMOLU_ENABLE -}
 
 -- REVIEW: Can we reduce the class size by implementing some of these
 -- functions in terms of others?
@@ -90,7 +77,7 @@ class (Monad m) => MonadPathReader m where
   --   @[ENOTDIR]@
   --
   -- @since 0.1
-  listDirectory :: (HasCallStack) => Path -> m [Path]
+  listDirectory :: (HasCallStack) => OsPath -> m [OsPath]
 
   -- | Similar to 'listDirectory', but always includes the special entries (@.@
   -- and @..@). (This applies to Windows as well.)
@@ -98,7 +85,7 @@ class (Monad m) => MonadPathReader m where
   -- The operation may fail with the same exceptions as 'listDirectory'.
   --
   -- @since 0.1
-  getDirectoryContents :: (HasCallStack) => Path -> m [Path]
+  getDirectoryContents :: (HasCallStack) => OsPath -> m [OsPath]
 
   -- | Obtain the current working directory as an absolute path.
   --
@@ -134,7 +121,7 @@ class (Monad m) => MonadPathReader m where
   -- The operating system has no notion of current working directory.
   --
   -- @since 0.1
-  getCurrentDirectory :: (HasCallStack) => m Path
+  getCurrentDirectory :: (HasCallStack) => m OsPath
 
   -- | Returns the current user's home directory.
   --
@@ -163,7 +150,7 @@ class (Monad m) => MonadPathReader m where
   -- cannot be found.
   --
   -- @since 0.1
-  getHomeDirectory :: (HasCallStack) => m Path
+  getHomeDirectory :: (HasCallStack) => m OsPath
 
   -- | Obtain the paths to special directories for storing user-specific
   -- application data, configuration, and cache files, conforming to the
@@ -190,7 +177,7 @@ class (Monad m) => MonadPathReader m where
   -- <https://github.com/haskell/directory/issues/100 #100>.
   --
   -- @since 0.1
-  getXdgDirectory :: (HasCallStack) => XdgDirectory -> Path -> m Path
+  getXdgDirectory :: (HasCallStack) => XdgDirectory -> OsPath -> m OsPath
 
   -- | Similar to 'getXdgDirectory' but retrieves the entire list of XDG
   -- directories.
@@ -201,7 +188,7 @@ class (Monad m) => MonadPathReader m where
   -- Refer to the docs of 'XdgDirectoryList' for more details.
   --
   -- @since 0.1
-  getXdgDirectoryList :: (HasCallStack) => XdgDirectoryList -> m [Path]
+  getXdgDirectoryList :: (HasCallStack) => XdgDirectoryList -> m [OsPath]
 
   -- | Obtain the path to a special directory for storing user-specific
   -- application data (traditional Unix location). Newer applications may
@@ -230,7 +217,7 @@ class (Monad m) => MonadPathReader m where
   --   found.
   --
   -- @since 0.1
-  getAppUserDataDirectory :: (HasCallStack) => Path -> m Path
+  getAppUserDataDirectory :: (HasCallStack) => OsPath -> m OsPath
 
   -- | Returns the current user's document directory.
   --
@@ -253,7 +240,7 @@ class (Monad m) => MonadPathReader m where
   -- cannot be found.
   --
   -- @since 0.1
-  getUserDocumentsDirectory :: (HasCallStack) => m Path
+  getUserDocumentsDirectory :: (HasCallStack) => m OsPath
 
   -- | Returns the current directory for temporary files.
   --
@@ -282,12 +269,12 @@ class (Monad m) => MonadPathReader m where
   -- The function doesn\'t verify whether the path exists.
   --
   -- @since 0.1
-  getTemporaryDirectory :: (HasCallStack) => m Path
+  getTemporaryDirectory :: (HasCallStack) => m OsPath
 
   -- | Obtain the size of a file in bytes.
   --
   -- @since 0.1
-  getFileSize :: (HasCallStack) => Path -> m Integer
+  getFileSize :: (HasCallStack) => OsPath -> m Integer
 
   -- | Make a path absolute, normalize the path, and remove as many indirections
   -- from it as possible. Any trailing path separators are discarded via
@@ -353,7 +340,7 @@ class (Monad m) => MonadPathReader m where
   -- are now performed on Windows.
   --
   -- @since 0.1
-  canonicalizePath :: (HasCallStack) => Path -> m Path
+  canonicalizePath :: (HasCallStack) => OsPath -> m OsPath
 
   -- | Convert a path into an absolute path. If the given path is relative, the
   -- current directory is prepended and then the combined result is normalized.
@@ -365,7 +352,7 @@ class (Monad m) => MonadPathReader m where
   -- operation may fail with the same exceptions as 'getCurrentDirectory'.
   --
   -- @since 0.1
-  makeAbsolute :: (HasCallStack) => Path -> m Path
+  makeAbsolute :: (HasCallStack) => OsPath -> m OsPath
 
   -- | Construct a path relative to the current directory, similar to
   -- 'makeRelative'.
@@ -373,27 +360,27 @@ class (Monad m) => MonadPathReader m where
   -- The operation may fail with the same exceptions as 'getCurrentDirectory'.
   --
   -- @since 0.1
-  makeRelativeToCurrentDirectory :: (HasCallStack) => Path -> m Path
+  makeRelativeToCurrentDirectory :: (HasCallStack) => OsPath -> m OsPath
 
   -- | Test whether the given path points to an existing filesystem object. If
   -- the user lacks necessary permissions to search the parent directories,
   -- this function may return false even if the file does actually exist.
   --
   -- @since 0.1
-  doesPathExist :: (HasCallStack) => Path -> m Bool
+  doesPathExist :: (HasCallStack) => OsPath -> m Bool
 
   -- | The operation 'doesFileExist' returns 'True'
   -- if the argument file exists and is not a directory, and 'False' otherwise.
   --
   -- @since 0.1
-  doesFileExist :: (HasCallStack) => Path -> m Bool
+  doesFileExist :: (HasCallStack) => OsPath -> m Bool
 
   -- | The operation 'doesDirectoryExist' returns 'True' if the argument file
   -- exists and is either a directory or a symbolic link to a directory,
   -- and 'False' otherwise.
   --
   -- @since 0.1
-  doesDirectoryExist :: (HasCallStack) => Path -> m Bool
+  doesDirectoryExist :: (HasCallStack) => OsPath -> m Bool
 
   -- | Given the name or path of an executable file, 'findExecutable' searches
   -- for such a file in a list of system-defined locations, which generally
@@ -420,7 +407,7 @@ class (Monad m) => MonadPathReader m where
   -- documentation of 'findFileWith'.
   --
   -- @since 0.1
-  findExecutable :: (HasCallStack) => Path -> m (Maybe Path)
+  findExecutable :: (HasCallStack) => OsPath -> m (Maybe OsPath)
 
   -- | Search for executable files in a list of system-defined locations, which
   -- generally includes @PATH@ and possibly more.
@@ -433,7 +420,7 @@ class (Monad m) => MonadPathReader m where
   -- environment variable. Details can.
   --
   -- @since 0.1
-  findExecutables :: (HasCallStack) => Path -> m [Path]
+  findExecutables :: (HasCallStack) => OsPath -> m [OsPath]
 
   -- | Given a name or path, 'findExecutable' appends the 'exeExtension' to the
   -- query and searches for executable files in the list of given search
@@ -448,7 +435,7 @@ class (Monad m) => MonadPathReader m where
   -- Windows is therefore equivalent to those on non-Windows platforms.
   --
   -- @since 0.1
-  findExecutablesInDirectories :: (HasCallStack) => [Path] -> Path -> m [Path]
+  findExecutablesInDirectories :: (HasCallStack) => [OsPath] -> OsPath -> m [OsPath]
 
   -- | Search through a given list of directories for a file that has the given
   -- name and satisfies the given predicate and return the path of the first
@@ -459,7 +446,7 @@ class (Monad m) => MonadPathReader m where
   -- documentation of 'findFilesWith'.
   --
   -- @since 0.1
-  findFileWith :: (HasCallStack) => (Path -> m Bool) -> [Path] -> Path -> m (Maybe Path)
+  findFileWith :: (HasCallStack) => (OsPath -> m Bool) -> [OsPath] -> OsPath -> m (Maybe OsPath)
 
   -- | @findFilesWith predicate dirs name@ searches through the list of
   -- directories (@dirs@) for files that have the given @name@ and satisfy the
@@ -479,7 +466,7 @@ class (Monad m) => MonadPathReader m where
   -- otherwise. This is irrespective of what search directories were given.
   --
   -- @since 0.1
-  findFilesWith :: (HasCallStack) => (Path -> m Bool) -> [Path] -> Path -> m [Path]
+  findFilesWith :: (HasCallStack) => (OsPath -> m Bool) -> [OsPath] -> OsPath -> m [OsPath]
 
   -- | Check whether an existing @path@ is a symbolic link. If @path@ is a
   -- regular file or directory, 'False' is returned. If @path@ does not exist
@@ -497,7 +484,7 @@ class (Monad m) => MonadPathReader m where
   --   link.
   --
   -- @since 0.1
-  pathIsSymbolicLink :: (HasCallStack) => Path -> m Bool
+  pathIsSymbolicLink :: (HasCallStack) => OsPath -> m Bool
 
   -- | Retrieve the target path of either a file or directory symbolic link.
   -- The returned path may not be absolute, may not exist, and may not even be a
@@ -512,7 +499,7 @@ class (Monad m) => MonadPathReader m where
   -- links.
   --
   -- @since 0.1
-  getSymbolicLinkTarget :: (HasCallStack) => Path -> m Path
+  getSymbolicLinkTarget :: (HasCallStack) => OsPath -> m OsPath
 
   -- | Get the permissions of a file or directory.
   --
@@ -530,7 +517,7 @@ class (Monad m) => MonadPathReader m where
   -- * 'isDoesNotExistError' if the file or directory does not exist.
   --
   -- @since 0.1
-  getPermissions :: (HasCallStack) => Path -> m Permissions
+  getPermissions :: (HasCallStack) => OsPath -> m Permissions
 
   -- | Obtain the time at which the file or directory was last accessed.
   --
@@ -546,7 +533,7 @@ class (Monad m) => MonadPathReader m where
   -- and the underlying filesystem supports them.
   --
   -- @since 0.1
-  getAccessTime :: (HasCallStack) => Path -> m UTCTime
+  getAccessTime :: (HasCallStack) => OsPath -> m UTCTime
 
   -- | Obtain the time at which the file or directory was last modified.
   --
@@ -562,7 +549,7 @@ class (Monad m) => MonadPathReader m where
   -- and the underlying filesystem supports them.
   --
   -- @since 0.1
-  getModificationTime :: (HasCallStack) => Path -> m UTCTime
+  getModificationTime :: (HasCallStack) => OsPath -> m UTCTime
 
 instance MonadPathReader IO where
   listDirectory = addCS . Dir.listDirectory
@@ -680,7 +667,7 @@ instance (MonadPathReader m) => MonadPathReader (ReaderT env m) where
 -- occurrence. Details can be found in the documentation of 'findFileWith'.
 --
 -- @since 0.1
-findFile :: (HasCallStack, MonadPathReader m) => [Path] -> Path -> m (Maybe Path)
+findFile :: (HasCallStack, MonadPathReader m) => [OsPath] -> OsPath -> m (Maybe OsPath)
 findFile = findFileWith (\_ -> pure True)
 {-# INLINEABLE findFile #-}
 
@@ -691,39 +678,37 @@ findFile = findFileWith (\_ -> pure True)
 -- documentation of 'findFilesWith'.
 --
 -- @since 0.1
-findFiles :: (HasCallStack, MonadPathReader m) => [Path] -> Path -> m [Path]
+findFiles :: (HasCallStack, MonadPathReader m) => [OsPath] -> OsPath -> m [OsPath]
 findFiles = findFilesWith (\_ -> pure True)
 {-# INLINEABLE findFiles #-}
 
 -- | Retrieves the XDG data directory e.g. @~/.local\/share@.
 --
 -- @since 0.1
-getXdgData :: (HasCallStack, MonadPathReader m) => Path -> m Path
+getXdgData :: (HasCallStack, MonadPathReader m) => OsPath -> m OsPath
 getXdgData = getXdgDirectory XdgData
 {-# INLINEABLE getXdgData #-}
 
 -- | Retrieves the XDG config directory e.g. @~/.config@.
 --
 -- @since 0.1
-getXdgConfig :: (HasCallStack, MonadPathReader m) => Path -> m Path
+getXdgConfig :: (HasCallStack, MonadPathReader m) => OsPath -> m OsPath
 getXdgConfig = getXdgDirectory XdgConfig
 {-# INLINEABLE getXdgConfig #-}
 
 -- | Retrieves the XDG cache directory e.g. @~/.cache@.
 --
 -- @since 0.1
-getXdgCache :: (HasCallStack, MonadPathReader m) => Path -> m Path
+getXdgCache :: (HasCallStack, MonadPathReader m) => OsPath -> m OsPath
 getXdgCache = getXdgDirectory XdgCache
 {-# INLINEABLE getXdgCache #-}
 
-#if MIN_VERSION_directory(1,3,7)
 -- | Retrieves the XDG state directory e.g. @~/.local\/state@.
 --
 -- @since 0.1
-getXdgState :: (HasCallStack, MonadPathReader m) => Path -> m Path
+getXdgState :: (HasCallStack, MonadPathReader m) => OsPath -> m OsPath
 getXdgState = getXdgDirectory XdgState
 {-# INLINEABLE getXdgState #-}
-#endif
 
 -- | Retrieves the recursive directory contents; splits the sub folders and
 -- directories apart.
@@ -735,12 +720,12 @@ listDirectoryRecursive ::
     MonadPathReader m
   ) =>
   -- | Root path.
-  Path ->
+  OsPath ->
   -- | (files, directories)
-  m ([Path], [Path])
+  m ([OsPath], [OsPath])
 listDirectoryRecursive root = recurseDirs [emptyPath]
   where
-    recurseDirs :: [Path] -> m ([Path], [Path])
+    recurseDirs :: [OsPath] -> m ([OsPath], [OsPath])
     recurseDirs [] = pure ([], [])
     recurseDirs (d : ds) = do
       (files, dirs) <- splitPaths root d [] [] =<< listDirectory (root </> d)
@@ -753,15 +738,15 @@ splitPaths ::
   ( HasCallStack,
     MonadPathReader m
   ) =>
-  Path ->
-  Path ->
-  [Path] ->
-  [Path] ->
-  [Path] ->
-  m ([Path], [Path])
+  OsPath ->
+  OsPath ->
+  [OsPath] ->
+  [OsPath] ->
+  [OsPath] ->
+  m ([OsPath], [OsPath])
 splitPaths root d = go
   where
-    go :: [Path] -> [Path] -> [Path] -> m ([Path], [Path])
+    go :: [OsPath] -> [OsPath] -> [OsPath] -> m ([OsPath], [OsPath])
     go files dirs [] = pure (reverse files, reverse dirs)
     go files dirs (p : ps) = do
       let dirEntry = d </> p

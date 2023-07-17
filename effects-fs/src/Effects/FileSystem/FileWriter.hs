@@ -4,7 +4,7 @@
 module Effects.FileSystem.FileWriter
   ( -- * Effect
     MonadFileWriter (..),
-    Path,
+    OsPath,
 
     -- * UTF-8 Utils
     writeFileUtf8,
@@ -24,7 +24,7 @@ import Data.Text (Text)
 import Data.Text.Encoding qualified as TEnc
 import Effects.Exception (addCS)
 import Effects.FileSystem.Internal (appendBinaryFileIO, writeBinaryFileIO)
-import Effects.FileSystem.Path (Path)
+import Effects.FileSystem.Path (OsPath)
 import GHC.Stack (HasCallStack)
 
 -- | Represents file-system writer effects.
@@ -34,12 +34,12 @@ class (Monad m) => MonadFileWriter m where
   -- | Writes to a file.
   --
   -- @since 0.1
-  writeBinaryFile :: (HasCallStack) => Path -> ByteString -> m ()
+  writeBinaryFile :: (HasCallStack) => OsPath -> ByteString -> m ()
 
   -- | Appends to a file.
   --
   -- @since 0.1
-  appendBinaryFile :: (HasCallStack) => Path -> ByteString -> m ()
+  appendBinaryFile :: (HasCallStack) => OsPath -> ByteString -> m ()
 
 -- | @since 0.1
 instance MonadFileWriter IO where
@@ -64,13 +64,13 @@ encodeUtf8 = TEnc.encodeUtf8
 -- | Writes to a file as UTF-8.
 --
 -- @since 0.1
-writeFileUtf8 :: (HasCallStack, MonadFileWriter m) => Path -> Text -> m ()
+writeFileUtf8 :: (HasCallStack, MonadFileWriter m) => OsPath -> Text -> m ()
 writeFileUtf8 p = writeBinaryFile p . encodeUtf8
 {-# INLINEABLE writeFileUtf8 #-}
 
 -- | Appends to a file as UTF-8.
 --
 -- @since 0.1
-appendFileUtf8 :: (HasCallStack, MonadFileWriter m) => Path -> Text -> m ()
+appendFileUtf8 :: (HasCallStack, MonadFileWriter m) => OsPath -> Text -> m ()
 appendFileUtf8 p = appendBinaryFile p . encodeUtf8
 {-# INLINEABLE appendFileUtf8 #-}

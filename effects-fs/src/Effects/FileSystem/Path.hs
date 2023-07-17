@@ -1,13 +1,13 @@
 {-# LANGUAGE CPP #-}
 
--- | Provides compatibility for filepaths.
+-- | Convenient module for OsPath type.
 --
 -- @since 0.1
 module Effects.FileSystem.Path
   ( -- * Path
-    Path,
+    OsPath,
     (</>),
   )
 where
 
-import Effects.FileSystem.Internal (Path, (</>))
+import Effects.FileSystem.Internal (OsPath, (</>))

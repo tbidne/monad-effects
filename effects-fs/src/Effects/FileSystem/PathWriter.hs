@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 -- | Provides the MonadPathWriter effect.
@@ -7,7 +6,7 @@
 module Effects.FileSystem.PathWriter
   ( -- * Effect
     MonadPathWriter (..),
-    Path,
+    OsPath,
 
     -- * Copying
 
@@ -53,7 +52,7 @@ import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Data.Foldable (for_, traverse_)
 import Data.Time (UTCTime (..))
 import Effects.Exception (MonadMask, addCS, mask_, onException, throwCS)
-import Effects.FileSystem.Path (Path, (</>))
+import Effects.FileSystem.Path (OsPath, (</>))
 import Effects.FileSystem.PathReader
   ( MonadPathReader
       ( doesDirectoryExist,
@@ -76,13 +75,8 @@ import Optics.Core
     (^.),
   )
 import System.Directory (Permissions (..))
-#if USE_OS_PATH
 import System.Directory.OsPath qualified as Dir
 import System.OsPath qualified as FP
-#else
-import System.Directory qualified as Dir
-import System.FilePath qualified as FP
-#endif
 
 -- | Represents file-system writer effects.
 --
@@ -124,7 +118,7 @@ class (Monad m) => MonadPathWriter m where
   -- @[EEXIST]@
   --
   -- @since 0.1
-  createDirectory :: (HasCallStack) => Path -> m ()
+  createDirectory :: (HasCallStack) => OsPath -> m ()
 
   -- | @'createDirectoryIfMissing' parents dir@ creates a new directory
   -- @dir@ if it doesn\'t exist. If the first argument is 'True'
@@ -136,7 +130,7 @@ class (Monad m) => MonadPathWriter m where
     -- | Create its parents too?
     Bool ->
     -- | The path to the directory you want to make
-    Path ->
+    OsPath ->
     m ()
 
   -- | @'removeDirectory' dir@ removes an existing directory /dir/. The
@@ -179,7 +173,7 @@ class (Monad m) => MonadPathWriter m where
   -- @[ENOTDIR]@
   --
   -- @since 0.1
-  removeDirectory :: (HasCallStack) => Path -> m ()
+  removeDirectory :: (HasCallStack) => OsPath -> m ()
 
   -- | @'removeDirectoryRecursive' dir@ removes an existing directory /dir/
   -- together with its contents and subdirectories. Within this directory,
@@ -191,7 +185,7 @@ class (Monad m) => MonadPathWriter m where
   -- be advisable. See: https://github.com/haskell/directory/pull/108
   --
   -- @since 0.1
-  removeDirectoryRecursive :: (HasCallStack) => Path -> m ()
+  removeDirectoryRecursive :: (HasCallStack) => OsPath -> m ()
 
   -- | Removes a file or directory at /path/ together with its contents and
   -- subdirectories. Symbolic links are removed without affecting their
@@ -211,7 +205,7 @@ class (Monad m) => MonadPathWriter m where
   -- exception. The first exception that it encountered is re-thrown.
   --
   -- @since 0.1
-  removePathForcibly :: (HasCallStack) => Path -> m ()
+  removePathForcibly :: (HasCallStack) => OsPath -> m ()
 
   -- | @'renameDirectory' old new@ changes the name of an existing
   -- directory from /old/ to /new/. If the /new/ directory
@@ -261,7 +255,7 @@ class (Monad m) => MonadPathWriter m where
   -- @[ENOTDIR, EISDIR]@
   --
   -- @since 0.1
-  renameDirectory :: (HasCallStack) => Path -> Path -> m ()
+  renameDirectory :: (HasCallStack) => OsPath -> OsPath -> m ()
 
   -- | Change the working directory to the given path.
   --
@@ -297,7 +291,7 @@ class (Monad m) => MonadPathWriter m where
   -- @[ENOTDIR]@
   --
   -- @since 0.1
-  setCurrentDirectory :: (HasCallStack) => Path -> m ()
+  setCurrentDirectory :: (HasCallStack) => OsPath -> m ()
 
   -- | Run an @m@ action with the given working directory and restore the
   -- original working directory afterwards, even if the given action fails due
@@ -307,7 +301,7 @@ class (Monad m) => MonadPathWriter m where
   -- and 'setCurrentDirectory'.
   --
   -- @since 0.1
-  withCurrentDirectory :: (HasCallStack) => Path -> m a -> m a
+  withCurrentDirectory :: (HasCallStack) => OsPath -> m a -> m a
 
   -- | 'removeFile' /file/ removes the directory entry for an existing file
   -- /file/, where /file/ is not itself a directory. The
@@ -342,7 +336,7 @@ class (Monad m) => MonadPathWriter m where
   -- @[EPERM, EINVAL]@
   --
   -- @since 0.1
-  removeFile :: (HasCallStack) => Path -> m ()
+  removeFile :: (HasCallStack) => OsPath -> m ()
 
   -- | @'renameFile' old new@ changes the name of an existing file system
   -- object from /old/ to /new/. If the /new/ object already exists, it is
@@ -393,7 +387,7 @@ class (Monad m) => MonadPathWriter m where
   --
   --
   -- @since 0.1
-  renameFile :: (HasCallStack) => Path -> Path -> m ()
+  renameFile :: (HasCallStack) => OsPath -> OsPath -> m ()
 
   -- | Rename a file or directory. If the destination path already exists, it
   -- is replaced atomically. The destination path must not point to an existing
@@ -440,9 +434,9 @@ class (Monad m) => MonadPathWriter m where
   renamePath ::
     (HasCallStack) =>
     -- | Old path
-    Path ->
+    OsPath ->
     -- | New path
-    Path ->
+    OsPath ->
     m ()
 
   -- | Copy a file with its permissions. If the destination file already exists,
@@ -454,9 +448,9 @@ class (Monad m) => MonadPathWriter m where
   copyFile ::
     (HasCallStack) =>
     -- | Source filename
-    Path ->
+    OsPath ->
     -- | Destination filename
-    Path ->
+    OsPath ->
     m ()
 
   -- | Copy a file with its associated metadata. If the destination file
@@ -480,9 +474,9 @@ class (Monad m) => MonadPathWriter m where
   copyFileWithMetadata ::
     (HasCallStack) =>
     -- | Source file
-    Path ->
+    OsPath ->
     -- | Destination file
-    Path ->
+    OsPath ->
     m ()
 
   -- | Create a /file/ symbolic link. The target path can be either absolute or
@@ -514,9 +508,9 @@ class (Monad m) => MonadPathWriter m where
   createFileLink ::
     (HasCallStack) =>
     -- | path to the target file
-    Path ->
+    OsPath ->
     -- | path of the link to be created
-    Path ->
+    OsPath ->
     m ()
 
   -- | Create a /directory/ symbolic link. The target path can be either
@@ -549,9 +543,9 @@ class (Monad m) => MonadPathWriter m where
   createDirectoryLink ::
     (HasCallStack) =>
     -- | path to the target directory
-    Path ->
+    OsPath ->
     -- | path of the link to be created
-    Path ->
+    OsPath ->
     m ()
 
   -- | Remove an existing /directory/ symbolic link.
@@ -562,7 +556,7 @@ class (Monad m) => MonadPathWriter m where
   -- See also: 'removeFile', which can remove an existing /file/ symbolic link.
   --
   -- @since 0.1
-  removeDirectoryLink :: (HasCallStack) => Path -> m ()
+  removeDirectoryLink :: (HasCallStack) => OsPath -> m ()
 
   -- | Remove an existing /directory/ symbolic link.
   --
@@ -572,7 +566,7 @@ class (Monad m) => MonadPathWriter m where
   -- See also: 'removeFile', which can remove an existing /file/ symbolic link.
   --
   -- @since 0.1
-  setPermissions :: (HasCallStack) => Path -> Permissions -> m ()
+  setPermissions :: (HasCallStack) => OsPath -> Permissions -> m ()
 
   -- | Copy the permissions of one file to another. This reproduces the
   -- permissions more accurately than using 'getPermissions' followed by
@@ -583,7 +577,7 @@ class (Monad m) => MonadPathWriter m where
   -- On POSIX systems, this is equivalent to @stat@ followed by @chmod@.
   --
   -- @since 0.1
-  copyPermissions :: (HasCallStack) => Path -> Path -> m ()
+  copyPermissions :: (HasCallStack) => OsPath -> OsPath -> m ()
 
   -- | Change the time at which the file or directory was last accessed.
   --
@@ -607,7 +601,7 @@ class (Monad m) => MonadPathWriter m where
   --   case, there would also be loss of precision in the modification time.
   --
   -- @since 0.1
-  setAccessTime :: (HasCallStack) => Path -> UTCTime -> m ()
+  setAccessTime :: (HasCallStack) => OsPath -> UTCTime -> m ()
 
   -- | Change the time at which the file or directory was last modified.
   --
@@ -631,7 +625,7 @@ class (Monad m) => MonadPathWriter m where
   --   case, there would also be loss of precision in the access time.
   --
   -- @since 0.1
-  setModificationTime :: (HasCallStack) => Path -> UTCTime -> m ()
+  setModificationTime :: (HasCallStack) => OsPath -> UTCTime -> m ()
 
 -- | @since 0.1
 instance MonadPathWriter IO where
@@ -723,7 +717,7 @@ instance (MonadPathWriter m) => MonadPathWriter (ReaderT env m) where
 -- | Exception for trying to create a path that already exists.
 --
 -- @since 0.1
-newtype PathExistsException = MkPathExistsException Path
+newtype PathExistsException = MkPathExistsException OsPath
   deriving stock
     ( -- | @since 0.1
       Show
@@ -737,7 +731,7 @@ instance Exception PathExistsException where
 -- | Exception for when a path does not exist.
 --
 -- @since 0.1
-newtype PathDoesNotExistException = MkPathDoesNotExistException Path
+newtype PathDoesNotExistException = MkPathDoesNotExistException OsPath
   deriving stock
     ( -- | @since 0.1
       Show
@@ -821,7 +815,7 @@ data TargetName
   | -- | Uses the given literal as the dest name i.e. @dest/\<targetName\>@.
     --
     -- @since 0.1
-    TargetNameLiteral !Path
+    TargetNameLiteral !OsPath
   | -- | Uses dest itself as the target i.e. @dest/@ (top-level copy).
     --
     -- @since 0.1
@@ -851,7 +845,7 @@ _TargetNameSrc =
 {-# INLINE _TargetNameSrc #-}
 
 -- | @since 0.1
-_TargetNameLiteral :: Prism' TargetName Path
+_TargetNameLiteral :: Prism' TargetName OsPath
 _TargetNameLiteral =
   prism
     TargetNameLiteral
@@ -937,9 +931,9 @@ copyDirectoryRecursive ::
     MonadPathWriter m
   ) =>
   -- | Source
-  Path ->
+  OsPath ->
   -- | Destination
-  Path ->
+  OsPath ->
   m ()
 copyDirectoryRecursive = copyDirectoryRecursiveConfig defaultCopyDirConfig
 
@@ -987,9 +981,9 @@ copyDirectoryRecursiveConfig ::
   -- | Config
   CopyDirConfig ->
   -- | Source
-  Path ->
+  OsPath ->
   -- | Destination
-  Path ->
+  OsPath ->
   m ()
 copyDirectoryRecursiveConfig config src destRoot = do
   destExists <- doesDirectoryExist destRoot
@@ -1025,9 +1019,9 @@ copyDirectoryOverwrite ::
   -- | Overwrite files
   Bool ->
   -- | Source
-  Path ->
+  OsPath ->
   -- | Destination
-  Path ->
+  OsPath ->
   m ()
 copyDirectoryOverwrite overwriteFiles src dest = do
   -- NOTE: The logic here merits explanation. The idea is if we encounter
@@ -1107,9 +1101,9 @@ copyDirectoryNoOverwrite ::
     MonadPathWriter m
   ) =>
   -- | Source
-  Path ->
+  OsPath ->
   -- | Destination
-  Path ->
+  OsPath ->
   m ()
 copyDirectoryNoOverwrite src dest = do
   destExists <- doesDirectoryExist dest
@@ -1138,7 +1132,7 @@ removeFileIfExists ::
     MonadPathReader m,
     MonadPathWriter m
   ) =>
-  Path ->
+  OsPath ->
   m ()
 removeFileIfExists = removeIfExists doesFileExist removeFile
 {-# INLINEABLE removeFileIfExists #-}
@@ -1151,7 +1145,7 @@ removeDirectoryIfExists ::
     MonadPathReader m,
     MonadPathWriter m
   ) =>
-  Path ->
+  OsPath ->
   m ()
 removeDirectoryIfExists = removeIfExists doesDirectoryExist removeDirectory
 {-# INLINEABLE removeDirectoryIfExists #-}
@@ -1164,7 +1158,7 @@ removeDirectoryRecursiveIfExists ::
     MonadPathReader m,
     MonadPathWriter m
   ) =>
-  Path ->
+  OsPath ->
   m ()
 removeDirectoryRecursiveIfExists =
   removeIfExists doesDirectoryExist removeDirectoryRecursive
@@ -1178,7 +1172,7 @@ removePathForciblyIfExists ::
     MonadPathReader m,
     MonadPathWriter m
   ) =>
-  Path ->
+  OsPath ->
   m ()
 removePathForciblyIfExists =
   removeIfExists doesPathExist removePathForcibly
@@ -1189,9 +1183,5 @@ removeIfExists existsFn deleteFn f =
   existsFn f >>= \b -> when b (deleteFn f)
 {-# INLINEABLE removeIfExists #-}
 
-pathToStr :: Path -> String
-#if USE_OS_PATH
+pathToStr :: OsPath -> String
 pathToStr = fmap FP.toChar . FP.unpack
-#else
-pathToStr = id
-#endif

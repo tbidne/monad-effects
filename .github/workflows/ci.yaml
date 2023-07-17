@@ -18,15 +18,10 @@ jobs:
       matrix:
         compiler:
           - ghc: "8.10.7"
-            proj: "--project-file cabal.project.legacy"
           - ghc: "9.0.2"
-            proj: "--project-file cabal.project.legacy"
-          - ghc: "9.2.7"
-            proj: "--project-file cabal.project.legacy"
-          - ghc: "9.4.4"
-            proj: "--project-file cabal.project.legacy"
-          - ghc: "9.6.1"
-            proj: ""
+          - ghc: "9.2.8"
+          - ghc: "9.4.5"
+          - ghc: "9.6.2"
         os:
           - "macos-latest"
           - "ubuntu-latest"
@@ -43,13 +38,13 @@ jobs:
         run: cabal configure --enable-tests
 
       - name: Compile
-        run: cabal build all ${{ matrix.compiler.proj }}
+        run: cabal build all
 
       - name: Test effects-exceptions
         run: cabal test effects-exceptions
 
       - name: Test effects-fs
-        run: cabal test effects-fs ${{ matrix.compiler.proj }}
+        run: cabal test effects-fs
 
       - name: Test effects-logger-ns
         run: cabal test effects-logger-ns

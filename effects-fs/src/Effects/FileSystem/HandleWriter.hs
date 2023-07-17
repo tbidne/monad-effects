@@ -4,7 +4,7 @@
 module Effects.FileSystem.HandleWriter
   ( -- * Effect
     MonadHandleWriter (..),
-    Path,
+    OsPath,
 
     -- * UTF-8 Utils
     hPutUtf8,
@@ -32,7 +32,7 @@ import Data.Text (Text)
 import Effects.Exception (MonadThrow, addCS, exitFailure)
 import Effects.FileSystem.FileWriter (encodeUtf8)
 import Effects.FileSystem.Internal (openBinaryFileIO, withBinaryFileIO)
-import Effects.FileSystem.Path (Path)
+import Effects.FileSystem.Path (OsPath)
 import GHC.Stack (HasCallStack)
 import System.IO (BufferMode (..), Handle, IOMode (..), SeekMode (..))
 import System.IO qualified as IO
@@ -44,12 +44,12 @@ class (Monad m) => MonadHandleWriter m where
   -- | Lifted 'IO.openBinaryFile'.
   --
   -- @since 0.1
-  openBinaryFile :: (HasCallStack) => Path -> IOMode -> m Handle
+  openBinaryFile :: (HasCallStack) => OsPath -> IOMode -> m Handle
 
   -- | Lifted 'IO.withBinaryFile'.
   --
   -- @since 0.1
-  withBinaryFile :: (HasCallStack) => Path -> IOMode -> (Handle -> m a) -> m a
+  withBinaryFile :: (HasCallStack) => OsPath -> IOMode -> (Handle -> m a) -> m a
 
   -- | Computation 'hClose' @hdl@ makes handle @hdl@ closed. Before the
   -- computation finishes, if @hdl@ is writable its buffer is flushed as

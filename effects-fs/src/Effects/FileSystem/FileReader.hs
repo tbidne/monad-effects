@@ -4,7 +4,7 @@
 module Effects.FileSystem.FileReader
   ( -- * Effect
     MonadFileReader (..),
-    Path,
+    OsPath,
 
     -- * UTF-8 Utils
     readFileUtf8,
@@ -31,7 +31,7 @@ import Data.Text.Encoding.Error (UnicodeException)
 import Data.Text.Encoding.Error qualified as TEncError
 import Effects.Exception (MonadThrow, addCS, throwCS)
 import Effects.FileSystem.Internal (readBinaryFileIO)
-import Effects.FileSystem.Path (Path)
+import Effects.FileSystem.Path (OsPath)
 import GHC.Stack (HasCallStack)
 
 -- | Represents file-system reader effects.
@@ -41,7 +41,7 @@ class (Monad m) => MonadFileReader m where
   -- | Reads a file.
   --
   -- @since 0.1
-  readBinaryFile :: (HasCallStack) => Path -> m ByteString
+  readBinaryFile :: (HasCallStack) => OsPath -> m ByteString
 
 -- | @since 0.1
 instance MonadFileReader IO where
@@ -87,7 +87,7 @@ readFileUtf8 ::
   ( HasCallStack,
     MonadFileReader m
   ) =>
-  Path ->
+  OsPath ->
   m (Either UnicodeException Text)
 readFileUtf8 = fmap decodeUtf8 . readBinaryFile
 {-# INLINEABLE readFileUtf8 #-}
@@ -99,7 +99,7 @@ readFileUtf8Lenient ::
   ( HasCallStack,
     MonadFileReader m
   ) =>
-  Path ->
+  OsPath ->
   m Text
 readFileUtf8Lenient = fmap decodeUtf8Lenient . readBinaryFile
 {-# INLINEABLE readFileUtf8Lenient #-}
@@ -112,7 +112,7 @@ readFileUtf8ThrowM ::
     MonadFileReader m,
     MonadThrow m
   ) =>
-  Path ->
+  OsPath ->
   m Text
 readFileUtf8ThrowM = readBinaryFile >=> decodeUtf8ThrowM
 {-# INLINEABLE readFileUtf8ThrowM #-}
