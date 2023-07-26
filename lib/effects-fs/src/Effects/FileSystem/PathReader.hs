@@ -51,7 +51,7 @@ import Control.Monad (unless, (>=>))
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Data.Time (UTCTime (UTCTime, utctDay, utctDayTime))
-import Effects.Exception (IOException, MonadCatch, addCS, catchCS)
+import Effects.Exception (MonadCatch, catchIOError)
 import Effects.FileSystem.Utils (OsPath, (</>))
 import Effects.FileSystem.Utils qualified as Utils
 import Effects.System.PosixCompat
@@ -79,185 +79,185 @@ class (Monad m) => MonadPathReader m where
   -- | Lifted 'Dir.listDirectory'.
   --
   -- @since 0.1
-  listDirectory :: (HasCallStack) => OsPath -> m [OsPath]
+  listDirectory :: OsPath -> m [OsPath]
 
   -- | Lifted 'Dir.getDirectoryContents'.
   --
   -- @since 0.1
-  getDirectoryContents :: (HasCallStack) => OsPath -> m [OsPath]
+  getDirectoryContents :: OsPath -> m [OsPath]
 
   -- | Lifted 'Dir.getCurrentDirectory'.
   --
   -- @since 0.1
-  getCurrentDirectory :: (HasCallStack) => m OsPath
+  getCurrentDirectory :: m OsPath
 
   -- | Lifted 'Dir.getHomeDirectory'.
   --
   -- @since 0.1
-  getHomeDirectory :: (HasCallStack) => m OsPath
+  getHomeDirectory :: m OsPath
 
   -- | Lifted 'Dir.getXdgDirectory'.
   --
   -- @since 0.1
-  getXdgDirectory :: (HasCallStack) => XdgDirectory -> OsPath -> m OsPath
+  getXdgDirectory :: XdgDirectory -> OsPath -> m OsPath
 
   -- | Lifted 'Dir.getXdgDirectoryList'.
   --
   -- @since 0.1
-  getXdgDirectoryList :: (HasCallStack) => XdgDirectoryList -> m [OsPath]
+  getXdgDirectoryList :: XdgDirectoryList -> m [OsPath]
 
   -- | Lifted 'Dir.getAppUserDataDirectory'.
   --
   -- @since 0.1
-  getAppUserDataDirectory :: (HasCallStack) => OsPath -> m OsPath
+  getAppUserDataDirectory :: OsPath -> m OsPath
 
   -- | Lifted 'Dir.getUserDocumentsDirectory'.
   --
   -- @since 0.1
-  getUserDocumentsDirectory :: (HasCallStack) => m OsPath
+  getUserDocumentsDirectory :: m OsPath
 
   -- | Lifted 'Dir.getTemporaryDirectory'.
   --
   -- @since 0.1
-  getTemporaryDirectory :: (HasCallStack) => m OsPath
+  getTemporaryDirectory :: m OsPath
 
   -- | Lifted 'Dir.getFileSize'.
   --
   -- @since 0.1
-  getFileSize :: (HasCallStack) => OsPath -> m Integer
+  getFileSize :: OsPath -> m Integer
 
   -- | Lifted 'Dir.canonicalizePath'.
   --
   -- @since 0.1
-  canonicalizePath :: (HasCallStack) => OsPath -> m OsPath
+  canonicalizePath :: OsPath -> m OsPath
 
   -- | Lifted 'Dir.makeAbsolute'.
   --
   -- @since 0.1
-  makeAbsolute :: (HasCallStack) => OsPath -> m OsPath
+  makeAbsolute :: OsPath -> m OsPath
 
   -- | Lifted 'Dir.makeRelativeToCurrentDirectory'.
   --
   -- @since 0.1
-  makeRelativeToCurrentDirectory :: (HasCallStack) => OsPath -> m OsPath
+  makeRelativeToCurrentDirectory :: OsPath -> m OsPath
 
   -- | Lifted 'Dir.doesPathExist'.
   --
   -- @since 0.1
-  doesPathExist :: (HasCallStack) => OsPath -> m Bool
+  doesPathExist :: OsPath -> m Bool
 
   -- | Lifted 'Dir.doesFileExist'.
   --
   -- @since 0.1
-  doesFileExist :: (HasCallStack) => OsPath -> m Bool
+  doesFileExist :: OsPath -> m Bool
 
   -- | Lifted 'Dir.doesDirectoryExist'.
   --
   -- @since 0.1
-  doesDirectoryExist :: (HasCallStack) => OsPath -> m Bool
+  doesDirectoryExist :: OsPath -> m Bool
 
   -- | Lifted 'Dir.findExecutable'.
   --
   -- @since 0.1
-  findExecutable :: (HasCallStack) => OsPath -> m (Maybe OsPath)
+  findExecutable :: OsPath -> m (Maybe OsPath)
 
   -- | Lifted 'Dir.findExecutables'.
   --
   -- @since 0.1
-  findExecutables :: (HasCallStack) => OsPath -> m [OsPath]
+  findExecutables :: OsPath -> m [OsPath]
 
   -- | Lifted 'Dir.findExecutablesInDirectories'.
   --
   -- @since 0.1
-  findExecutablesInDirectories :: (HasCallStack) => [OsPath] -> OsPath -> m [OsPath]
+  findExecutablesInDirectories :: [OsPath] -> OsPath -> m [OsPath]
 
   -- | Lifted 'Dir.findFileWith'.
   --
   -- @since 0.1
-  findFileWith :: (HasCallStack) => (OsPath -> m Bool) -> [OsPath] -> OsPath -> m (Maybe OsPath)
+  findFileWith :: (OsPath -> m Bool) -> [OsPath] -> OsPath -> m (Maybe OsPath)
 
   -- | Lifted 'Dir.findFilesWith'.
   --
   -- @since 0.1
-  findFilesWith :: (HasCallStack) => (OsPath -> m Bool) -> [OsPath] -> OsPath -> m [OsPath]
+  findFilesWith :: (OsPath -> m Bool) -> [OsPath] -> OsPath -> m [OsPath]
 
   -- | Lifted 'Dir.pathIsSymbolicLink'.
   --
   -- @since 0.1
-  pathIsSymbolicLink :: (HasCallStack) => OsPath -> m Bool
+  pathIsSymbolicLink :: OsPath -> m Bool
 
   -- | Lifted 'Dir.getSymbolicLinkTarget'.
   --
   -- @since 0.1
-  getSymbolicLinkTarget :: (HasCallStack) => OsPath -> m OsPath
+  getSymbolicLinkTarget :: OsPath -> m OsPath
 
   -- | Lifted 'Dir.getPermissions'.
   --
   -- @since 0.1
-  getPermissions :: (HasCallStack) => OsPath -> m Permissions
+  getPermissions :: OsPath -> m Permissions
 
   -- | Lifted 'Dir.getAccessTime'.
   --
   -- @since 0.1
-  getAccessTime :: (HasCallStack) => OsPath -> m UTCTime
+  getAccessTime :: OsPath -> m UTCTime
 
   -- | Lifted 'Dir.getModificationTime'.
   --
   -- @since 0.1
-  getModificationTime :: (HasCallStack) => OsPath -> m UTCTime
+  getModificationTime :: OsPath -> m UTCTime
 
 instance MonadPathReader IO where
-  listDirectory = addCS . Dir.listDirectory
+  listDirectory = Dir.listDirectory
   {-# INLINEABLE listDirectory #-}
-  getDirectoryContents = addCS . Dir.getDirectoryContents
+  getDirectoryContents = Dir.getDirectoryContents
   {-# INLINEABLE getDirectoryContents #-}
-  getCurrentDirectory = addCS Dir.getCurrentDirectory
+  getCurrentDirectory = Dir.getCurrentDirectory
   {-# INLINEABLE getCurrentDirectory #-}
-  getHomeDirectory = addCS Dir.getHomeDirectory
+  getHomeDirectory = Dir.getHomeDirectory
   {-# INLINEABLE getHomeDirectory #-}
-  getXdgDirectory d = addCS . Dir.getXdgDirectory d
+  getXdgDirectory = Dir.getXdgDirectory
   {-# INLINEABLE getXdgDirectory #-}
-  getXdgDirectoryList = addCS . Dir.getXdgDirectoryList
+  getXdgDirectoryList = Dir.getXdgDirectoryList
   {-# INLINEABLE getXdgDirectoryList #-}
-  getAppUserDataDirectory = addCS . Dir.getAppUserDataDirectory
+  getAppUserDataDirectory = Dir.getAppUserDataDirectory
   {-# INLINEABLE getAppUserDataDirectory #-}
-  getUserDocumentsDirectory = addCS Dir.getUserDocumentsDirectory
+  getUserDocumentsDirectory = Dir.getUserDocumentsDirectory
   {-# INLINEABLE getUserDocumentsDirectory #-}
-  getTemporaryDirectory = addCS Dir.getTemporaryDirectory
+  getTemporaryDirectory = Dir.getTemporaryDirectory
   {-# INLINEABLE getTemporaryDirectory #-}
-  getFileSize = addCS . Dir.getFileSize
+  getFileSize = Dir.getFileSize
   {-# INLINEABLE getFileSize #-}
-  canonicalizePath = addCS . Dir.canonicalizePath
+  canonicalizePath = Dir.canonicalizePath
   {-# INLINEABLE canonicalizePath #-}
-  makeAbsolute = addCS . Dir.makeAbsolute
+  makeAbsolute = Dir.makeAbsolute
   {-# INLINEABLE makeAbsolute #-}
-  makeRelativeToCurrentDirectory = addCS . Dir.makeRelativeToCurrentDirectory
+  makeRelativeToCurrentDirectory = Dir.makeRelativeToCurrentDirectory
   {-# INLINEABLE makeRelativeToCurrentDirectory #-}
-  doesPathExist = addCS . Dir.doesPathExist
+  doesPathExist = Dir.doesPathExist
   {-# INLINEABLE doesPathExist #-}
-  doesFileExist = addCS . Dir.doesFileExist
+  doesFileExist = Dir.doesFileExist
   {-# INLINEABLE doesFileExist #-}
-  doesDirectoryExist = addCS . Dir.doesDirectoryExist
+  doesDirectoryExist = Dir.doesDirectoryExist
   {-# INLINEABLE doesDirectoryExist #-}
-  findExecutable = addCS . Dir.findExecutable
+  findExecutable = Dir.findExecutable
   {-# INLINEABLE findExecutable #-}
-  findExecutables = addCS . Dir.findExecutables
+  findExecutables = Dir.findExecutables
   {-# INLINEABLE findExecutables #-}
-  findExecutablesInDirectories ps = addCS . Dir.findExecutablesInDirectories ps
+  findExecutablesInDirectories = Dir.findExecutablesInDirectories
   {-# INLINEABLE findExecutablesInDirectories #-}
-  findFileWith f ps = addCS . Dir.findFileWith f ps
+  findFileWith = Dir.findFileWith
   {-# INLINEABLE findFileWith #-}
-  findFilesWith f ps = addCS . Dir.findFilesWith f ps
+  findFilesWith = Dir.findFilesWith
   {-# INLINEABLE findFilesWith #-}
-  pathIsSymbolicLink = addCS . Dir.pathIsSymbolicLink
+  pathIsSymbolicLink = Dir.pathIsSymbolicLink
   {-# INLINEABLE pathIsSymbolicLink #-}
-  getSymbolicLinkTarget = addCS . Dir.getSymbolicLinkTarget
+  getSymbolicLinkTarget = Dir.getSymbolicLinkTarget
   {-# INLINEABLE getSymbolicLinkTarget #-}
-  getPermissions = addCS . Dir.getPermissions
+  getPermissions = Dir.getPermissions
   {-# INLINEABLE getPermissions #-}
-  getAccessTime = addCS . Dir.getAccessTime
+  getAccessTime = Dir.getAccessTime
   {-# INLINEABLE getAccessTime #-}
-  getModificationTime = addCS . Dir.getModificationTime
+  getModificationTime = Dir.getModificationTime
   {-# INLINEABLE getModificationTime #-}
 
 instance (MonadPathReader m) => MonadPathReader (ReaderT env m) where
@@ -322,7 +322,7 @@ instance (MonadPathReader m) => MonadPathReader (ReaderT env m) where
 -- occurrence. Details can be found in the documentation of 'findFileWith'.
 --
 -- @since 0.1
-findFile :: (HasCallStack, MonadPathReader m) => [OsPath] -> OsPath -> m (Maybe OsPath)
+findFile :: (MonadPathReader m) => [OsPath] -> OsPath -> m (Maybe OsPath)
 findFile = findFileWith (\_ -> pure True)
 {-# INLINEABLE findFile #-}
 
@@ -333,35 +333,35 @@ findFile = findFileWith (\_ -> pure True)
 -- documentation of 'findFilesWith'.
 --
 -- @since 0.1
-findFiles :: (HasCallStack, MonadPathReader m) => [OsPath] -> OsPath -> m [OsPath]
+findFiles :: (MonadPathReader m) => [OsPath] -> OsPath -> m [OsPath]
 findFiles = findFilesWith (\_ -> pure True)
 {-# INLINEABLE findFiles #-}
 
 -- | Retrieves the XDG data directory e.g. @~/.local\/share@.
 --
 -- @since 0.1
-getXdgData :: (HasCallStack, MonadPathReader m) => OsPath -> m OsPath
+getXdgData :: (MonadPathReader m) => OsPath -> m OsPath
 getXdgData = getXdgDirectory XdgData
 {-# INLINEABLE getXdgData #-}
 
 -- | Retrieves the XDG config directory e.g. @~/.config@.
 --
 -- @since 0.1
-getXdgConfig :: (HasCallStack, MonadPathReader m) => OsPath -> m OsPath
+getXdgConfig :: (MonadPathReader m) => OsPath -> m OsPath
 getXdgConfig = getXdgDirectory XdgConfig
 {-# INLINEABLE getXdgConfig #-}
 
 -- | Retrieves the XDG cache directory e.g. @~/.cache@.
 --
 -- @since 0.1
-getXdgCache :: (HasCallStack, MonadPathReader m) => OsPath -> m OsPath
+getXdgCache :: (MonadPathReader m) => OsPath -> m OsPath
 getXdgCache = getXdgDirectory XdgCache
 {-# INLINEABLE getXdgCache #-}
 
 -- | Retrieves the XDG state directory e.g. @~/.local\/state@.
 --
 -- @since 0.1
-getXdgState :: (HasCallStack, MonadPathReader m) => OsPath -> m OsPath
+getXdgState :: (MonadPathReader m) => OsPath -> m OsPath
 getXdgState = getXdgDirectory XdgState
 {-# INLINEABLE getXdgState #-}
 
@@ -371,8 +371,7 @@ getXdgState = getXdgDirectory XdgState
 -- @since 0.1
 listDirectoryRecursive ::
   forall m.
-  ( HasCallStack,
-    MonadPathReader m
+  ( MonadPathReader m
   ) =>
   -- | Root path.
   OsPath ->
@@ -391,8 +390,7 @@ listDirectoryRecursive root = recurseDirs [emptyPath]
 
 splitPaths ::
   forall m.
-  ( HasCallStack,
-    MonadPathReader m
+  ( MonadPathReader m
   ) =>
   OsPath ->
   OsPath ->
@@ -484,11 +482,7 @@ doesSymbolicLinkExist p =
   -- so we need to handle this. Note that the obvious alternative, prefacing
   -- the call with doesPathExist does not work, as that operates on the link
   -- target. doesFileExist also behaves this way.
-  --
-  -- TODO: We should probably use catchIOError here. Alas, we currently wrap
-  -- exceptions in a ExceptionCS, so we need to account for that.
-  -- Once the ExceptionCS machinery is removed, replace this with catchIOError.
-  pathIsSymbolicLink p `catchCS` \(_ :: IOException) -> pure False
+  pathIsSymbolicLink p `catchIOError` \_ -> pure False
 {-# INLINEABLE doesSymbolicLinkExist #-}
 
 -- | Like 'pathIsSymbolicDirectoryLink' but for files.

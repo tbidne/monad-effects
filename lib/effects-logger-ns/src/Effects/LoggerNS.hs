@@ -90,7 +90,6 @@ import Effects.Time (MonadTime (getSystemZonedTime), getSystemTime)
 import Effects.Time qualified as MonadTime
 import GHC.Exts (IsList (Item, fromList, toList))
 import GHC.Generics (Generic)
-import GHC.Stack (HasCallStack)
 import Language.Haskell.TH (Loc (loc_filename, loc_start))
 import Language.Haskell.TH.Syntax (Exp, Lift (lift), Q, Quasi (qLocation))
 import Optics.Core
@@ -169,12 +168,12 @@ class (MonadLogger m) => MonadLoggerNS m where
   -- | Retrieves the namespace.
   --
   -- @since 0.1
-  getNamespace :: (HasCallStack) => m Namespace
+  getNamespace :: m Namespace
 
   -- | Locally modifies the namespace.
   --
   -- @since 0.1
-  localNamespace :: (HasCallStack) => (Namespace -> Namespace) -> m a -> m a
+  localNamespace :: (Namespace -> Namespace) -> m a -> m a
 
 -- | Adds to the namespace.
 --
@@ -320,8 +319,7 @@ defaultLogFormatter loc =
 --
 -- @since 0.1
 formatLog ::
-  ( HasCallStack,
-    MonadLoggerNS m,
+  ( MonadLoggerNS m,
     MonadTime m,
     ToLogStr msg
   ) =>

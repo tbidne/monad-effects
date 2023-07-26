@@ -29,7 +29,7 @@ import Control.Monad (unless)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.String (IsString)
-import Effects.Exception (MonadCatch, MonadThrow, throwCS)
+import Effects.Exception (MonadCatch, MonadThrow, throwM)
 import GHC.Generics (Generic)
 import GHC.IO.Exception
   ( IOErrorType (InappropriateType),
@@ -43,7 +43,6 @@ import GHC.IO.Exception
         ioe_type
       ),
   )
-import GHC.Stack (HasCallStack)
 import Optics.Core (Prism', prism)
 import System.PosixCompat.Files (FileStatus, PathVar)
 import System.PosixCompat.Files qualified as PFiles
@@ -71,76 +70,76 @@ class (Monad m) => MonadPosixCompat m where
   -- System.PosixCompat.Files
 
   -- | @since 0.1
-  setFileMode :: (HasCallStack) => FilePath -> FileMode -> m ()
+  setFileMode :: FilePath -> FileMode -> m ()
 
   -- | @since 0.1
-  setFdMode :: (HasCallStack) => Fd -> FileMode -> m ()
+  setFdMode :: Fd -> FileMode -> m ()
 
   -- | @since 0.1
-  setFileCreationMask :: (HasCallStack) => FileMode -> m FileMode
+  setFileCreationMask :: FileMode -> m FileMode
 
   -- | @since 0.1
-  fileAccess :: (HasCallStack) => FilePath -> Bool -> Bool -> Bool -> m Bool
+  fileAccess :: FilePath -> Bool -> Bool -> Bool -> m Bool
 
   -- | @since 0.1
-  fileExist :: (HasCallStack) => FilePath -> m Bool
+  fileExist :: FilePath -> m Bool
 
   -- | @since 0.1
-  getFileStatus :: (HasCallStack) => FilePath -> m FileStatus
+  getFileStatus :: FilePath -> m FileStatus
 
   -- | @since 0.1
-  getFdStatus :: (HasCallStack) => Fd -> m FileStatus
+  getFdStatus :: Fd -> m FileStatus
 
   -- | @since 0.1
-  getSymbolicLinkStatus :: (HasCallStack) => FilePath -> m FileStatus
+  getSymbolicLinkStatus :: FilePath -> m FileStatus
 
   -- | @since 0.1
-  createNamedPipe :: (HasCallStack) => FilePath -> FileMode -> m ()
+  createNamedPipe :: FilePath -> FileMode -> m ()
 
   -- | @since 0.1
-  createDevice :: (HasCallStack) => FilePath -> FileMode -> DeviceID -> m ()
+  createDevice :: FilePath -> FileMode -> DeviceID -> m ()
 
   -- | @since 0.1
-  createLink :: (HasCallStack) => FilePath -> FilePath -> m ()
+  createLink :: FilePath -> FilePath -> m ()
 
   -- | @since 0.1
-  removeLink :: (HasCallStack) => FilePath -> m ()
+  removeLink :: FilePath -> m ()
 
   -- | @since 0.1
-  createSymbolicLink :: (HasCallStack) => FilePath -> FilePath -> m ()
+  createSymbolicLink :: FilePath -> FilePath -> m ()
 
   -- | @since 0.1
-  readSymbolicLink :: (HasCallStack) => FilePath -> m FilePath
+  readSymbolicLink :: FilePath -> m FilePath
 
   -- | @since 0.1
-  rename :: (HasCallStack) => FilePath -> FilePath -> m ()
+  rename :: FilePath -> FilePath -> m ()
 
   -- | @since 0.1
-  setOwnerAndGroup :: (HasCallStack) => FilePath -> UserID -> GroupID -> m ()
+  setOwnerAndGroup :: FilePath -> UserID -> GroupID -> m ()
 
   -- | @since 0.1
-  setFdOwnerAndGroup :: (HasCallStack) => Fd -> UserID -> GroupID -> m ()
+  setFdOwnerAndGroup :: Fd -> UserID -> GroupID -> m ()
 
   -- | @since 0.1
-  setSymbolicLinkOwnerAndGroup :: (HasCallStack) => FilePath -> UserID -> GroupID -> m ()
+  setSymbolicLinkOwnerAndGroup :: FilePath -> UserID -> GroupID -> m ()
 
   -- | @since 0.1
-  setFileTimes :: (HasCallStack) => FilePath -> EpochTime -> EpochTime -> m ()
+  setFileTimes :: FilePath -> EpochTime -> EpochTime -> m ()
 
   -- | @since 0.1
-  touchFile :: (HasCallStack) => FilePath -> m ()
+  touchFile :: FilePath -> m ()
 
   -- | @since 0.1
-  setFileSize :: (HasCallStack) => FilePath -> FileOffset -> m ()
+  setFileSize :: FilePath -> FileOffset -> m ()
 
   -- | @since 0.1
-  setFdSize :: (HasCallStack) => Fd -> FileOffset -> m ()
+  setFdSize :: Fd -> FileOffset -> m ()
 
   -- | @since 0.1
-  getPathVar :: (HasCallStack) => FilePath -> PathVar -> m Limit
+  getPathVar :: FilePath -> PathVar -> m Limit
 
   -- | @since 0.1
-  getFdPathVar :: (HasCallStack) => Fd -> PathVar -> m Limit
+  getFdPathVar :: Fd -> PathVar -> m Limit
 
 -- | @since 0.1
 instance MonadPosixCompat IO where
@@ -318,8 +317,7 @@ displayPathType PathTypeSymbolicLink = "symlink"
 --
 -- @since 0.1
 throwIfWrongPathType ::
-  ( HasCallStack,
-    MonadCatch m,
+  ( MonadCatch m,
     MonadPosixCompat m
   ) =>
   String ->
@@ -352,8 +350,7 @@ throwIfWrongPathType location expected path = do
 --
 -- @since 0.1
 isPathType ::
-  ( HasCallStack,
-    MonadCatch m,
+  ( MonadCatch m,
     MonadPosixCompat m
   ) =>
   PathType ->
@@ -368,8 +365,7 @@ isPathType expected = fmap (== expected) . getPathType
 --
 -- @since 0.1
 getPathType ::
-  ( HasCallStack,
-    MonadPosixCompat m,
+  ( MonadPosixCompat m,
     MonadThrow m
   ) =>
   FilePath ->
@@ -392,7 +388,7 @@ getPathType path = do
 --
 -- @since 0.1
 throwPathIOError ::
-  (HasCallStack, MonadThrow m) =>
+  (MonadThrow m) =>
   -- | Path upon which the IO operation failed.
   FilePath ->
   -- | String location (e.g. function name).
@@ -403,7 +399,7 @@ throwPathIOError ::
   String ->
   m a
 throwPathIOError path loc ty desc =
-  throwCS $
+  throwM $
     IOError
       { ioe_handle = Nothing,
         ioe_type = ty,

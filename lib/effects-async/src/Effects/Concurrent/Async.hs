@@ -133,9 +133,7 @@ import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask, mapReaderT)
 import Data.Foldable (Foldable (fold))
 import Data.Functor (void)
 import Effects.Concurrent.Thread (MonadThread (threadDelay))
-import Effects.Exception (addCS)
 import GHC.Conc (STM)
-import GHC.Stack (HasCallStack)
 import Numeric.Data.Positive (Positive (MkPositive), (+!))
 import Numeric.Data.Positive qualified as Positive
 import UnliftIO.Async qualified as UAsync
@@ -149,23 +147,22 @@ class (Monad m) => MonadAsync m where
   -- | Lifted 'Async.withAsync'.
   --
   -- @since 0.1
-  withAsync :: (HasCallStack) => m a -> (Async a -> m b) -> m b
+  withAsync :: m a -> (Async a -> m b) -> m b
 
   -- | Lifted 'Async.withAsyncBound'.
   --
   -- @since 0.1
-  withAsyncBound :: (HasCallStack) => m a -> (Async a -> m b) -> m b
+  withAsyncBound :: m a -> (Async a -> m b) -> m b
 
   -- | Lifted 'Async.withAsyncOn'.
   --
   -- @since 0.1
-  withAsyncOn :: (HasCallStack) => Int -> m a -> (Async a -> m b) -> m b
+  withAsyncOn :: Int -> m a -> (Async a -> m b) -> m b
 
   -- | Lifted 'Async.withAsyncWithUnmask'.
   --
   -- @since 0.1
   withAsyncWithUnmask ::
-    (HasCallStack) =>
     -- | .
     ((forall c. m c -> m c) -> m a) ->
     (Async a -> m b) ->
@@ -175,7 +172,6 @@ class (Monad m) => MonadAsync m where
   --
   -- @since 0.1
   withAsyncOnWithUnmask ::
-    (HasCallStack) =>
     -- | .
     Int ->
     ((forall c. m c -> m c) -> m a) ->
@@ -185,86 +181,77 @@ class (Monad m) => MonadAsync m where
   -- | Lifted 'Async.wait'.
   --
   -- @since 0.1
-  wait :: (HasCallStack) => Async a -> m a
+  wait :: Async a -> m a
 
   -- | Lifted 'Async.poll'.
   --
   -- @since 0.1
-  poll :: (HasCallStack) => Async a -> m (Maybe (Either SomeException a))
+  poll :: Async a -> m (Maybe (Either SomeException a))
 
   -- | Lifted 'Async.waitCatch'.
   --
   -- @since 0.1
-  waitCatch :: (HasCallStack) => Async a -> m (Either SomeException a)
+  waitCatch :: Async a -> m (Either SomeException a)
 
   -- | Lifted 'Async.cancel'.
   --
   -- @since 0.1
-  cancel :: (HasCallStack) => Async a -> m ()
+  cancel :: Async a -> m ()
 
   -- | Lifted 'Async.uninterruptibleCancel'.
   --
   -- @since 0.1
-  uninterruptibleCancel :: (HasCallStack) => Async a -> m ()
+  uninterruptibleCancel :: Async a -> m ()
 
   -- | Lifted 'Async.cancelWith'.
   --
   -- @since 0.1
-  cancelWith :: (Exception e, HasCallStack) => Async a -> e -> m ()
+  cancelWith :: (Exception e) => Async a -> e -> m ()
 
   -- | Lifted 'Async.race'.
   --
   -- @since 0.1
-  race :: (HasCallStack) => m a -> m b -> m (Either a b)
+  race :: m a -> m b -> m (Either a b)
 
   -- | Lifted 'Async.concurrently'.
   --
   -- @since 0.1
-  concurrently :: (HasCallStack) => m a -> m b -> m (a, b)
+  concurrently :: m a -> m b -> m (a, b)
 
   -- | Lifted 'Async.concurrently_'.
   --
   -- @since 0.1
-  concurrently_ :: (HasCallStack) => m a -> m b -> m ()
+  concurrently_ :: m a -> m b -> m ()
 
   -- | Lifted 'Async.waitAny'.
   --
   -- @since 0.1
-  waitAny :: (HasCallStack) => [Async a] -> m (Async a, a)
+  waitAny :: [Async a] -> m (Async a, a)
 
   -- | Lifted 'Async.waitAnyCatch'.
   --
   -- @since 0.1
-  waitAnyCatch ::
-    (HasCallStack) =>
-    -- | .
-    [Async a] ->
-    m (Async a, Either SomeException a)
+  waitAnyCatch :: [Async a] -> m (Async a, Either SomeException a)
 
   -- | Lifted 'Async.waitAnyCancel'.
   --
   -- @since 0.1
-  waitAnyCancel :: (HasCallStack) => [Async a] -> m (Async a, a)
+  waitAnyCancel :: [Async a] -> m (Async a, a)
 
   -- | Lifted 'Async.waitAnyCatchCancel'.
   --
   -- @since 0.1
-  waitAnyCatchCancel ::
-    (HasCallStack) =>
-    -- | .
-    [Async a] ->
-    m (Async a, Either SomeException a)
+  waitAnyCatchCancel :: [Async a] -> m (Async a, Either SomeException a)
 
   -- | Lifted 'Async.waitEither'.
   --
   -- @since 0.1
-  waitEither :: (HasCallStack) => Async a -> Async b -> m (Either a b)
+  waitEither :: Async a -> Async b -> m (Either a b)
 
   -- | Lifted 'Async.waitEitherCatch'.
   --
   -- @since 0.1
   waitEitherCatch ::
-    (HasCallStack) =>
     -- | .
     Async a ->
     Async b ->
@@ -275,13 +262,12 @@ class (Monad m) => MonadAsync m where
   -- | Lifted 'Async.waitEitherCancel'.
   --
   -- @since 0.1
-  waitEitherCancel :: (HasCallStack) => Async a -> Async b -> m (Either a b)
+  waitEitherCancel :: Async a -> Async b -> m (Either a b)
 
   -- | Lifted 'Async.waitEitherCatchCancel'.
   --
   -- @since 0.1
   waitEitherCatchCancel ::
-    (HasCallStack) =>
     -- | .
     Async a ->
     Async b ->
@@ -294,64 +280,63 @@ class (Monad m) => MonadAsync m where
   -- | Lifted 'Async.waitEither_'.
   --
   -- @since 0.1
-  waitEither_ :: (HasCallStack) => Async a -> Async b -> m ()
+  waitEither_ :: Async a -> Async b -> m ()
 
   -- | Lifted 'Async.waitBoth'.
   --
   -- @since 0.1
-  waitBoth :: (HasCallStack) => Async a -> Async b -> m (a, b)
+  waitBoth :: Async a -> Async b -> m (a, b)
 
   -- | Lifted 'Async.async'.
   --
   -- @since 0.1
-  async :: (HasCallStack) => m a -> m (Async a)
+  async :: m a -> m (Async a)
 
   -- | Lifted 'Async.asyncBound'.
   --
   -- @since 0.1
-  asyncBound :: (HasCallStack) => m a -> m (Async a)
+  asyncBound :: m a -> m (Async a)
 
   -- | Lifted 'Async.asyncOn'.
   --
   -- @since 0.1
-  asyncOn :: (HasCallStack) => Int -> m a -> m (Async a)
+  asyncOn :: Int -> m a -> m (Async a)
 
   -- | Lifted 'Async.asyncWithUnmask'.
   --
   -- @since 0.1
-  asyncWithUnmask :: (HasCallStack) => ((forall b. m b -> m b) -> m a) -> m (Async a)
+  asyncWithUnmask :: ((forall b. m b -> m b) -> m a) -> m (Async a)
 
   -- | Lifted 'Async.asyncOnWithUnmask'.
   --
   -- @since 0.1
-  asyncOnWithUnmask :: (HasCallStack) => Int -> ((forall b. m b -> m b) -> m a) -> m (Async a)
+  asyncOnWithUnmask :: Int -> ((forall b. m b -> m b) -> m a) -> m (Async a)
 
   -- | Lifted 'Async.link'.
   --
   -- @since 0.1
-  link :: (HasCallStack) => Async a -> m ()
+  link :: Async a -> m ()
 
   -- | Lifted 'Async.linkOnly'.
   --
   -- @since 0.1
-  linkOnly :: (HasCallStack) => (SomeException -> Bool) -> Async a -> m ()
+  linkOnly :: (SomeException -> Bool) -> Async a -> m ()
 
   -- | Lifted 'Async.link2'.
   --
   -- @since 0.1
-  link2 :: (HasCallStack) => Async a -> Async b -> m ()
+  link2 :: Async a -> Async b -> m ()
 
   -- | Lifted 'Async.link2Only'.
   --
   -- @since 0.1
-  link2Only :: (HasCallStack) => (SomeException -> Bool) -> Async a -> Async b -> m ()
+  link2Only :: (SomeException -> Bool) -> Async a -> Async b -> m ()
 
   -- | Lifted 'Async.pooledMapConcurrentlyN'.
   --
   -- @since 0.1
   pooledMapConcurrentlyN ::
-    ( HasCallStack,
-      Traversable t
+    ( Traversable t
     ) =>
     -- | .
     Positive Int ->
@@ -363,8 +348,7 @@ class (Monad m) => MonadAsync m where
   --
   -- @since 0.1
   pooledMapConcurrently ::
-    ( HasCallStack,
-      Traversable t
+    ( Traversable t
     ) =>
     -- | .
     (a -> m b) ->
@@ -375,8 +359,7 @@ class (Monad m) => MonadAsync m where
   --
   -- @since 0.1
   pooledMapConcurrentlyN_ ::
-    ( Foldable f,
-      HasCallStack
+    ( Foldable f
     ) =>
     -- | .
     Positive Int ->
@@ -388,8 +371,7 @@ class (Monad m) => MonadAsync m where
   --
   -- @since 0.1
   pooledMapConcurrently_ ::
-    ( Foldable f,
-      HasCallStack
+    ( Foldable f
     ) =>
     -- | .
     (a -> m b) ->
@@ -398,81 +380,79 @@ class (Monad m) => MonadAsync m where
 
 -- | @since 0.1
 instance MonadAsync IO where
-  withAsync m = addCS . Async.withAsync m
+  withAsync = Async.withAsync
   {-# INLINEABLE withAsync #-}
-  withAsyncBound m = addCS . Async.withAsyncBound m
+  withAsyncBound = Async.withAsyncBound
   {-# INLINEABLE withAsyncBound #-}
-  withAsyncOn i m = addCS . Async.withAsyncOn i m
+  withAsyncOn = Async.withAsyncOn
   {-# INLINEABLE withAsyncOn #-}
-  withAsyncWithUnmask f = addCS . Async.withAsyncWithUnmask f
+  withAsyncWithUnmask = Async.withAsyncWithUnmask
   {-# INLINEABLE withAsyncWithUnmask #-}
-  withAsyncOnWithUnmask i f = addCS . Async.withAsyncOnWithUnmask i f
+  withAsyncOnWithUnmask = Async.withAsyncOnWithUnmask
   {-# INLINEABLE withAsyncOnWithUnmask #-}
-  wait = addCS . Async.wait
+  wait = Async.wait
   {-# INLINEABLE wait #-}
-  poll = addCS . Async.poll
+  poll = Async.poll
   {-# INLINEABLE poll #-}
-  waitCatch = addCS . Async.waitCatch
+  waitCatch = Async.waitCatch
   {-# INLINEABLE waitCatch #-}
-  cancel = addCS . Async.cancel
+  cancel = Async.cancel
   {-# INLINEABLE cancel #-}
-  uninterruptibleCancel = addCS . Async.uninterruptibleCancel
+  uninterruptibleCancel = Async.uninterruptibleCancel
   {-# INLINEABLE uninterruptibleCancel #-}
-  cancelWith a = addCS . Async.cancelWith a
+  cancelWith = Async.cancelWith
   {-# INLINEABLE cancelWith #-}
-  race x = addCS . Async.race x
+  race = Async.race
   {-# INLINEABLE race #-}
-  concurrently x = addCS . Async.concurrently x
+  concurrently = Async.concurrently
   {-# INLINEABLE concurrently #-}
-  concurrently_ x = addCS . Async.concurrently_ x
+  concurrently_ = Async.concurrently_
   {-# INLINEABLE concurrently_ #-}
-  waitAny = addCS . Async.waitAny
+  waitAny = Async.waitAny
   {-# INLINEABLE waitAny #-}
-  waitAnyCatch = addCS . Async.waitAnyCatch
+  waitAnyCatch = Async.waitAnyCatch
   {-# INLINEABLE waitAnyCatch #-}
-  waitAnyCancel = addCS . Async.waitAnyCancel
+  waitAnyCancel = Async.waitAnyCancel
   {-# INLINEABLE waitAnyCancel #-}
-  waitAnyCatchCancel = addCS . Async.waitAnyCatchCancel
+  waitAnyCatchCancel = Async.waitAnyCatchCancel
   {-# INLINEABLE waitAnyCatchCancel #-}
-  waitEither x = addCS . Async.waitEither x
+  waitEither = Async.waitEither
   {-# INLINEABLE waitEither #-}
-  waitEitherCatch x = addCS . Async.waitEitherCatch x
+  waitEitherCatch = Async.waitEitherCatch
   {-# INLINEABLE waitEitherCatch #-}
-  waitEitherCancel x = addCS . Async.waitEitherCancel x
+  waitEitherCancel = Async.waitEitherCancel
   {-# INLINEABLE waitEitherCancel #-}
-  waitEitherCatchCancel x = addCS . Async.waitEitherCatchCancel x
+  waitEitherCatchCancel = Async.waitEitherCatchCancel
   {-# INLINEABLE waitEitherCatchCancel #-}
-  waitEither_ x = addCS . Async.waitEither_ x
+  waitEither_ = Async.waitEither_
   {-# INLINEABLE waitEither_ #-}
-  waitBoth x = addCS . Async.waitBoth x
+  waitBoth = Async.waitBoth
   {-# INLINEABLE waitBoth #-}
-  async = addCS . Async.async
+  async = Async.async
   {-# INLINEABLE async #-}
-  asyncBound = addCS . Async.asyncBound
+  asyncBound = Async.asyncBound
   {-# INLINEABLE asyncBound #-}
-  asyncOn i = addCS . Async.asyncOn i
+  asyncOn = Async.asyncOn
   {-# INLINEABLE asyncOn #-}
-  asyncWithUnmask f = addCS $ Async.asyncWithUnmask f
+  asyncWithUnmask = Async.asyncWithUnmask
   {-# INLINEABLE asyncWithUnmask #-}
-  asyncOnWithUnmask i f = addCS $ Async.asyncOnWithUnmask i f
+  asyncOnWithUnmask = Async.asyncOnWithUnmask
   {-# INLINEABLE asyncOnWithUnmask #-}
-  link = addCS . Async.link
+  link = Async.link
   {-# INLINEABLE link #-}
-  linkOnly f = addCS . Async.linkOnly f
+  linkOnly = Async.linkOnly
   {-# INLINEABLE linkOnly #-}
-  link2 x = addCS . Async.link2 x
+  link2 = Async.link2
   {-# INLINEABLE link2 #-}
-  link2Only f x = addCS . Async.link2Only f x
+  link2Only = Async.link2Only
   {-# INLINEABLE link2Only #-}
-  pooledMapConcurrentlyN (MkPositive i) f =
-    addCS . UAsync.pooledMapConcurrentlyN i f
+  pooledMapConcurrentlyN = UAsync.pooledMapConcurrentlyN . Positive.unPositive
   {-# INLINEABLE pooledMapConcurrentlyN #-}
-  pooledMapConcurrently f = addCS . UAsync.pooledMapConcurrently f
+  pooledMapConcurrently = UAsync.pooledMapConcurrently
   {-# INLINEABLE pooledMapConcurrently #-}
-  pooledMapConcurrentlyN_ (MkPositive i) f =
-    addCS . UAsync.pooledMapConcurrentlyN_ i f
+  pooledMapConcurrentlyN_ = UAsync.pooledMapConcurrentlyN_ . Positive.unPositive
   {-# INLINEABLE pooledMapConcurrentlyN_ #-}
-  pooledMapConcurrently_ f = addCS . UAsync.pooledMapConcurrently_ f
+  pooledMapConcurrently_ = UAsync.pooledMapConcurrently_
   {-# INLINEABLE pooledMapConcurrently_ #-}
 
 -- | @since 0.1
@@ -617,7 +597,7 @@ usingReaderT = flip runReaderT
 -- | Lifted 'Async.race_'.
 --
 -- @since 0.1
-race_ :: forall m a b. (HasCallStack, MonadAsync m) => m a -> m b -> m ()
+race_ :: forall m a b. (MonadAsync m) => m a -> m b -> m ()
 race_ left = void . race left
 {-# INLINEABLE race_ #-}
 
@@ -738,8 +718,7 @@ replicateConcurrently_ cnt =
 -- @since 0.1
 pooledForConcurrentlyN ::
   forall m t a b.
-  ( HasCallStack,
-    MonadAsync m,
+  ( MonadAsync m,
     Traversable t
   ) =>
   -- | Max threads > 0
@@ -755,8 +734,7 @@ pooledForConcurrentlyN numProcs = flip (pooledMapConcurrentlyN numProcs)
 -- @since 0.1
 pooledForConcurrently ::
   forall m t a b.
-  ( HasCallStack,
-    MonadAsync m,
+  ( MonadAsync m,
     Traversable t
   ) =>
   -- | .
@@ -772,7 +750,6 @@ pooledForConcurrently = flip pooledMapConcurrently
 pooledForConcurrentlyN_ ::
   forall m f a b.
   ( Foldable f,
-    HasCallStack,
     MonadAsync m
   ) =>
   -- | Max threads > 0
@@ -789,7 +766,6 @@ pooledForConcurrentlyN_ numProcs = flip (pooledMapConcurrentlyN_ numProcs)
 pooledForConcurrently_ ::
   forall m f a b.
   ( Foldable f,
-    HasCallStack,
     MonadAsync m
   ) =>
   -- | .
@@ -804,8 +780,7 @@ pooledForConcurrently_ = flip pooledMapConcurrently_
 -- @since 0.1
 pooledReplicateConcurrentlyN ::
   forall m a.
-  ( HasCallStack,
-    MonadAsync m
+  ( MonadAsync m
   ) =>
   -- | Max threads > 0
   Positive Int ->
@@ -824,8 +799,7 @@ pooledReplicateConcurrentlyN numProcs cnt task =
 -- @since 0.1
 pooledReplicateConcurrently ::
   forall m a.
-  ( HasCallStack,
-    MonadAsync m
+  ( MonadAsync m
   ) =>
   -- | Number of times to perform the action.
   Positive Int ->
@@ -842,8 +816,7 @@ pooledReplicateConcurrently (MkPositive cnt) task =
 -- @since 0.1
 pooledReplicateConcurrentlyN_ ::
   forall m a.
-  ( HasCallStack,
-    MonadAsync m
+  ( MonadAsync m
   ) =>
   -- | Max threads > 0
   Positive Int ->
@@ -862,8 +835,7 @@ pooledReplicateConcurrentlyN_ numProcs cnt task =
 -- @since 0.1
 pooledReplicateConcurrently_ ::
   forall m a.
-  ( HasCallStack,
-    MonadAsync m
+  ( MonadAsync m
   ) =>
   -- | Number of times to perform the action.
   Int ->

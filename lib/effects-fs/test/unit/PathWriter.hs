@@ -13,15 +13,14 @@ import Data.IORef (IORef)
 import Data.List qualified as L
 import Data.Word (Word8)
 import Effects.Exception
-  ( HasCallStack,
-    IOException,
+  ( IOException,
     MonadCatch,
     MonadMask,
     MonadThrow,
     StringException,
     displayException,
     throwString,
-    tryCS,
+    try,
   )
 import Effects.FileSystem.FileReader (MonadFileReader (readBinaryFile))
 import Effects.FileSystem.FileWriter
@@ -197,7 +196,7 @@ copyDirNoSrcException getTmpDir = testCase desc $ do
           badSrc
           destDir
 
-  tryCS @_ @IOException copy >>= \case
+  try @_ @IOException copy >>= \case
     Left _ -> pure ()
     Right _ -> assertFailure "Expected PathNotFoundException"
   where
@@ -275,7 +274,7 @@ cdrnDestNonExtantFails getTmpDir = testCase desc $ do
 
   -- copy files
   result <-
-    tryCS $
+    try $
       PathWriter.copyDirectoryRecursiveConfig
         (overwriteConfig OverwriteNone)
         srcDir
@@ -310,7 +309,7 @@ cdrnOverwriteFails getTmpDir = testCase desc $ do
 
   -- copy files
   result <-
-    tryCS $
+    try $
       PathWriter.copyDirectoryRecursiveConfig
         (overwriteConfig OverwriteNone)
         srcDir
@@ -348,7 +347,7 @@ cdrnPartialFails getTmpDir = testCase desc $ do
 
   -- copy files
   result <-
-    tryCS $
+    try $
       runPartialIO $
         PathWriter.copyDirectoryRecursiveConfig
           (overwriteConfig OverwriteNone)
@@ -413,7 +412,7 @@ cdrtDestNonExtantFails getTmpDir = testCase desc $ do
 
   -- copy files
   result <-
-    tryCS $
+    try $
       PathWriter.copyDirectoryRecursiveConfig (overwriteConfig OverwriteDirectories) srcDir destDir
   resultEx <- case result of
     Right _ -> assertFailure "Expected exception, received none"
@@ -558,7 +557,7 @@ cdrtOverwriteTargetMergeFails getTmpDir = testCase desc $ do
 
   -- copy files
   result <-
-    tryCS $
+    try $
       PathWriter.copyDirectoryRecursiveConfig
         config
         srcDir
@@ -623,7 +622,7 @@ cdrtOverwriteFileFails getTmpDir = testCase desc $ do
 
   -- copy files
   result <-
-    tryCS $
+    try $
       PathWriter.copyDirectoryRecursiveConfig
         (overwriteConfig OverwriteDirectories)
         srcDir
@@ -656,7 +655,7 @@ cdrtPartialFails getTmpDir = testCase desc $ do
 
   -- copy files
   result <-
-    tryCS $
+    try $
       runPartialIO $
         PathWriter.copyDirectoryRecursiveConfig
           (overwriteConfig OverwriteDirectories)
@@ -693,7 +692,7 @@ cdrtOverwritePartialFails getTmpDir = testCase desc $ do
 
   -- copy files
   result <-
-    tryCS $
+    try $
       runPartialIO $
         PathWriter.copyDirectoryRecursiveConfig
           (overwriteConfig OverwriteDirectories)
@@ -810,7 +809,7 @@ removeSymbolicLinkFileException getTestDir = testCase desc $ do
 
   assertFilesExist [filePath]
 
-  tryCS @_ @IOException (PW.removeSymbolicLink filePath) >>= \case
+  try @_ @IOException (PW.removeSymbolicLink filePath) >>= \case
     Left _ -> pure ()
     Right _ -> assertFailure "Expected IOException"
 
@@ -823,7 +822,7 @@ removeSymbolicLinkBadException getTestDir = testCase desc $ do
   testDir <- setupLinks getTestDir [osp|removeSymbolicLinkBadException|]
   let filePath = testDir </> [osp|bad-path|]
 
-  tryCS @_ @IOException (PW.removeSymbolicLink filePath) >>= \case
+  try @_ @IOException (PW.removeSymbolicLink filePath) >>= \case
     Left _ -> pure ()
     Right _ -> assertFailure "Expected IOException"
   where
@@ -867,7 +866,7 @@ copySymbolicLinkFileException getTestDir = testCase desc $ do
   testDir <- setupLinks getTestDir [osp|copySymbolicLinkFileException|]
   let src = testDir </> [osp|file|]
       dest = testDir </> [osp|dest|]
-  tryCS @_ @IOException (PW.copySymbolicLink src dest) >>= \case
+  try @_ @IOException (PW.copySymbolicLink src dest) >>= \case
     Left _ -> pure ()
     Right _ -> assertFailure "Exception IOException"
   where
@@ -878,7 +877,7 @@ copySymbolicLinkDirException getTestDir = testCase desc $ do
   testDir <- setupLinks getTestDir [osp|copySymbolicLinkDirException|]
   let src = testDir </> [osp|dir|]
       dest = testDir </> [osp|dest|]
-  tryCS @_ @IOException (PW.copySymbolicLink src dest) >>= \case
+  try @_ @IOException (PW.copySymbolicLink src dest) >>= \case
     Left _ -> pure ()
     Right _ -> assertFailure "Exception IOException"
   where
@@ -889,7 +888,7 @@ copySymbolicLinkBadException getTestDir = testCase desc $ do
   testDir <- setupLinks getTestDir [osp|copySymbolicLinkBadException|]
   let src = testDir </> [osp|bad-path|]
       dest = testDir </> [osp|dest|]
-  tryCS @_ @IOException (PW.copySymbolicLink src dest) >>= \case
+  try @_ @IOException (PW.copySymbolicLink src dest) >>= \case
     Left _ -> pure ()
     Right _ -> assertFailure "Exception IOException"
   where
@@ -1049,7 +1048,7 @@ removeSymlinkIfExistsFalseWrongType getTestDir = testCase desc $ do
 --                                  Setup                                    --
 -------------------------------------------------------------------------------
 
-setupSrc :: (HasCallStack) => OsPath -> IO OsPath
+setupSrc :: OsPath -> IO OsPath
 setupSrc baseDir = do
   let files =
         [ [osp|a|] </> [osp|b|] </> [osp|c|] </> [osp|f1|],
@@ -1072,7 +1071,7 @@ setupSrc baseDir = do
   assertSrcExists baseDir
   pure srcDir
 
-writeFiles :: (HasCallStack) => [(OsPath, ByteString)] -> IO ()
+writeFiles :: [(OsPath, ByteString)] -> IO ()
 writeFiles = traverse_ (uncurry writeBinaryFile)
 
 overwriteConfig :: Overwrite -> CopyDirConfig
@@ -1139,7 +1138,7 @@ instance MonadPathWriter PartialIO where
 --                                Assertions                                 --
 -------------------------------------------------------------------------------
 
-assertSrcExists :: (HasCallStack) => OsPath -> IO ()
+assertSrcExists :: OsPath -> IO ()
 assertSrcExists baseDir = do
   let srcDir = baseDir </> [osp|src|]
   assertFilesExist $
@@ -1157,7 +1156,7 @@ assertSrcExists baseDir = do
             [osp|empty|] </> [osp|d|]
           ]
 
-assertDestExists :: (HasCallStack) => OsPath -> IO ()
+assertDestExists :: OsPath -> IO ()
 assertDestExists baseDir = do
   let destDir = baseDir </> [osp|dest|]
   assertFilesExist $
@@ -1175,23 +1174,23 @@ assertDestExists baseDir = do
             [osp|src|] </> [osp|empty|] </> [osp|d|]
           ]
 
-assertFilesExist :: (HasCallStack) => [OsPath] -> IO ()
+assertFilesExist :: [OsPath] -> IO ()
 assertFilesExist = traverse_ $ \p -> do
   exists <- doesFileExist p
   assertBool ("Expected file to exist: " <> Utils.decodeOsToFpShow p) exists
 
-assertFilesDoNotExist :: (HasCallStack) => [OsPath] -> IO ()
+assertFilesDoNotExist :: [OsPath] -> IO ()
 assertFilesDoNotExist = traverse_ $ \p -> do
   exists <- doesFileExist p
   assertBool ("Expected file not to exist: " <> Utils.decodeOsToFpShow p) (not exists)
 
-assertSymlinksExist :: (HasCallStack) => [OsPath] -> IO ()
+assertSymlinksExist :: [OsPath] -> IO ()
 assertSymlinksExist = assertSymlinksExist' . fmap (,Nothing)
 
-assertSymlinksExistTarget :: (HasCallStack) => [(OsPath, OsPath)] -> IO ()
+assertSymlinksExistTarget :: [(OsPath, OsPath)] -> IO ()
 assertSymlinksExistTarget = assertSymlinksExist' . (fmap . fmap) Just
 
-assertSymlinksExist' :: (HasCallStack) => [(OsPath, Maybe OsPath)] -> IO ()
+assertSymlinksExist' :: [(OsPath, Maybe OsPath)] -> IO ()
 assertSymlinksExist' = traverse_ $ \(l, t) -> do
   exists <- doesSymbolicLinkExist l
   assertBool ("Expected symlink to exist: " <> Utils.decodeOsToFpShow l) exists
@@ -1202,24 +1201,24 @@ assertSymlinksExist' = traverse_ $ \(l, t) -> do
       target <- getSymbolicLinkTarget l
       expectedTarget @=? target
 
-assertSymlinksDoNotExist :: (HasCallStack) => [OsPath] -> IO ()
+assertSymlinksDoNotExist :: [OsPath] -> IO ()
 assertSymlinksDoNotExist = traverse_ $ \l -> do
   exists <- doesSymbolicLinkExist l
   assertBool ("Expected symlink not to exist: " <> Utils.decodeOsToFpShow l) (not exists)
 
-assertFileContents :: (HasCallStack) => [(OsPath, ByteString)] -> IO ()
+assertFileContents :: [(OsPath, ByteString)] -> IO ()
 assertFileContents = traverse_ $ \(p, expected) -> do
   exists <- doesFileExist p
   assertBool ("Expected file to exist: " <> Utils.decodeOsToFpShow p) exists
   actual <- readBinaryFile p
   expected @=? actual
 
-assertDirsExist :: (HasCallStack) => [OsPath] -> IO ()
+assertDirsExist :: [OsPath] -> IO ()
 assertDirsExist = traverse_ $ \p -> do
   exists <- doesDirectoryExist p
   assertBool ("Expected directory to exist: " <> Utils.decodeOsToFpShow p) exists
 
-assertDirsDoNotExist :: (HasCallStack) => [OsPath] -> IO ()
+assertDirsDoNotExist :: [OsPath] -> IO ()
 assertDirsDoNotExist = traverse_ $ \p -> do
   exists <- doesDirectoryExist p
   assertBool ("Expected directory not to exist: " <> Utils.decodeOsToFpShow p) (not exists)

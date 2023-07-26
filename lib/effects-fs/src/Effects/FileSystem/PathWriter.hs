@@ -57,7 +57,6 @@ import Effects.Exception
   ( IOException,
     MonadCatch,
     MonadMask,
-    addCS,
     mask_,
     onException,
   )
@@ -80,7 +79,6 @@ import Effects.IORef
   ( MonadIORef (modifyIORef', newIORef, readIORef),
   )
 import GHC.Generics (Generic)
-import GHC.Stack (HasCallStack)
 import Optics.Core
   ( A_Lens,
     LabelOptic (labelOptic),
@@ -101,13 +99,12 @@ class (Monad m) => MonadPathWriter m where
   -- | Lifted 'Dir.createDirectory'.
   --
   -- @since 0.1
-  createDirectory :: (HasCallStack) => OsPath -> m ()
+  createDirectory :: OsPath -> m ()
 
   -- | Lifted 'Dir.createDirectoryIfMissing'.
   --
   -- @since 0.1
   createDirectoryIfMissing ::
-    (HasCallStack) =>
     -- | Create its parents too?
     Bool ->
     -- | The path to the directory you want to make
@@ -117,48 +114,47 @@ class (Monad m) => MonadPathWriter m where
   -- | Lifted 'Dir.removeDirectory'.
   --
   -- @since 0.1
-  removeDirectory :: (HasCallStack) => OsPath -> m ()
+  removeDirectory :: OsPath -> m ()
 
   -- | Lifted 'Dir.removeDirectoryRecursive'.
   --
   -- @since 0.1
-  removeDirectoryRecursive :: (HasCallStack) => OsPath -> m ()
+  removeDirectoryRecursive :: OsPath -> m ()
 
   -- | Lifted 'Dir.removePathForcibly'.
   --
   -- @since 0.1
-  removePathForcibly :: (HasCallStack) => OsPath -> m ()
+  removePathForcibly :: OsPath -> m ()
 
   -- | Lifted 'Dir.renameDirectory'.
   --
   -- @since 0.1
-  renameDirectory :: (HasCallStack) => OsPath -> OsPath -> m ()
+  renameDirectory :: OsPath -> OsPath -> m ()
 
   -- | Lifted 'Dir.setCurrentDirectory'.
   --
   -- @since 0.1
-  setCurrentDirectory :: (HasCallStack) => OsPath -> m ()
+  setCurrentDirectory :: OsPath -> m ()
 
   -- | Lifted 'Dir.withCurrentDirectory'.
   --
   -- @since 0.1
-  withCurrentDirectory :: (HasCallStack) => OsPath -> m a -> m a
+  withCurrentDirectory :: OsPath -> m a -> m a
 
   -- | Lifted 'Dir.removeFile'.
   --
   -- @since 0.1
-  removeFile :: (HasCallStack) => OsPath -> m ()
+  removeFile :: OsPath -> m ()
 
   -- | Lifted 'Dir.renameFile'.
   --
   -- @since 0.1
-  renameFile :: (HasCallStack) => OsPath -> OsPath -> m ()
+  renameFile :: OsPath -> OsPath -> m ()
 
   -- | Lifted 'Dir.renamePath'.
   --
   -- @since 0.1
   renamePath ::
-    (HasCallStack) =>
     -- | Old path
     OsPath ->
     -- | New path
@@ -169,7 +165,6 @@ class (Monad m) => MonadPathWriter m where
   --
   -- @since 0.1
   copyFile ::
-    (HasCallStack) =>
     -- | Source filename
     OsPath ->
     -- | Destination filename
@@ -180,7 +175,6 @@ class (Monad m) => MonadPathWriter m where
   --
   -- @since 0.1
   copyFileWithMetadata ::
-    (HasCallStack) =>
     -- | Source file
     OsPath ->
     -- | Destination file
@@ -191,7 +185,6 @@ class (Monad m) => MonadPathWriter m where
   --
   -- @since 0.1
   createFileLink ::
-    (HasCallStack) =>
     -- | path to the target file
     OsPath ->
     -- | path of the link to be created
@@ -202,7 +195,6 @@ class (Monad m) => MonadPathWriter m where
   --
   -- @since 0.1
   createDirectoryLink ::
-    (HasCallStack) =>
     -- | path to the target directory
     OsPath ->
     -- | path of the link to be created
@@ -212,69 +204,69 @@ class (Monad m) => MonadPathWriter m where
   -- | Lifted 'Dir.removeDirectoryLink'.
   --
   -- @since 0.1
-  removeDirectoryLink :: (HasCallStack) => OsPath -> m ()
+  removeDirectoryLink :: OsPath -> m ()
 
   -- | Lifted 'Dir.setPermissions'.
   --
   -- @since 0.1
-  setPermissions :: (HasCallStack) => OsPath -> Permissions -> m ()
+  setPermissions :: OsPath -> Permissions -> m ()
 
   -- | Lifted 'Dir.copyPermissions'.
   --
   -- @since 0.1
-  copyPermissions :: (HasCallStack) => OsPath -> OsPath -> m ()
+  copyPermissions :: OsPath -> OsPath -> m ()
 
   -- | Lifted 'Dir.setAccessTime'.
   --
   -- @since 0.1
-  setAccessTime :: (HasCallStack) => OsPath -> UTCTime -> m ()
+  setAccessTime :: OsPath -> UTCTime -> m ()
 
   -- | Lifted 'Dir.setModificationTime'.
   --
   -- @since 0.1
-  setModificationTime :: (HasCallStack) => OsPath -> UTCTime -> m ()
+  setModificationTime :: OsPath -> UTCTime -> m ()
 
 -- | @since 0.1
 instance MonadPathWriter IO where
-  createDirectory = addCS . Dir.createDirectory
+  createDirectory = Dir.createDirectory
   {-# INLINEABLE createDirectory #-}
-  createDirectoryIfMissing b = addCS . Dir.createDirectoryIfMissing b
+  createDirectoryIfMissing = Dir.createDirectoryIfMissing
   {-# INLINEABLE createDirectoryIfMissing #-}
-  removeDirectory = addCS . Dir.removeDirectory
+  removeDirectory = Dir.removeDirectory
   {-# INLINEABLE removeDirectory #-}
-  removeDirectoryRecursive = addCS . Dir.removeDirectoryRecursive
+  removeDirectoryRecursive = Dir.removeDirectoryRecursive
   {-# INLINEABLE removeDirectoryRecursive #-}
-  removePathForcibly = addCS . Dir.removePathForcibly
+  removePathForcibly = Dir.removePathForcibly
   {-# INLINEABLE removePathForcibly #-}
-  renameDirectory p = addCS . Dir.renameDirectory p
+  renameDirectory = Dir.renameDirectory
   {-# INLINEABLE renameDirectory #-}
-  setCurrentDirectory = addCS . Dir.setCurrentDirectory
+  setCurrentDirectory = Dir.setCurrentDirectory
   {-# INLINEABLE setCurrentDirectory #-}
-  withCurrentDirectory p = addCS . Dir.withCurrentDirectory p
+  withCurrentDirectory = Dir.withCurrentDirectory
   {-# INLINEABLE withCurrentDirectory #-}
-  removeFile = addCS . Dir.removeFile
+  removeFile = Dir.removeFile
   {-# INLINEABLE removeFile #-}
-  renameFile p = addCS . Dir.renameFile p
+  renameFile = Dir.renameFile
   {-# INLINEABLE renameFile #-}
-  renamePath p = addCS . Dir.renamePath p
+  renamePath = Dir.renamePath
   {-# INLINEABLE renamePath #-}
-  copyFile p = addCS . Dir.copyFile p
+  copyFile = Dir.copyFile
   {-# INLINEABLE copyFile #-}
-  copyFileWithMetadata p = addCS . Dir.copyFileWithMetadata p
+  copyFileWithMetadata = Dir.copyFileWithMetadata
   {-# INLINEABLE copyFileWithMetadata #-}
-  createFileLink p = addCS . Dir.createFileLink p
+  createFileLink = Dir.createFileLink
   {-# INLINEABLE createFileLink #-}
-  createDirectoryLink p = addCS . Dir.createDirectoryLink p
+  createDirectoryLink = Dir.createDirectoryLink
   {-# INLINEABLE createDirectoryLink #-}
-  removeDirectoryLink = addCS . Dir.removeDirectoryLink
+  removeDirectoryLink = Dir.removeDirectoryLink
   {-# INLINEABLE removeDirectoryLink #-}
-  setPermissions p = addCS . Dir.setPermissions p
+  setPermissions = Dir.setPermissions
   {-# INLINEABLE setPermissions #-}
-  copyPermissions p = addCS . Dir.copyPermissions p
+  copyPermissions = Dir.copyPermissions
   {-# INLINEABLE copyPermissions #-}
-  setAccessTime p = addCS . Dir.setAccessTime p
+  setAccessTime = Dir.setAccessTime
   {-# INLINEABLE setAccessTime #-}
-  setModificationTime p = addCS . Dir.setModificationTime p
+  setModificationTime = Dir.setModificationTime
   {-# INLINEABLE setModificationTime #-}
 
 -- | @since 0.1
@@ -503,8 +495,7 @@ defaultCopyDirConfig = MkCopyDirConfig OverwriteNone TargetNameSrc
 -- @since 0.1
 copyDirectoryRecursive ::
   forall m.
-  ( HasCallStack,
-    MonadIORef m,
+  ( MonadIORef m,
     MonadMask m,
     MonadPathReader m,
     MonadPathWriter m
@@ -551,8 +542,7 @@ copyDirectoryRecursive = copyDirectoryRecursiveConfig defaultCopyDirConfig
 -- @since 0.1
 copyDirectoryRecursiveConfig ::
   forall m.
-  ( HasCallStack,
-    MonadIORef m,
+  ( MonadIORef m,
     MonadMask m,
     MonadPathReader m,
     MonadPathWriter m
@@ -598,8 +588,7 @@ copyDirectoryRecursiveConfig config src destRoot = do
 
 copyDirectoryOverwrite ::
   forall m.
-  ( HasCallStack,
-    MonadIORef m,
+  ( MonadIORef m,
     MonadMask m,
     MonadPathReader m,
     MonadPathWriter m
@@ -708,8 +697,7 @@ copyDirectoryOverwrite overwriteFiles src dest = do
 
 copyDirectoryNoOverwrite ::
   forall m.
-  ( HasCallStack,
-    MonadIORef m,
+  ( MonadIORef m,
     MonadMask m,
     MonadPathReader m,
     MonadPathWriter m
@@ -750,8 +738,7 @@ copyDirectoryNoOverwrite src dest = do
 --
 -- @since 0.1
 removeFileIfExists ::
-  ( HasCallStack,
-    MonadPathReader m,
+  ( MonadPathReader m,
     MonadPathWriter m
   ) =>
   OsPath ->
@@ -763,8 +750,7 @@ removeFileIfExists = removeIfExists doesFileExist removeFile
 --
 -- @since 0.1
 removeDirectoryIfExists ::
-  ( HasCallStack,
-    MonadPathReader m,
+  ( MonadPathReader m,
     MonadPathWriter m
   ) =>
   OsPath ->
@@ -776,8 +762,7 @@ removeDirectoryIfExists = removeIfExists doesDirectoryExist removeDirectory
 --
 -- @since 0.1
 removeDirectoryRecursiveIfExists ::
-  ( HasCallStack,
-    MonadPathReader m,
+  ( MonadPathReader m,
     MonadPathWriter m
   ) =>
   OsPath ->
@@ -790,8 +775,7 @@ removeDirectoryRecursiveIfExists =
 --
 -- @since 0.1
 removePathForciblyIfExists ::
-  ( HasCallStack,
-    MonadPathReader m,
+  ( MonadPathReader m,
     MonadPathWriter m
   ) =>
   OsPath ->
@@ -804,8 +788,7 @@ removePathForciblyIfExists =
 --
 -- @since 0.1
 removeSymbolicLinkIfExists ::
-  ( HasCallStack,
-    MonadCatch m,
+  ( MonadCatch m,
     MonadPathReader m,
     MonadPathWriter m
   ) =>
@@ -824,8 +807,7 @@ removeIfExists existsFn deleteFn f =
 --
 -- @since 0.1
 removeSymbolicLink ::
-  ( HasCallStack,
-    MonadCatch m,
+  ( MonadCatch m,
     MonadPathReader m,
     MonadPathWriter m
   ) =>
@@ -850,8 +832,7 @@ removeSymbolicLink p = do
 --
 -- @since 0.1
 copySymbolicLink ::
-  ( HasCallStack,
-    MonadCatch m,
+  ( MonadCatch m,
     MonadPathReader m,
     MonadPathWriter m
   ) =>

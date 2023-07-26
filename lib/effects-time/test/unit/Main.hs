@@ -1,14 +1,9 @@
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE ViewPatterns #-}
-
 module Main (main) where
 
 import Control.Concurrent (threadDelay)
-import Control.Exception (Exception, SomeException, displayException, try)
-import Control.Monad (void, when, zipWithM_)
+import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Data.Fixed (Fixed (MkFixed))
-import Data.List qualified as L
 import Data.Time.Calendar.OrdinalDate (fromOrdinalDate)
 import Data.Time.LocalTime (TimeOfDay (TimeOfDay), utc)
 import Effects.Time
@@ -23,9 +18,8 @@ import Hedgehog.Range qualified as R
 import Numeric.Natural (Natural)
 import Optics.Core (view)
 import Test.Tasty (TestTree, defaultMain, testGroup)
-import Test.Tasty.HUnit (assertBool, assertFailure, testCase, (@=?))
+import Test.Tasty.HUnit (assertBool, testCase, (@=?))
 import Test.Tasty.Hedgehog (testPropertyNamed)
-import Text.Read qualified as TR
 
 main :: IO ()
 main =
@@ -225,8 +219,7 @@ localTimeTests =
     [ formatsLocalTime,
       parsesLocalTime,
       formatParseLocalTimeRoundTrip,
-      parseFormatLocalTimeEpsilon,
-      parsesLocalTimeCallStack
+      parseFormatLocalTimeEpsilon
     ]
 
 zonedTimeTests :: TestTree
@@ -236,8 +229,7 @@ zonedTimeTests =
     [ formatsZonedTime,
       parsesZonedTime,
       formatParseZonedTimeRoundTrip,
-      parseFormatZonedTimeEpsilon,
-      parsesZonedTimeCallStack
+      parseFormatZonedTimeEpsilon
     ]
 
 formatsLocalTime :: TestTree
@@ -276,36 +268,6 @@ parseFormatLocalTimeEpsilon = testPropertyNamed desc "parseFormatLocalTimeEpsilo
   where
     desc = "(parseLocalTime . formatLocalTime) x ~= x (up to < 1 second)"
 
-parsesLocalTimeCallStack :: TestTree
-parsesLocalTimeCallStack = testCase "Parses LocalTime failure gives CallStack" $ do
-  try @SomeException parseAction >>= \case
-    Left e -> assertResults expected (L.lines $ stableCallStack e)
-    Right _ -> assertFailure "Error: did not catch expected exception."
-  where
-    parseAction = MonadTime.parseLocalTimeCallStack "2022-02-08 10:20:05 UTC"
-#if WINDOWS && GHC_9_4
-    expected =
-      [ "user error (parseTimeM: no parse of \"0-0-0 0:0:0 UTC\")",
-        "CallStack (from HasCallStack):",
-        "  addCS, called at src\\Effects\\Time.hs:0:0 in effects-time-0.0-<pkg>:Effects.Time",
-        "  parseLocalTimeCallStack, called at test\\unit\\Main.hs:0:0 in main:Main"
-      ]
-#elif WINDOWS
-    expected =
-      [ "user error (parseTimeM: no parse of \"0-0-0 0:0:0 UTC\")",
-        "CallStack (from HasCallStack):",
-        "  addCS, called at src\\\\Effects\\\\Time.hs:0:0 in effects-time-0.0-<pkg>:Effects.Time",
-        "  parseLocalTimeCallStack, called at test\\\\unit\\\\Main.hs:0:0 in main:Main"
-      ]
-#else
-    expected =
-      [ "user error (parseTimeM: no parse of \"0-0-0 0:0:0 UTC\")",
-        "CallStack (from HasCallStack):",
-        "  addCS, called at src/Effects/Time.hs:0:0 in effects-time-0.0-<pkg>:Effects.Time",
-        "  parseLocalTimeCallStack, called at test/unit/Main.hs:0:0 in main:Main"
-      ]
-#endif
-
 formatsZonedTime :: TestTree
 formatsZonedTime =
   testCase "Formats ZonedTime" $
@@ -343,37 +305,6 @@ parseFormatZonedTimeEpsilon = testPropertyNamed desc "parseFormatZonedTimeEpsilo
     diff zt eqZonedTimeEpsilon zt'
   where
     desc = "(parseZonedTime . formatZonedTime) x ~= x (up to < 1 second)"
-
-parsesZonedTimeCallStack :: TestTree
-parsesZonedTimeCallStack =
-  testCase "Parses ZonedTime failure gives CallStack" $
-    try @SomeException parseAction >>= \case
-      Left e -> assertResults expected (L.lines $ stableCallStack e)
-      Right _ -> assertFailure "Error: did not catch expected exception."
-  where
-    parseAction = MonadTime.parseZonedTimeCallStack "2022-02-08 10:20:05"
-#if WINDOWS && GHC_9_4
-    expected =
-      [ "user error (parseTimeM: no parse of \"0-0-0 0:0:0\")",
-        "CallStack (from HasCallStack):",
-        "  addCS, called at src\\Effects\\Time.hs:0:0 in effects-time-0.0-<pkg>:Effects.Time",
-        "  parseZonedTimeCallStack, called at test\\unit\\Main.hs:0:0 in main:Main"
-      ]
-#elif WINDOWS
-    expected =
-      [ "user error (parseTimeM: no parse of \"0-0-0 0:0:0\")",
-        "CallStack (from HasCallStack):",
-        "  addCS, called at src\\\\Effects\\\\Time.hs:0:0 in effects-time-0.0-<pkg>:Effects.Time",
-        "  parseZonedTimeCallStack, called at test\\\\unit\\\\Main.hs:0:0 in main:Main"
-      ]
-#else
-    expected =
-      [ "user error (parseTimeM: no parse of \"0-0-0 0:0:0\")",
-        "CallStack (from HasCallStack):",
-        "  addCS, called at src/Effects/Time.hs:0:0 in effects-time-0.0-<pkg>:Effects.Time",
-        "  parseZonedTimeCallStack, called at test/unit/Main.hs:0:0 in main:Main"
-      ]
-#endif
 
 localTime :: LocalTime
 localTime = LocalTime day tod
@@ -482,47 +413,3 @@ genTimeSpec = MkTimeSpec <$> genSec <*> genNSec
   where
     genSec = Gen.integral (R.linearFrom 5 0 10)
     genNSec = Gen.integral (R.linearFrom 0 0 10_000_000_000)
-
-stableCallStack :: (Exception e) => e -> String
-stableCallStack = stripPkgName . zeroNums . displayException
-
--- A bit overzealous since we don't need all numbers zeroed, but it's not a
--- big deal
-zeroNums :: String -> String
-zeroNums [] = []
-zeroNums (x : xs) = case TR.readMaybe @Int [x] of
-  Nothing -> x : zeroNums xs
-  Just _ -> '0' : zeroNums (skipNums xs)
-  where
-    skipNums [] = []
-    skipNums (y : ys) = case TR.readMaybe @Int [y] of
-      Nothing -> y : ys
-      Just _ -> skipNums ys
-
--- crude, but it works
-stripPkgName :: String -> String
-stripPkgName [] = []
-stripPkgName (L.stripPrefix "effects-time-0.0-" -> Just rest) =
-  "effects-time-0.0-<pkg>" ++ skipUntilColon rest
-stripPkgName (x : xs) = x : stripPkgName xs
-
-skipUntilColon :: String -> String
-skipUntilColon [] = []
-skipUntilColon (':' : rest) = ':' : rest
-skipUntilColon (_ : xs) = skipUntilColon xs
-
-assertResults :: (Eq a, Show a) => [a] -> [a] -> IO ()
-assertResults expected results = do
-  when (lenExpected /= lenResults) $
-    assertFailure $
-      mconcat
-        [ "Expected length (",
-          show lenExpected,
-          ") did not match results length (",
-          show lenResults,
-          ")."
-        ]
-  zipWithM_ (@=?) expected results
-  where
-    lenExpected = length expected
-    lenResults = length results

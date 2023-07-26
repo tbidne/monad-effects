@@ -27,10 +27,9 @@ import Control.Monad.Trans.Reader (ReaderT)
 import Data.ByteString (ByteString)
 import Data.Text (Text)
 import Data.Text.Encoding.Error (UnicodeException)
-import Effects.Exception (MonadThrow, addCS)
+import Effects.Exception (MonadThrow)
 import Effects.FileSystem.Utils (OsPath)
 import Effects.FileSystem.Utils qualified as FsUtils
-import GHC.Stack (HasCallStack)
 
 -- | Represents file-system reader effects.
 --
@@ -39,11 +38,11 @@ class (Monad m) => MonadFileReader m where
   -- | Reads a file.
   --
   -- @since 0.1
-  readBinaryFile :: (HasCallStack) => OsPath -> m ByteString
+  readBinaryFile :: OsPath -> m ByteString
 
 -- | @since 0.1
 instance MonadFileReader IO where
-  readBinaryFile = addCS . FsUtils.readBinaryFileIO
+  readBinaryFile = FsUtils.readBinaryFileIO
   {-# INLINEABLE readBinaryFile #-}
 
 -- | @since 0.1
@@ -55,8 +54,7 @@ instance (MonadFileReader m) => MonadFileReader (ReaderT e m) where
 --
 -- @since 0.1
 readFileUtf8 ::
-  ( HasCallStack,
-    MonadFileReader m
+  ( MonadFileReader m
   ) =>
   OsPath ->
   m (Either UnicodeException Text)
@@ -67,8 +65,7 @@ readFileUtf8 = fmap FsUtils.decodeUtf8 . readBinaryFile
 --
 -- @since 0.1
 readFileUtf8Lenient ::
-  ( HasCallStack,
-    MonadFileReader m
+  ( MonadFileReader m
   ) =>
   OsPath ->
   m Text
@@ -79,8 +76,7 @@ readFileUtf8Lenient = fmap FsUtils.decodeUtf8Lenient . readBinaryFile
 --
 -- @since 0.1
 readFileUtf8ThrowM ::
-  ( HasCallStack,
-    MonadFileReader m,
+  ( MonadFileReader m,
     MonadThrow m
   ) =>
   OsPath ->

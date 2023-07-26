@@ -1,6 +1,8 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
+{- HLINT ignore "Use putStrLn" -}
+
 {- ORMOLU_DISABLE -}
 
 -- | Provides the 'MonadTerminal' typeclass.
@@ -41,7 +43,7 @@ import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.Text (Text)
 import Data.Text qualified as T
-import Effects.Exception (addCS, throwCS)
+import Effects.Exception (throwM)
 import GHC.IO.Exception
   ( IOErrorType (SystemError),
     IOException
@@ -55,7 +57,6 @@ import GHC.IO.Exception
       ),
   )
 import GHC.Natural (Natural)
-import GHC.Stack (HasCallStack)
 import System.Console.Pretty qualified as CPretty
 import System.Console.Terminal.Size (Window (Window, height, width), size)
 import System.IO qualified as IO
@@ -69,9 +70,9 @@ import Prelude
     Show (show),
     String,
     ($),
+    (++),
     (.),
     (<$>),
-    (<>),
   )
 
 -- Explicit prelude because of IO clashes.
@@ -86,31 +87,31 @@ class Monad m => MonadTerminal m where
   -- (same as 'hPutChar' 'stdout').
   --
   -- @since 0.1
-  putStr :: HasCallStack => String -> m ()
+  putStr :: String -> m ()
 
   -- | The same as 'putStr', but adds a newline character.
   --
   -- @since 0.1
-  putStrLn :: HasCallStack => String -> m ()
-  putStrLn = putStr . (<> "\n")
+  putStrLn :: String -> m ()
+  putStrLn = putStr . (++ "\n")
   {-# INLINEABLE putStrLn #-}
 
   -- | Write a ByteString to 'stdout'.
   --
   -- @since 0.1
-  putBinary :: HasCallStack => ByteString -> m ()
+  putBinary :: ByteString -> m ()
 
   -- | Read a character from the standard input device
   -- (same as 'hGetChar' 'stdin').
   --
   -- @since 0.1
-  getChar :: HasCallStack => m Char
+  getChar :: m Char
 
   -- | Read a line from the standard input device
   -- (same as 'hGetLine' 'stdin').
   --
   -- @since 0.1
-  getLine :: HasCallStack => m String
+  getLine :: m String
 
 #if MIN_VERSION_base(4,15,0)
   -- | The 'getContents'' operation returns all user input as a single string,
@@ -118,18 +119,18 @@ class Monad m => MonadTerminal m where
   -- (same as 'hGetContents'' 'stdin').
   --
   -- @since 0.1
-  getContents' :: HasCallStack => m String
+  getContents' :: m String
 #endif
 
   -- | Retrieves the terminal size.
   --
   -- @since 0.1
-  getTerminalSize :: HasCallStack => m (Window Natural)
+  getTerminalSize :: m (Window Natural)
 
   -- | Determines if we support ANSI styling.
   --
   -- @since 0.1
-  supportsPretty :: HasCallStack => m Bool
+  supportsPretty :: m Bool
 
 #if MIN_VERSION_base(4,15,0)
   {-# MINIMAL putStr, putBinary, getChar, getLine, getContents', getTerminalSize, supportsPretty #-}
@@ -139,24 +140,24 @@ class Monad m => MonadTerminal m where
 
 -- | @since 0.1
 instance MonadTerminal IO where
-  putStr = addCS . IO.putStr
+  putStr = IO.putStr
   {-# INLINEABLE putStr #-}
-  putStrLn = addCS . IO.putStrLn
+  putStrLn = IO.putStrLn
   {-# INLINEABLE putStrLn #-}
-  putBinary = addCS . BS.putStr
+  putBinary = BS.putStr
   {-# INLINEABLE putBinary #-}
-  getChar = addCS IO.getChar
+  getChar = IO.getChar
   {-# INLINEABLE getChar #-}
-  getLine = addCS IO.getLine
+  getLine = IO.getLine
   {-# INLINEABLE getLine #-}
 #if MIN_VERSION_base(4,15,0)
-  getContents' = addCS IO.getContents'
+  getContents' = IO.getContents'
   {-# INLINEABLE getContents' #-}
 #endif
   getTerminalSize =
     size >>= \case
       Just h -> pure h
-      Nothing -> throwCS $
+      Nothing -> throwM $
         IOError
           { ioe_handle = Nothing,
             ioe_type = SystemError,
@@ -205,28 +206,28 @@ instance MonadTerminal m => MonadTerminal (ReaderT e m) where
 -- > main = print ([(n, 2^n) | n <- [0..19]])
 --
 -- @since 0.1
-print :: (HasCallStack, MonadTerminal m, Show a) => a -> m ()
+print :: (MonadTerminal m, Show a) => a -> m ()
 print = putStrLn . show
 {-# INLINEABLE print #-}
 
 -- | 'Text' version of 'putStr'.
 --
 -- @since 0.1
-putText :: (HasCallStack, MonadTerminal m) => Text -> m ()
+putText :: (MonadTerminal m) => Text -> m ()
 putText = putStr . T.unpack
 {-# INLINEABLE putText #-}
 
 -- | 'Text' version of 'putStrLn'.
 --
 -- @since 0.1
-putTextLn :: (HasCallStack, MonadTerminal m) => Text -> m ()
+putTextLn :: (MonadTerminal m) => Text -> m ()
 putTextLn = putStrLn . T.unpack
 {-# INLINEABLE putTextLn #-}
 
 -- | 'Text' version of 'getLine'.
 --
 -- @since 0.1
-getTextLine :: (HasCallStack, MonadTerminal m) => m Text
+getTextLine :: (MonadTerminal m) => m Text
 getTextLine = T.pack <$> getLine
 {-# INLINEABLE getTextLine #-}
 
@@ -234,7 +235,7 @@ getTextLine = T.pack <$> getLine
 -- | 'Text' version of 'getContents''.
 --
 -- @since 0.1
-getTextContents' :: (HasCallStack, MonadTerminal m) => m Text
+getTextContents' :: (MonadTerminal m) => m Text
 getTextContents' = T.pack <$> getContents'
 {-# INLINEABLE getTextContents' #-}
 #endif
@@ -242,13 +243,13 @@ getTextContents' = T.pack <$> getContents'
 -- | Retrieves the terminal width.
 --
 -- @since 0.1
-getTerminalWidth :: (HasCallStack, MonadTerminal m) => m Natural
+getTerminalWidth :: (MonadTerminal m) => m Natural
 getTerminalWidth = width <$> getTerminalSize
 {-# INLINEABLE getTerminalWidth #-}
 
 -- | Retrieves the terminal height.
 --
 -- @since 0.1
-getTerminalHeight :: (HasCallStack, MonadTerminal m) => m Natural
+getTerminalHeight :: (MonadTerminal m) => m Natural
 getTerminalHeight = height <$> getTerminalSize
 {-# INLINEABLE getTerminalHeight #-}

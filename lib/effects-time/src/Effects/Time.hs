@@ -34,9 +34,7 @@ module Effects.Time
 
     -- * Parsing
     parseLocalTime,
-    parseLocalTimeCallStack,
     parseZonedTime,
-    parseZonedTimeCallStack,
 
     -- * Misc
     getSystemTimeString,
@@ -71,14 +69,12 @@ import Data.Time.LocalTime
     ZonedTime (ZonedTime, zonedTimeToLocalTime, zonedTimeZone),
   )
 import Data.Time.LocalTime qualified as Local
-import Effects.Exception (MonadCatch, addCS)
 import GHC.Clock qualified as C
 #if MIN_VERSION_base(4,17,0)
 import GHC.Float (properFractionDouble)
 #endif
 import GHC.Generics (Generic)
 import GHC.Natural (Natural)
-import GHC.Stack (HasCallStack)
 import Numeric.Algebra
   ( AMonoid (zero),
     ASemigroup ((.+.)),
@@ -244,19 +240,19 @@ class (Monad m) => MonadTime m where
   -- | Returns the zoned system time.
   --
   -- @since 0.1
-  getSystemZonedTime :: (HasCallStack) => m ZonedTime
+  getSystemZonedTime :: m ZonedTime
 
   -- | Return monotonic time in seconds, since some unspecified starting
   -- point.
   --
   -- @since 0.1
-  getMonotonicTime :: (HasCallStack) => m Double
+  getMonotonicTime :: m Double
 
 -- | @since 0.1
 instance MonadTime IO where
-  getSystemZonedTime = addCS Local.getZonedTime
+  getSystemZonedTime = Local.getZonedTime
   {-# INLINEABLE getSystemZonedTime #-}
-  getMonotonicTime = addCS C.getMonotonicTime
+  getMonotonicTime = C.getMonotonicTime
   {-# INLINEABLE getMonotonicTime #-}
 
 -- | @since 0.1
@@ -269,7 +265,7 @@ instance (MonadTime m) => MonadTime (ReaderT e m) where
 -- | Returns the local system time.
 --
 -- @since 0.1
-getSystemTime :: (HasCallStack, MonadTime m) => m LocalTime
+getSystemTime :: (MonadTime m) => m LocalTime
 getSystemTime = Local.zonedTimeToLocalTime <$> getSystemZonedTime
 {-# INLINEABLE getSystemTime #-}
 
@@ -277,8 +273,7 @@ getSystemTime = Local.zonedTimeToLocalTime <$> getSystemZonedTime
 --
 -- @since 0.1
 withTiming ::
-  ( HasCallStack,
-    MonadTime m
+  ( MonadTime m
   ) =>
   m a ->
   m (TimeSpec, a)
@@ -293,8 +288,7 @@ withTiming m = do
 --
 -- @since 0.1
 withTiming_ ::
-  ( HasCallStack,
-    MonadTime m
+  ( MonadTime m
   ) =>
   m a ->
   m TimeSpec
@@ -312,7 +306,7 @@ formatZonedTime = Format.formatTime Format.defaultTimeLocale zonedTimeFormat
 -- | Retrieves the formatted 'LocalTime'.
 --
 -- @since 0.1
-getSystemTimeString :: (HasCallStack, MonadTime m) => m String
+getSystemTimeString :: (MonadTime m) => m String
 getSystemTimeString = fmap formatLocalTime getSystemTime
 {-# INLINEABLE getSystemTimeString #-}
 
@@ -325,13 +319,11 @@ formatLocalTime = Format.formatTime Format.defaultTimeLocale localTimeFormat
 -- | Retrieves the formatted 'ZonedTime'.
 --
 -- @since 0.1
-getSystemZonedTimeString :: (HasCallStack, MonadTime m) => m String
+getSystemZonedTimeString :: (MonadTime m) => m String
 getSystemZonedTimeString = fmap formatZonedTime getSystemZonedTime
 {-# INLINEABLE getSystemZonedTimeString #-}
 
--- | Parses the 'LocalTime' from @YYYY-MM-DD HH:MM:SS@. If the 'MonadFail'
--- instance throws an 'Control.Exception.Exception' consider
--- 'parseLocalTimeCallStack'.
+-- | Parses the 'LocalTime' from @YYYY-MM-DD HH:MM:SS@.
 --
 -- @since 0.1
 parseLocalTime :: (MonadFail f) => String -> f LocalTime
@@ -342,23 +334,7 @@ parseLocalTime =
     localTimeFormat
 {-# INLINEABLE parseLocalTime #-}
 
--- | Variant of 'parseLocalTime' that includes CallStack for thrown
--- exceptions.
---
--- @since 0.1
-parseLocalTimeCallStack ::
-  ( HasCallStack,
-    MonadCatch m,
-    MonadFail m
-  ) =>
-  String ->
-  m LocalTime
-parseLocalTimeCallStack = addCS . parseLocalTime
-{-# INLINEABLE parseLocalTimeCallStack #-}
-
--- | Parses the 'ZonedTime' from @YYYY-MM-DD HH:MM:SS Z@. If the 'MonadFail'
--- instance throws an 'Control.Exception.Exception' consider
--- 'parseZonedTimeCallStack'.
+-- | Parses the 'ZonedTime' from @YYYY-MM-DD HH:MM:SS Z@.
 --
 -- ==== __Known Timezones__
 --
@@ -383,20 +359,6 @@ parseZonedTime =
     Format.defaultTimeLocale
     zonedTimeFormat
 {-# INLINEABLE parseZonedTime #-}
-
--- | Variant of 'parseZonedTime' that includes CallStack for thrown
--- exceptions.
---
--- @since 0.1
-parseZonedTimeCallStack ::
-  ( HasCallStack,
-    MonadCatch m,
-    MonadFail m
-  ) =>
-  String ->
-  m ZonedTime
-parseZonedTimeCallStack = addCS . parseZonedTime
-{-# INLINEABLE parseZonedTimeCallStack #-}
 
 localTimeFormat :: String
 localTimeFormat = "%0Y-%m-%d %H:%M:%S"

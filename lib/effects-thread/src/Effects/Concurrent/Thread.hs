@@ -31,9 +31,7 @@ import Control.Exception (Exception)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.Foldable (for_)
-import Effects.Exception (addCS)
 import GHC.Natural (Natural)
-import GHC.Stack (HasCallStack)
 
 -- | Represents thread effects.
 --
@@ -47,7 +45,7 @@ class (Monad m) => MonadThread m where
   -- run /earlier/ than specified.
   --
   -- @since 0.1
-  threadDelay :: (HasCallStack) => Int -> m ()
+  threadDelay :: Int -> m ()
 
   -- | 'throwTo' raises an arbitrary exception in the target thread (GHC only).
   --
@@ -103,14 +101,14 @@ class (Monad m) => MonadThread m where
   -- inside 'mask' or 'uninterruptibleMask'.
   --
   -- @since 0.1
-  throwTo :: (Exception e, HasCallStack) => ThreadId -> e -> m ()
+  throwTo :: (Exception e) => ThreadId -> e -> m ()
 
   -- | Returns the number of Haskell threads that can run truly
   -- simultaneously (on separate physical processors) at any given time.
   -- To change this value, use 'setNumCapabilities'.
   --
   -- @since 0.1
-  getNumCapabilities :: (HasCallStack) => m Int
+  getNumCapabilities :: m Int
 
   -- | Set the number of Haskell threads that can run truly simultaneously
   -- (on separate physical processors) at any given time. The number
@@ -124,7 +122,7 @@ class (Monad m) => MonadThread m where
   -- to avoid contention with other processes in the machine.
   --
   -- @since 0.1
-  setNumCapabilities :: (HasCallStack) => Int -> m ()
+  setNumCapabilities :: Int -> m ()
 
   -- | Returns the number of the capability on which the thread is currently
   -- running, and a boolean indicating whether the thread is locked to
@@ -132,20 +130,20 @@ class (Monad m) => MonadThread m where
   -- was created with @forkOn@.
   --
   -- @since 0.1
-  threadCapability :: (HasCallStack) => ThreadId -> m (Int, Bool)
+  threadCapability :: ThreadId -> m (Int, Bool)
 
 -- | @since 0.1
 instance MonadThread IO where
-  threadDelay = addCS . CC.threadDelay
+  threadDelay = CC.threadDelay
   {-# INLINEABLE threadDelay #-}
-  throwTo tid = addCS . CC.throwTo tid
   {-# INLINEABLE throwTo #-}
-  getNumCapabilities = addCS CC.getNumCapabilities
+  getNumCapabilities = CC.getNumCapabilities
   {-# INLINEABLE getNumCapabilities #-}
-  setNumCapabilities = addCS . CC.setNumCapabilities
+  setNumCapabilities = CC.setNumCapabilities
   {-# INLINEABLE setNumCapabilities #-}
-  threadCapability = addCS . CC.threadCapability
+  threadCapability = CC.threadCapability
   {-# INLINEABLE threadCapability #-}
+  throwTo = CC.throwTo
 
 -- | @since 0.1
 instance (MonadThread m) => MonadThread (ReaderT e m) where
@@ -164,7 +162,7 @@ instance (MonadThread m) => MonadThread (ReaderT e m) where
 -- runs sleep in the current thread for the specified number of microseconds.
 --
 -- @since 0.1
-microsleep :: (HasCallStack, MonadThread m) => Natural -> m ()
+microsleep :: (MonadThread m) => Natural -> m ()
 microsleep n = for_ (natToInts n) threadDelay
 {-# INLINEABLE microsleep #-}
 
@@ -172,7 +170,7 @@ microsleep n = for_ (natToInts n) threadDelay
 -- seconds.
 --
 -- @since 0.1
-sleep :: (HasCallStack, MonadThread m) => Natural -> m ()
+sleep :: (MonadThread m) => Natural -> m ()
 sleep = microsleep . (* 1_000_000)
 {-# INLINEABLE sleep #-}
 

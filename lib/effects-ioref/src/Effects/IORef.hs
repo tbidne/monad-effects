@@ -17,8 +17,6 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.IORef (IORef)
 import Data.IORef qualified as IORef
-import Effects.Exception (addCS)
-import GHC.Stack (HasCallStack)
 
 -- | 'IORef' effect.
 --
@@ -27,28 +25,28 @@ class (Monad m) => MonadIORef m where
   -- | Build a new 'IORef'.
   --
   -- @since 0.1
-  newIORef :: (HasCallStack) => a -> m (IORef a)
+  newIORef :: a -> m (IORef a)
 
   -- | Read the value of an 'IORef'.
   --
   -- @since 0.1
-  readIORef :: (HasCallStack) => IORef a -> m a
+  readIORef :: IORef a -> m a
 
   -- | Write a new value into an 'IORef'.
   --
   -- @since 0.1
-  writeIORef :: (HasCallStack) => IORef a -> a -> m ()
+  writeIORef :: IORef a -> a -> m ()
 
   -- | Variant of 'writeIORef' with the \"barrier to reordering\" property that
   -- 'atomicModifyIORef' has.
   --
   -- @since 0.1
-  atomicWriteIORef :: (HasCallStack) => IORef a -> a -> m ()
+  atomicWriteIORef :: IORef a -> a -> m ()
 
   -- | Strict version of 'modifyIORef'.
   --
   -- @since 0.1
-  modifyIORef' :: (HasCallStack) => IORef a -> (a -> a) -> m ()
+  modifyIORef' :: IORef a -> (a -> a) -> m ()
 
   -- | Strict version of 'Data.IORef.atomicModifyIORef'. This forces both
   -- the value stored in the 'IORef' and the value returned. The new value
@@ -61,22 +59,22 @@ class (Monad m) => MonadIORef m where
   -- thread.
   --
   -- @since 0.1
-  atomicModifyIORef' :: (HasCallStack) => IORef a -> (a -> (a, b)) -> m b
+  atomicModifyIORef' :: IORef a -> (a -> (a, b)) -> m b
 
 -- | @since 0.1
 instance MonadIORef IO where
-  newIORef = addCS . IORef.newIORef
+  newIORef = IORef.newIORef
   {-# INLINEABLE newIORef #-}
-  readIORef = addCS . IORef.readIORef
+  readIORef = IORef.readIORef
   {-# INLINEABLE readIORef #-}
-  writeIORef r = addCS . IORef.writeIORef r
   {-# INLINEABLE writeIORef #-}
-  atomicWriteIORef r = addCS . IORef.atomicWriteIORef r
   {-# INLINEABLE atomicWriteIORef #-}
-  modifyIORef' r = addCS . IORef.modifyIORef' r
   {-# INLINEABLE modifyIORef' #-}
-  atomicModifyIORef' r = addCS . IORef.atomicModifyIORef' r
   {-# INLINEABLE atomicModifyIORef' #-}
+  writeIORef = IORef.writeIORef
+  atomicWriteIORef = IORef.atomicWriteIORef
+  modifyIORef' = IORef.modifyIORef'
+  atomicModifyIORef' = IORef.atomicModifyIORef'
 
 -- | @since 0.1
 instance (MonadIORef m) => MonadIORef (ReaderT e m) where

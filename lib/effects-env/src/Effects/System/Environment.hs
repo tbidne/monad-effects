@@ -11,8 +11,6 @@ where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
-import Effects.Exception (addCS)
-import GHC.Stack (HasCallStack)
 import System.Environment qualified as Env
 
 {- ORMOLU_DISABLE -}
@@ -25,7 +23,7 @@ class Monad m => MonadEnv m where
   -- line arguments (not including the program name).
   --
   -- @since 0.1
-  getArgs :: HasCallStack => m [String]
+  getArgs :: m [String]
 
   -- | Computation 'getProgName' returns the name of the program as it was
   -- invoked.
@@ -37,7 +35,7 @@ class Monad m => MonadEnv m where
   -- is probably really @FOO.EXE@, and that is what 'getProgName' will return.
   --
   -- @since 0.1
-  getProgName :: HasCallStack => m String
+  getProgName :: m String
 
 #if MIN_VERSION_base(4,17,0)
   -- | Get an action to query the absolute pathname of the current executable.
@@ -55,7 +53,7 @@ class Monad m => MonadEnv m where
   -- the interpreter (e.g. ghci.)
   --
   -- @since 0.1
-  executablePath :: HasCallStack => Maybe (m (Maybe FilePath))
+  executablePath :: Maybe (m (Maybe FilePath))
 #endif
 
   -- | Returns the absolute pathname of the current executable,
@@ -74,7 +72,7 @@ class Monad m => MonadEnv m where
   -- reliable way to query the current executable.
   --
   -- @since 0.1
-  getExecutablePath :: HasCallStack => m FilePath
+  getExecutablePath :: m FilePath
   -- | Computation 'getEnv' @var@ returns the value
   -- of the environment variable @var@. For the inverse, the
   -- `System.Environment.setEnv` function can be used.
@@ -86,14 +84,14 @@ class Monad m => MonadEnv m where
 
   --
   -- @since 0.1
-  getEnv :: HasCallStack => String -> m String
+  getEnv :: String -> m String
   -- | Return the value of the environment variable @var@, or @Nothing@ if
   -- there is no such value.
   --
   -- For POSIX users, this is equivalent to 'System.Posix.Env.getEnv'.
   --
   -- @since 0.1
-  lookupEnv :: HasCallStack => String -> m (Maybe String)
+  lookupEnv :: String -> m (Maybe String)
   -- | @setEnv name value@ sets the specified environment variable to @value@.
   --
   -- Early versions of this function operated under the mistaken belief that
@@ -118,7 +116,7 @@ class Monad m => MonadEnv m where
   -- contains an equals sign.
   --
   -- @since 0.1
-  setEnv :: HasCallStack => String -> String -> m ()
+  setEnv :: String -> String -> m ()
   -- | @unsetEnv name@ removes the specified environment variable from the
   -- environment of the current process.
   --
@@ -126,17 +124,17 @@ class Monad m => MonadEnv m where
   -- contains an equals sign.
   --
   -- @since 0.1
-  unsetEnv :: HasCallStack => String -> m ()
+  unsetEnv :: String -> m ()
   -- | 'withArgs' @args act@ - while executing action @act@, have 'getArgs'
   -- return @args@.
   --
   -- @since 0.1
-  withArgs :: HasCallStack => [String] -> m a -> m a
+  withArgs :: [String] -> m a -> m a
   -- | 'withProgName' @name act@ - while executing action @act@,
   -- have 'getProgName' return @name@.
   --
   -- @since 0.1
-  withProgName :: HasCallStack => String -> m a -> m a
+  withProgName :: String -> m a -> m a
   -- | 'getEnvironment' retrieves the entire environment as a
   -- list of @(key,value)@ pairs.
   --
@@ -144,33 +142,33 @@ class Monad m => MonadEnv m where
   -- the @key@ is the whole entry and the @value@ is the empty string.
   --
   -- @since 0.1
-  getEnvironment :: HasCallStack => m [(String, String)]
+  getEnvironment :: m [(String, String)]
 
 -- | @since 0.1
 instance MonadEnv IO where
-  getArgs = addCS Env.getArgs
+  getArgs = Env.getArgs
   {-# INLINEABLE getArgs #-}
-  getProgName = addCS Env.getProgName
+  getProgName = Env.getProgName
   {-# INLINEABLE getProgName #-}
 #if MIN_VERSION_base(4,17,0)
-  executablePath = fmap addCS Env.executablePath
+  executablePath = Env.executablePath
   {-# INLINEABLE executablePath #-}
 #endif
-  getExecutablePath = addCS Env.getExecutablePath
+  getExecutablePath = Env.getExecutablePath
   {-# INLINEABLE getExecutablePath #-}
-  getEnv = addCS . Env.getEnv
+  getEnv = Env.getEnv
   {-# INLINEABLE getEnv #-}
-  lookupEnv = addCS . Env.lookupEnv
+  lookupEnv = Env.lookupEnv
   {-# INLINEABLE lookupEnv #-}
-  setEnv x = addCS . Env.setEnv x
+  setEnv = Env.setEnv
   {-# INLINEABLE setEnv #-}
-  unsetEnv = addCS . Env.unsetEnv
+  unsetEnv = Env.unsetEnv
   {-# INLINEABLE unsetEnv #-}
-  withArgs x = addCS . Env.withArgs x
+  withArgs = Env.withArgs
   {-# INLINEABLE withArgs #-}
-  withProgName x = addCS . Env.withProgName x
+  withProgName = Env.withProgName
   {-# INLINEABLE withProgName #-}
-  getEnvironment = addCS Env.getEnvironment
+  getEnvironment = Env.getEnvironment
   {-# INLINEABLE getEnvironment #-}
 
 -- | @since 0.1

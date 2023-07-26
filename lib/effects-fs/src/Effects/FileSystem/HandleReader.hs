@@ -47,9 +47,8 @@ import Data.ByteString (ByteString)
 import Data.ByteString.Char8 qualified as C8
 import Data.Text (Text)
 import Data.Text.Encoding.Error (UnicodeException)
-import Effects.Exception (MonadThrow, addCS)
+import Effects.Exception (MonadThrow)
 import Effects.FileSystem.Utils qualified as FsUtils
-import GHC.Stack (HasCallStack)
 import System.IO (BufferMode, Handle)
 import System.IO qualified as IO
 
@@ -60,123 +59,123 @@ class (Monad m) => MonadHandleReader m where
   -- | Lifted 'IO.hIsEOF'.
   --
   -- @since 0.1
-  hIsEOF :: (HasCallStack) => Handle -> m Bool
+  hIsEOF :: Handle -> m Bool
 
   -- | Lifted 'IO.hGetBuffering'.
   --
   -- @since 0.1
-  hGetBuffering :: (HasCallStack) => Handle -> m BufferMode
+  hGetBuffering :: Handle -> m BufferMode
 
   -- | Lifted 'IO.hIsOpen'.
   --
   -- @since 0.1
-  hIsOpen :: (HasCallStack) => Handle -> m Bool
+  hIsOpen :: Handle -> m Bool
 
   -- | Lifted 'IO.hIsClosed'.
   --
   -- @since 0.1
-  hIsClosed :: (HasCallStack) => Handle -> m Bool
+  hIsClosed :: Handle -> m Bool
 
   -- | Lifted 'IO.hIsReadable'.
   --
   -- @since 0.1
-  hIsReadable :: (HasCallStack) => Handle -> m Bool
+  hIsReadable :: Handle -> m Bool
 
   -- | Lifted 'IO.hIsWritable'.
   --
   -- @since 0.1
-  hIsWritable :: (HasCallStack) => Handle -> m Bool
+  hIsWritable :: Handle -> m Bool
 
   -- | Lifted 'IO.hIsSeekable'.
   --
   -- @since 0.1
-  hIsSeekable :: (HasCallStack) => Handle -> m Bool
+  hIsSeekable :: Handle -> m Bool
 
   -- | Lifted 'IO.hIsTerminalDevice'.
   --
   -- @since 0.1
-  hIsTerminalDevice :: (HasCallStack) => Handle -> m Bool
+  hIsTerminalDevice :: Handle -> m Bool
 
   -- | Lifted 'IO.hGetEcho'.
   --
   -- @since 0.1
-  hGetEcho :: (HasCallStack) => Handle -> m Bool
+  hGetEcho :: Handle -> m Bool
 
   -- | Lifted 'IO.hWaitForInput'.
   --
   -- @since 0.1
-  hWaitForInput :: (HasCallStack) => Handle -> Int -> m Bool
+  hWaitForInput :: Handle -> Int -> m Bool
 
   -- | Lifted 'IO.hReady'.
   --
   -- @since 0.1
-  hReady :: (HasCallStack) => Handle -> m Bool
+  hReady :: Handle -> m Bool
 
   -- | Lifted 'IO.hGetChar'.
   --
   -- @since 0.1
-  hGetChar :: (HasCallStack) => Handle -> m Char
+  hGetChar :: Handle -> m Char
 
   -- | Lifted 'C8.hGetLine'.
   --
   -- @since 0.1
-  hGetLine :: (HasCallStack) => Handle -> m ByteString
+  hGetLine :: Handle -> m ByteString
 
   -- | Lifted 'C8.hGetContents'.
   --
   -- @since 0.1
-  hGetContents :: (HasCallStack) => Handle -> m ByteString
+  hGetContents :: Handle -> m ByteString
 
   -- | Lifted 'C8.hGet'.
   --
   -- @since 0.1
-  hGet :: (HasCallStack) => Handle -> Int -> m ByteString
+  hGet :: Handle -> Int -> m ByteString
 
   -- | Lifted 'C8.hGetSome'.
   --
   -- @since 0.1
-  hGetSome :: (HasCallStack) => Handle -> Int -> m ByteString
+  hGetSome :: Handle -> Int -> m ByteString
 
   -- | Lifted 'C8.hGetNonBlocking'.
   --
   -- @since 0.1
-  hGetNonBlocking :: (HasCallStack) => Handle -> Int -> m ByteString
+  hGetNonBlocking :: Handle -> Int -> m ByteString
 
 -- | @since 0.1
 instance MonadHandleReader IO where
-  hIsEOF = addCS . IO.hIsEOF
+  hIsEOF = IO.hIsEOF
   {-# INLINEABLE hIsEOF #-}
-  hGetBuffering = addCS . IO.hGetBuffering
+  hGetBuffering = IO.hGetBuffering
   {-# INLINEABLE hGetBuffering #-}
-  hIsOpen = addCS . IO.hIsOpen
+  hIsOpen = IO.hIsOpen
   {-# INLINEABLE hIsOpen #-}
-  hIsClosed = addCS . IO.hIsClosed
+  hIsClosed = IO.hIsClosed
   {-# INLINEABLE hIsClosed #-}
-  hIsReadable = addCS . IO.hIsReadable
+  hIsReadable = IO.hIsReadable
   {-# INLINEABLE hIsReadable #-}
-  hIsWritable = addCS . IO.hIsWritable
+  hIsWritable = IO.hIsWritable
   {-# INLINEABLE hIsWritable #-}
-  hIsSeekable = addCS . IO.hIsSeekable
+  hIsSeekable = IO.hIsSeekable
   {-# INLINEABLE hIsSeekable #-}
-  hIsTerminalDevice = addCS . IO.hIsTerminalDevice
+  hIsTerminalDevice = IO.hIsTerminalDevice
   {-# INLINEABLE hIsTerminalDevice #-}
-  hGetEcho = addCS . IO.hGetEcho
+  hGetEcho = IO.hGetEcho
   {-# INLINEABLE hGetEcho #-}
-  hWaitForInput h = addCS . IO.hWaitForInput h
+  hWaitForInput = IO.hWaitForInput
   {-# INLINEABLE hWaitForInput #-}
-  hReady = addCS . IO.hReady
+  hReady = IO.hReady
   {-# INLINEABLE hReady #-}
-  hGetChar = addCS . IO.hGetChar
+  hGetChar = IO.hGetChar
   {-# INLINEABLE hGetChar #-}
-  hGetLine = addCS . C8.hGetLine
+  hGetLine = C8.hGetLine
   {-# INLINEABLE hGetLine #-}
-  hGetContents = addCS . C8.hGetContents
+  hGetContents = C8.hGetContents
   {-# INLINEABLE hGetContents #-}
-  hGet h = addCS . C8.hGet h
+  hGet = C8.hGet
   {-# INLINEABLE hGet #-}
-  hGetSome h = addCS . C8.hGetSome h
+  hGetSome = C8.hGetSome
   {-# INLINEABLE hGetSome #-}
-  hGetNonBlocking h = addCS . C8.hGetNonBlocking h
+  hGetNonBlocking = C8.hGetNonBlocking
   {-# INLINEABLE hGetNonBlocking #-}
 
 -- | @since 0.1
@@ -220,8 +219,7 @@ instance (MonadHandleReader m) => MonadHandleReader (ReaderT e m) where
 --
 -- @since 0.1
 hGetLineUtf8 ::
-  ( HasCallStack,
-    MonadHandleReader m
+  ( MonadHandleReader m
   ) =>
   Handle ->
   m (Either UnicodeException Text)
@@ -231,7 +229,7 @@ hGetLineUtf8 = fmap FsUtils.decodeUtf8 . hGetLine
 -- | 'hGetLine' that converts to UTF-8 in lenient mode.
 --
 -- @since 0.1
-hGetLineUtf8Lenient :: (HasCallStack, MonadHandleReader m) => Handle -> m Text
+hGetLineUtf8Lenient :: (MonadHandleReader m) => Handle -> m Text
 hGetLineUtf8Lenient = fmap FsUtils.decodeUtf8Lenient . hGetLine
 {-# INLINEABLE hGetLineUtf8Lenient #-}
 
@@ -239,8 +237,7 @@ hGetLineUtf8Lenient = fmap FsUtils.decodeUtf8Lenient . hGetLine
 --
 -- @since 0.1
 hGetLineUtf8ThrowM ::
-  ( HasCallStack,
-    MonadHandleReader m,
+  ( MonadHandleReader m,
     MonadThrow m
   ) =>
   Handle ->
@@ -252,8 +249,7 @@ hGetLineUtf8ThrowM = hGetLine >=> FsUtils.decodeUtf8ThrowM
 --
 -- @since 0.1
 hGetContentsUtf8 ::
-  ( HasCallStack,
-    MonadHandleReader m
+  ( MonadHandleReader m
   ) =>
   Handle ->
   m (Either UnicodeException Text)
@@ -264,8 +260,7 @@ hGetContentsUtf8 = fmap FsUtils.decodeUtf8 . hGetContents
 --
 -- @since 0.1
 hGetContentsUtf8Lenient ::
-  ( HasCallStack,
-    MonadHandleReader m
+  ( MonadHandleReader m
   ) =>
   Handle ->
   m Text
@@ -276,8 +271,7 @@ hGetContentsUtf8Lenient = fmap FsUtils.decodeUtf8Lenient . hGetContents
 --
 -- @since 0.1
 hGetContentsUtf8ThrowM ::
-  ( HasCallStack,
-    MonadHandleReader m,
+  ( MonadHandleReader m,
     MonadThrow m
   ) =>
   Handle ->
@@ -289,8 +283,7 @@ hGetContentsUtf8ThrowM = hGetContents >=> FsUtils.decodeUtf8ThrowM
 --
 -- @since 0.1
 hGetUtf8 ::
-  ( HasCallStack,
-    MonadHandleReader m
+  ( MonadHandleReader m
   ) =>
   Handle ->
   Int ->
@@ -302,8 +295,7 @@ hGetUtf8 h = fmap FsUtils.decodeUtf8 . hGet h
 --
 -- @since 0.1
 hGetUtf8Lenient ::
-  ( HasCallStack,
-    MonadHandleReader m
+  ( MonadHandleReader m
   ) =>
   Handle ->
   Int ->
@@ -315,8 +307,7 @@ hGetUtf8Lenient h = fmap FsUtils.decodeUtf8Lenient . hGet h
 --
 -- @since 0.1
 hGetUtf8ThrowM ::
-  ( HasCallStack,
-    MonadHandleReader m,
+  ( MonadHandleReader m,
     MonadThrow m
   ) =>
   Handle ->
@@ -329,8 +320,7 @@ hGetUtf8ThrowM h = hGet h >=> FsUtils.decodeUtf8ThrowM
 --
 -- @since 0.1
 hGetSomeUtf8 ::
-  ( HasCallStack,
-    MonadHandleReader m
+  ( MonadHandleReader m
   ) =>
   Handle ->
   Int ->
@@ -342,8 +332,7 @@ hGetSomeUtf8 h = fmap FsUtils.decodeUtf8 . hGetSome h
 --
 -- @since 0.1
 hGetSomeUtf8Lenient ::
-  ( HasCallStack,
-    MonadHandleReader m
+  ( MonadHandleReader m
   ) =>
   Handle ->
   Int ->
@@ -355,8 +344,7 @@ hGetSomeUtf8Lenient h = fmap FsUtils.decodeUtf8Lenient . hGetSome h
 --
 -- @since 0.1
 hGetSomeUtf8ThrowM ::
-  ( HasCallStack,
-    MonadHandleReader m,
+  ( MonadHandleReader m,
     MonadThrow m
   ) =>
   Handle ->
@@ -369,8 +357,7 @@ hGetSomeUtf8ThrowM h = hGetSome h >=> FsUtils.decodeUtf8ThrowM
 --
 -- @since 0.1
 hGetNonBlockingUtf8 ::
-  ( HasCallStack,
-    MonadHandleReader m
+  ( MonadHandleReader m
   ) =>
   Handle ->
   Int ->
@@ -382,8 +369,7 @@ hGetNonBlockingUtf8 h = fmap FsUtils.decodeUtf8 . hGetNonBlocking h
 --
 -- @since 0.1
 hGetNonBlockingUtf8Lenient ::
-  ( HasCallStack,
-    MonadHandleReader m
+  ( MonadHandleReader m
   ) =>
   Handle ->
   Int ->
@@ -395,8 +381,7 @@ hGetNonBlockingUtf8Lenient h = fmap FsUtils.decodeUtf8Lenient . hGetNonBlocking 
 --
 -- @since 0.1
 hGetNonBlockingUtf8ThrowM ::
-  ( HasCallStack,
-    MonadHandleReader m,
+  ( MonadHandleReader m,
     MonadThrow m
   ) =>
   Handle ->

@@ -14,10 +14,8 @@ where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
-import Effects.Exception (addCS)
 import Effects.FileSystem.Utils (OsPath)
 import Effects.FileSystem.Utils qualified as FsUtils
-import GHC.Stack (HasCallStack)
 import Options.Applicative (ParserInfo, ParserPrefs, ParserResult, ReadM)
 import Options.Applicative qualified as OA
 
@@ -35,26 +33,26 @@ class (Monad m) => MonadOptparse m where
   -- occurs.
   --
   -- @since 0.1
-  execParser :: (HasCallStack) => ParserInfo a -> m a
+  execParser :: ParserInfo a -> m a
 
   -- | Run a program description with custom preferences.
   --
   -- @since 0.1
-  customExecParser :: (HasCallStack) => ParserPrefs -> ParserInfo a -> m a
+  customExecParser :: ParserPrefs -> ParserInfo a -> m a
 
   -- | Handle `ParserResult`.
   --
   -- @since 0.1
-  handleParseResult :: (HasCallStack) => ParserResult a -> m a
+  handleParseResult :: ParserResult a -> m a
 
 -- | @since 0.1
 instance MonadOptparse IO where
-  execParser = addCS . OA.execParser
+  execParser = OA.execParser
   {-# INLINEABLE execParser #-}
-  customExecParser p = addCS . OA.customExecParser p
-  {-# INLINEABLE customExecParser #-}
-  handleParseResult = addCS . OA.handleParseResult
+  handleParseResult = OA.handleParseResult
   {-# INLINEABLE handleParseResult #-}
+  customExecParser = OA.customExecParser
+  {-# INLINEABLE customExecParser #-}
 
 -- | @since 0.1
 instance (MonadOptparse m) => MonadOptparse (ReaderT env m) where

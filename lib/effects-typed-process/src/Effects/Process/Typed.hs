@@ -110,8 +110,6 @@ where
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Data.ByteString.Lazy qualified as BSL
-import Effects.Exception (addCS)
-import GHC.Stack (HasCallStack)
 import System.Exit (ExitCode)
 import System.Process.Typed
   ( Process,
@@ -129,17 +127,12 @@ class (Monad m) => MonadTypedProcess m where
   -- | Lifted 'P.runProcess'.
   --
   -- @since 0.1
-  runProcess ::
-    (HasCallStack) =>
-    -- | .
-    ProcessConfig stdin stdout stderr ->
-    m ExitCode
+  runProcess :: ProcessConfig stdin stdout stderr -> m ExitCode
 
   -- | Lifted 'P.readProcess'.
   --
   -- @since 0.1
   readProcess ::
-    (HasCallStack) =>
     -- | .
     ProcessConfig stdin stdoutIgnored stderrIgnored ->
     m (ExitCode, BSL.ByteString, BSL.ByteString)
@@ -148,8 +141,6 @@ class (Monad m) => MonadTypedProcess m where
   --
   -- @since 0.1
   readProcessStdout ::
-    (HasCallStack) =>
-    -- | .
     ProcessConfig stdin stdoutIgnored stderr ->
     m (ExitCode, BSL.ByteString)
 
@@ -157,8 +148,6 @@ class (Monad m) => MonadTypedProcess m where
   --
   -- @since 0.1
   readProcessStderr ::
-    (HasCallStack) =>
-    -- | .
     ProcessConfig stdin stdout stderrIgnored ->
     m (ExitCode, BSL.ByteString)
 
@@ -166,8 +155,6 @@ class (Monad m) => MonadTypedProcess m where
   --
   -- @since 0.1
   readProcessInterleaved ::
-    (HasCallStack) =>
-    -- | .
     ProcessConfig stdin stdoutIgnored stderrIgnored ->
     m (ExitCode, BSL.ByteString)
 
@@ -175,7 +162,6 @@ class (Monad m) => MonadTypedProcess m where
   --
   -- @since 0.1
   withProcessWait ::
-    (HasCallStack) =>
     -- | .
     ProcessConfig stdin stdout stderr ->
     (Process stdin stdout stderr -> m a) ->
@@ -185,7 +171,6 @@ class (Monad m) => MonadTypedProcess m where
   --
   -- @since 0.1
   withProcessTerm ::
-    (HasCallStack) =>
     -- | .
     ProcessConfig stdin stdout stderr ->
     (Process stdin stdout stderr -> m a) ->
@@ -195,35 +180,23 @@ class (Monad m) => MonadTypedProcess m where
   --
   -- @since 0.1
   startProcess ::
-    (HasCallStack) =>
-    -- | .
     ProcessConfig stdin stdout stderr ->
     m (Process stdin stdout stderr)
 
   -- | Lifted 'P.stopProcess'.
   --
   -- @since 0.1
-  stopProcess ::
-    (HasCallStack) =>
-    -- | .
-    Process stdin stdout stderr ->
-    m ()
+  stopProcess :: Process stdin stdout stderr -> m ()
 
   -- | Lifted 'P.runProcess_'.
   --
   -- @since 0.1
-  runProcess_ ::
-    (HasCallStack) =>
-    -- | .
-    ProcessConfig stdin stdout stderr ->
-    m ()
+  runProcess_ :: ProcessConfig stdin stdout stderr -> m ()
 
   -- | Lifted 'P.readProcess_'.
   --
   -- @since 0.1
   readProcess_ ::
-    (HasCallStack) =>
-    -- | .
     ProcessConfig stdin stdoutIgnored stderrIgnored ->
     m (BSL.ByteString, BSL.ByteString)
 
@@ -231,8 +204,6 @@ class (Monad m) => MonadTypedProcess m where
   --
   -- @since 0.1
   readProcessStdout_ ::
-    (HasCallStack) =>
-    -- | .
     ProcessConfig stdin stdoutIgnored stderr ->
     m BSL.ByteString
 
@@ -240,8 +211,6 @@ class (Monad m) => MonadTypedProcess m where
   --
   -- @since 0.1
   readProcessStderr_ ::
-    (HasCallStack) =>
-    -- | .
     ProcessConfig stdin stdout stderrIgnored ->
     m BSL.ByteString
 
@@ -249,8 +218,6 @@ class (Monad m) => MonadTypedProcess m where
   --
   -- @since 0.1
   readProcessInterleaved_ ::
-    (HasCallStack) =>
-    -- | .
     ProcessConfig stdin stdoutIgnored stderrIgnored ->
     m BSL.ByteString
 
@@ -258,7 +225,6 @@ class (Monad m) => MonadTypedProcess m where
   --
   -- @since 0.1
   withProcessWait_ ::
-    (HasCallStack) =>
     -- | .
     ProcessConfig stdin stdout stderr ->
     (Process stdin stdout stderr -> m a) ->
@@ -268,7 +234,6 @@ class (Monad m) => MonadTypedProcess m where
   --
   -- @since 0.1
   withProcessTerm_ ::
-    (HasCallStack) =>
     -- | .
     ProcessConfig stdin stdout stderr ->
     (Process stdin stdout stderr -> m a) ->
@@ -277,69 +242,57 @@ class (Monad m) => MonadTypedProcess m where
   -- | Lifted 'P.waitExitCode'.
   --
   -- @since 0.1
-  waitExitCode ::
-    (HasCallStack) =>
-    -- | .
-    Process stdin stdout stderr ->
-    m ExitCode
+  waitExitCode :: Process stdin stdout stderr -> m ExitCode
 
   -- | Lifted 'P.getExitCode'.
   --
   -- @since 0.1
-  getExitCode ::
-    (HasCallStack) =>
-    -- | .
-    Process stdin stdout stderr ->
-    m (Maybe ExitCode)
+  getExitCode :: Process stdin stdout stderr -> m (Maybe ExitCode)
 
   -- | Lifted 'P.checkExitCode'.
   --
   -- @since 0.1
-  checkExitCode ::
-    (HasCallStack) =>
-    -- | .
-    Process stdin stdout stderr ->
-    m ()
+  checkExitCode :: Process stdin stdout stderr -> m ()
 
 -- | @since 0.1
 instance MonadTypedProcess IO where
-  runProcess = addCS . P.runProcess
+  runProcess = P.runProcess
   {-# INLINEABLE runProcess #-}
-  readProcess = addCS . P.readProcess
+  readProcess = P.readProcess
   {-# INLINEABLE readProcess #-}
-  readProcessStdout = addCS . P.readProcessStdout
+  readProcessStdout = P.readProcessStdout
   {-# INLINEABLE readProcessStdout #-}
-  readProcessStderr = addCS . P.readProcessStderr
+  readProcessStderr = P.readProcessStderr
   {-# INLINEABLE readProcessStderr #-}
-  readProcessInterleaved = addCS . P.readProcessInterleaved
+  readProcessInterleaved = P.readProcessInterleaved
   {-# INLINEABLE readProcessInterleaved #-}
-  withProcessWait pc = addCS . P.withProcessWait pc
+  withProcessWait = P.withProcessWait
   {-# INLINEABLE withProcessWait #-}
-  withProcessTerm pc = addCS . P.withProcessTerm pc
+  withProcessTerm = P.withProcessTerm
   {-# INLINEABLE withProcessTerm #-}
-  startProcess = addCS . P.startProcess
+  startProcess = P.startProcess
   {-# INLINEABLE startProcess #-}
-  stopProcess = addCS . P.stopProcess
+  stopProcess = P.stopProcess
   {-# INLINEABLE stopProcess #-}
-  runProcess_ = addCS . P.runProcess_
+  runProcess_ = P.runProcess_
   {-# INLINEABLE runProcess_ #-}
-  readProcess_ = addCS . P.readProcess_
+  readProcess_ = P.readProcess_
   {-# INLINEABLE readProcess_ #-}
-  readProcessStdout_ = addCS . P.readProcessStdout_
+  readProcessStdout_ = P.readProcessStdout_
   {-# INLINEABLE readProcessStdout_ #-}
-  readProcessStderr_ = addCS . P.readProcessStderr_
+  readProcessStderr_ = P.readProcessStderr_
   {-# INLINEABLE readProcessStderr_ #-}
-  readProcessInterleaved_ = addCS . P.readProcessInterleaved_
+  readProcessInterleaved_ = P.readProcessInterleaved_
   {-# INLINEABLE readProcessInterleaved_ #-}
-  withProcessWait_ pc = addCS . P.withProcessWait_ pc
+  withProcessWait_ = P.withProcessWait_
   {-# INLINEABLE withProcessWait_ #-}
-  withProcessTerm_ pc = addCS . P.withProcessTerm_ pc
+  withProcessTerm_ = P.withProcessTerm_
   {-# INLINEABLE withProcessTerm_ #-}
-  waitExitCode = addCS . P.waitExitCode
+  waitExitCode = P.waitExitCode
   {-# INLINEABLE waitExitCode #-}
-  getExitCode = addCS . P.getExitCode
+  getExitCode = P.getExitCode
   {-# INLINEABLE getExitCode #-}
-  checkExitCode = addCS . P.checkExitCode
+  checkExitCode = P.checkExitCode
   {-# INLINEABLE checkExitCode #-}
 
 -- | @since 0.1

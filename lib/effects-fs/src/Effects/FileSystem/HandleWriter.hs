@@ -29,10 +29,9 @@ import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Char8 qualified as Char8
 import Data.Text (Text)
-import Effects.Exception (MonadThrow, addCS, exitFailure)
+import Effects.Exception (MonadThrow, exitFailure)
 import Effects.FileSystem.Utils (OsPath)
 import Effects.FileSystem.Utils qualified as FsUtils
-import GHC.Stack (HasCallStack)
 import System.IO
   ( BufferMode (BlockBuffering, LineBuffering, NoBuffering),
     Handle,
@@ -48,81 +47,81 @@ class (Monad m) => MonadHandleWriter m where
   -- | Lifted 'FsUtils.openBinaryFileIO'.
   --
   -- @since 0.1
-  openBinaryFile :: (HasCallStack) => OsPath -> IOMode -> m Handle
+  openBinaryFile :: OsPath -> IOMode -> m Handle
 
   -- | Lifted 'FsUtils.withBinaryFileIO'.
   --
   -- @since 0.1
-  withBinaryFile :: (HasCallStack) => OsPath -> IOMode -> (Handle -> m a) -> m a
+  withBinaryFile :: OsPath -> IOMode -> (Handle -> m a) -> m a
 
   -- | Lifted 'IO.hClose'.
   --
   -- @since 0.1
-  hClose :: (HasCallStack) => Handle -> m ()
+  hClose :: Handle -> m ()
 
   -- | Lifted 'IO.hFlush'.
   --
   -- @since 0.1
-  hFlush :: (HasCallStack) => Handle -> m ()
+  hFlush :: Handle -> m ()
 
   -- | Lifted 'IO.hSetFileSize'.
   --
   -- @since 0.1
-  hSetFileSize :: (HasCallStack) => Handle -> Integer -> m ()
+  hSetFileSize :: Handle -> Integer -> m ()
 
   -- | Lifted 'IO.hSetBuffering'.
   --
   -- @since 0.1
-  hSetBuffering :: (HasCallStack) => Handle -> BufferMode -> m ()
+  hSetBuffering :: Handle -> BufferMode -> m ()
 
   -- | Lifted 'IO.hSeek'.
   --
   -- @since 0.1
-  hSeek :: (HasCallStack) => Handle -> SeekMode -> Integer -> m ()
+  hSeek :: Handle -> SeekMode -> Integer -> m ()
 
   -- | Lifted 'IO.hTell'.
   --
   -- @since 0.1
-  hTell :: (HasCallStack) => Handle -> m Integer
+  hTell :: Handle -> m Integer
 
   -- | Lifted 'IO.hSetEcho'.
   --
   -- @since 0.1
-  hSetEcho :: (HasCallStack) => Handle -> Bool -> m ()
+  hSetEcho :: Handle -> Bool -> m ()
 
   -- | Lifted 'BS.hPut'.
   --
   -- @since 0.1
-  hPut :: (HasCallStack) => Handle -> ByteString -> m ()
+  hPut :: Handle -> ByteString -> m ()
 
   -- | Lifted 'BS.hPutNonBlocking'.
   --
   -- @since 0.1
-  hPutNonBlocking :: (HasCallStack) => Handle -> ByteString -> m ByteString
+  hPutNonBlocking :: Handle -> ByteString -> m ByteString
 
 -- | @since 0.1
 instance MonadHandleWriter IO where
-  openBinaryFile f = addCS . FsUtils.openBinaryFileIO f
+  openBinaryFile = FsUtils.openBinaryFileIO
   {-# INLINEABLE openBinaryFile #-}
-  withBinaryFile f m = addCS . FsUtils.withBinaryFileIO f m
+  withBinaryFile = FsUtils.withBinaryFileIO
   {-# INLINEABLE withBinaryFile #-}
-  hClose = addCS . IO.hClose
+  hClose = IO.hClose
   {-# INLINEABLE hClose #-}
-  hFlush = addCS . IO.hFlush
+  hFlush = IO.hFlush
   {-# INLINEABLE hFlush #-}
-  hSetFileSize h = addCS . IO.hSetFileSize h
-  {-# INLINEABLE hSetFileSize #-}
-  hSetBuffering h = addCS . IO.hSetBuffering h
-  {-# INLINEABLE hSetBuffering #-}
-  hSeek h m = addCS . IO.hSeek h m
-  {-# INLINEABLE hSeek #-}
-  hTell = addCS . IO.hTell
+  hTell = IO.hTell
   {-# INLINEABLE hTell #-}
-  hSetEcho h = addCS . IO.hSetEcho h
+  hSetFileSize = IO.hSetFileSize
+  {-# INLINEABLE hSetFileSize #-}
+  hSetBuffering = IO.hSetBuffering
+  {-# INLINEABLE hSetBuffering #-}
+  hSeek = IO.hSeek
+  {-# INLINEABLE hSeek #-}
+  hSetEcho = IO.hSetEcho
   {-# INLINEABLE hSetEcho #-}
-  hPut h = addCS . BS.hPut h
+  hPut = BS.hPut
   {-# INLINEABLE hPut #-}
-  hPutNonBlocking h = addCS . BS.hPutNonBlocking h
+  hPutNonBlocking = BS.hPutNonBlocking
   {-# INLINEABLE hPutNonBlocking #-}
 
 -- | @since 0.1
@@ -154,7 +153,7 @@ instance (MonadHandleWriter m) => MonadHandleWriter (ReaderT env m) where
 -- | Writes the UTF-8 text to the handle.
 --
 -- @since 0.1
-hPutUtf8 :: (HasCallStack, MonadHandleWriter m) => Handle -> Text -> m ()
+hPutUtf8 :: (MonadHandleWriter m) => Handle -> Text -> m ()
 hPutUtf8 h = hPut h . FsUtils.encodeUtf8
 {-# INLINEABLE hPutUtf8 #-}
 
@@ -162,8 +161,7 @@ hPutUtf8 h = hPut h . FsUtils.encodeUtf8
 --
 -- @since 0.1
 hPutNonBlockingUtf8 ::
-  ( HasCallStack,
-    MonadHandleWriter m
+  ( MonadHandleWriter m
   ) =>
   Handle ->
   Text ->
@@ -174,7 +172,7 @@ hPutNonBlockingUtf8 h = hPutNonBlocking h . FsUtils.encodeUtf8
 -- | Write given error message to `stderr` and terminate with `exitFailure`.
 --
 -- @since 0.1
-die :: (HasCallStack, MonadHandleWriter m, MonadThrow m) => String -> m a
+die :: (MonadHandleWriter m, MonadThrow m) => String -> m a
 die err = hPut IO.stderr err' *> exitFailure
   where
     err' = Char8.pack err
