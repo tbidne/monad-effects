@@ -76,7 +76,7 @@ throwsExitFailure = testCase "Calls exitFailure" $ do
         [ "ExitFailure 0",
           "CallStack (from HasCallStack):",
           "  throwCS, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception",
-          "  exitWith, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-inplace:Effects.Exception",
+          "  exitWith, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception",
           "  exitFailure, called at test/unit/Main.hs:0:0 in main:Main"
         ]
 #else
@@ -298,7 +298,7 @@ zeroNums (x : xs) = case TR.readMaybe @Int [x] of
 stripPkgName :: String -> String
 stripPkgName [] = []
 stripPkgName (L.stripPrefix "effects-exceptions-0.0-" -> Just rest) =
-  "effects-exceptions-0.0-<pkg>" ++ skipUntilColon rest
+  "effects-exceptions-0.0-<pkg>" ++ stripPkgName (skipUntilColon rest)
 stripPkgName (x : xs) = x : stripPkgName xs
 
 skipUntilColon :: String -> String

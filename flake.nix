@@ -2,10 +2,6 @@
   description = "A Collection of Monadic Effects";
 
   # nix
-  inputs.flake-compat = {
-    url = "github:edolstra/flake-compat";
-    flake = false;
-  };
   inputs.flake-parts.url = "github:hercules-ci/flake-parts";
   inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
   inputs.nix-hs-utils.url = "github:tbidne/nix-hs-utils";
@@ -13,24 +9,24 @@
   # haskell
   inputs.algebra-simple = {
     url = "github:tbidne/algebra-simple";
-    inputs.flake-compat.follows = "flake-compat";
     inputs.flake-parts.follows = "flake-parts";
     inputs.nixpkgs.follows = "nixpkgs";
+    inputs.nix-hs-utils.url = "github:tbidne/nix-hs-utils";
   };
   inputs.bounds = {
     url = "github:tbidne/bounds";
-    inputs.flake-compat.follows = "flake-compat";
     inputs.flake-parts.follows = "flake-parts";
     inputs.nixpkgs.follows = "nixpkgs";
+    inputs.nix-hs-utils.url = "github:tbidne/nix-hs-utils";
   };
   inputs.smart-math = {
     url = "github:tbidne/smart-math";
-    inputs.flake-compat.follows = "flake-compat";
     inputs.flake-parts.follows = "flake-parts";
     inputs.nixpkgs.follows = "nixpkgs";
 
     inputs.algebra-simple.follows = "algebra-simple";
     inputs.bounds.follows = "bounds";
+    inputs.nix-hs-utils.url = "github:tbidne/nix-hs-utils";
   };
   outputs =
     inputs@{ flake-parts
@@ -41,23 +37,20 @@
     flake-parts.lib.mkFlake { inherit inputs; } {
       perSystem = { pkgs, ... }:
         let
-          ghc-version = "ghc944";
+          ghc-version = "ghc962";
           hlib = pkgs.haskell.lib;
           compiler = pkgs.haskell.packages."${ghc-version}".override {
             overrides = final: prev: {
-              apply-refact = prev.apply-refact_0_11_0_0;
-              # These tests seems to hang, see:
-              # https://github.com/ddssff/listlike/issues/23
-              ListLike = hlib.dontCheck prev.ListLike;
-              hedgehog = prev.hedgehog_1_2;
-              tasty-hedgehog = prev.tasty-hedgehog_1_4_0_0;
-              unix-compat = prev.unix-compat_0_6;
+              hedgehog = prev.hedgehog_1_3;
+              hlint = prev.hlint_3_6_1;
+              ormolu = prev.ormolu_0_7_1_0;
             } // nix-hs-utils.mkLibs inputs final [
               "algebra-simple"
               "bounds"
               "smart-math"
             ];
           };
+          pkgsCompiler = { inherit pkgs compiler; };
           hsOverlay =
             (compiler.extend (hlib.compose.packageSourceOverrides {
               effects-async = ./effects-async;
@@ -140,8 +133,8 @@
             inherit packages;
             withHoogle = true;
             buildInputs =
-              (nix-hs-utils.mkBuildTools pkgs compiler)
-              ++ (nix-hs-utils.mkDevTools { inherit pkgs compiler; });
+              (nix-hs-utils.mkBuildTools pkgsCompiler)
+              ++ (nix-hs-utils.mkDevTools pkgsCompiler);
           };
 
           apps = {
