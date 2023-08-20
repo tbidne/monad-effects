@@ -52,7 +52,6 @@ import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Data.Foldable (for_, traverse_)
 import Data.Time (UTCTime (..))
 import Effects.Exception (MonadMask, addCS, mask_, onException, throwCS)
-import Effects.FileSystem.Path (OsPath, (</>))
 import Effects.FileSystem.PathReader
   ( MonadPathReader
       ( doesDirectoryExist,
@@ -61,6 +60,7 @@ import Effects.FileSystem.PathReader
       ),
     listDirectoryRecursive,
   )
+import Effects.FileSystem.Utils (OsPath, (</>))
 import Effects.IORef
   ( MonadIORef (modifyIORef', newIORef, readIORef),
   )

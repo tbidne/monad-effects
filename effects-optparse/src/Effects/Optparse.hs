@@ -15,12 +15,10 @@ import Control.Exception (Exception (displayException))
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Effects.Exception (addCS)
+import Effects.FileSystem.Utils (OsPath, toOsPath)
 import GHC.Stack (HasCallStack)
 import Options.Applicative (ParserInfo, ParserPrefs, ParserResult, ReadM)
 import Options.Applicative qualified as OA
-import System.IO qualified as IO
-import System.OsPath (OsPath)
-import System.OsPath qualified as OsPath
 
 -- | Effects for
 -- [optparse-applicative](https://hackage.haskell.org/package/optparse-applicative/docs/Options-Applicative.html).
@@ -72,6 +70,6 @@ instance (MonadOptparse m) => MonadOptparse (ReaderT env m) where
 osPath :: ReadM OsPath
 osPath = do
   pathStr <- OA.str
-  case OsPath.encodeWith IO.utf16le IO.utf8 pathStr of
+  case toOsPath pathStr of
     Right p -> pure p
     Left ex -> fail $ "Error encoding string path: " ++ displayException ex

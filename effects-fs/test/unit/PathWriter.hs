@@ -26,7 +26,6 @@ import Effects.FileSystem.FileWriter
   ( MonadFileWriter (writeBinaryFile),
     OsPath,
   )
-import Effects.FileSystem.Path ((</>))
 import Effects.FileSystem.PathReader
   ( MonadPathReader,
     doesDirectoryExist,
@@ -42,6 +41,7 @@ import Effects.FileSystem.PathWriter
     createDirectoryIfMissing,
   )
 import Effects.FileSystem.PathWriter qualified as PathWriter
+import Effects.FileSystem.Utils ((</>))
 import Effects.IORef (MonadIORef (..))
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (assertBool, assertFailure, testCase, (@=?))

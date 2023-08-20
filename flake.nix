@@ -117,7 +117,12 @@
               effects-exceptions = ./effects-exceptions;
               effects-time = ./effects-time;
             };
-          packages.effects-optparse = mkPkgsException "effects-optparse" ./effects-optparse;
+          packages.effects-optparse =
+            mkPkg "effects-optparse" ./effects-optparse {
+              effects-exceptions = ./effects-exceptions;
+              effects-fs = ./effects-fs;
+              effects-ioref = ./effects-ioref;
+            };
           packages.effects-stm = mkPkgsException "effects-stm" ./effects-stm;
           packages.effects-time = mkPkgsException "effects-time" ./effects-time;
           packages.effects-terminal = mkPkgsException "effects-terminal" ./effects-terminal;

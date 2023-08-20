@@ -23,8 +23,7 @@ import Data.ByteString (ByteString)
 import Data.Text (Text)
 import Data.Text.Encoding qualified as TEnc
 import Effects.Exception (addCS)
-import Effects.FileSystem.Internal (appendBinaryFileIO, writeBinaryFileIO)
-import Effects.FileSystem.Path (OsPath)
+import Effects.FileSystem.Utils (OsPath, appendBinaryFileIO, writeBinaryFileIO)
 import GHC.Stack (HasCallStack)
 
 -- | Represents file-system writer effects.

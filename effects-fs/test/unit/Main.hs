@@ -1,12 +1,12 @@
 module Main (main) where
 
-import Effects.FileSystem.Path (OsPath, (</>))
 import Effects.FileSystem.PathReader (getTemporaryDirectory)
 import Effects.FileSystem.PathWriter
   ( createDirectoryIfMissing,
     removeDirectoryRecursiveIfExists,
     removePathForcibly,
   )
+import Effects.FileSystem.Utils (OsPath, (</>))
 import PathReader qualified
 import PathWriter qualified
 import System.Environment.Guard (ExpectEnv (ExpectEnvSet), guardOrElse')

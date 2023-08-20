@@ -31,7 +31,7 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Data.Time (UTCTime (..))
 import Effects.Exception (addCS)
-import Effects.FileSystem.Path (OsPath, (</>))
+import Effects.FileSystem.Utils (OsPath, (</>))
 import GHC.Stack (HasCallStack)
 import System.Directory
   ( Permissions (..),
