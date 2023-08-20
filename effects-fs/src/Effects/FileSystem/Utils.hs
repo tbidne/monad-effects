@@ -10,6 +10,9 @@ module Effects.FileSystem.Utils
     fromOsPathThrowM,
     (</>),
 
+    -- ** Legacy
+    combineFilePaths,
+
     -- * IO actions
     readBinaryFileIO,
     writeBinaryFileIO,
@@ -38,6 +41,7 @@ import Data.Text.Encoding qualified as TEnc
 import Data.Text.Encoding.Error (UnicodeException)
 import Data.Text.Encoding.Error qualified as TEncError
 import Effects.Exception (MonadThrow, throwM)
+import System.FilePath qualified as FP
 import System.IO (Handle, IOMode)
 import System.IO qualified as IO
 import System.OsPath (OsPath, (</>))
@@ -131,6 +135,13 @@ decodeUtf8ThrowM =
   TEnc.decodeUtf8' >.> \case
     Right txt -> pure txt
     Left ex -> throwM ex
+
+-- | Legacy alias for FilePaths' </> operator. Exists because the </> exported
+-- here is @'(</>)' :: 'OsPath' -> 'OsPath' -> 'OsPath'@.
+--
+-- @since 0.1
+combineFilePaths :: FilePath -> FilePath -> FilePath
+combineFilePaths = (FP.</>)
 
 -- | Flipped '(.)'.
 --
