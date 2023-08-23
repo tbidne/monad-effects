@@ -68,11 +68,11 @@
     },
     "nix-hs-utils": {
       "locked": {
-        "lastModified": 1688938047,
-        "narHash": "sha256-C1xLEtBPDi3fOJPjWWccQV0iBL6WWG7mL41hylaCQzw=",
+        "lastModified": 1692785004,
+        "narHash": "sha256-vIduZ18ljvfh5EhpZIKCMiLBrV3qgShHyESoNLr4tEE=",
         "owner": "tbidne",
         "repo": "nix-hs-utils",
-        "rev": "e7b21404ff3638d52685dd87e0b9abc0a43ef204",
+        "rev": "de183f4af585703c7be972fa071a9d0721ec8fae",
         "type": "github"
       },
       "original": {
@@ -83,11 +83,11 @@
     },
     "nix-hs-utils_2": {
       "locked": {
-        "lastModified": 1688938047,
-        "narHash": "sha256-C1xLEtBPDi3fOJPjWWccQV0iBL6WWG7mL41hylaCQzw=",
+        "lastModified": 1692785004,
+        "narHash": "sha256-vIduZ18ljvfh5EhpZIKCMiLBrV3qgShHyESoNLr4tEE=",
         "owner": "tbidne",
         "repo": "nix-hs-utils",
-        "rev": "e7b21404ff3638d52685dd87e0b9abc0a43ef204",
+        "rev": "de183f4af585703c7be972fa071a9d0721ec8fae",
         "type": "github"
       },
       "original": {
@@ -113,11 +113,11 @@
     },
     "nix-hs-utils_4": {
       "locked": {
-        "lastModified": 1688938047,
-        "narHash": "sha256-C1xLEtBPDi3fOJPjWWccQV0iBL6WWG7mL41hylaCQzw=",
+        "lastModified": 1692785004,
+        "narHash": "sha256-vIduZ18ljvfh5EhpZIKCMiLBrV3qgShHyESoNLr4tEE=",
         "owner": "tbidne",
         "repo": "nix-hs-utils",
-        "rev": "e7b21404ff3638d52685dd87e0b9abc0a43ef204",
+        "rev": "de183f4af585703c7be972fa071a9d0721ec8fae",
         "type": "github"
       },
       "original": {

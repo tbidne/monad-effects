@@ -12,6 +12,12 @@ module Effects.FileSystem.Utils
     toOsPathFail,
     unsafeToOsPath,
 
+    -- *** Validation
+    toValidOsPath,
+    toValidOsPathThrowM,
+    toValidOsPathFail,
+    unsafeToValidOsPath,
+
     -- ** From OsPath
     fromOsPath,
     fromOsPathThrowM,
@@ -75,13 +81,20 @@ import System.OsPath.Encoding (EncodingException (EncodingError))
 -- https://hasufell.github.io/posts/2022-06-29-fixing-haskell-filepaths.html
 
 -- | Encodes a 'FilePath' to an 'OsPath'. This is a pure version of filepath's
--- 'OsPath.encodeUtf' that __also__ checks 'OsPath.isValid' i.e. 'toOsPath'
+-- 'OsPath.encodeUtf' that returns the 'EncodingException' in the event of an
+-- error.
+--
+-- @since 0.1
+toOsPath :: FilePath -> Either EncodingException OsPath
+toOsPath = OsPath.encodeWith IO.utf8 IO.utf16le
+
+-- | 'toOsPath' that __also__ checks 'OsPath.isValid' i.e. 'toOsPath'
 -- only succeeds if that 'FilePath' can be encoded /and/ passes expected
 -- invariants.
 --
 -- @since 0.1
-toOsPath :: FilePath -> Either EncodingException OsPath
-toOsPath fp = case OsPath.encodeWith IO.utf8 IO.utf16le fp of
+toValidOsPath :: FilePath -> Either EncodingException OsPath
+toValidOsPath fp = case OsPath.encodeWith IO.utf8 IO.utf16le fp of
   Left ex -> Left ex
   Right op ->
     if OsPath.isValid op
@@ -106,12 +119,30 @@ toOsPathThrowM =
     Right txt -> pure txt
     Left ex -> throwM ex
 
+-- | 'toValidOsPath' that throws 'EncodingException'.
+--
+-- @since 0.1
+toValidOsPathThrowM :: (MonadThrow m) => FilePath -> m OsPath
+toValidOsPathThrowM =
+  toValidOsPath >.> \case
+    Right txt -> pure txt
+    Left ex -> throwM ex
+
 -- | 'toOsPathThrowM' with 'MonadFail'.
 --
 -- @since 0.1
 toOsPathFail :: (MonadFail m) => FilePath -> m OsPath
 toOsPathFail =
   toOsPath >.> \case
+    Right txt -> pure txt
+    Left ex -> fail $ displayException ex
+
+-- | 'toValidOsPath' with 'MonadFail'.
+--
+-- @since 0.1
+toValidOsPathFail :: (MonadFail m) => FilePath -> m OsPath
+toValidOsPathFail =
+  toValidOsPath >.> \case
     Right txt -> pure txt
     Left ex -> fail $ displayException ex
 
@@ -122,6 +153,23 @@ toOsPathFail =
 -- @since 0.1
 unsafeToOsPath :: FilePath -> OsPath
 unsafeToOsPath fp = case toOsPath fp of
+  Left ex ->
+    error $
+      mconcat
+        [ "Could not convert filepath ",
+          show fp,
+          " to ospath: ",
+          displayException ex
+        ]
+  Right p -> p
+
+-- | Unsafely converts a 'FilePath' to 'OsPath' falling back to 'error'.
+--
+-- __WARNING: Partial__
+--
+-- @since 0.1
+unsafeToValidOsPath :: FilePath -> OsPath
+unsafeToValidOsPath fp = case toValidOsPath fp of
   Left ex ->
     error $
       mconcat

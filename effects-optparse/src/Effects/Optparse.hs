@@ -8,6 +8,7 @@ module Effects.Optparse
     -- * Misc
     OsPath,
     osPath,
+    validOsPath,
   )
 where
 
@@ -15,7 +16,7 @@ import Control.Exception (Exception (displayException))
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Effects.Exception (addCS)
-import Effects.FileSystem.Utils (OsPath, toOsPath)
+import Effects.FileSystem.Utils (OsPath, toOsPath, toValidOsPath)
 import GHC.Stack (HasCallStack)
 import Options.Applicative (ParserInfo, ParserPrefs, ParserResult, ReadM)
 import Options.Applicative qualified as OA
@@ -71,5 +72,16 @@ osPath :: ReadM OsPath
 osPath = do
   pathStr <- OA.str
   case toOsPath pathStr of
+    Right p -> pure p
+    Left ex -> fail $ "Error encoding string path: " ++ displayException ex
+
+-- | 'OsPath' 'OA.Option' reader. This includes validation i.e. fails if the
+-- path is considered invalid on the given platform.
+--
+-- @since 0.1
+validOsPath :: ReadM OsPath
+validOsPath = do
+  pathStr <- OA.str
+  case toValidOsPath pathStr of
     Right p -> pure p
     Left ex -> fail $ "Error encoding string path: " ++ displayException ex
