@@ -22,6 +22,8 @@ module Effects.FileSystem.Utils
     fromOsPath,
     fromOsPathThrowM,
     fromOsPathFail,
+    fromOsPathShow,
+    fromOsPathShowText,
     unsafeFromOsPath,
 
     -- ** Functions
@@ -59,6 +61,7 @@ import Control.Monad ((>=>))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.Text (Text)
+import Data.Text qualified as T
 import Data.Text.Encoding qualified as TEnc
 import Data.Text.Encoding.Error (UnicodeException)
 import Data.Text.Encoding.Error qualified as TEncError
@@ -70,16 +73,6 @@ import System.OsPath (OsPath, osp, (</>))
 import System.OsPath qualified as OsPath
 import System.OsPath.Encoding (EncodingException (EncodingError))
 
--- NOTE: decodeUtf vs. decodeFs
---
--- The latter (decodeFs) is closer to what base used to do, so using it
--- would most closely keep the previous semantics. So why do we use decodeUtf
--- instead? Because the latter relies on the environment locale and seems
--- more likely to cause strange errors. See the haddocks and also the
--- following blog post.
---
--- https://hasufell.github.io/posts/2022-06-29-fixing-haskell-filepaths.html
-
 -- | Encodes a 'FilePath' to an 'OsPath'. This is a pure version of filepath's
 -- 'OsPath.encodeUtf' that returns the 'EncodingException' in the event of an
 -- error.
@@ -89,26 +82,17 @@ toOsPath :: FilePath -> Either EncodingException OsPath
 toOsPath = OsPath.encodeWith IO.utf8 IO.utf16le
 
 -- | 'toOsPath' that __also__ checks 'OsPath.isValid' i.e. 'toOsPath'
--- only succeeds if that 'FilePath' can be encoded /and/ passes expected
+-- only succeeds if the 'FilePath' can be encoded /and/ passes expected
 -- invariants.
 --
 -- @since 0.1
 toValidOsPath :: FilePath -> Either EncodingException OsPath
-toValidOsPath fp = case OsPath.encodeWith IO.utf8 IO.utf16le fp of
+toValidOsPath fp = case toOsPath fp of
   Left ex -> Left ex
   Right op ->
     if OsPath.isValid op
       then Right op
-      else Left $ EncodingError (validErr op) Nothing
-  where
-    validErr x =
-      mconcat
-        [ "Original path ",
-          show fp,
-          " encoded as ",
-          show x,
-          " failed isValid"
-        ]
+      else Left $ EncodingError (validErr "toValidOsPath" fp op) Nothing
 
 -- | 'toOsPath' that throws 'EncodingException'.
 --
@@ -123,28 +107,31 @@ toOsPathThrowM =
 --
 -- @since 0.1
 toValidOsPathThrowM :: (MonadThrow m) => FilePath -> m OsPath
-toValidOsPathThrowM =
-  toValidOsPath >.> \case
-    Right txt -> pure txt
-    Left ex -> throwM ex
+toValidOsPathThrowM fp = case toOsPath fp of
+  Left ex -> throwM ex
+  Right op ->
+    if OsPath.isValid op
+      then pure op
+      else throwM $ EncodingError (validErr "toValidOsPathThrowM" fp op) Nothing
 
 -- | 'toOsPathThrowM' with 'MonadFail'.
 --
 -- @since 0.1
 toOsPathFail :: (MonadFail m) => FilePath -> m OsPath
-toOsPathFail =
-  toOsPath >.> \case
-    Right txt -> pure txt
-    Left ex -> fail $ displayException ex
+toOsPathFail fp = case toOsPath fp of
+  Right txt -> pure txt
+  Left ex -> fail $ encodeFailure "toOsPathFail" fp (displayException ex)
 
 -- | 'toValidOsPath' with 'MonadFail'.
 --
 -- @since 0.1
 toValidOsPathFail :: (MonadFail m) => FilePath -> m OsPath
-toValidOsPathFail =
-  toValidOsPath >.> \case
-    Right txt -> pure txt
-    Left ex -> fail $ displayException ex
+toValidOsPathFail fp = case toOsPath fp of
+  Left ex -> fail $ encodeFailure "toValidOsPathFail" fp (displayException ex)
+  Right op ->
+    if OsPath.isValid op
+      then pure op
+      else fail $ validErr "toValidOsPathFail" fp op
 
 -- | Unsafely converts a 'FilePath' to 'OsPath' falling back to 'error'.
 --
@@ -154,13 +141,7 @@ toValidOsPathFail =
 unsafeToOsPath :: FilePath -> OsPath
 unsafeToOsPath fp = case toOsPath fp of
   Left ex ->
-    error $
-      mconcat
-        [ "Could not convert filepath ",
-          show fp,
-          " to ospath: ",
-          displayException ex
-        ]
+    error $ encodeFailure "unsafeToOsPath" fp (displayException ex)
   Right p -> p
 
 -- | Unsafely converts a 'FilePath' to 'OsPath' falling back to 'error'.
@@ -169,16 +150,13 @@ unsafeToOsPath fp = case toOsPath fp of
 --
 -- @since 0.1
 unsafeToValidOsPath :: FilePath -> OsPath
-unsafeToValidOsPath fp = case toValidOsPath fp of
+unsafeToValidOsPath fp = case toOsPath fp of
   Left ex ->
-    error $
-      mconcat
-        [ "Could not convert filepath ",
-          show fp,
-          " to ospath: ",
-          displayException ex
-        ]
-  Right p -> p
+    error $ encodeFailure "unsafeToValidOsPath" fp (displayException ex)
+  Right op ->
+    if OsPath.isValid op
+      then op
+      else error $ validErr "unsafeToValidOsPath" fp op
 
 -- | Decodes an 'OsPath' to a 'FilePath'. This is a pure version of filepath's
 -- 'OsPath.decodeUtf'.
@@ -200,10 +178,25 @@ fromOsPathThrowM =
 --
 -- @since 0.1
 fromOsPathFail :: (MonadFail m) => OsPath -> m FilePath
-fromOsPathFail =
-  fromOsPath >.> \case
-    Right txt -> pure txt
-    Left ex -> fail $ displayException ex
+fromOsPathFail p = case fromOsPath p of
+  Right txt -> pure txt
+  Left ex ->
+    fail $ decodeFailure "fromOsPathFail" p (displayException ex)
+
+-- | Total conversion from 'OsPath' to 'String'. If decoding fails, falls back
+-- to its 'Show' instance.
+--
+-- @since 0.1
+fromOsPathShow :: OsPath -> String
+fromOsPathShow p = case fromOsPath p of
+  Left _ -> show p
+  Right s -> s
+
+-- | Convenience function for 'T.pack' and 'fromOsPathShow'.
+--
+-- @since 0.1
+fromOsPathShowText :: OsPath -> Text
+fromOsPathShowText = T.pack . fromOsPathShow
 
 -- | Unsafely converts an 'OsPath' to a 'FilePath' falling back to 'error'.
 --
@@ -212,15 +205,42 @@ fromOsPathFail =
 -- @since 0.1
 unsafeFromOsPath :: OsPath -> FilePath
 unsafeFromOsPath p = case fromOsPath p of
-  Left ex ->
-    error $
-      mconcat
-        [ "Could not convert ospath ",
-          show p,
-          " to filepath: ",
-          displayException ex
-        ]
+  Left ex -> error $ displayException ex
   Right fp -> fp
+
+decodeFailure :: String -> OsPath -> String -> String
+decodeFailure fnName p msg =
+  mconcat
+    [ "[Effects.FileSystem.Utils.",
+      fnName,
+      "]: Could not decode ospath '",
+      fromOsPathShow p,
+      "' to filepath: ",
+      msg
+    ]
+
+encodeFailure :: String -> FilePath -> String -> String
+encodeFailure fnName fp msg =
+  mconcat
+    [ "[Effects.FileSystem.Utils.",
+      fnName,
+      "]: Could not encode filepath '",
+      fp,
+      "' to ospath: ",
+      msg
+    ]
+
+validErr :: String -> String -> OsPath -> String
+validErr fnName fp x =
+  mconcat
+    [ "[Effects.FileSystem.Utils.",
+      fnName,
+      "]: Original path '",
+      fp,
+      "' encoded as '",
+      fromOsPathShow x,
+      "' failed isValid"
+    ]
 
 -- | @since 0.1
 readBinaryFileIO :: OsPath -> IO ByteString
