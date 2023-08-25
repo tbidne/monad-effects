@@ -45,6 +45,9 @@ common common-lang
     TypeFamilies
     TypeOperators
 
+  if os(osx)
+    cpp-options: -DOSX
+
   if os(windows)
     cpp-options: -DWINDOWS
 
@@ -66,6 +69,7 @@ library
     , directory           ^>=1.3.8.0
     , effects-exceptions  ^>=0.1
     , effects-ioref       ^>=0.1
+    , file-io             ^>=0.1.0.0
     , filepath            >=1.4.100.1 && <1.5
     , optics-core         ^>=0.4
     , text                >=1.2.4.0   && <2.1
@@ -80,6 +84,7 @@ test-suite unit
   type:             exitcode-stdio-1.0
   main-is:          Main.hs
   other-modules:
+    Misc
     PathReader
     PathWriter
     Utils
@@ -90,12 +95,14 @@ test-suite unit
     , effects-exceptions
     , effects-fs
     , effects-ioref
-    , env-guard           ^>=0.2
+    , env-guard             ^>=0.2
     , filepath
-    , tasty               >=1.1.0.3 && <1.5
-    , tasty-hunit         >=0.9     && <0.11
+    , hedgehog              >=1.0.2     && <1.5
+    , tasty                 >=1.1.0.3   && <1.5
+    , tasty-hedgehog        >=1.2.0.0   && <1.5
+    , tasty-hunit           >=0.9       && <0.11
     , transformers
+    , unordered-containers  ^>=0.2.14.0
 
   hs-source-dirs:   test/unit
-  ghc-options:      -threaded -with-rtsopts=-N
   default-language: Haskell2010

@@ -7,6 +7,7 @@ import Effects.FileSystem.PathWriter
     removePathForcibly,
   )
 import Effects.FileSystem.Utils (OsPath, (</>))
+import Misc qualified
 import PathReader qualified
 import PathWriter qualified
 import System.Environment.Guard (ExpectEnv (ExpectEnvSet), guardOrElse')
@@ -19,7 +20,8 @@ main =
     withResource setup teardown $ \args ->
       testGroup
         "Unit Tests"
-        [ PathReader.tests,
+        [ Misc.tests args,
+          PathReader.tests,
           PathWriter.tests args
         ]
 

@@ -44,7 +44,7 @@ jobs:
         run: cabal test effects-exceptions
 
       - name: Test effects-fs
-        run: cabal test effects-fs
+        run: cabal test effects-fs --test-options '--hedgehog-tests 100000'
 
       - name: Test effects-logger-ns
         run: cabal test effects-logger-ns

@@ -41,6 +41,7 @@
           hlib = pkgs.haskell.lib;
           compiler = pkgs.haskell.packages."${ghc-version}".override {
             overrides = final: prev: {
+              file-io = final.callHackage "file-io" "0.1.0.1" { };
               hedgehog = prev.hedgehog_1_3;
               hlint = prev.hlint_3_6_1;
               ormolu = prev.ormolu_0_7_1_0;

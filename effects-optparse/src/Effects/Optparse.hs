@@ -16,7 +16,7 @@ import Control.Exception (Exception (displayException))
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Effects.Exception (addCS)
-import Effects.FileSystem.Utils (OsPath, toOsPath, toValidOsPath)
+import Effects.FileSystem.Utils (OsPath, encodeFpToOs, encodeFpToValidOs)
 import GHC.Stack (HasCallStack)
 import Options.Applicative (ParserInfo, ParserPrefs, ParserResult, ReadM)
 import Options.Applicative qualified as OA
@@ -71,7 +71,7 @@ instance (MonadOptparse m) => MonadOptparse (ReaderT env m) where
 osPath :: ReadM OsPath
 osPath = do
   pathStr <- OA.str
-  case toOsPath pathStr of
+  case encodeFpToOs pathStr of
     Right p -> pure p
     Left ex -> fail $ "Error encoding string path: " ++ displayException ex
 
@@ -82,6 +82,6 @@ osPath = do
 validOsPath :: ReadM OsPath
 validOsPath = do
   pathStr <- OA.str
-  case toValidOsPath pathStr of
+  case encodeFpToValidOs pathStr of
     Right p -> pure p
     Left ex -> fail $ "Error encoding string path: " ++ displayException ex
