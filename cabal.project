@@ -1,17 +1,17 @@
 packages:
-  ./effects-async
-  ./effects-env
-  ./effects-exceptions
-  ./effects-fs
-  ./effects-ioref
-  ./effects-logger-ns
-  ./effects-optparse
-  ./effects-stm
-  ./effects-terminal
-  ./effects-thread
-  ./effects-time
-  ./effects-typed-process
-  ./effects-unix-compat
+  ./lib/effects-async
+  ./lib/effects-env
+  ./lib/effects-exceptions
+  ./lib/effects-fs
+  ./lib/effects-ioref
+  ./lib/effects-logger-ns
+  ./lib/effects-optparse
+  ./lib/effects-stm
+  ./lib/effects-terminal
+  ./lib/effects-thread
+  ./lib/effects-time
+  ./lib/effects-typed-process
+  ./lib/effects-unix-compat
 
 -- See: https://github.com/haskell/cabal/pull/7973
 program-options

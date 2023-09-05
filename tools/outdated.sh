@@ -2,12 +2,12 @@ set -e
 
 export LANG="C.UTF-8"
 
-export dirs="effects-*"
+export dirs="lib/effects-*"
 
 for d in $dirs; do
   echo "$d"
   cd "$d"
   cabal outdated
   echo ""
-  cd ../
+  cd ../../
 done

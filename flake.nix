@@ -54,19 +54,19 @@
           pkgsCompiler = { inherit pkgs compiler; };
           hsOverlay =
             (compiler.extend (hlib.compose.packageSourceOverrides {
-              effects-async = ./effects-async;
-              effects-env = ./effects-env;
-              effects-exceptions = ./effects-exceptions;
-              effects-fs = ./effects-fs;
-              effects-ioref = ./effects-ioref;
-              effects-logger-ns = ./effects-logger-ns;
-              effects-optparse = ./effects-optparse;
-              effects-stm = ./effects-stm;
-              effects-terminal = ./effects-terminal;
-              effects-thread = ./effects-thread;
-              effects-time = ./effects-time;
-              effects-typed-process = ./effects-typed-process;
-              effects-unix-compat = ./effects-unix-compat;
+              effects-async = ./lib/effects-async;
+              effects-env = ./lib/effects-env;
+              effects-exceptions = ./lib/effects-exceptions;
+              effects-fs = ./lib/effects-fs;
+              effects-ioref = ./lib/effects-ioref;
+              effects-logger-ns = ./lib/effects-logger-ns;
+              effects-optparse = ./lib/effects-optparse;
+              effects-stm = ./lib/effects-stm;
+              effects-terminal = ./lib/effects-terminal;
+              effects-thread = ./lib/effects-thread;
+              effects-time = ./lib/effects-time;
+              effects-typed-process = ./lib/effects-typed-process;
+              effects-unix-compat = ./lib/effects-unix-compat;
             }));
           packages = p: [
             p.effects-async
@@ -89,47 +89,47 @@
             returnShellEnv = false;
           };
           mkPkgsException = name: root: mkPkg name root {
-            effects-exceptions = ./effects-exceptions;
+            effects-exceptions = ./lib/effects-exceptions;
           };
         in
         {
           packages.effects-async =
-            mkPkg "effects-async" ./effects-async {
-              effects-exceptions = ./effects-exceptions;
-              effects-ioref = ./effects-ioref;
-              effects-stm = ./effects-stm;
-              effects-thread = ./effects-thread;
+            mkPkg "effects-async" ./lib/effects-async {
+              effects-exceptions = ./lib/effects-exceptions;
+              effects-ioref = ./lib/effects-ioref;
+              effects-stm = ./lib/effects-stm;
+              effects-thread = ./lib/effects-thread;
             };
-          packages.effects-env = mkPkgsException "effects-env" ./effects-env;
-          packages.effects-exceptions = mkPkg "effects-exceptions" ./effects-exceptions { };
+          packages.effects-env = mkPkgsException "effects-env" ./lib/effects-env;
+          packages.effects-exceptions = mkPkg "effects-exceptions" ./lib/effects-exceptions { };
           packages.effects-fs = compiler.developPackage {
             name = "effects-fs";
-            root = ./effects-fs;
+            root = ./lib/effects-fs;
             returnShellEnv = false;
             source-overrides = {
-              effects-exceptions = ./effects-exceptions;
-              effects-ioref = ./effects-ioref;
+              effects-exceptions = ./lib/effects-exceptions;
+              effects-ioref = ./lib/effects-ioref;
             };
           };
-          packages.effects-ioref = mkPkgsException "effects-ioref" ./effects-ioref;
+          packages.effects-ioref = mkPkgsException "effects-ioref" ./lib/effects-ioref;
           packages.effects-logger-ns =
-            mkPkg "effects-logger-ns" ./effects-logger-ns {
-              effects-exceptions = ./effects-exceptions;
-              effects-time = ./effects-time;
+            mkPkg "effects-logger-ns" ./lib/effects-logger-ns {
+              effects-exceptions = ./lib/effects-exceptions;
+              effects-time = ./lib/effects-time;
             };
           packages.effects-optparse =
-            mkPkg "effects-optparse" ./effects-optparse {
-              effects-exceptions = ./effects-exceptions;
-              effects-fs = ./effects-fs;
-              effects-ioref = ./effects-ioref;
+            mkPkg "effects-optparse" ./lib/effects-optparse {
+              effects-exceptions = ./lib/effects-exceptions;
+              effects-fs = ./lib/effects-fs;
+              effects-ioref = ./lib/effects-ioref;
             };
-          packages.effects-stm = mkPkgsException "effects-stm" ./effects-stm;
-          packages.effects-time = mkPkgsException "effects-time" ./effects-time;
-          packages.effects-terminal = mkPkgsException "effects-terminal" ./effects-terminal;
-          packages.effects-thread = mkPkgsException "effects-thread" ./effects-thread;
+          packages.effects-stm = mkPkgsException "effects-stm" ./lib/effects-stm;
+          packages.effects-time = mkPkgsException "effects-time" ./lib/effects-time;
+          packages.effects-terminal = mkPkgsException "effects-terminal" ./lib/effects-terminal;
+          packages.effects-thread = mkPkgsException "effects-thread" ./lib/effects-thread;
           packages.effects-typed-process =
-            mkPkgsException "effects-typed-process" ./effects-typed-process;
-          packages.effects-unix-compat = mkPkg "effects-unix-compat" ./effects-unix-compat { };
+            mkPkgsException "effects-typed-process" ./lib/effects-typed-process;
+          packages.effects-unix-compat = mkPkg "effects-unix-compat" ./lib/effects-unix-compat { };
 
           devShells.default = hsOverlay.shellFor {
             inherit packages;
