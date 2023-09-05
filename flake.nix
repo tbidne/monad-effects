@@ -10,23 +10,23 @@
   inputs.algebra-simple = {
     url = "github:tbidne/algebra-simple";
     inputs.flake-parts.follows = "flake-parts";
+    inputs.nix-hs-utils.follows = "nix-hs-utils";
     inputs.nixpkgs.follows = "nixpkgs";
-    inputs.nix-hs-utils.url = "github:tbidne/nix-hs-utils";
   };
   inputs.bounds = {
     url = "github:tbidne/bounds";
     inputs.flake-parts.follows = "flake-parts";
+    inputs.nix-hs-utils.follows = "nix-hs-utils";
     inputs.nixpkgs.follows = "nixpkgs";
-    inputs.nix-hs-utils.url = "github:tbidne/nix-hs-utils";
   };
   inputs.smart-math = {
     url = "github:tbidne/smart-math";
     inputs.flake-parts.follows = "flake-parts";
+    inputs.nix-hs-utils.follows = "nix-hs-utils";
     inputs.nixpkgs.follows = "nixpkgs";
 
     inputs.algebra-simple.follows = "algebra-simple";
     inputs.bounds.follows = "bounds";
-    inputs.nix-hs-utils.url = "github:tbidne/nix-hs-utils";
   };
   outputs =
     inputs@{ flake-parts
@@ -91,7 +91,6 @@
           mkPkgsException = name: root: mkPkg name root {
             effects-exceptions = ./effects-exceptions;
           };
-          hsDirs = "effects-*";
         in
         {
           packages.effects-async =
@@ -144,15 +143,9 @@
           };
 
           apps = {
-            format = nix-hs-utils.format {
-              inherit compiler hsDirs pkgs;
-            };
-            lint = nix-hs-utils.lint {
-              inherit compiler hsDirs pkgs;
-            };
-            lint-refactor = nix-hs-utils.lint-refactor {
-              inherit compiler hsDirs pkgs;
-            };
+            format = nix-hs-utils.format pkgsCompiler;
+            lint = nix-hs-utils.lint pkgsCompiler;
+            lint-refactor = nix-hs-utils.lint-refactor pkgsCompiler;
           };
         };
       systems = [
