@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# OPTIONS_GHC -Wno-duplicate-exports #-}
 
 {- ORMOLU_DISABLE -}
 
@@ -61,13 +62,18 @@ module Effects.System.Process
     readProcess,
     readProcessStdout,
     readProcessStderr,
+    readProcessInterleaved,
     withProcessWait,
+    withProcessTerm,
+    startProcess,
+    stopProcess,
 
     -- * Exception-throwing functions
     runProcess_,
     readProcess_,
     readProcessStdout_,
     readProcessStderr_,
+    readProcessInterleaved_,
     withProcessWait_,
     withProcessTerm_,
 
@@ -102,16 +108,13 @@ where
 {- ORMOLU_ENABLE -}
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
-import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
+import Control.Monad.Trans.Reader (ReaderT)
 import Data.ByteString.Lazy qualified as BSL
-import Effects.Concurrent.STM (MonadSTM (..))
 import Effects.Exception (MonadMask, addCS, bracket, finally)
-import GHC.Conc (catchSTM, throwSTM)
 import GHC.Stack (HasCallStack)
 import System.Exit (ExitCode)
 import System.Process.Typed
-  ( ExitCodeException (..),
-    Process,
+  ( Process,
     ProcessConfig,
     StreamSpec,
     StreamType,
@@ -123,10 +126,43 @@ import System.Process.Typed qualified as P
 --
 -- @since 0.1
 class (Monad m) => MonadProcess m where
-  -- | Same as 'readProcess', but interleaves stderr with stdout.
+  -- | Lifted P.runProcess.
   --
-  -- Motivation: Use this function if you need stdout interleaved with stderr
-  -- output (e.g. from an HTTP server) in order to debug failures.
+  -- @since 0.1
+  runProcess ::
+    (HasCallStack) =>
+    -- | .
+    ProcessConfig stdin stdout stderr ->
+    m ExitCode
+
+  -- | Lifted P.readProcess.
+  --
+  -- @since 0.1
+  readProcess ::
+    (HasCallStack) =>
+    -- | .
+    ProcessConfig stdin stdoutIgnored stderrIgnored ->
+    m (ExitCode, BSL.ByteString, BSL.ByteString)
+
+  -- | Lifted P.readProcessStdout.
+  --
+  -- @since 0.1
+  readProcessStdout ::
+    (HasCallStack) =>
+    -- | .
+    ProcessConfig stdin stdoutIgnored stderr ->
+    m (ExitCode, BSL.ByteString)
+
+  -- | Lifted P.readProcessStderr.
+  --
+  -- @since 0.1
+  readProcessStderr ::
+    (HasCallStack) =>
+    -- | .
+    ProcessConfig stdin stdout stderrIgnored ->
+    m (ExitCode, BSL.ByteString)
+
+  -- | Lifted P.readProcessInterleaved.
   --
   -- @since 0.1
   readProcessInterleaved ::
@@ -135,25 +171,7 @@ class (Monad m) => MonadProcess m where
     ProcessConfig stdin stdoutIgnored stderrIgnored ->
     m (ExitCode, BSL.ByteString)
 
-  -- | Uses the bracket pattern to call 'startProcess' and ensures that
-  -- 'stopProcess' is called.
-  --
-  -- This function is usually /not/ what you want. You're likely better
-  -- off using 'withProcessWait'. See
-  -- <https://github.com/fpco/typed-process/issues/25>.
-  --
-  -- @since 0.1
-  withProcessTerm ::
-    (HasCallStack) =>
-    -- | .
-    ProcessConfig stdin stdout stderr ->
-    (Process stdin stdout stderr -> m a) ->
-    m a
-
-  -- | Launch a process based on the given 'ProcessConfig'. You should
-  -- ensure that you call 'stopProcess' on the result. It's usually
-  -- better to use one of the functions in this module which ensures
-  -- 'stopProcess' is called, such as 'withProcessWait'.
+  -- | Lifted P.startProcess.
   --
   -- @since 0.1
   startProcess ::
@@ -162,19 +180,52 @@ class (Monad m) => MonadProcess m where
     ProcessConfig stdin stdout stderr ->
     m (Process stdin stdout stderr)
 
-  -- | Close a process and release any resources acquired. This will
-  -- ensure 'P.terminateProcess' is called, wait for the process to
-  -- actually exit, and then close out resources allocated for the
-  -- streams. In the event of any cleanup exceptions being thrown this
-  -- will throw an exception.
+  -- | Lifted P.stopProcess.
   --
   -- @since 0.1
-  stopProcess :: (HasCallStack) => Process stdin stdout stderr -> m ()
+  stopProcess ::
+    (HasCallStack) =>
+    -- | .
+    Process stdin stdout stderr ->
+    m ()
 
-  -- | Same as 'readProcessInterleaved', but instead of returning the 'ExitCode',
-  -- checks it with 'checkExitCode'.
+  -- | Lifted P.runProcess_.
   --
-  -- Exceptions thrown by this function will include stdout.
+  -- @since 0.1
+  runProcess_ ::
+    (HasCallStack) =>
+    -- | .
+    ProcessConfig stdin stdout stderr ->
+    m ()
+
+  -- | Lifted P.readProcess_.
+  --
+  -- @since 0.1
+  readProcess_ ::
+    (HasCallStack) =>
+    -- | .
+    ProcessConfig stdin stdoutIgnored stderrIgnored ->
+    m (BSL.ByteString, BSL.ByteString)
+
+  -- | Lifted P.readProcessStdout_.
+  --
+  -- @since 0.1
+  readProcessStdout_ ::
+    (HasCallStack) =>
+    -- | .
+    ProcessConfig stdin stdoutIgnored stderr ->
+    m BSL.ByteString
+
+  -- | Lifted P.readProcessStderr_.
+  --
+  -- @since 0.1
+  readProcessStderr_ ::
+    (HasCallStack) =>
+    -- | .
+    ProcessConfig stdin stdout stderrIgnored ->
+    m BSL.ByteString
+
+  -- | Lifted P.readProcessInterleaved_.
   --
   -- @since 0.1
   readProcessInterleaved_ ::
@@ -183,285 +234,154 @@ class (Monad m) => MonadProcess m where
     ProcessConfig stdin stdoutIgnored stderrIgnored ->
     m BSL.ByteString
 
+  -- | Lifted P.waitExitCode.
+  --
+  -- @since 0.1
+  waitExitCode ::
+    (HasCallStack) =>
+    -- | .
+    Process stdin stdout stderr ->
+    m ExitCode
+
+  -- | Lifted P.getExitCode.
+  --
+  -- @since 0.1
+  getExitCode ::
+    (HasCallStack) =>
+    -- | .
+    Process stdin stdout stderr ->
+    m (Maybe ExitCode)
+
+  -- | Lifted P.checkExitCode.
+  --
+  -- @since 0.1
+  checkExitCode ::
+    (HasCallStack) =>
+    -- | .
+    Process stdin stdout stderr ->
+    m ()
+
 -- | @since 0.1
 instance MonadProcess IO where
+  runProcess = addCS . P.runProcess
+  {-# INLINEABLE runProcess #-}
+  readProcess = addCS . P.readProcess
+  {-# INLINEABLE readProcess #-}
+  readProcessStdout = addCS . P.readProcessStdout
+  {-# INLINEABLE readProcessStdout #-}
+  readProcessStderr = addCS . P.readProcessStderr
+  {-# INLINEABLE readProcessStderr #-}
   readProcessInterleaved = addCS . P.readProcessInterleaved
   {-# INLINEABLE readProcessInterleaved #-}
-  withProcessTerm pc = addCS . P.withProcessTerm pc
-  {-# INLINEABLE withProcessTerm #-}
   startProcess = addCS . P.startProcess
   {-# INLINEABLE startProcess #-}
   stopProcess = addCS . P.stopProcess
   {-# INLINEABLE stopProcess #-}
+  runProcess_ = addCS . P.runProcess_
+  {-# INLINEABLE runProcess_ #-}
+  readProcess_ = addCS . P.readProcess_
+  {-# INLINEABLE readProcess_ #-}
+  readProcessStdout_ = addCS . P.readProcessStdout_
+  {-# INLINEABLE readProcessStdout_ #-}
+  readProcessStderr_ = addCS . P.readProcessStderr_
+  {-# INLINEABLE readProcessStderr_ #-}
   readProcessInterleaved_ = addCS . P.readProcessInterleaved_
   {-# INLINEABLE readProcessInterleaved_ #-}
+  waitExitCode = addCS . P.waitExitCode
+  {-# INLINEABLE waitExitCode #-}
+  getExitCode = addCS . P.getExitCode
+  {-# INLINEABLE getExitCode #-}
+  checkExitCode = addCS . P.checkExitCode
+  {-# INLINEABLE checkExitCode #-}
 
 -- | @since 0.1
 instance (MonadProcess m) => MonadProcess (ReaderT env m) where
+  runProcess = lift . runProcess
+  {-# INLINEABLE runProcess #-}
+  readProcess = lift . readProcess
+  {-# INLINEABLE readProcess #-}
+  readProcessStdout = lift . readProcessStdout
+  {-# INLINEABLE readProcessStdout #-}
+  readProcessStderr = lift . readProcessStderr
+  {-# INLINEABLE readProcessStderr #-}
   readProcessInterleaved = lift . readProcessInterleaved
   {-# INLINEABLE readProcessInterleaved #-}
-  withProcessTerm pc onProcess =
-    ask >>= \e -> lift (withProcessTerm pc ((`runReaderT` e) . onProcess))
-  {-# INLINEABLE withProcessTerm #-}
   startProcess = lift . startProcess
   {-# INLINEABLE startProcess #-}
   stopProcess = lift . stopProcess
   {-# INLINEABLE stopProcess #-}
+  runProcess_ = lift . runProcess_
+  {-# INLINEABLE runProcess_ #-}
+  readProcess_ = lift . readProcess_
+  {-# INLINEABLE readProcess_ #-}
+  readProcessStdout_ = lift . readProcessStdout_
+  {-# INLINEABLE readProcessStdout_ #-}
+  readProcessStderr_ = lift . readProcessStderr_
+  {-# INLINEABLE readProcessStderr_ #-}
   readProcessInterleaved_ = lift . readProcessInterleaved_
   {-# INLINEABLE readProcessInterleaved_ #-}
+  waitExitCode = lift . waitExitCode
+  {-# INLINEABLE waitExitCode #-}
+  getExitCode = lift . getExitCode
+  {-# INLINEABLE getExitCode #-}
+  checkExitCode = lift . checkExitCode
+  {-# INLINEABLE checkExitCode #-}
 
--- | Run the given process, wait for it to exit, and returns its
--- 'ExitCode'.
---
--- @since 0.1
-runProcess ::
-  (HasCallStack, MonadProcess m, MonadSTM m) =>
-  -- | .
-  ProcessConfig stdin stdout stderr ->
-  m ExitCode
-runProcess pc = withProcessTerm pc waitExitCode
-{-# INLINEABLE runProcess #-}
-
--- | Run a process, capture its standard output and error as a
--- 'BSL.ByteString', wait for it to complete, and then return its exit
--- code, output, and error.
---
--- Note that any previously used 'setStdout' or 'setStderr' will be
--- overridden.
---
--- @since 0.1
-readProcess ::
-  (HasCallStack, MonadProcess m, MonadSTM m) =>
-  -- | .
-  ProcessConfig stdin stdoutIgnored stderrIgnored ->
-  m (ExitCode, BSL.ByteString, BSL.ByteString)
-readProcess pc =
-  withProcessTerm pc' $ \p ->
-    atomically $
-      (,,)
-        <$> P.waitExitCodeSTM p
-        <*> P.getStdout p
-        <*> P.getStderr p
-  where
-    pc' =
-      P.setStdout P.byteStringOutput $
-        P.setStderr P.byteStringOutput pc
-{-# INLINEABLE readProcess #-}
-
--- | Same as 'readProcess', but only read the stdout of the process.
--- Original settings for stderr remain.
---
--- @since 0.1
-readProcessStdout ::
-  (HasCallStack, MonadProcess m, MonadSTM m) =>
-  -- | .
-  ProcessConfig stdin stdoutIgnored stderr ->
-  m (ExitCode, BSL.ByteString)
-readProcessStdout pc =
-  withProcessTerm pc' $ \p ->
-    atomically $
-      (,)
-        <$> P.waitExitCodeSTM p
-        <*> P.getStdout p
-  where
-    pc' = P.setStdout P.byteStringOutput pc
-{-# INLINEABLE readProcessStdout #-}
-
--- | Same as 'readProcess', but only read the stderr of the process.
--- Original settings for stdout remain.
---
--- @since 0.1
-readProcessStderr ::
-  (HasCallStack, MonadProcess m, MonadSTM m) =>
-  -- | .
-  ProcessConfig stdin stdout stderrIgnored ->
-  m (ExitCode, BSL.ByteString)
-readProcessStderr pc =
-  withProcessTerm pc' $ \p ->
-    atomically $
-      (,)
-        <$> P.waitExitCodeSTM p
-        <*> P.getStderr p
-  where
-    pc' = P.setStderr P.byteStringOutput pc
-{-# INLINEABLE readProcessStderr #-}
-
--- | Uses the bracket pattern to call 'startProcess'. Unlike
--- 'withProcessTerm', this function will wait for the child process to
--- exit, and only kill it with 'stopProcess' in the event that the
--- inner function throws an exception.
---
--- To interact with a @Process@ use the functions from the section
--- [Interact with a process](#interactwithaprocess).
+-- | Lifted 'P.withProcessWait'.
 --
 -- @since 0.1
 withProcessWait ::
-  (HasCallStack, MonadMask m, MonadProcess m, MonadSTM m) =>
+  (HasCallStack, MonadMask m, MonadProcess m) =>
   -- | .
   ProcessConfig stdin stdout stderr ->
   (Process stdin stdout stderr -> m a) ->
   m a
-withProcessWait config f =
+withProcessWait pc onProcess =
   bracket
-    (startProcess config)
+    (startProcess pc)
     stopProcess
-    (\p -> f p <* waitExitCode p)
+    (\p -> onProcess p <* waitExitCode p)
 {-# INLINEABLE withProcessWait #-}
 
--- | Same as 'runProcess', but instead of returning the 'ExitCode', checks it
--- with 'checkExitCode'.
+-- | Lifted 'P.withProcessTerm'.
 --
 -- @since 0.1
-runProcess_ ::
-  (HasCallStack, MonadProcess m, MonadSTM m) =>
+withProcessTerm ::
+  (HasCallStack, MonadMask m, MonadProcess m) =>
   -- | .
   ProcessConfig stdin stdout stderr ->
-  m ()
-runProcess_ pc = withProcessTerm pc checkExitCode
-{-# INLINEABLE runProcess_ #-}
+  (Process stdin stdout stderr -> m a) ->
+  m a
+withProcessTerm pc = bracket (startProcess pc) stopProcess
+{-# INLINEABLE withProcessTerm #-}
 
--- | Same as 'readProcess', but instead of returning the 'ExitCode',
--- checks it with 'checkExitCode'.
---
--- Exceptions thrown by this function will include stdout and stderr.
---
--- @since 0.1
-readProcess_ ::
-  (HasCallStack, MonadProcess m, MonadSTM m) =>
-  -- | .
-  ProcessConfig stdin stdoutIgnored stderrIgnored ->
-  m (BSL.ByteString, BSL.ByteString)
-readProcess_ pc =
-  withProcessTerm pc' $ \p -> atomically $ do
-    stdout <- P.getStdout p
-    stderr <- P.getStderr p
-    P.checkExitCodeSTM p `catchSTM` \ece ->
-      throwSTM
-        ece
-          { eceStdout = stdout,
-            eceStderr = stderr
-          }
-    return (stdout, stderr)
-  where
-    pc' =
-      P.setStdout P.byteStringOutput $
-        P.setStderr P.byteStringOutput pc
-{-# INLINEABLE readProcess_ #-}
-
--- | Same as 'readProcessStdout', but instead of returning the
--- 'ExitCode', checks it with 'checkExitCode'.
---
--- Exceptions thrown by this function will include stdout.
---
--- @since 0.1
-readProcessStdout_ ::
-  (HasCallStack, MonadProcess m, MonadSTM m) =>
-  -- | .
-  ProcessConfig stdin stdoutIgnored stderr ->
-  m BSL.ByteString
-readProcessStdout_ pc =
-  withProcessTerm pc' $ \p -> atomically $ do
-    stdout <- P.getStdout p
-    P.checkExitCodeSTM p `catchSTM` \ece ->
-      throwSTM
-        ece
-          { eceStdout = stdout
-          }
-    return stdout
-  where
-    pc' = P.setStdout P.byteStringOutput pc
-{-# INLINEABLE readProcessStdout_ #-}
-
--- | Same as 'readProcessStderr', but instead of returning the
--- 'ExitCode', checks it with 'checkExitCode'.
---
--- Exceptions thrown by this function will include stderr.
---
--- @since 0.1
-readProcessStderr_ ::
-  (HasCallStack, MonadProcess m, MonadSTM m) =>
-  -- | .
-  ProcessConfig stdin stdout stderrIgnored ->
-  m BSL.ByteString
-readProcessStderr_ pc =
-  withProcessTerm pc' $ \p -> atomically $ do
-    stderr <- P.getStderr p
-    P.checkExitCodeSTM p `catchSTM` \ece ->
-      throwSTM
-        ece
-          { eceStderr = stderr
-          }
-    return stderr
-  where
-    pc' = P.setStderr P.byteStringOutput pc
-{-# INLINEABLE readProcessStderr_ #-}
-
--- | Same as 'withProcessWait', but also calls 'checkExitCode'
+-- | Lifted 'P.withProcessWait_'.
 --
 -- @since 0.1
 withProcessWait_ ::
-  (HasCallStack, MonadMask m, MonadProcess m, MonadSTM m) =>
+  (HasCallStack, MonadMask m, MonadProcess m) =>
   -- | .
   ProcessConfig stdin stdout stderr ->
   (Process stdin stdout stderr -> m a) ->
   m a
-withProcessWait_ config f =
+withProcessWait_ pc onProcess =
   bracket
-    (startProcess config)
+    (startProcess pc)
     stopProcess
-    (\p -> f p <* checkExitCode p)
+    (\p -> onProcess p <* checkExitCode p)
 {-# INLINEABLE withProcessWait_ #-}
 
--- | Lifted Same as 'withProcessTerm', but also calls 'checkExitCode'.
---
--- To interact with a @Process@ use the functions from the section
--- [Interact with a process](#interactwithaprocess).
+-- | Lifted 'P.withProcessTerm_'.
 --
 -- @since 0.1
 withProcessTerm_ ::
-  (MonadMask m, MonadProcess m, MonadSTM m) =>
+  (HasCallStack, MonadMask m, MonadProcess m) =>
   -- | .
   ProcessConfig stdin stdout stderr ->
   (Process stdin stdout stderr -> m a) ->
   m a
-withProcessTerm_ config =
+withProcessTerm_ pc =
   bracket
-    (startProcess config)
+    (startProcess pc)
     (\p -> stopProcess p `finally` checkExitCode p)
 {-# INLINEABLE withProcessTerm_ #-}
-
--- | Wait for the process to exit and then return its 'ExitCode'.
---
--- @since 0.1
-waitExitCode ::
-  (HasCallStack, MonadSTM m) =>
-  Process stdin stdout stderr ->
-  m ExitCode
-waitExitCode = atomically . P.waitExitCodeSTM
-{-# INLINEABLE waitExitCode #-}
-
--- | Check if a process has exited and, if so, return its 'ExitCode'.
---
--- @since 0.1
-getExitCode ::
-  (HasCallStack, MonadSTM m) =>
-  Process stdin stdout stderr ->
-  m (Maybe ExitCode)
-getExitCode = atomically . P.getExitCodeSTM
-{-# INLINEABLE getExitCode #-}
-
--- | Wait for a process to exit, and ensure that it exited successfully.
--- If not, throws an 'ExitCodeException'.
---
--- Exceptions thrown by this function will not include stdout or stderr
--- (This prevents unbounded memory usage from reading them into memory).
--- However, some callers such as 'readProcess_' catch the exception, add the
--- stdout and stderr, and rethrow.
---
--- @since 0.1
-checkExitCode ::
-  (HasCallStack, MonadSTM m) =>
-  Process stdin stdout stderr ->
-  m ()
-checkExitCode = atomically . P.checkExitCodeSTM
-{-# INLINEABLE checkExitCode #-}
