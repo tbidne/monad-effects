@@ -206,7 +206,7 @@ Provides functions for retrieving the current system time and monotonic time.
 ### Library: `typed-process`
 
 ### Modules
-* `Effects.System.Process (System.Process.Typed)`
+* `Effects.Process.Typed (System.Process.Typed)`
 
 ### Description
 

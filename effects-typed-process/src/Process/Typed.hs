@@ -3,12 +3,12 @@
 
 {- ORMOLU_DISABLE -}
 
--- | Provides the 'MonadProcess' typeclass for process effects.
+-- | Provides the 'MonadTypedProcess' typeclass for process effects.
 --
 -- @since 0.1
-module Effects.System.Process
+module Effects.Process.Typed
   ( -- * Effect
-    MonadProcess (..),
+    MonadTypedProcess (..),
 
     -- * Types
     ProcessConfig,
@@ -125,7 +125,7 @@ import System.Process.Typed qualified as P
 -- [typed-process](https://hackage.haskell.org/package/typed-process).
 --
 -- @since 0.1
-class (Monad m) => MonadProcess m where
+class (Monad m) => MonadTypedProcess m where
   -- | Lifted P.runProcess.
   --
   -- @since 0.1
@@ -262,7 +262,7 @@ class (Monad m) => MonadProcess m where
     m ()
 
 -- | @since 0.1
-instance MonadProcess IO where
+instance MonadTypedProcess IO where
   runProcess = addCS . P.runProcess
   {-# INLINEABLE runProcess #-}
   readProcess = addCS . P.readProcess
@@ -295,7 +295,7 @@ instance MonadProcess IO where
   {-# INLINEABLE checkExitCode #-}
 
 -- | @since 0.1
-instance (MonadProcess m) => MonadProcess (ReaderT env m) where
+instance (MonadTypedProcess m) => MonadTypedProcess (ReaderT env m) where
   runProcess = lift . runProcess
   {-# INLINEABLE runProcess #-}
   readProcess = lift . readProcess
@@ -331,7 +331,7 @@ instance (MonadProcess m) => MonadProcess (ReaderT env m) where
 --
 -- @since 0.1
 withProcessWait ::
-  (HasCallStack, MonadMask m, MonadProcess m) =>
+  (HasCallStack, MonadMask m, MonadTypedProcess m) =>
   -- | .
   ProcessConfig stdin stdout stderr ->
   (Process stdin stdout stderr -> m a) ->
@@ -347,7 +347,7 @@ withProcessWait pc onProcess =
 --
 -- @since 0.1
 withProcessTerm ::
-  (HasCallStack, MonadMask m, MonadProcess m) =>
+  (HasCallStack, MonadMask m, MonadTypedProcess m) =>
   -- | .
   ProcessConfig stdin stdout stderr ->
   (Process stdin stdout stderr -> m a) ->
@@ -359,7 +359,7 @@ withProcessTerm pc = bracket (startProcess pc) stopProcess
 --
 -- @since 0.1
 withProcessWait_ ::
-  (HasCallStack, MonadMask m, MonadProcess m) =>
+  (HasCallStack, MonadMask m, MonadTypedProcess m) =>
   -- | .
   ProcessConfig stdin stdout stderr ->
   (Process stdin stdout stderr -> m a) ->
@@ -375,7 +375,7 @@ withProcessWait_ pc onProcess =
 --
 -- @since 0.1
 withProcessTerm_ ::
-  (HasCallStack, MonadMask m, MonadProcess m) =>
+  (HasCallStack, MonadMask m, MonadTypedProcess m) =>
   -- | .
   ProcessConfig stdin stdout stderr ->
   (Process stdin stdout stderr -> m a) ->

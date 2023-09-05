@@ -128,10 +128,7 @@
           packages.effects-terminal = mkPkgsException "effects-terminal" ./effects-terminal;
           packages.effects-thread = mkPkgsException "effects-thread" ./effects-thread;
           packages.effects-typed-process =
-            mkPkg "effects-typed-process" ./effects-typed-process {
-              effects-exceptions = ./effects-exceptions;
-              effects-stm = ./effects-stm;
-            };
+            mkPkgsException "effects-typed-process" ./effects-typed-process;
           packages.effects-unix-compat = mkPkg "effects-unix-compat" ./effects-unix-compat { };
 
           devShells.default = hsOverlay.shellFor {
