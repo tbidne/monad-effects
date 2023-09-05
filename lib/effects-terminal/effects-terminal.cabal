@@ -53,7 +53,7 @@ library
     , bytestring          >=0.10.12.0 && <0.13
     , effects-exceptions  ^>=0.1
     , terminal-size       ^>=0.3.0
-    , text                >=1.2.4.0   && <2.1
+    , text                >=1.2.4.0   && <2.2
     , transformers        >=0.5.6.2   && <0.7
 
   hs-source-dirs:   src
