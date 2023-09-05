@@ -126,7 +126,7 @@ import System.Process.Typed qualified as P
 --
 -- @since 0.1
 class (Monad m) => MonadTypedProcess m where
-  -- | Lifted P.runProcess.
+  -- | Lifted 'P.runProcess'.
   --
   -- @since 0.1
   runProcess ::
@@ -135,7 +135,7 @@ class (Monad m) => MonadTypedProcess m where
     ProcessConfig stdin stdout stderr ->
     m ExitCode
 
-  -- | Lifted P.readProcess.
+  -- | Lifted 'P.readProcess'.
   --
   -- @since 0.1
   readProcess ::
@@ -144,7 +144,7 @@ class (Monad m) => MonadTypedProcess m where
     ProcessConfig stdin stdoutIgnored stderrIgnored ->
     m (ExitCode, BSL.ByteString, BSL.ByteString)
 
-  -- | Lifted P.readProcessStdout.
+  -- | Lifted 'P.readProcessStdout'.
   --
   -- @since 0.1
   readProcessStdout ::
@@ -153,7 +153,7 @@ class (Monad m) => MonadTypedProcess m where
     ProcessConfig stdin stdoutIgnored stderr ->
     m (ExitCode, BSL.ByteString)
 
-  -- | Lifted P.readProcessStderr.
+  -- | Lifted 'P.readProcessStderr'.
   --
   -- @since 0.1
   readProcessStderr ::
@@ -162,7 +162,7 @@ class (Monad m) => MonadTypedProcess m where
     ProcessConfig stdin stdout stderrIgnored ->
     m (ExitCode, BSL.ByteString)
 
-  -- | Lifted P.readProcessInterleaved.
+  -- | Lifted 'P.readProcessInterleaved'.
   --
   -- @since 0.1
   readProcessInterleaved ::
@@ -171,7 +171,7 @@ class (Monad m) => MonadTypedProcess m where
     ProcessConfig stdin stdoutIgnored stderrIgnored ->
     m (ExitCode, BSL.ByteString)
 
-  -- | Lifted P.startProcess.
+  -- | Lifted 'P.startProcess'.
   --
   -- @since 0.1
   startProcess ::
@@ -180,7 +180,7 @@ class (Monad m) => MonadTypedProcess m where
     ProcessConfig stdin stdout stderr ->
     m (Process stdin stdout stderr)
 
-  -- | Lifted P.stopProcess.
+  -- | Lifted 'P.stopProcess'.
   --
   -- @since 0.1
   stopProcess ::
@@ -189,7 +189,7 @@ class (Monad m) => MonadTypedProcess m where
     Process stdin stdout stderr ->
     m ()
 
-  -- | Lifted P.runProcess_.
+  -- | Lifted 'P.runProcess_'.
   --
   -- @since 0.1
   runProcess_ ::
@@ -198,7 +198,7 @@ class (Monad m) => MonadTypedProcess m where
     ProcessConfig stdin stdout stderr ->
     m ()
 
-  -- | Lifted P.readProcess_.
+  -- | Lifted 'P.readProcess_'.
   --
   -- @since 0.1
   readProcess_ ::
@@ -207,7 +207,7 @@ class (Monad m) => MonadTypedProcess m where
     ProcessConfig stdin stdoutIgnored stderrIgnored ->
     m (BSL.ByteString, BSL.ByteString)
 
-  -- | Lifted P.readProcessStdout_.
+  -- | Lifted 'P.readProcessStdout_'.
   --
   -- @since 0.1
   readProcessStdout_ ::
@@ -216,7 +216,7 @@ class (Monad m) => MonadTypedProcess m where
     ProcessConfig stdin stdoutIgnored stderr ->
     m BSL.ByteString
 
-  -- | Lifted P.readProcessStderr_.
+  -- | Lifted 'P.readProcessStderr_'.
   --
   -- @since 0.1
   readProcessStderr_ ::
@@ -225,7 +225,7 @@ class (Monad m) => MonadTypedProcess m where
     ProcessConfig stdin stdout stderrIgnored ->
     m BSL.ByteString
 
-  -- | Lifted P.readProcessInterleaved_.
+  -- | Lifted 'P.readProcessInterleaved_'.
   --
   -- @since 0.1
   readProcessInterleaved_ ::
@@ -234,7 +234,7 @@ class (Monad m) => MonadTypedProcess m where
     ProcessConfig stdin stdoutIgnored stderrIgnored ->
     m BSL.ByteString
 
-  -- | Lifted P.waitExitCode.
+  -- | Lifted 'P.waitExitCode'.
   --
   -- @since 0.1
   waitExitCode ::
@@ -243,7 +243,7 @@ class (Monad m) => MonadTypedProcess m where
     Process stdin stdout stderr ->
     m ExitCode
 
-  -- | Lifted P.getExitCode.
+  -- | Lifted 'P.getExitCode'.
   --
   -- @since 0.1
   getExitCode ::
@@ -252,7 +252,7 @@ class (Monad m) => MonadTypedProcess m where
     Process stdin stdout stderr ->
     m (Maybe ExitCode)
 
-  -- | Lifted P.checkExitCode.
+  -- | Lifted 'P.checkExitCode'.
   --
   -- @since 0.1
   checkExitCode ::

@@ -210,7 +210,7 @@ decodeOsToFpShowText = T.pack . decodeOsToFpShow
 -- @since 0.1
 unsafeDecodeOsToFp :: OsPath -> FilePath
 unsafeDecodeOsToFp p = case decodeOsToFp p of
-  Left ex -> error $ displayException ex
+  Left ex -> error $ decodeFailure "unsafeDecodeOsToFp" p (displayException ex)
   Right fp -> fp
 
 decodeFailure :: String -> OsPath -> String -> String
@@ -220,8 +220,9 @@ decodeFailure fnName p msg =
       fnName,
       "]: Could not decode ospath '",
       decodeOsToFpShow p,
-      "' to filepath: ",
-      msg
+      "' to filepath: '",
+      msg,
+      "'"
     ]
 
 encodeFailure :: String -> FilePath -> String -> String
@@ -231,8 +232,9 @@ encodeFailure fnName fp msg =
       fnName,
       "]: Could not encode filepath '",
       fp,
-      "' to ospath: ",
-      msg
+      "' to ospath: '",
+      msg,
+      "'"
     ]
 
 validErr :: String -> String -> OsPath -> String
