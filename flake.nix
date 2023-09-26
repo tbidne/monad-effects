@@ -140,7 +140,7 @@
           apps = {
             format = nix-hs-utils.format pkgsCompiler;
             lint = nix-hs-utils.lint pkgsCompiler;
-            lint-refactor = nix-hs-utils.lint-refactor pkgsCompiler;
+            lintRefactor = nix-hs-utils.lintRefactor pkgsCompiler;
           };
         };
       systems = [

@@ -72,11 +72,11 @@
     },
     "nix-hs-utils": {
       "locked": {
-        "lastModified": 1693530166,
-        "narHash": "sha256-QfLr1jwR+97YoCFLHLLY4tmAaxe06HCqz5naksmI8dc=",
+        "lastModified": 1695340755,
+        "narHash": "sha256-yb1FM96YxM9wVSkaSGZHCuNoLHeCdn5R0BAfSXJwTwY=",
         "owner": "tbidne",
         "repo": "nix-hs-utils",
-        "rev": "3299f44cd0e9758d615702e3b0a63a5006b2c7d2",
+        "rev": "2ee3a794e1534af18d4115119e5f5da63f0e4fa3",
         "type": "github"
       },
       "original": {
