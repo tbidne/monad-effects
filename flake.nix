@@ -96,8 +96,6 @@
           packages.effects-async =
             mkPkg "effects-async" ./lib/effects-async {
               effects-exceptions = ./lib/effects-exceptions;
-              effects-ioref = ./lib/effects-ioref;
-              effects-stm = ./lib/effects-stm;
               effects-thread = ./lib/effects-thread;
             };
           packages.effects-env = mkPkgsException "effects-env" ./lib/effects-env;
