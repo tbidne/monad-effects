@@ -108,9 +108,9 @@ where
 {- ORMOLU_ENABLE -}
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
-import Control.Monad.Trans.Reader (ReaderT)
+import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Data.ByteString.Lazy qualified as BSL
-import Effects.Exception (MonadMask, addCS, bracket, finally)
+import Effects.Exception (addCS)
 import GHC.Stack (HasCallStack)
 import System.Exit (ExitCode)
 import System.Process.Typed
@@ -170,6 +170,26 @@ class (Monad m) => MonadTypedProcess m where
     -- | .
     ProcessConfig stdin stdoutIgnored stderrIgnored ->
     m (ExitCode, BSL.ByteString)
+
+  -- | Lifted 'P.withProcessWait'.
+  --
+  -- @since 0.1
+  withProcessWait ::
+    (HasCallStack) =>
+    -- | .
+    ProcessConfig stdin stdout stderr ->
+    (Process stdin stdout stderr -> m a) ->
+    m a
+
+  -- | Lifted 'P.withProcessTerm'.
+  --
+  -- @since 0.1
+  withProcessTerm ::
+    (HasCallStack) =>
+    -- | .
+    ProcessConfig stdin stdout stderr ->
+    (Process stdin stdout stderr -> m a) ->
+    m a
 
   -- | Lifted 'P.startProcess'.
   --
@@ -234,6 +254,26 @@ class (Monad m) => MonadTypedProcess m where
     ProcessConfig stdin stdoutIgnored stderrIgnored ->
     m BSL.ByteString
 
+  -- | Lifted 'P.withProcessWait_'.
+  --
+  -- @since 0.1
+  withProcessWait_ ::
+    (HasCallStack) =>
+    -- | .
+    ProcessConfig stdin stdout stderr ->
+    (Process stdin stdout stderr -> m a) ->
+    m a
+
+  -- | Lifted 'P.withProcessTerm_'.
+  --
+  -- @since 0.1
+  withProcessTerm_ ::
+    (HasCallStack) =>
+    -- | .
+    ProcessConfig stdin stdout stderr ->
+    (Process stdin stdout stderr -> m a) ->
+    m a
+
   -- | Lifted 'P.waitExitCode'.
   --
   -- @since 0.1
@@ -273,6 +313,10 @@ instance MonadTypedProcess IO where
   {-# INLINEABLE readProcessStderr #-}
   readProcessInterleaved = addCS . P.readProcessInterleaved
   {-# INLINEABLE readProcessInterleaved #-}
+  withProcessWait pc = addCS . P.withProcessWait pc
+  {-# INLINEABLE withProcessWait #-}
+  withProcessTerm pc = addCS . P.withProcessTerm pc
+  {-# INLINEABLE withProcessTerm #-}
   startProcess = addCS . P.startProcess
   {-# INLINEABLE startProcess #-}
   stopProcess = addCS . P.stopProcess
@@ -287,6 +331,10 @@ instance MonadTypedProcess IO where
   {-# INLINEABLE readProcessStderr_ #-}
   readProcessInterleaved_ = addCS . P.readProcessInterleaved_
   {-# INLINEABLE readProcessInterleaved_ #-}
+  withProcessWait_ pc = addCS . P.withProcessWait_ pc
+  {-# INLINEABLE withProcessWait_ #-}
+  withProcessTerm_ pc = addCS . P.withProcessTerm_ pc
+  {-# INLINEABLE withProcessTerm_ #-}
   waitExitCode = addCS . P.waitExitCode
   {-# INLINEABLE waitExitCode #-}
   getExitCode = addCS . P.getExitCode
@@ -306,6 +354,12 @@ instance (MonadTypedProcess m) => MonadTypedProcess (ReaderT env m) where
   {-# INLINEABLE readProcessStderr #-}
   readProcessInterleaved = lift . readProcessInterleaved
   {-# INLINEABLE readProcessInterleaved #-}
+  withProcessWait pc f =
+    ask >>= \e -> lift $ withProcessWait pc (usingReaderT e . f)
+  {-# INLINEABLE withProcessWait #-}
+  withProcessTerm pc f =
+    ask >>= \e -> lift $ withProcessTerm pc (usingReaderT e . f)
+  {-# INLINEABLE withProcessTerm #-}
   startProcess = lift . startProcess
   {-# INLINEABLE startProcess #-}
   stopProcess = lift . stopProcess
@@ -320,6 +374,12 @@ instance (MonadTypedProcess m) => MonadTypedProcess (ReaderT env m) where
   {-# INLINEABLE readProcessStderr_ #-}
   readProcessInterleaved_ = lift . readProcessInterleaved_
   {-# INLINEABLE readProcessInterleaved_ #-}
+  withProcessWait_ pc f =
+    ask >>= \e -> lift $ withProcessWait_ pc (usingReaderT e . f)
+  {-# INLINEABLE withProcessWait_ #-}
+  withProcessTerm_ pc f =
+    ask >>= \e -> lift $ withProcessTerm_ pc (usingReaderT e . f)
+  {-# INLINEABLE withProcessTerm_ #-}
   waitExitCode = lift . waitExitCode
   {-# INLINEABLE waitExitCode #-}
   getExitCode = lift . getExitCode
@@ -327,61 +387,6 @@ instance (MonadTypedProcess m) => MonadTypedProcess (ReaderT env m) where
   checkExitCode = lift . checkExitCode
   {-# INLINEABLE checkExitCode #-}
 
--- | Lifted 'P.withProcessWait'.
---
--- @since 0.1
-withProcessWait ::
-  (HasCallStack, MonadMask m, MonadTypedProcess m) =>
-  -- | .
-  ProcessConfig stdin stdout stderr ->
-  (Process stdin stdout stderr -> m a) ->
-  m a
-withProcessWait pc onProcess =
-  bracket
-    (startProcess pc)
-    stopProcess
-    (\p -> onProcess p <* waitExitCode p)
-{-# INLINEABLE withProcessWait #-}
-
--- | Lifted 'P.withProcessTerm'.
---
--- @since 0.1
-withProcessTerm ::
-  (HasCallStack, MonadMask m, MonadTypedProcess m) =>
-  -- | .
-  ProcessConfig stdin stdout stderr ->
-  (Process stdin stdout stderr -> m a) ->
-  m a
-withProcessTerm pc = bracket (startProcess pc) stopProcess
-{-# INLINEABLE withProcessTerm #-}
-
--- | Lifted 'P.withProcessWait_'.
---
--- @since 0.1
-withProcessWait_ ::
-  (HasCallStack, MonadMask m, MonadTypedProcess m) =>
-  -- | .
-  ProcessConfig stdin stdout stderr ->
-  (Process stdin stdout stderr -> m a) ->
-  m a
-withProcessWait_ pc onProcess =
-  bracket
-    (startProcess pc)
-    stopProcess
-    (\p -> onProcess p <* checkExitCode p)
-{-# INLINEABLE withProcessWait_ #-}
-
--- | Lifted 'P.withProcessTerm_'.
---
--- @since 0.1
-withProcessTerm_ ::
-  (HasCallStack, MonadMask m, MonadTypedProcess m) =>
-  -- | .
-  ProcessConfig stdin stdout stderr ->
-  (Process stdin stdout stderr -> m a) ->
-  m a
-withProcessTerm_ pc =
-  bracket
-    (startProcess pc)
-    (\p -> stopProcess p `finally` checkExitCode p)
-{-# INLINEABLE withProcessTerm_ #-}
+usingReaderT :: e -> ReaderT e m a -> m a
+usingReaderT = flip runReaderT
+{-# INLINEABLE usingReaderT #-}

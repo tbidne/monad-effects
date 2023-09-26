@@ -617,7 +617,7 @@ usingReaderT = flip runReaderT
 -- | Lifted 'Async.race_'.
 --
 -- @since 0.1
-race_ :: forall m a b. (MonadAsync m) => m a -> m b -> m ()
+race_ :: forall m a b. (HasCallStack, MonadAsync m) => m a -> m b -> m ()
 race_ left = void . race left
 {-# INLINEABLE race_ #-}
 
