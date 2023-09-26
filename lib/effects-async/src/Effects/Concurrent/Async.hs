@@ -2,30 +2,59 @@
 {-# LANGUAGE PostfixOperators #-}
 {-# OPTIONS_GHC -Wno-duplicate-exports #-}
 
--- | Provides the 'MonadAsync' typeclass for async effects.
+-- | Provides the 'MonadAsync' typeclass for async effects. We first present
+-- the class, then the async API implemented via the typeclass.
 --
 -- @since 0.1
 module Effects.Concurrent.Async
   ( -- * Effect
-    Async,
     MonadAsync (..),
 
-    -- * Querying Asyncs
+    -- * Asynchronous Actions
+    Async,
+
+    -- * High-level API
+
+    -- ** Spawning with automatic cancelation
+    withAsync,
+    withAsyncBound,
+    withAsyncOn,
+    withAsyncWithUnmask,
+    withAsyncOnWithUnmask,
+
+    -- ** Querying Asyncs
     wait,
     poll,
     waitCatch,
+    Async.asyncThreadId,
     cancel,
     uninterruptibleCancel,
     cancelWith,
-    Async.asyncThreadId,
+    Async.AsyncCancelled (..),
 
-    -- * STM Operations
+    -- ** High-level utilities
+    race,
+    race_,
+    concurrently,
+    concurrently_,
+    mapConcurrently,
+    forConcurrently,
+    mapConcurrently_,
+    forConcurrently_,
+    replicateConcurrently,
+    replicateConcurrently_,
+    Concurrently (..),
+    Async.compareAsyncs,
+
+    -- ** Specialised operations
+
+    -- *** STM Operations
     STM,
     Async.waitSTM,
     Async.pollSTM,
     Async.waitCatchSTM,
 
-    -- * Waiting for multiple Asyncs
+    -- *** Waiting for multiple Asyncs
     waitAny,
     waitAnyCatch,
     waitAnyCancel,
@@ -37,7 +66,7 @@ module Effects.Concurrent.Async
     waitEither_,
     waitBoth,
 
-    -- * Waiting for multiple Asyncs in STM
+    -- *** Waiting for multiple Asyncs in STM
     Async.waitAnySTM,
     Async.waitAnyCatchSTM,
     Async.waitEitherSTM,
@@ -45,10 +74,21 @@ module Effects.Concurrent.Async
     Async.waitEitherSTM_,
     Async.waitBothSTM,
 
-    -- * Linking
-    Async.ExceptionInLinkedThread (..),
+    -- * Low-level API
+
+    -- ** Spawning (low-level API)
+    async,
+    asyncBound,
+    asyncOn,
+    asyncWithUnmask,
+    asyncOnWithUnmask,
+
+    -- ** Linking
     link,
+    linkOnly,
     link2,
+    link2Only,
+    Async.ExceptionInLinkedThread (..),
 
     -- * Pooled concurrency
     -- $pool
@@ -64,16 +104,6 @@ module Effects.Concurrent.Async
     pooledReplicateConcurrently,
     pooledReplicateConcurrentlyN_,
     pooledReplicateConcurrently_,
-
-    -- * Convenient utilities
-    race_,
-    mapConcurrently,
-    forConcurrently,
-    mapConcurrently_,
-    forConcurrently_,
-    replicateConcurrently,
-    replicateConcurrently_,
-    Concurrently,
 
     -- * Reexports
     SomeException,
@@ -113,13 +143,6 @@ import UnliftIO.Async qualified as UAsync
 -- | Represents async effects. API largely follows
 -- [unliftio](https://hackage.haskell.org/package/unliftio)'s implementation
 -- of [UnliftIO.Async](https://hackage.haskell.org/package/unliftio/docs/UnliftIO-Async.html).
---
--- We prefer to implement as much of the API outside of the typeclass as
--- possible, to reduce the overall size for both ease of use and
--- performance. Nevertheless, there are many functions on the typeclass due to
--- their implementation in
--- [Control.Concurrent.Async](https://hackage.haskell.org/package/async/docs/Control-Concurrent-Async.html)
--- being complex, and we do not want to reimplement any complex logic here.
 --
 -- @since 0.1
 class (Monad m) => MonadAsync m where
@@ -555,7 +578,6 @@ instance (MonadAsync m) => MonadAsync (ReaderT env m) where
   {-# INLINEABLE link2 #-}
   link2Only f x = lift . link2Only f x
   {-# INLINEABLE link2Only #-}
-
   pooledMapConcurrentlyN i f xs =
     ask >>= \e ->
       lift $ pooledMapConcurrentlyN i (usingReaderT e . f) xs

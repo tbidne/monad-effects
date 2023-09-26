@@ -41,7 +41,7 @@ usesFile = do
 We have:
 
 ```haskell
-usesFile :: (MonadFileReader m, MonadProcess m) => m ()
+usesFile :: (MonadFileReader m, MonadTypedProcess m) => m ()
 usesFile = do
   readBinaryFile path
   runProcess_ config
