@@ -9,7 +9,7 @@ import Data.List qualified as L
 import Data.Text qualified as T
 #endif
 import Effects.Exception
-  ( Exception (..),
+  ( Exception (displayException, fromException, toException),
     ExceptionCS (MkExceptionCS),
     SomeException,
     addCS,

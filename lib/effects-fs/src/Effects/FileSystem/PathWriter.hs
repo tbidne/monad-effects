@@ -50,7 +50,7 @@ import Control.Monad (unless, when)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Data.Foldable (for_, traverse_)
-import Data.Time (UTCTime (..))
+import Data.Time (UTCTime (UTCTime, utctDay, utctDayTime))
 import Effects.Exception (MonadMask, addCS, mask_, onException, throwCS)
 import Effects.FileSystem.PathReader
   ( MonadPathReader
@@ -74,7 +74,7 @@ import Optics.Core
     prism,
     (^.),
   )
-import System.Directory (Permissions (..))
+import System.Directory (Permissions)
 import System.Directory.OsPath qualified as Dir
 import System.OsPath qualified as FP
 

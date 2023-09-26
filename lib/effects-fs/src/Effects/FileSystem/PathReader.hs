@@ -29,14 +29,14 @@ where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
-import Data.Time (UTCTime (..))
+import Data.Time (UTCTime (UTCTime, utctDay, utctDayTime))
 import Effects.Exception (addCS)
 import Effects.FileSystem.Utils (OsPath, (</>))
 import GHC.Stack (HasCallStack)
 import System.Directory
-  ( Permissions (..),
-    XdgDirectory (..),
-    XdgDirectoryList (..),
+  ( Permissions,
+    XdgDirectory (XdgCache, XdgConfig, XdgData, XdgState),
+    XdgDirectoryList (XdgConfigDirs, XdgDataDirs),
   )
 import System.Directory.OsPath qualified as Dir
 

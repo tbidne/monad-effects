@@ -70,6 +70,7 @@ test-suite unit
   build-depends:
     , base
     , bytestring
+    , containers
     , effects-logger-ns
     , effects-time
     , monad-logger

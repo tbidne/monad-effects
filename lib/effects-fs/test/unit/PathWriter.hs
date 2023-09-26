@@ -32,17 +32,23 @@ import Effects.FileSystem.PathReader
     doesFileExist,
   )
 import Effects.FileSystem.PathWriter
-  ( CopyDirConfig (..),
-    MonadPathWriter (..),
-    Overwrite (..),
+  ( CopyDirConfig (MkCopyDirConfig),
+    MonadPathWriter
+      ( copyFileWithMetadata,
+        createDirectory,
+        removeDirectory,
+        removeDirectoryRecursive,
+        removeFile
+      ),
+    Overwrite (OverwriteAll, OverwriteDirectories, OverwriteNone),
     PathDoesNotExistException,
     PathExistsException,
-    TargetName (..),
+    TargetName (TargetNameDest, TargetNameLiteral, TargetNameSrc),
     createDirectoryIfMissing,
   )
 import Effects.FileSystem.PathWriter qualified as PathWriter
 import Effects.FileSystem.Utils ((</>))
-import Effects.IORef (MonadIORef (..))
+import Effects.IORef (MonadIORef (modifyIORef', newIORef, readIORef))
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (assertBool, assertFailure, testCase, (@=?))
 import Utils qualified as U

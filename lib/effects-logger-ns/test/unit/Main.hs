@@ -1,26 +1,25 @@
-{-# LANGUAGE OverloadedLists #-}
-
 module Main (main) where
 
 import Control.Monad.Logger (Loc (Loc), LogLevel (LevelWarn))
 import Data.ByteString.Char8 qualified as Char8
+import Data.Sequence qualified as Seq
 import Data.Text (Text)
 import Data.Time.Calendar.OrdinalDate (fromOrdinalDate)
 import Data.Time.LocalTime (TimeOfDay (TimeOfDay), utc)
 import Effects.LoggerNS
   ( LocStrategy (LocNone, LocPartial, LocStable),
-    LogFormatter (..),
+    LogFormatter (MkLogFormatter, locStrategy, newline, timezone),
     LogStr,
-    MonadLogger (..),
-    MonadLoggerNS (..),
-    Namespace,
+    MonadLogger (monadLoggerLog),
+    MonadLoggerNS (getNamespace, localNamespace),
+    Namespace (MkNamespace),
     addNamespace,
     formatLog,
     logStrToBs,
   )
 import Effects.Time
   ( LocalTime (LocalTime),
-    MonadTime (..),
+    MonadTime (getMonotonicTime, getSystemZonedTime),
     ZonedTime (ZonedTime),
   )
 import Test.Tasty (TestTree, defaultMain, testGroup)
@@ -67,7 +66,7 @@ formatBasic =
   testCase "Formats a basic namespaced log" $
     "[2022-02-08 10:20:05][one.two][Warn] msg" @=? fromLogStr logMsg
   where
-    logMsg = runLogger (formatNamespaced fmt) []
+    logMsg = runLogger (formatNamespaced fmt) emptyNamespace
     fmt =
       MkLogFormatter
         { newline = False,
@@ -80,7 +79,7 @@ formatNewline =
   testCase "Formats a log with a newline" $
     "[2022-02-08 10:20:05][one.two][Warn] msg\n" @=? fromLogStr logMsg
   where
-    logMsg = runLogger (formatNamespaced fmt) []
+    logMsg = runLogger (formatNamespaced fmt) emptyNamespace
     fmt =
       MkLogFormatter
         { newline = True,
@@ -93,7 +92,7 @@ formatTimezone =
   testCase "Formats a log with a timezone" $
     "[2022-02-08 10:20:05 UTC][one.two][Warn] msg" @=? fromLogStr logMsg
   where
-    logMsg = runLogger (formatNamespaced fmt) []
+    logMsg = runLogger (formatNamespaced fmt) emptyNamespace
     fmt =
       MkLogFormatter
         { newline = False,
@@ -106,7 +105,7 @@ formatLocStable =
   testCase "Formats a log with stable loc" $
     "[2022-02-08 10:20:05][one.two][Warn][filename] msg" @=? fromLogStr logMsg
   where
-    logMsg = runLogger (formatNamespaced fmt) []
+    logMsg = runLogger (formatNamespaced fmt) emptyNamespace
     fmt =
       MkLogFormatter
         { newline = False,
@@ -119,7 +118,7 @@ formatLocPartial =
   testCase "Formats a log with partial loc" $
     "[2022-02-08 10:20:05][one.two][Warn][filename:1:2] msg" @=? fromLogStr logMsg
   where
-    logMsg = runLogger (formatNamespaced fmt) []
+    logMsg = runLogger (formatNamespaced fmt) emptyNamespace
     fmt =
       MkLogFormatter
         { newline = False,
@@ -152,3 +151,6 @@ zonedTime = ZonedTime localTime utc
 
 fromLogStr :: LogStr -> String
 fromLogStr = Char8.unpack . logStrToBs
+
+emptyNamespace :: Namespace
+emptyNamespace = MkNamespace Seq.empty

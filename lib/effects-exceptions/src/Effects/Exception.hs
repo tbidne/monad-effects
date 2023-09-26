@@ -121,12 +121,12 @@ where
 import Control.DeepSeq (NFData)
 import Control.Exception.Safe qualified as SafeEx
 import Control.Monad.Catch
-  ( Exception (..),
-    Handler (..),
+  ( Exception (displayException, fromException, toException),
+    Handler (Handler),
     MonadCatch,
-    MonadMask (..),
+    MonadMask (generalBracket, mask, uninterruptibleMask),
     MonadThrow,
-    SomeException (..),
+    SomeException (SomeException),
   )
 import Control.Monad.Catch qualified as Ex
 import Control.Monad.Trans.Class (MonadTrans (lift))
@@ -135,7 +135,7 @@ import Data.Set qualified as Set
 import Data.Typeable (cast)
 import GHC.Conc.Sync qualified as Sync
 import GHC.Generics (Generic)
-import GHC.IO.Exception (IOErrorType (InvalidArgument), IOException (..))
+import GHC.IO.Exception (IOErrorType (InvalidArgument), IOException (IOError))
 import GHC.Stack
   ( CallStack,
     HasCallStack,
@@ -143,8 +143,8 @@ import GHC.Stack
     prettyCallStack,
     withFrozenCallStack,
   )
-import GHC.Stack.Types (SrcLoc (..), fromCallSiteList, getCallStack)
-import System.Exit (ExitCode (..))
+import GHC.Stack.Types (SrcLoc (SrcLoc), fromCallSiteList, getCallStack)
+import System.Exit (ExitCode (ExitFailure, ExitSuccess))
 
 -------------------------------------------------------------------------------
 --                           MonadGlobalException                            --

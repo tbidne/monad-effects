@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 {- ORMOLU_DISABLE -}
 
@@ -42,15 +43,27 @@ import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.Text (Text)
 import Data.Text qualified as T
-import Effects.Exception
-  ( addCS,
-    throwCS,
-  )
+import Effects.Exception (addCS, throwCS)
 import GHC.Natural (Natural)
 import GHC.Stack (HasCallStack)
-import System.Console.Terminal.Size (Window (..), size)
+import System.Console.Terminal.Size (Window (Window, height, width), size)
 import System.IO qualified as IO
-import Prelude hiding (getChar, getLine, print, putStr, putStrLn)
+import Prelude
+  ( Applicative (pure),
+    Char,
+    Eq,
+    IO,
+    Maybe (Just, Nothing),
+    Monad ((>>=)),
+    Show (show),
+    String,
+    const,
+    (.),
+    (<$>),
+    (<>),
+  )
+
+-- Explicit prelude because of IO clashes.
 
 -- | @since 0.1
 data TermSizeException = MkTermSizeException
