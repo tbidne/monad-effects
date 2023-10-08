@@ -9,7 +9,7 @@ module Effects.FileSystem.FileWriter
     -- * UTF-8 Utils
     writeFileUtf8,
     appendFileUtf8,
-    encodeUtf8,
+    FsUtils.encodeUtf8,
 
     -- * Reexports
     ByteString,
@@ -21,9 +21,9 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.ByteString (ByteString)
 import Data.Text (Text)
-import Data.Text.Encoding qualified as TEnc
 import Effects.Exception (addCS)
-import Effects.FileSystem.Utils (OsPath, appendBinaryFileIO, writeBinaryFileIO)
+import Effects.FileSystem.Utils (OsPath)
+import Effects.FileSystem.Utils qualified as FsUtils
 import GHC.Stack (HasCallStack)
 
 -- | Represents file-system writer effects.
@@ -42,9 +42,9 @@ class (Monad m) => MonadFileWriter m where
 
 -- | @since 0.1
 instance MonadFileWriter IO where
-  writeBinaryFile p = addCS . writeBinaryFileIO p
+  writeBinaryFile p = addCS . FsUtils.writeBinaryFileIO p
   {-# INLINEABLE writeBinaryFile #-}
-  appendBinaryFile p = addCS . appendBinaryFileIO p
+  appendBinaryFile p = addCS . FsUtils.appendBinaryFileIO p
   {-# INLINEABLE appendBinaryFile #-}
 
 -- | @since 0.1
@@ -54,22 +54,16 @@ instance (MonadFileWriter m) => MonadFileWriter (ReaderT env m) where
   appendBinaryFile p = lift . appendBinaryFile p
   {-# INLINEABLE appendBinaryFile #-}
 
--- | Encodes a 'Text' to UTF-8 'ByteString'.
---
--- @since 0.1
-encodeUtf8 :: Text -> ByteString
-encodeUtf8 = TEnc.encodeUtf8
-
 -- | Writes to a file as UTF-8.
 --
 -- @since 0.1
 writeFileUtf8 :: (HasCallStack, MonadFileWriter m) => OsPath -> Text -> m ()
-writeFileUtf8 p = writeBinaryFile p . encodeUtf8
+writeFileUtf8 p = writeBinaryFile p . FsUtils.encodeUtf8
 {-# INLINEABLE writeFileUtf8 #-}
 
 -- | Appends to a file as UTF-8.
 --
 -- @since 0.1
 appendFileUtf8 :: (HasCallStack, MonadFileWriter m) => OsPath -> Text -> m ()
-appendFileUtf8 p = appendBinaryFile p . encodeUtf8
+appendFileUtf8 p = appendBinaryFile p . FsUtils.encodeUtf8
 {-# INLINEABLE appendFileUtf8 #-}

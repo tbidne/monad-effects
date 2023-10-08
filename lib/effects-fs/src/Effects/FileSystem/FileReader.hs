@@ -10,7 +10,7 @@ module Effects.FileSystem.FileReader
     readFileUtf8,
     readFileUtf8Lenient,
     readFileUtf8ThrowM,
-    decodeUtf8,
+    FsUtils.decodeUtf8,
     decodeUtf8Lenient,
     decodeUtf8ThrowM,
 
@@ -30,7 +30,8 @@ import Data.Text.Encoding qualified as TEnc
 import Data.Text.Encoding.Error (UnicodeException)
 import Data.Text.Encoding.Error qualified as TEncError
 import Effects.Exception (MonadThrow, addCS, throwCS)
-import Effects.FileSystem.Utils (OsPath, readBinaryFileIO)
+import Effects.FileSystem.Utils (OsPath)
+import Effects.FileSystem.Utils qualified as FsUtils
 import GHC.Stack (HasCallStack)
 
 -- | Represents file-system reader effects.
@@ -44,19 +45,13 @@ class (Monad m) => MonadFileReader m where
 
 -- | @since 0.1
 instance MonadFileReader IO where
-  readBinaryFile = addCS . readBinaryFileIO
+  readBinaryFile = addCS . FsUtils.readBinaryFileIO
   {-# INLINEABLE readBinaryFile #-}
 
 -- | @since 0.1
 instance (MonadFileReader m) => MonadFileReader (ReaderT e m) where
   readBinaryFile = lift . readBinaryFile
   {-# INLINEABLE readBinaryFile #-}
-
--- | Decodes a 'ByteString' to UTF-8.
---
--- @since 0.1
-decodeUtf8 :: ByteString -> Either UnicodeException Text
-decodeUtf8 = TEnc.decodeUtf8'
 
 -- | Leniently decodes a 'ByteString' to UTF-8.
 --
@@ -74,7 +69,7 @@ decodeUtf8ThrowM ::
   ByteString ->
   m Text
 decodeUtf8ThrowM =
-  TEnc.decodeUtf8' >.> \case
+  FsUtils.decodeUtf8 >.> \case
     Right txt -> pure txt
     Left ex -> throwCS ex
 {-# INLINEABLE decodeUtf8ThrowM #-}
@@ -88,7 +83,7 @@ readFileUtf8 ::
   ) =>
   OsPath ->
   m (Either UnicodeException Text)
-readFileUtf8 = fmap decodeUtf8 . readBinaryFile
+readFileUtf8 = fmap FsUtils.decodeUtf8 . readBinaryFile
 {-# INLINEABLE readFileUtf8 #-}
 
 -- | Reads a file as UTF-8 in lenient mode.

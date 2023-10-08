@@ -70,6 +70,7 @@ import Data.Text.Encoding qualified as TEnc
 import Data.Text.Encoding.Error (UnicodeException)
 import Data.Text.Encoding.Error qualified as TEncError
 import Effects.Exception (MonadThrow, throwM)
+import GHC.Stack (HasCallStack)
 import System.File.OsPath qualified as FileIO
 import System.FilePath qualified as FP
 import System.IO (Handle, IOMode)
@@ -112,12 +113,9 @@ encodeFpToOsThrowM =
 --
 -- @since 0.1
 encodeFpToValidOsThrowM :: (MonadThrow m) => FilePath -> m OsPath
-encodeFpToValidOsThrowM fp = case encodeFpToOs fp of
+encodeFpToValidOsThrowM fp = case encodeFpToValidOs fp of
   Left ex -> throwM ex
-  Right op ->
-    if OsPath.isValid op
-      then pure op
-      else throwM $ EncodingError (validErr "encodeFpToValidOsThrowM" fp op) Nothing
+  Right op -> pure op
 
 -- | 'encodeFpToOsThrowM' with 'MonadFail'.
 --
@@ -131,19 +129,16 @@ encodeFpToOsFail fp = case encodeFpToOs fp of
 --
 -- @since 0.1
 encodeFpToValidOsFail :: (MonadFail m) => FilePath -> m OsPath
-encodeFpToValidOsFail fp = case encodeFpToOs fp of
+encodeFpToValidOsFail fp = case encodeFpToValidOs fp of
   Left ex -> fail $ encodeFailure "encodeFpToValidOsFail" fp (displayException ex)
-  Right op ->
-    if OsPath.isValid op
-      then pure op
-      else fail $ validErr "encodeFpToValidOsFail" fp op
+  Right op -> pure op
 
 -- | Unsafely converts a 'FilePath' to 'OsPath' falling back to 'error'.
 --
 -- __WARNING: Partial__
 --
 -- @since 0.1
-unsafeEncodeFpToOs :: FilePath -> OsPath
+unsafeEncodeFpToOs :: (HasCallStack) => FilePath -> OsPath
 unsafeEncodeFpToOs fp = case encodeFpToOs fp of
   Left ex ->
     error $ encodeFailure "unsafeEncodeFpToOs" fp (displayException ex)
@@ -154,14 +149,11 @@ unsafeEncodeFpToOs fp = case encodeFpToOs fp of
 -- __WARNING: Partial__
 --
 -- @since 0.1
-unsafeEncodeFpToValidOs :: FilePath -> OsPath
-unsafeEncodeFpToValidOs fp = case encodeFpToOs fp of
+unsafeEncodeFpToValidOs :: (HasCallStack) => FilePath -> OsPath
+unsafeEncodeFpToValidOs fp = case encodeFpToValidOs fp of
   Left ex ->
     error $ encodeFailure "unsafeEncodeFpToValidOs" fp (displayException ex)
-  Right op ->
-    if OsPath.isValid op
-      then op
-      else error $ validErr "unsafeEncodeFpToValidOs" fp op
+  Right op -> op
 
 -- | Decodes an 'OsPath' to a 'FilePath'. This is a pure version of filepath's
 -- 'OsPath.decodeUtf'.
@@ -208,7 +200,7 @@ decodeOsToFpShowText = T.pack . decodeOsToFpShow
 -- __WARNING: Partial__
 --
 -- @since 0.1
-unsafeDecodeOsToFp :: OsPath -> FilePath
+unsafeDecodeOsToFp :: (HasCallStack) => OsPath -> FilePath
 unsafeDecodeOsToFp p = case decodeOsToFp p of
   Left ex -> error $ decodeFailure "unsafeDecodeOsToFp" p (displayException ex)
   Right fp -> fp
@@ -292,7 +284,7 @@ decodeUtf8ThrowM ::
   ByteString ->
   m Text
 decodeUtf8ThrowM =
-  TEnc.decodeUtf8' >.> \case
+  decodeUtf8 >.> \case
     Right txt -> pure txt
     Left ex -> throwM ex
 
