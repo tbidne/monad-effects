@@ -83,47 +83,12 @@ import System.OsPath qualified as FP
 --
 -- @since 0.1
 class (Monad m) => MonadPathWriter m where
-  -- | @'createDirectory' dir@ creates a new directory @dir@ which is
-  -- initially empty, or as near to empty as the operating system
-  -- allows.
-  --
-  -- The operation may fail with:
-  --
-  -- * 'isPermissionError'
-  -- The process has insufficient privileges to perform the operation.
-  -- @[EROFS, EACCES]@
-  --
-  -- * 'isAlreadyExistsError'
-  -- The operand refers to a directory that already exists.
-  -- @ [EEXIST]@
-  --
-  -- * @HardwareFault@
-  -- A physical I\/O error has occurred.
-  -- @[EIO]@
-  --
-  -- * @InvalidArgument@
-  -- The operand is not a valid directory name.
-  -- @[ENAMETOOLONG, ELOOP]@
-  --
-  -- * 'isDoesNotExistError'
-  -- There is no path to the directory.
-  -- @[ENOENT, ENOTDIR]@
-  --
-  -- * 'System.IO.isFullError'
-  -- Insufficient resources (virtual memory, process file descriptors,
-  -- physical disk space, etc.) are available to perform the operation.
-  -- @[EDQUOT, ENOSPC, ENOMEM, EMLINK]@
-  --
-  -- * @InappropriateType@
-  -- The path refers to an existing non-directory object.
-  -- @[EEXIST]@
+  -- | Lifted 'Dir.createDirectory'.
   --
   -- @since 0.1
   createDirectory :: (HasCallStack) => OsPath -> m ()
 
-  -- | @'createDirectoryIfMissing' parents dir@ creates a new directory
-  -- @dir@ if it doesn\'t exist. If the first argument is 'True'
-  -- the function will also create all parent directories if they are missing.
+  -- | Lifted 'Dir.createDirectoryIfMissing'.
   --
   -- @since 0.1
   createDirectoryIfMissing ::
@@ -134,302 +99,47 @@ class (Monad m) => MonadPathWriter m where
     OsPath ->
     m ()
 
-  -- | @'removeDirectory' dir@ removes an existing directory /dir/. The
-  -- implementation may specify additional constraints which must be
-  -- satisfied before a directory can be removed (e.g. the directory has to
-  -- be empty, or may not be in use by other processes). It is not legal
-  -- for an implementation to partially remove a directory unless the
-  -- entire directory is removed. A conformant implementation need not
-  -- support directory removal in all situations (e.g. removal of the root
-  -- directory).
-  --
-  -- The operation may fail with:
-  --
-  -- * @HardwareFault@
-  -- A physical I\/O error has occurred.
-  -- @[EIO]@
-  --
-  -- * @InvalidArgument@
-  -- The operand is not a valid directory name.
-  -- @[ENAMETOOLONG, ELOOP]@
-  --
-  -- * 'isDoesNotExistError'
-  -- The directory does not exist.
-  -- @[ENOENT, ENOTDIR]@
-  --
-  -- * 'isPermissionError'
-  -- The process has insufficient privileges to perform the operation.
-  -- @[EROFS, EACCES, EPERM]@
-  --
-  -- * @UnsatisfiedConstraints@
-  -- Implementation-dependent constraints are not satisfied.
-  -- @[EBUSY, ENOTEMPTY, EEXIST]@
-  --
-  -- * @UnsupportedOperation@
-  -- The implementation does not support removal in this situation.
-  -- @[EINVAL]@
-  --
-  -- * @InappropriateType@
-  -- The operand refers to an existing non-directory object.
-  -- @[ENOTDIR]@
+  -- | Lifted 'Dir.removeDirectory'.
   --
   -- @since 0.1
   removeDirectory :: (HasCallStack) => OsPath -> m ()
 
-  -- | @'removeDirectoryRecursive' dir@ removes an existing directory /dir/
-  -- together with its contents and subdirectories. Within this directory,
-  -- symbolic links are removed without affecting their targets.
-  --
-  -- On Windows, the operation fails if /dir/ is a directory symbolic link.
-  --
-  -- This operation is reported to be flaky on Windows so retry logic may
-  -- be advisable. See: https://github.com/haskell/directory/pull/108
+  -- | Lifted 'Dir.removeDirectoryRecursive'.
   --
   -- @since 0.1
   removeDirectoryRecursive :: (HasCallStack) => OsPath -> m ()
 
-  -- | Removes a file or directory at /path/ together with its contents and
-  -- subdirectories. Symbolic links are removed without affecting their
-  -- targets. If the path does not exist, nothing happens.
-  --
-  -- Unlike other removal functions, this function will also attempt to delete
-  -- files marked as read-only or otherwise made unremovable due to permissions.
-  -- As a result, if the removal is incomplete, the permissions or attributes on
-  -- the remaining files may be altered. If there are hard links in the
-  -- directory, then permissions on all related hard links may be altered.
-  --
-  -- If an entry within the directory vanishes while @removePathForcibly@ is
-  -- running, it is silently ignored.
-  --
-  -- If an exception occurs while removing an entry, @removePathForcibly@ will
-  -- still try to remove as many entries as it can before failing with an
-  -- exception. The first exception that it encountered is re-thrown.
+  -- | Lifted 'Dir.removePathForcibly'.
   --
   -- @since 0.1
   removePathForcibly :: (HasCallStack) => OsPath -> m ()
 
-  -- | @'renameDirectory' old new@ changes the name of an existing
-  -- directory from /old/ to /new/. If the /new/ directory
-  -- already exists, it is atomically replaced by the /old/ directory.
-  -- If the /new/ directory is neither the /old/ directory nor an
-  -- alias of the /old/ directory, it is removed as if by
-  -- 'removeDirectory'. A conformant implementation need not support
-  -- renaming directories in all situations (e.g. renaming to an existing
-  -- directory, or across different physical devices), but the constraints
-  -- must be documented.
-  --
-  -- On Win32 platforms, @renameDirectory@ fails if the /new/ directory already
-  -- exists.
-  --
-  -- The operation may fail with:
-  --
-  -- * @HardwareFault@
-  -- A physical I\/O error has occurred.
-  -- @[EIO]@
-  --
-  -- * @InvalidArgument@
-  -- Either operand is not a valid directory name.
-  -- @[ENAMETOOLONG, ELOOP]@
-  --
-  -- * 'isDoesNotExistError'
-  -- The original directory does not exist, or there is no path to the target.
-  -- @[ENOENT, ENOTDIR]@
-  --
-  -- * 'isPermissionError'
-  -- The process has insufficient privileges to perform the operation.
-  -- @[EROFS, EACCES, EPERM]@
-  --
-  -- * 'System.IO.isFullError'
-  -- Insufficient resources are available to perform the operation.
-  -- @[EDQUOT, ENOSPC, ENOMEM, EMLINK]@
-  --
-  -- * @UnsatisfiedConstraints@
-  -- Implementation-dependent constraints are not satisfied.
-  -- @[EBUSY, ENOTEMPTY, EEXIST]@
-  --
-  -- * @UnsupportedOperation@
-  -- The implementation does not support renaming in this situation.
-  -- @[EINVAL, EXDEV]@
-  --
-  -- * @InappropriateType@
-  -- Either path refers to an existing non-directory object.
-  -- @[ENOTDIR, EISDIR]@
+  -- | Lifted 'Dir.renameDirectory'.
   --
   -- @since 0.1
   renameDirectory :: (HasCallStack) => OsPath -> OsPath -> m ()
 
-  -- | Change the working directory to the given path.
-  --
-  -- In a multithreaded program, the current working directory is a global state
-  -- shared among all threads of the process. Therefore, when performing
-  -- filesystem operations from multiple threads, it is highly recommended to
-  -- use absolute rather than relative paths (see: 'makeAbsolute').
-  --
-  -- The operation may fail with:
-  --
-  -- * @HardwareFault@
-  -- A physical I\/O error has occurred.
-  -- @[EIO]@
-  --
-  -- * @InvalidArgument@
-  -- The operand is not a valid directory name.
-  -- @[ENAMETOOLONG, ELOOP]@
-  --
-  -- * 'isDoesNotExistError'
-  -- The directory does not exist.
-  -- @[ENOENT, ENOTDIR]@
-  --
-  -- * 'isPermissionError'
-  -- The process has insufficient privileges to perform the operation.
-  -- @[EACCES]@
-  --
-  -- * @UnsupportedOperation@
-  -- The operating system has no notion of current working directory, or the
-  -- working directory cannot be dynamically changed.
-  --
-  -- * @InappropriateType@
-  -- The path refers to an existing non-directory object.
-  -- @[ENOTDIR]@
+  -- | Lifted 'Dir.setCurrentDirectory'.
   --
   -- @since 0.1
   setCurrentDirectory :: (HasCallStack) => OsPath -> m ()
 
-  -- | Run an @m@ action with the given working directory and restore the
-  -- original working directory afterwards, even if the given action fails due
-  -- to an exception.
-  --
-  -- The operation may fail with the same exceptions as 'getCurrentDirectory'
-  -- and 'setCurrentDirectory'.
+  -- | Lifted 'Dir.withCurrentDirectory'.
   --
   -- @since 0.1
   withCurrentDirectory :: (HasCallStack) => OsPath -> m a -> m a
 
-  -- | 'removeFile' /file/ removes the directory entry for an existing file
-  -- /file/, where /file/ is not itself a directory. The
-  -- implementation may specify additional constraints which must be
-  -- satisfied before a file can be removed (e.g. the file may not be in
-  -- use by other processes).
-  --
-  -- The operation may fail with:
-  --
-  -- * @HardwareFault@
-  -- A physical I\/O error has occurred.
-  -- @[EIO]@
-  --
-  -- * @InvalidArgument@
-  -- The operand is not a valid file name.
-  -- @[ENAMETOOLONG, ELOOP]@
-  --
-  -- * 'isDoesNotExistError'
-  -- The file does not exist.
-  -- @[ENOENT, ENOTDIR]@
-  --
-  -- * 'isPermissionError'
-  -- The process has insufficient privileges to perform the operation.
-  -- @[EROFS, EACCES, EPERM]@
-  --
-  -- * @UnsatisfiedConstraints@
-  -- Implementation-dependent constraints are not satisfied.
-  -- @[EBUSY]@
-  --
-  -- * @InappropriateType@
-  -- The operand refers to an existing directory.
-  -- @[EPERM, EINVAL]@
+  -- | Lifted 'Dir.removeFile'.
   --
   -- @since 0.1
   removeFile :: (HasCallStack) => OsPath -> m ()
 
-  -- | @'renameFile' old new@ changes the name of an existing file system
-  -- object from /old/ to /new/. If the /new/ object already exists, it is
-  -- replaced by the /old/ object. Neither path may refer to an existing
-  -- directory. A conformant implementation need not support renaming files
-  -- in all situations (e.g. renaming across different physical devices), but
-  -- the constraints must be documented.
-  --
-  -- On Windows, this calls @MoveFileEx@ with @MOVEFILE_REPLACE_EXISTING@ set,
-  -- which is not guaranteed to be atomic
-  -- (<https://github.com/haskell/directory/issues/109>).
-  --
-  -- On other platforms, this operation is atomic.
-  --
-  -- The operation may fail with:
-  --
-  -- * @HardwareFault@
-  -- A physical I\/O error has occurred.
-  -- @[EIO]@
-  --
-  -- * @InvalidArgument@
-  -- Either operand is not a valid file name.
-  -- @[ENAMETOOLONG, ELOOP]@
-  --
-  -- * 'isDoesNotExistError'
-  -- The original file does not exist, or there is no path to the target.
-  -- @[ENOENT, ENOTDIR]@
-  --
-  -- * 'isPermissionError'
-  -- The process has insufficient privileges to perform the operation.
-  -- @[EROFS, EACCES, EPERM]@
-  --
-  -- * 'System.IO.isFullError'
-  -- Insufficient resources are available to perform the operation.
-  -- @[EDQUOT, ENOSPC, ENOMEM, EMLINK]@
-  --
-  -- * @UnsatisfiedConstraints@
-  -- Implementation-dependent constraints are not satisfied.
-  -- @[EBUSY]@
-  --
-  -- * @UnsupportedOperation@
-  -- The implementation does not support renaming in this situation.
-  -- @[EXDEV]@
-  --
-  -- * @InappropriateType@
-  -- Either path refers to an existing directory.
-  -- @[ENOTDIR, EISDIR, EINVAL, EEXIST, ENOTEMPTY]@
-  --
+  -- | Lifted 'Dir.renameFile'.
   --
   -- @since 0.1
   renameFile :: (HasCallStack) => OsPath -> OsPath -> m ()
 
-  -- | Rename a file or directory. If the destination path already exists, it
-  -- is replaced atomically. The destination path must not point to an existing
-  -- directory. A conformant implementation need not support renaming files in
-  -- all situations (e.g. renaming across different physical devices), but the
-  -- constraints must be documented.
-  --
-  -- The operation may fail with:
-  --
-  -- * @HardwareFault@
-  -- A physical I\/O error has occurred.
-  -- @[EIO]@
-  --
-  -- * @InvalidArgument@
-  -- Either operand is not a valid file name.
-  -- @[ENAMETOOLONG, ELOOP]@
-  --
-  -- * 'isDoesNotExistError'
-  -- The original file does not exist, or there is no path to the target.
-  -- @[ENOENT, ENOTDIR]@
-  --
-  -- * 'isPermissionError'
-  -- The process has insufficient privileges to perform the operation.
-  -- @[EROFS, EACCES, EPERM]@
-  --
-  -- * 'System.IO.isFullError'
-  -- Insufficient resources are available to perform the operation.
-  -- @[EDQUOT, ENOSPC, ENOMEM, EMLINK]@
-  --
-  -- * @UnsatisfiedConstraints@
-  -- Implementation-dependent constraints are not satisfied.
-  -- @[EBUSY]@
-  --
-  -- * @UnsupportedOperation@
-  -- The implementation does not support renaming in this situation.
-  -- @[EXDEV]@
-  --
-  -- * @InappropriateType@
-  -- Either the destination path refers to an existing directory, or one of the
-  -- parent segments in the destination path is not a directory.
-  -- @[ENOTDIR, EISDIR, EINVAL, EEXIST, ENOTEMPTY]@
+  -- | Lifted 'Dir.renamePath'.
   --
   -- @since 0.1
   renamePath ::
@@ -440,10 +150,7 @@ class (Monad m) => MonadPathWriter m where
     OsPath ->
     m ()
 
-  -- | Copy a file with its permissions. If the destination file already exists,
-  -- it is replaced atomically. Neither path may refer to an existing
-  -- directory. No exceptions are thrown if the permissions could not be
-  -- copied.
+  -- | Lifted 'Dir.copyFile'.
   --
   -- @since 0.1
   copyFile ::
@@ -454,22 +161,7 @@ class (Monad m) => MonadPathWriter m where
     OsPath ->
     m ()
 
-  -- | Copy a file with its associated metadata. If the destination file
-  -- already exists, it is overwritten. There is no guarantee of atomicity in
-  -- the replacement of the destination file. Neither path may refer to an
-  -- existing directory. If the source and/or destination are symbolic links,
-  -- the copy is performed on the targets of the links.
-  --
-  -- On Windows, it behaves like the Win32 function
-  -- <https://msdn.microsoft.com/en-us/library/windows/desktop/aa363851.aspx CopyFile>,
-  -- which copies various kinds of metadata including file attributes and
-  -- security resource properties.
-  --
-  -- On Unix-like systems, permissions, access time, and modification time are
-  -- preserved. If possible, the owner and group are also preserved. Note that
-  -- the very act of copying can change the access time of the source file,
-  -- hence the access times of the two files may differ after the operation
-  -- completes.
+  -- | Lifted 'Dir.copyFileWithMetadata'.
   --
   -- @since 0.1
   copyFileWithMetadata ::
@@ -480,30 +172,7 @@ class (Monad m) => MonadPathWriter m where
     OsPath ->
     m ()
 
-  -- | Create a /file/ symbolic link. The target path can be either absolute or
-  -- relative and need not refer to an existing file. The order of arguments
-  -- follows the POSIX convention.
-  --
-  -- To remove an existing file symbolic link, use 'removeFile'.
-  --
-  -- Although the distinction between /file/ symbolic links and /directory/
-  -- symbolic links does not exist on POSIX systems, on Windows this is an
-  -- intrinsic property of every symbolic link and cannot be changed without
-  -- recreating the link. A file symbolic link that actually points to a
-  -- directory will fail to dereference and vice versa. Moreover, creating
-  -- symbolic links on Windows may require privileges unavailable to users
-  -- outside the Administrators group. Portable programs that use symbolic
-  -- links should take both into consideration.
-  --
-  -- On Windows, the function is implemented using @CreateSymbolicLink@. Since
-  -- 1.3.3.0, the @SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE@ flag is included
-  -- if supported by the operating system. On POSIX, the function uses @symlink@
-  -- and is therefore atomic.
-  --
-  -- Windows-specific errors: This operation may fail with 'permissionErrorType'
-  -- if the user lacks the privileges to create symbolic links. It may also
-  -- fail with 'illegalOperationErrorType' if the file system does not support
-  -- symbolic links.
+  -- | Lifted 'Dir.createFileLink'.
   --
   -- @since 0.1
   createFileLink ::
@@ -514,31 +183,7 @@ class (Monad m) => MonadPathWriter m where
     OsPath ->
     m ()
 
-  -- | Create a /directory/ symbolic link. The target path can be either
-  -- absolute or relative and need not refer to an existing directory. The
-  -- order of arguments follows the POSIX convention.
-  --
-  -- To remove an existing directory symbolic link, use 'removeDirectoryLink'.
-  --
-  -- Although the distinction between /file/ symbolic links and /directory/
-  -- symbolic links does not exist on POSIX systems, on Windows this is an
-  -- intrinsic property of every symbolic link and cannot be changed without
-  -- recreating the link. A file symbolic link that actually points to a
-  -- directory will fail to dereference and vice versa. Moreover, creating
-  -- symbolic links on Windows may require privileges unavailable to users
-  -- outside the Administrators group. Portable programs that use symbolic
-  -- links should take both into consideration.
-  --
-  -- On Windows, the function is implemented using @CreateSymbolicLink@ with
-  -- @SYMBOLIC_LINK_FLAG_DIRECTORY@. Since 1.3.3.0, the
-  -- @SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE@ flag is also included if
-  -- supported by the operating system. On POSIX, this is an alias for
-  -- 'createFileLink' and is therefore atomic.
-  --
-  -- Windows-specific errors: This operation may fail with 'permissionErrorType'
-  -- if the user lacks the privileges to create symbolic links. It may also
-  -- fail with 'illegalOperationErrorType' if the file system does not support
-  -- symbolic links.
+  -- | Lifted 'Dir.createDirectoryLink'.
   --
   -- @since 0.1
   createDirectoryLink ::
@@ -549,81 +194,27 @@ class (Monad m) => MonadPathWriter m where
     OsPath ->
     m ()
 
-  -- | Remove an existing /directory/ symbolic link.
-  --
-  -- On Windows, this is an alias for 'removeDirectory'. On POSIX systems, this
-  -- is an alias for 'removeFile'.
-  --
-  -- See also: 'removeFile', which can remove an existing /file/ symbolic link.
+  -- | Lifted 'Dir.removeDirectoryLink'.
   --
   -- @since 0.1
   removeDirectoryLink :: (HasCallStack) => OsPath -> m ()
 
-  -- | Remove an existing /directory/ symbolic link.
-  --
-  -- On Windows, this is an alias for 'removeDirectory'. On POSIX systems, this
-  -- is an alias for 'removeFile'.
-  --
-  -- See also: 'removeFile', which can remove an existing /file/ symbolic link.
+  -- | Lifted 'Dir.setPermissions'.
   --
   -- @since 0.1
   setPermissions :: (HasCallStack) => OsPath -> Permissions -> m ()
 
-  -- | Copy the permissions of one file to another. This reproduces the
-  -- permissions more accurately than using 'getPermissions' followed by
-  -- 'setPermissions'.
-  --
-  -- On Windows, this copies only the read-only attribute.
-  --
-  -- On POSIX systems, this is equivalent to @stat@ followed by @chmod@.
+  -- | Lifted 'Dir.copyPermissions'.
   --
   -- @since 0.1
   copyPermissions :: (HasCallStack) => OsPath -> OsPath -> m ()
 
-  -- | Change the time at which the file or directory was last accessed.
-  --
-  -- The operation may fail with:
-  --
-  -- * 'isPermissionError' if the user is not permitted to alter the
-  --   access time; or
-  --
-  -- * 'isDoesNotExistError' if the file or directory does not exist.
-  --
-  -- Some caveats for POSIX systems:
-  --
-  -- * Not all systems support @utimensat@, in which case the function can only
-  --   emulate the behavior by reading the modification time and then setting
-  --   both the access and modification times together. On systems where
-  --   @utimensat@ is supported, the access time is set atomically with
-  --   nanosecond precision.
-  --
-  -- * If compiled against a version of @unix@ prior to @2.7.0.0@, the function
-  --   would not be able to set timestamps with sub-second resolution. In this
-  --   case, there would also be loss of precision in the modification time.
+  -- | Lifted 'Dir.setAccessTime'.
   --
   -- @since 0.1
   setAccessTime :: (HasCallStack) => OsPath -> UTCTime -> m ()
 
-  -- | Change the time at which the file or directory was last modified.
-  --
-  -- The operation may fail with:
-  --
-  -- * 'isPermissionError' if the user is not permitted to alter the
-  --   modification time; or
-  --
-  -- * 'isDoesNotExistError' if the file or directory does not exist.
-  --
-  -- Some caveats for POSIX systems:
-  --
-  -- * Not all systems support @utimensat@, in which case the function can only
-  --   emulate the behavior by reading the access time and then setting both the
-  --   access and modification times together. On systems where @utimensat@ is
-  --   supported, the modification time is set atomically with nanosecond
-  --   precision.
-  --
-  -- * If compiled against a version of @unix@ prior to @2.7.0.0@, the function
-  --   would not be able to set timestamps with sub-second resolution. In this
-  --   case, there would also be loss of precision in the access time.
+  -- | Lifted 'Dir.setModificationTime'.
   --
   -- @since 0.1
   setModificationTime :: (HasCallStack) => OsPath -> UTCTime -> m ()

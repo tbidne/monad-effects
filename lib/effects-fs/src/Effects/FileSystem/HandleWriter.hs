@@ -45,126 +45,57 @@ import System.IO qualified as IO
 --
 -- @since 0.1
 class (Monad m) => MonadHandleWriter m where
-  -- | Lifted 'IO.openBinaryFile'.
+  -- | Lifted 'FsUtils.openBinaryFileIO'.
   --
   -- @since 0.1
   openBinaryFile :: (HasCallStack) => OsPath -> IOMode -> m Handle
 
-  -- | Lifted 'IO.withBinaryFile'.
+  -- | Lifted 'FsUtils.withBinaryFileIO'.
   --
   -- @since 0.1
   withBinaryFile :: (HasCallStack) => OsPath -> IOMode -> (Handle -> m a) -> m a
 
-  -- | Computation 'hClose' @hdl@ makes handle @hdl@ closed. Before the
-  -- computation finishes, if @hdl@ is writable its buffer is flushed as
-  -- for 'hFlush'.
-  -- Performing 'hClose' on a handle that has already been closed has no effect;
-  -- doing so is not an error. All other operations on a closed handle will fail.
-  -- If 'hClose' fails for any reason, any further operations (apart from
-  -- 'hClose') on the handle will still fail as if @hdl@ had been successfully
-  -- closed.
-  --
-  -- 'hClose' is an /interruptible operation/ in the sense described in
-  -- "Control.Exception". If 'hClose' is interrupted by an asynchronous
-  -- exception in the process of flushing its buffers, then the I/O device
-  -- (e.g., file) will be closed anyway.
+  -- | Lifted 'IO.hClose'.
   --
   -- @since 0.1
   hClose :: (HasCallStack) => Handle -> m ()
 
-  -- | The action 'hFlush' @hdl@ causes any items buffered for output
-  -- in handle @hdl@ to be sent immediately to the operating system.
-  --
-  -- This operation may fail with:
-  --
-  --  * 'System.IO.Error.isFullError' if the device is full;
-  --
-  --  * 'System.IO.Error.isPermissionError' if a system resource limit would be
-  --    exceeded. It is unspecified whether the characters in the buffer are
-  --    discarded or retained under these circumstances.
+  -- | Lifted 'IO.hFlush'.
   --
   -- @since 0.1
   hFlush :: (HasCallStack) => Handle -> m ()
 
-  -- | 'hSetFileSize' @hdl@ @size@ truncates the physical file with handle
-  -- @hdl@ to @size@ bytes.
+  -- | Lifted 'IO.hSetFileSize'.
   --
   -- @since 0.1
   hSetFileSize :: (HasCallStack) => Handle -> Integer -> m ()
 
-  -- | Computation 'hSetBuffering' @hdl mode@ sets the mode of buffering for
-  -- handle @hdl@ on subsequent reads and writes.
-  --
-  -- If the buffer mode is changed from 'BlockBuffering' or
-  -- 'LineBuffering' to 'NoBuffering', then
-  --
-  --  * if @hdl@ is writable, the buffer is flushed as for 'hFlush';
-  --
-  --  * if @hdl@ is not writable, the contents of the buffer is discarded.
-  --
-  -- This operation may fail with:
-  --
-  --  * 'System.IO.Error.isPermissionError' if the handle has already been used
-  --    for reading or writing and the implementation does not allow the
-  --    buffering mode to be changed.
+  -- | Lifted 'IO.hSetBuffering'.
   --
   -- @since 0.1
   hSetBuffering :: (HasCallStack) => Handle -> BufferMode -> m ()
 
-  -- | Computation 'hSeek' @hdl mode i@ sets the position of handle
-  -- @hdl@ depending on @mode@.
-  -- The offset @i@ is given in terms of 8-bit bytes.
-  --
-  -- If @hdl@ is block- or line-buffered, then seeking to a position which is not
-  -- in the current buffer will first cause any items in the output buffer to be
-  -- written to the device, and then cause the input buffer to be discarded.
-  -- Some handles may not be seekable (see 'hIsSeekable'), or only support a
-  -- subset of the possible positioning operations (for instance, it may only
-  -- be possible to seek to the end of a tape, or to a positive offset from
-  -- the beginning or current position).
-  -- It is not possible to set a negative I\/O position, or for
-  -- a physical file, an I\/O position beyond the current end-of-file.
-  --
-  -- This operation may fail with:
-  --
-  --  * 'System.IO.Error.isIllegalOperationError' if the Handle is not seekable,
-  --    or does not support the requested seek mode.
-  --
-  --  * 'System.IO.Error.isPermissionError' if a system resource limit would be
-  --    exceeded.
+  -- | Lifted 'IO.hSeek'.
   --
   -- @since 0.1
   hSeek :: (HasCallStack) => Handle -> SeekMode -> Integer -> m ()
 
-  -- | Computation 'hTell' @hdl@ returns the current position of the
-  -- handle @hdl@, as the number of bytes from the beginning of
-  -- the file. The value returned may be subsequently passed to
-  -- 'hSeek' to reposition the handle to the current position.
-  --
-  -- This operation may fail with:
-  --
-  --  * 'System.IO.Error.isIllegalOperationError' if the Handle is not seekable.
+  -- | Lifted 'IO.hTell'.
   --
   -- @since 0.1
   hTell :: (HasCallStack) => Handle -> m Integer
 
-  -- | Set the echoing status of a handle connected to a terminal.
+  -- | Lifted 'IO.hSetEcho'.
   --
   -- @since 0.1
   hSetEcho :: (HasCallStack) => Handle -> Bool -> m ()
 
-  -- | Outputs a 'ByteString' to the specified 'Handle'.
+  -- | Lifted 'BS.hPut'.
   --
   -- @since 0.1
   hPut :: (HasCallStack) => Handle -> ByteString -> m ()
 
-  -- | Similar to 'hPut' except that it will never block. Instead it returns
-  -- any tail that did not get written. This tail may be 'empty' in the case that
-  -- the whole string was written, or the whole original string if nothing was
-  -- written. Partial writes are also possible.
-  --
-  -- Note: on Windows and with Haskell implementation other than GHC, this
-  -- function does not work correctly; it behaves identically to 'hPut'.
+  -- | Lifted 'BS.hPutNonBlocking'.
   --
   -- @since 0.1
   hPutNonBlocking :: (HasCallStack) => Handle -> ByteString -> m ByteString

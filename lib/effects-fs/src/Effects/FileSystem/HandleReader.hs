@@ -57,19 +57,12 @@ import System.IO qualified as IO
 --
 -- @since 0.1
 class (Monad m) => MonadHandleReader m where
-  -- | For a readable handle @hdl@, 'hIsEOF' @hdl@ returns
-  -- 'True' if no further input can be taken from @hdl@ or for a
-  -- physical file, if the current I\/O position is equal to the length of
-  -- the file. Otherwise, it returns 'False'.
-  --
-  -- NOTE: 'hIsEOF' may block, because it has to attempt to read from
-  -- the stream to determine whether there is any more data to be read.
+  -- | Lifted 'IO.hIsEOF'.
   --
   -- @since 0.1
   hIsEOF :: (HasCallStack) => Handle -> m Bool
 
-  -- | Computation 'hGetBuffering' @hdl@ returns the current buffering mode
-  -- for @hdl@.
+  -- | Lifted 'IO.hGetBuffering'.
   --
   -- @since 0.1
   hGetBuffering :: (HasCallStack) => Handle -> m BufferMode
@@ -99,125 +92,52 @@ class (Monad m) => MonadHandleReader m where
   -- @since 0.1
   hIsSeekable :: (HasCallStack) => Handle -> m Bool
 
-  -- | Is the handle connected to a terminal?
-  --
-  -- On Windows the result of 'hIsTerminalDevide' might be misleading,
-  -- because non-native terminals, such as MinTTY used in MSYS and Cygwin environments,
-  -- are implemented via redirection.
-  -- Use @System.Win32.Types.withHandleToHANDLE System.Win32.MinTTY.isMinTTYHandle@
-  -- to recognise it. Also consider @ansi-terminal@ package for crossplatform terminal
-  -- support.
+  -- | Lifted 'IO.hIsTerminalDevice'.
   --
   -- @since 0.1
   hIsTerminalDevice :: (HasCallStack) => Handle -> m Bool
 
-  -- | Get the echoing status of a handle connected to a terminal.
+  -- | Lifted 'IO.hGetEcho'.
   --
   -- @since 0.1
   hGetEcho :: (HasCallStack) => Handle -> m Bool
 
-  -- | Computation 'hWaitForInput' @hdl t@
-  -- waits until input is available on handle @hdl@.
-  -- It returns 'True' as soon as input is available on @hdl@,
-  -- or 'False' if no input is available within @t@ milliseconds. Note that
-  -- 'hWaitForInput' waits until one or more full /characters/ are available,
-  -- which means that it needs to do decoding, and hence may fail
-  -- with a decoding error.
-  --
-  -- If @t@ is less than zero, then @hWaitForInput@ waits indefinitely.
-  --
-  -- This operation may fail with:
-  --
-  --  * 'isEOFError' if the end of file has been reached.
-  --
-  --  * a decoding error, if the input begins with an invalid byte sequence
-  --    in this Handle's encoding.
-  --
-  -- NOTE for GHC users: unless you use the @-threaded@ flag,
-  -- @hWaitForInput hdl t@ where @t >= 0@ will block all other Haskell
-  -- threads for the duration of the call. It behaves like a
-  -- @safe@ foreign call in this respect.
+  -- | Lifted 'IO.hWaitForInput'.
   --
   -- @since 0.1
   hWaitForInput :: (HasCallStack) => Handle -> Int -> m Bool
 
-  -- | Computation 'hReady' @hdl@ indicates whether at least one item is
-  -- available for input from handle @hdl@.
-  --
-  -- This operation may fail with:
-  --
-  --  * 'System.IO.Error.isEOFError' if the end of file has been reached.
+  -- | Lifted 'IO.hReady'.
   --
   -- @since 0.1
   hReady :: (HasCallStack) => Handle -> m Bool
 
-  -- | Computation 'hGetChar' @hdl@ reads a character from the file or
-  -- channel managed by @hdl@, blocking until a character is available.
-  --
-  -- This operation may fail with:
-  --
-  --  * 'isEOFError' if the end of file has been reached.
+  -- | Lifted 'IO.hGetChar'.
   --
   -- @since 0.1
   hGetChar :: (HasCallStack) => Handle -> m Char
 
-  -- | Computation 'hGetLine' @hdl@ reads a line from the file or
-  -- channel managed by @hdl@.
-  --
-  -- This operation may fail with:
-  --
-  --  * 'isEOFError' if the end of file is encountered when reading
-  --    the /first/ character of the line.
-  --
-  -- If 'hGetLine' encounters end-of-file at any other point while reading
-  -- in a line, it is treated as a line terminator and the (partial)
-  -- line is returned.
+  -- | Lifted 'BS.hGetLine'.
   --
   -- @since 0.1
   hGetLine :: (HasCallStack) => Handle -> m ByteString
 
-  -- | Read a handle's entire contents strictly into a 'ByteString'.
-  --
-  -- This function reads chunks at a time, increasing the chunk size on each
-  -- read. The final string is then reallocated to the appropriate size. For
-  -- files > half of available memory, this may lead to memory exhaustion.
-  -- Consider using 'readFile' in this case.
-  --
-  -- The Handle is closed once the contents have been read,
-  -- or if an exception is thrown.
+  -- | Lifted 'BS.hGetContents'.
   --
   -- @since 0.1
   hGetContents :: (HasCallStack) => Handle -> m ByteString
 
-  -- | Read a 'ByteString' directly from the specified 'Handle'. This
-  -- is far more efficient than reading the characters into a 'String'
-  -- and then using 'pack'. First argument is the Handle to read from,
-  -- and the second is the number of bytes to read. It returns the bytes
-  -- read, up to n, or 'empty' if EOF has been reached.
-  --
-  -- 'hGet' is implemented in terms of 'hGetBuf'.
-  --
-  -- If the handle is a pipe or socket, and the writing end
-  -- is closed, 'hGet' will behave as if EOF was reached.
+  -- | Lifted 'BS.hGet'.
   --
   -- @since 0.1
   hGet :: (HasCallStack) => Handle -> Int -> m ByteString
 
-  -- | Like 'hGet', except that a shorter 'ByteString' may be returned
-  -- if there are not enough bytes immediately available to satisfy the
-  -- whole request. 'hGetSome' only blocks if there is no data
-  -- available, and EOF has not yet been reached.
+  -- | Lifted 'BS.hGetSome'.
   --
   -- @since 0.1
   hGetSome :: (HasCallStack) => Handle -> Int -> m ByteString
 
-  -- | hGetNonBlocking is similar to 'hGet', except that it will never block
-  -- waiting for data to become available, instead it returns only whatever data
-  -- is available. If there is no data available to be read, 'hGetNonBlocking'
-  -- returns 'empty'.
-  --
-  -- Note: on Windows and with Haskell implementation other than GHC, this
-  -- function does not work correctly; it behaves identically to 'hGet'.
+  -- | Lifted 'BS.hGetNonBlocking'.
   --
   -- @since 0.1
   hGetNonBlocking :: (HasCallStack) => Handle -> Int -> m ByteString
