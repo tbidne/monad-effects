@@ -61,6 +61,7 @@ import Effects.FileSystem.PathReader
     listDirectoryRecursive,
   )
 import Effects.FileSystem.Utils (OsPath, (</>))
+import Effects.FileSystem.Utils qualified as FsUtils
 import Effects.IORef
   ( MonadIORef (modifyIORef', newIORef, readIORef),
   )
@@ -726,7 +727,7 @@ newtype PathExistsException = MkPathExistsException OsPath
 -- | @since 0.1
 instance Exception PathExistsException where
   displayException (MkPathExistsException path) =
-    "Path already exists: " <> pathToStr path
+    "Path already exists: " <> FsUtils.decodeOsToFpShow path
 
 -- | Exception for when a path does not exist.
 --
@@ -740,7 +741,7 @@ newtype PathDoesNotExistException = MkPathDoesNotExistException OsPath
 -- | @since 0.1
 instance Exception PathDoesNotExistException where
   displayException (MkPathDoesNotExistException path) =
-    "Path does not exist: " <> pathToStr path
+    "Path does not exist: " <> FsUtils.decodeOsToFpShow path
 
 -- | Determines file/directory overwrite behavior.
 --
@@ -992,8 +993,6 @@ copyDirectoryRecursiveConfig config src destRoot = do
     throwCS $
       MkPathDoesNotExistException destRoot
 
-  -- NOTE: Use the given name if it exists. Otherwise use the source folder's
-  -- name.
   let dest = case config ^. #targetName of
         -- Use source directory's name
         TargetNameSrc ->
@@ -1064,7 +1063,9 @@ copyDirectoryOverwrite overwriteFiles src dest = do
       copyFiles = do
         (subFiles, subDirs) <- listDirectoryRecursive src
 
-        -- create dest if it does not exist
+        -- Create dest if it does not exist. Do not need to save dir
+        -- in createdDirsRef IORef as it will be correctly deleted by
+        -- removeDirectoryRecursive if necessary.
         unless destExists $ createDirectory dest
 
         -- create the parent directories
@@ -1182,6 +1183,3 @@ removeIfExists :: (Monad m) => (t -> m Bool) -> (t -> m ()) -> t -> m ()
 removeIfExists existsFn deleteFn f =
   existsFn f >>= \b -> when b (deleteFn f)
 {-# INLINEABLE removeIfExists #-}
-
-pathToStr :: OsPath -> String
-pathToStr = fmap FP.toChar . FP.unpack

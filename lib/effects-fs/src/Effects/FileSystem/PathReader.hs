@@ -40,9 +40,6 @@ import System.Directory
   )
 import System.Directory.OsPath qualified as Dir
 
--- REVIEW: Can we reduce the class size by implementing some of these
--- functions in terms of others?
-
 -- | Represents file-system reader effects.
 --
 -- @since 0.1

@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# OPTIONS_GHC -Wno-missing-methods #-}
 
 module PathWriter (tests) where
@@ -47,11 +47,11 @@ import Effects.FileSystem.PathWriter
     createDirectoryIfMissing,
   )
 import Effects.FileSystem.PathWriter qualified as PathWriter
-import Effects.FileSystem.Utils ((</>))
+import Effects.FileSystem.Utils (osp, (</>))
+import Effects.FileSystem.Utils qualified as Utils
 import Effects.IORef (MonadIORef (modifyIORef', newIORef, readIORef))
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (assertBool, assertFailure, testCase, (@=?))
-import Utils qualified as U
 
 tests :: IO OsPath -> TestTree
 tests getTmpDir = do
@@ -82,9 +82,9 @@ cdrOverwriteNoneTests getTmpDir =
 
 cdrnFresh :: IO OsPath -> TestTree
 cdrnFresh getTmpDir = testCase desc $ do
-  tmpDir <- mkTestPath getTmpDir "cdrnFresh"
+  tmpDir <- mkTestPath getTmpDir [osp|cdrnFresh|]
   srcDir <- setupSrc tmpDir
-  let destDir = tmpDir </> U.strToPath "dest"
+  let destDir = tmpDir </> [osp|dest|]
 
   createDirectoryIfMissing False destDir
 
@@ -100,10 +100,10 @@ cdrnFresh getTmpDir = testCase desc $ do
 
 cdrnCustomTarget :: IO OsPath -> TestTree
 cdrnCustomTarget getTmpDir = testCase desc $ do
-  tmpDir <- mkTestPath getTmpDir "cdrnCustomTarget"
+  tmpDir <- mkTestPath getTmpDir [osp|cdrnCustomTarget|]
   srcDir <- setupSrc tmpDir
-  let destDir = tmpDir </> U.strToPath "dest"
-      target = U.strToPath "target"
+  let destDir = tmpDir </> [osp|dest|]
+      target = [osp|target|]
 
   createDirectoryIfMissing False destDir
 
@@ -114,27 +114,27 @@ cdrnCustomTarget getTmpDir = testCase desc $ do
 
   assertSrcExists tmpDir
   assertFilesExist $
-    (\s -> destDir </> U.strToPath s)
-      <$> [ "target/a/b/c/f1",
-            "target/a/f2",
-            "target/a/b/f3",
-            "target/a/f4",
-            "target/a/f5",
-            "target/a/b/f5"
+    (destDir </>)
+      <$> [ [osp|target|] </> [osp|a|] </> [osp|b|] </> [osp|c|] </> [osp|f1|],
+            [osp|target|] </> [osp|a|] </> [osp|f2|],
+            [osp|target|] </> [osp|a|] </> [osp|b|] </> [osp|f3|],
+            [osp|target|] </> [osp|a|] </> [osp|f4|],
+            [osp|target|] </> [osp|a|] </> [osp|f5|],
+            [osp|target|] </> [osp|a|] </> [osp|b|] </> [osp|f5|]
           ]
   assertDirsExist $
-    (\s -> destDir </> U.strToPath s)
-      <$> [ "target/a/b/c",
-            "target/empty/d"
+    (destDir </>)
+      <$> [ [osp|target|] </> [osp|a|] </> [osp|b|] </> [osp|c|],
+            [osp|target|] </> [osp|empty|] </> [osp|d|]
           ]
   where
     desc = "Copy with custom directory succeeds"
 
 cdrnDestNonExtantFails :: IO OsPath -> TestTree
 cdrnDestNonExtantFails getTmpDir = testCase desc $ do
-  tmpDir <- mkTestPath getTmpDir "cdrnDestNonExtantFails"
+  tmpDir <- mkTestPath getTmpDir [osp|cdrnDestNonExtantFails|]
   srcDir <- setupSrc tmpDir
-  let destDir = tmpDir </> U.strToPath "dest"
+  let destDir = tmpDir </> [osp|dest|]
 
   -- NOTE: This commented line is why the test fails: no dest dir
   -- createDirectoryIfMissing False destDir
@@ -162,22 +162,22 @@ cdrnDestNonExtantFails getTmpDir = testCase desc $ do
   assertDirsDoNotExist [destDir]
   where
     desc = "Copy to non-extant dest fails"
-#if !WINDOWS
-    suffix = "effects-fs/unit/cdrnDestNonExtantFails/dest"
-#else
-    suffix = "effects-fs\\unit\\cdrnDestNonExtantFails\\dest"
-#endif
+    suffix =
+      "effects-fs"
+        `cfp` "unit"
+        `cfp` "cdrnDestNonExtantFails"
+        `cfp` "dest"
 
 cdrnOverwriteFails :: IO OsPath -> TestTree
 cdrnOverwriteFails getTmpDir = testCase desc $ do
-  tmpDir <- mkTestPath getTmpDir "cdrnExtantFails"
+  tmpDir <- mkTestPath getTmpDir [osp|cdrnOverwriteFails|]
   srcDir <- setupSrc tmpDir
-  let destDir = tmpDir </> U.strToPath "dest"
+  let destDir = tmpDir </> [osp|dest|]
 
   createDirectoryIfMissing False destDir
 
   -- NOTE: This causes the expected error
-  createDirectoryIfMissing False (destDir </> U.strToPath "src")
+  createDirectoryIfMissing False (destDir </> [osp|src|])
 
   -- copy files
   result <-
@@ -200,23 +200,24 @@ cdrnOverwriteFails getTmpDir = testCase desc $ do
 
   -- assert files were _not_ copied
   assertDirsDoNotExist $
-    (\s -> destDir </> U.strToPath s)
-      <$> [ "src/a/",
-            "src/empty"
+    (destDir </>)
+      <$> [ [osp|src|] </> [osp|a|],
+            [osp|src|] </> [osp|empty|]
           ]
   where
     desc = "Copy to extant dest/<target> fails"
-#if !WINDOWS
-    suffix = "effects-fs/unit/cdrnExtantFails/dest/src"
-#else
-    suffix = "effects-fs\\unit\\cdrnExtantFails\\dest\\src"
-#endif
+    suffix =
+      "effects-fs"
+        `cfp` "unit"
+        `cfp` "cdrnOverwriteFails"
+        `cfp` "dest"
+        `cfp` "src"
 
 cdrnPartialFails :: IO OsPath -> TestTree
 cdrnPartialFails getTmpDir = testCase desc $ do
-  tmpDir <- mkTestPath getTmpDir "cdrnPartialFails"
+  tmpDir <- mkTestPath getTmpDir [osp|cdrnPartialFails|]
   srcDir <- setupSrc tmpDir
-  let destDir = tmpDir </> U.strToPath "dest"
+  let destDir = tmpDir </> [osp|dest|]
 
   createDirectoryIfMissing False destDir
 
@@ -240,7 +241,7 @@ cdrnPartialFails getTmpDir = testCase desc $ do
   assertSrcExists tmpDir
 
   -- assert no files left over after partial write
-  assertDirsDoNotExist [destDir </> U.strToPath "src"]
+  assertDirsDoNotExist [destDir </> [osp|src|]]
   where
     desc = "Partial failure rolls back changes"
 
@@ -260,9 +261,9 @@ cdrOverwriteTargetTests getTmpDir =
 
 cdrtFresh :: IO OsPath -> TestTree
 cdrtFresh getTmpDir = testCase desc $ do
-  tmpDir <- mkTestPath getTmpDir "cdrtFresh"
+  tmpDir <- mkTestPath getTmpDir [osp|cdrtFresh|]
   srcDir <- setupSrc tmpDir
-  let destDir = tmpDir </> U.strToPath "dest"
+  let destDir = tmpDir </> [osp|dest|]
 
   createDirectoryIfMissing False destDir
 
@@ -278,9 +279,9 @@ cdrtFresh getTmpDir = testCase desc $ do
 
 cdrtDestNonExtantFails :: IO OsPath -> TestTree
 cdrtDestNonExtantFails getTmpDir = testCase desc $ do
-  tmpDir <- mkTestPath getTmpDir "cdrtDestNonExtantFails"
+  tmpDir <- mkTestPath getTmpDir [osp|cdrtDestNonExtantFails|]
   srcDir <- setupSrc tmpDir
-  let destDir = tmpDir </> U.strToPath "dest"
+  let destDir = tmpDir </> [osp|dest|]
 
   -- NOTE: This commented line is why the test fails: no dest dir
   -- createDirectoryIfMissing False destDir
@@ -305,24 +306,24 @@ cdrtDestNonExtantFails getTmpDir = testCase desc $ do
   assertDirsDoNotExist [destDir]
   where
     desc = "Copy to non-extant dest fails"
-#if !WINDOWS
-    suffix = "effects-fs/unit/cdrtDestNonExtantFails/dest"
-#else
-    suffix = "effects-fs\\unit\\cdrtDestNonExtantFails\\dest"
-#endif
+    suffix =
+      "effects-fs"
+        `cfp` "unit"
+        `cfp` "cdrtDestNonExtantFails"
+        `cfp` "dest"
 
 cdrtOverwriteTargetSucceeds :: IO OsPath -> TestTree
 cdrtOverwriteTargetSucceeds getTmpDir = testCase desc $ do
-  tmpDir <- mkTestPath getTmpDir "cdrtOverwriteTargetSucceeds"
+  tmpDir <- mkTestPath getTmpDir [osp|cdrtOverwriteTargetSucceeds|]
   srcDir <- setupSrc tmpDir
-  let destDir = tmpDir </> U.strToPath "dest"
+  let destDir = tmpDir </> [osp|dest|]
 
   createDirectoryIfMissing False destDir
 
   -- NOTE: test that dir already exists and succeeds
-  createDirectoryIfMissing False (destDir </> U.strToPath "src")
-  createDirectoryIfMissing False (destDir </> U.strToPath "src/test")
-  writeFiles [(destDir </> U.strToPath "src/test/here", "cat")]
+  createDirectoryIfMissing False (destDir </> [osp|src|])
+  createDirectoryIfMissing False (destDir </> [osp|src|] </> [osp|test|])
+  writeFiles [(destDir </> [osp|src|] </> [osp|test|] </> [osp|here|], "cat")]
 
   -- copy files
   PathWriter.copyDirectoryRecursiveConfig
@@ -331,30 +332,30 @@ cdrtOverwriteTargetSucceeds getTmpDir = testCase desc $ do
     destDir
 
   assertSrcExists tmpDir
-  assertFilesExist [destDir </> U.strToPath "src/test/here"]
+  assertFilesExist [destDir </> [osp|src|] </> [osp|test|] </> [osp|here|]]
   assertDestExists tmpDir
   where
     desc = "copy to extant dest/<target> succeeds"
 
 cdrtOverwriteTargetMergeSucceeds :: IO OsPath -> TestTree
 cdrtOverwriteTargetMergeSucceeds getTmpDir = testCase desc $ do
-  tmpDir <- mkTestPath getTmpDir "cdrtOverwriteTargetMergeSucceeds"
-  let srcDir = tmpDir </> U.strToPath "src"
-      destDir = tmpDir </> U.strToPath "dest"
+  tmpDir <- mkTestPath getTmpDir [osp|cdrtOverwriteTargetMergeSucceeds|]
+  let srcDir = tmpDir </> [osp|src|]
+      destDir = tmpDir </> [osp|dest|]
 
   createDirectoryIfMissing True destDir
   createDirectoryIfMissing True srcDir
 
   -- NOTE: test that dir already exists and succeeds
-  let d1 = destDir </> U.strToPath "one/"
-      d1Files = (\f -> d1 </> U.strToPath f) <$> ["f1", "f2"]
-      d2 = destDir </> U.strToPath "two/"
-      d2Files = (\f -> d2 </> U.strToPath f) <$> ["f1", "f2"]
+  let d1 = destDir </> [osp|one|]
+      d1Files = (d1 </>) <$> [[osp|f1|], [osp|f2|]]
+      d2 = destDir </> [osp|two|]
+      d2Files = (d2 </>) <$> [[osp|f1|], [osp|f2|]]
 
-      s1 = srcDir </> U.strToPath "one/"
-      s1Files = (\f -> s1 </> U.strToPath f) <$> ["f3", "f4"]
-      s2 = srcDir </> U.strToPath "two/"
-      s2Files = (\f -> s2 </> U.strToPath f) <$> ["f3", "f4"]
+      s1 = srcDir </> [osp|one|]
+      s1Files = (s1 </>) <$> [[osp|f3|], [osp|f4|]]
+      s2 = srcDir </> [osp|two|]
+      s2Files = (s2 </>) <$> [[osp|f3|], [osp|f4|]]
 
   createDirectoryIfMissing False d1
   createDirectoryIfMissing False d2
@@ -374,31 +375,31 @@ cdrtOverwriteTargetMergeSucceeds getTmpDir = testCase desc $ do
 
   -- assert copy correctly merged directories
   assertFilesExist $
-    (\s -> destDir </> (U.strToPath s))
-      <$> [ "one/f1",
-            "one/f2",
-            "one/f3",
-            "one/f4",
-            "two/f1",
-            "two/f2",
-            "two/f3",
-            "two/f4"
+    (destDir </>)
+      <$> [ [osp|one|] </> [osp|f1|],
+            [osp|one|] </> [osp|f2|],
+            [osp|one|] </> [osp|f3|],
+            [osp|one|] </> [osp|f4|],
+            [osp|two|] </> [osp|f1|],
+            [osp|two|] </> [osp|f2|],
+            [osp|two|] </> [osp|f3|],
+            [osp|two|] </> [osp|f4|]
           ]
 
   -- src still exists
   assertFilesExist $
-    (\s -> srcDir </> (U.strToPath s))
-      <$> [ "one/f3",
-            "one/f4",
-            "two/f3",
-            "two/f4"
+    (srcDir </>)
+      <$> [ [osp|one|] </> [osp|f3|],
+            [osp|one|] </> [osp|f4|],
+            [osp|two|] </> [osp|f3|],
+            [osp|two|] </> [osp|f4|]
           ]
   assertFilesDoNotExist $
-    (\s -> srcDir </> (U.strToPath s))
-      <$> [ "one/f1",
-            "one/f2",
-            "two/f1",
-            "two/f2"
+    (srcDir </>)
+      <$> [ [osp|one|] </> [osp|f1|],
+            [osp|one|] </> [osp|f2|],
+            [osp|two|] </> [osp|f1|],
+            [osp|two|] </> [osp|f2|]
           ]
   where
     desc = "copy to extant dest/<target> merges successfully"
@@ -406,24 +407,24 @@ cdrtOverwriteTargetMergeSucceeds getTmpDir = testCase desc $ do
 
 cdrtOverwriteTargetMergeFails :: IO OsPath -> TestTree
 cdrtOverwriteTargetMergeFails getTmpDir = testCase desc $ do
-  tmpDir <- mkTestPath getTmpDir "cdrtOverwriteTargetMergeFails"
-  let srcDir = tmpDir </> U.strToPath "src"
-      destDir = tmpDir </> U.strToPath "dest"
+  tmpDir <- mkTestPath getTmpDir [osp|cdrtOverwriteTargetMergeFails|]
+  let srcDir = tmpDir </> [osp|src|]
+      destDir = tmpDir </> [osp|dest|]
 
   createDirectoryIfMissing True destDir
   createDirectoryIfMissing True srcDir
 
   -- NOTE: test that dir already exists and succeeds
-  let d1 = destDir </> U.strToPath "one/"
-      d1Files = (\f -> d1 </> U.strToPath f) <$> ["f1", "f2"]
-      d2 = destDir </> U.strToPath "two/"
+  let d1 = destDir </> [osp|one|]
+      d1Files = (d1 </>) <$> [[osp|f1|], [osp|f2|]]
+      d2 = destDir </> [osp|two|]
       -- f3 introduces the collision failure we want
-      d2Files = (\f -> d2 </> U.strToPath f) <$> ["f1", "f2", "f3"]
+      d2Files = (d2 </>) <$> [[osp|f1|], [osp|f2|], [osp|f3|]]
 
-      s1 = srcDir </> U.strToPath "one/"
-      s1Files = (\f -> s1 </> U.strToPath f) <$> ["f3", "f4"]
-      s2 = srcDir </> U.strToPath "two/"
-      s2Files = (\f -> s2 </> U.strToPath f) <$> ["f3", "f4"]
+      s1 = srcDir </> [osp|one|]
+      s1Files = (s1 </>) <$> [[osp|f3|], [osp|f4|]]
+      s2 = srcDir </> [osp|two|]
+      s2Files = (s2 </>) <$> [[osp|f3|], [osp|f4|]]
 
   createDirectoryIfMissing False d1
   createDirectoryIfMissing False d2
@@ -453,55 +454,57 @@ cdrtOverwriteTargetMergeFails getTmpDir = testCase desc $ do
 
   -- assert dest unchanged from bad copy
   assertFilesExist $
-    (\s -> destDir </> (U.strToPath s))
-      <$> [ "one/f1",
-            "one/f2",
-            "two/f1",
-            "two/f2",
-            "two/f3"
+    (destDir </>)
+      <$> [ [osp|one|] </> [osp|f1|],
+            [osp|one|] </> [osp|f2|],
+            [osp|two|] </> [osp|f1|],
+            [osp|two|] </> [osp|f2|],
+            [osp|two|] </> [osp|f3|]
           ]
 
   assertFilesDoNotExist $
-    (\s -> destDir </> (U.strToPath s))
-      <$> [ "one/f3",
-            "one/f4",
-            "two/f4"
+    (destDir </>)
+      <$> [ [osp|one|] </> [osp|f3|],
+            [osp|one|] </> [osp|f4|],
+            [osp|two|] </> [osp|f4|]
           ]
 
   -- src still exists
   assertFilesExist $
-    (\s -> srcDir </> (U.strToPath s))
-      <$> [ "one/f3",
-            "one/f4",
-            "two/f3",
-            "two/f4"
+    (srcDir </>)
+      <$> [ [osp|one|] </> [osp|f3|],
+            [osp|one|] </> [osp|f4|],
+            [osp|two|] </> [osp|f3|],
+            [osp|two|] </> [osp|f4|]
           ]
   assertFilesDoNotExist $
-    (\s -> srcDir </> (U.strToPath s))
-      <$> [ "one/f1",
-            "one/f2",
-            "two/f1",
-            "two/f2"
+    (srcDir </>)
+      <$> [ [osp|one|] </> [osp|f1|],
+            [osp|one|] </> [osp|f2|],
+            [osp|two|] </> [osp|f1|],
+            [osp|two|] </> [osp|f2|]
           ]
   where
     desc = "copy to extant dest/<target> merge fails"
     config = MkCopyDirConfig OverwriteDirectories TargetNameDest
-#if !WINDOWS
-    suffix = "effects-fs/unit/cdrtOverwriteTargetMergeFails/dest/two/f3"
-#else
-    suffix = "effects-fs\\unit\\cdrtOverwriteTargetMergeFails\\dest\\two\\f3"
-#endif
+    suffix =
+      "effects-fs"
+        `cfp` "unit"
+        `cfp` "cdrtOverwriteTargetMergeFails"
+        `cfp` "dest"
+        `cfp` "two"
+        `cfp` "f3"
 
 cdrtOverwriteFileFails :: IO OsPath -> TestTree
 cdrtOverwriteFileFails getTmpDir = testCase desc $ do
-  tmpDir <- mkTestPath getTmpDir "cdrtOverwriteFileFails"
+  tmpDir <- mkTestPath getTmpDir [osp|cdrtOverwriteFileFails|]
   srcDir <- setupSrc tmpDir
-  let destDir = tmpDir </> U.strToPath "dest"
+  let destDir = tmpDir </> [osp|dest|]
 
-  createDirectoryIfMissing True (destDir </> U.strToPath "src/a/b/c")
+  createDirectoryIfMissing True (destDir </> [osp|src|] </> [osp|a|] </> [osp|b|] </> [osp|c|])
 
   -- NOTE: this line causes it to die
-  writeFiles [(destDir </> U.strToPath "src/a/b/c/f1", "cat")]
+  writeFiles [(destDir </> [osp|src|] </> [osp|a|] </> [osp|b|] </> [osp|c|] </> [osp|f1|], "cat")]
 
   -- copy files
   result <-
@@ -521,20 +524,25 @@ cdrtOverwriteFileFails getTmpDir = testCase desc $ do
 
   -- assert original files remain
   assertSrcExists tmpDir
-  assertFilesExist [destDir </> U.strToPath "src/a/b/c/f1"]
+  assertFilesExist [destDir </> [osp|src|] </> [osp|a|] </> [osp|b|] </> [osp|c|] </> [osp|f1|]]
   where
     desc = "copy to extant dest/<target>/file fails"
-#if !WINDOWS
-    suffix = "effects-fs/unit/cdrtOverwriteFileFails/dest/src/a/b/c/f1"
-#else
-    suffix = "effects-fs\\unit\\cdrtOverwriteFileFails\\dest\\src\\a\\b\\c\\f1"
-#endif
+    suffix =
+      "effects-fs"
+        `cfp` "unit"
+        `cfp` "cdrtOverwriteFileFails"
+        `cfp` "dest"
+        `cfp` "src"
+        `cfp` "a"
+        `cfp` "b"
+        `cfp` "c"
+        `cfp` "f1"
 
 cdrtPartialFails :: IO OsPath -> TestTree
 cdrtPartialFails getTmpDir = testCase desc $ do
-  tmpDir <- mkTestPath getTmpDir "cdrtPartialFails"
+  tmpDir <- mkTestPath getTmpDir [osp|cdrtPartialFails|]
   srcDir <- setupSrc tmpDir
-  let destDir = tmpDir </> U.strToPath "dest"
+  let destDir = tmpDir </> [osp|dest|]
 
   createDirectoryIfMissing False destDir
 
@@ -558,22 +566,22 @@ cdrtPartialFails getTmpDir = testCase desc $ do
   assertSrcExists tmpDir
 
   -- assert no files left over after partial write
-  assertDirsDoNotExist [destDir </> U.strToPath "src"]
+  assertDirsDoNotExist [destDir </> [osp|src|]]
   where
     desc = "Partial failure rolls back changes"
 
 cdrtOverwritePartialFails :: IO OsPath -> TestTree
 cdrtOverwritePartialFails getTmpDir = testCase desc $ do
-  tmpDir <- mkTestPath getTmpDir "cdrtOverwritePartialFails"
+  tmpDir <- mkTestPath getTmpDir [osp|cdrtOverwritePartialFails|]
   srcDir <- setupSrc tmpDir
-  let destDir = tmpDir </> U.strToPath "dest"
+  let destDir = tmpDir </> [osp|dest|]
 
   createDirectoryIfMissing False destDir
 
   -- NOTE: test overwriting
-  createDirectoryIfMissing False (destDir </> U.strToPath "src")
-  createDirectoryIfMissing False (destDir </> U.strToPath "src/test")
-  writeFiles [(destDir </> U.strToPath "src/test/here", "cat")]
+  createDirectoryIfMissing False (destDir </> [osp|src|])
+  createDirectoryIfMissing False (destDir </> [osp|src|] </> [osp|test|])
+  writeFiles [(destDir </> [osp|src|] </> [osp|test|] </> [osp|here|], "cat")]
 
   -- copy files
   result <-
@@ -596,13 +604,13 @@ cdrtOverwritePartialFails getTmpDir = testCase desc $ do
 
   -- assert files were not copied over
   assertDirsDoNotExist $
-    (\s -> destDir </> U.strToPath s)
-      <$> [ "src/a/",
-            "src/empty"
+    (destDir </>)
+      <$> [ [osp|src|] </> [osp|a|],
+            [osp|src|] </> [osp|empty|]
           ]
 
   -- assert original file exists after copy failure
-  assertFilesExist [destDir </> U.strToPath "src/test/here"]
+  assertFilesExist [destDir </> [osp|src|] </> [osp|test|] </> [osp|here|]]
   where
     desc = "Partial failure with extant dest/<target> rolls back changes"
 
@@ -615,15 +623,33 @@ cdrOverwriteAllTests getTmpDir =
 
 cdraOverwriteFileSucceeds :: IO OsPath -> TestTree
 cdraOverwriteFileSucceeds getTmpDir = testCase desc $ do
-  tmpDir <- mkTestPath getTmpDir "cdraOverwriteFileSucceeds"
+  tmpDir <- mkTestPath getTmpDir [osp|cdraOverwriteFileSucceeds|]
   srcDir <- setupSrc tmpDir
-  let destDir = tmpDir </> U.strToPath "dest"
+  let destDir = tmpDir </> [osp|dest|]
 
-  createDirectoryIfMissing True (destDir </> U.strToPath "src/a/b/c")
+  createDirectoryIfMissing True (destDir </> [osp|src|] </> [osp|a|] </> [osp|b|] </> [osp|c|])
 
   -- NOTE: this line is what is tested
-  writeFiles [(destDir </> U.strToPath "src/a/b/c/f1", "cat")]
-  assertFileContents [(destDir </> U.strToPath "src/a/b/c/f1", "cat")]
+  writeFiles
+    [ ( destDir
+          </> [osp|src|]
+          </> [osp|a|]
+          </> [osp|b|]
+          </> [osp|c|]
+          </> [osp|f1|],
+        "cat"
+      )
+    ]
+  assertFileContents
+    [ ( destDir
+          </> [osp|src|]
+          </> [osp|a|]
+          </> [osp|b|]
+          </> [osp|c|]
+          </> [osp|f1|],
+        "cat"
+      )
+    ]
 
   -- copy files
   PathWriter.copyDirectoryRecursiveConfig
@@ -633,7 +659,16 @@ cdraOverwriteFileSucceeds getTmpDir = testCase desc $ do
 
   assertSrcExists tmpDir
   -- check contents actually overwritten
-  assertFileContents [(destDir </> U.strToPath "src/a/b/c/f1", "1")]
+  assertFileContents
+    [ ( destDir
+          </> [osp|src|]
+          </> [osp|a|]
+          </> [osp|b|]
+          </> [osp|c|]
+          </> [osp|f1|],
+        "1"
+      )
+    ]
   assertDestExists tmpDir
   where
     desc = "Copy to extant dest/<target>/file succeeds"
@@ -644,12 +679,19 @@ cdraOverwriteFileSucceeds getTmpDir = testCase desc $ do
 
 setupSrc :: (HasCallStack) => OsPath -> IO OsPath
 setupSrc baseDir = do
-  let files = U.strToPath <$> ["a/b/c/f1", "a/f2", "a/b/f3", "a/f4", "a/f5", "a/b/f5"]
-      srcDir = baseDir </> U.strToPath "src"
+  let files =
+        [ [osp|a|] </> [osp|b|] </> [osp|c|] </> [osp|f1|],
+          [osp|a|] </> [osp|f2|],
+          [osp|a|] </> [osp|b|] </> [osp|f3|],
+          [osp|a|] </> [osp|f4|],
+          [osp|a|] </> [osp|f5|],
+          [osp|a|] </> [osp|b|] </> [osp|f5|]
+        ]
+      srcDir = baseDir </> [osp|src|]
 
   -- create directories and files
-  createDirectoryIfMissing True (srcDir </> U.strToPath "a/b/c")
-  createDirectoryIfMissing True (srcDir </> U.strToPath "empty/d")
+  createDirectoryIfMissing True (srcDir </> [osp|a|] </> [osp|b|] </> [osp|c|])
+  createDirectoryIfMissing True (srcDir </> [osp|empty|] </> [osp|d|])
 
   let baseFiles = zip files ["1", "2", "3", "4", "5", "6"]
       srcFiles = fmap (first (srcDir </>)) baseFiles
@@ -712,68 +754,71 @@ instance MonadPathWriter PartialIO where
 
 assertSrcExists :: (HasCallStack) => OsPath -> IO ()
 assertSrcExists baseDir = do
-  let srcDir = baseDir </> U.strToPath "src"
+  let srcDir = baseDir </> [osp|src|]
   assertFilesExist $
-    (\s -> srcDir </> (U.strToPath s))
-      <$> [ "a/b/c/f1",
-            "a/f2",
-            "a/b/f3",
-            "a/f4",
-            "a/f5",
-            "a/b/f5"
+    (srcDir </>)
+      <$> [ [osp|a|] </> [osp|b|] </> [osp|c|] </> [osp|f1|],
+            [osp|a|] </> [osp|f2|],
+            [osp|a|] </> [osp|b|] </> [osp|f3|],
+            [osp|a|] </> [osp|f4|],
+            [osp|a|] </> [osp|f5|],
+            [osp|a|] </> [osp|b|] </> [osp|f5|]
           ]
   assertDirsExist $
-    (\s -> srcDir </> U.strToPath s)
-      <$> [ "a/b/c",
-            "empty/d"
+    (srcDir </>)
+      <$> [ [osp|a|] </> [osp|b|] </> [osp|c|],
+            [osp|empty|] </> [osp|d|]
           ]
 
 assertDestExists :: (HasCallStack) => OsPath -> IO ()
 assertDestExists baseDir = do
-  let destDir = baseDir </> U.strToPath "dest"
+  let destDir = baseDir </> [osp|dest|]
   assertFilesExist $
-    (\s -> destDir </> U.strToPath s)
-      <$> [ "src/a/b/c/f1",
-            "src/a/f2",
-            "src/a/b/f3",
-            "src/a/f4",
-            "src/a/f5",
-            "src/a/b/f5"
+    (destDir </>)
+      <$> [ [osp|src|] </> [osp|a|] </> [osp|b|] </> [osp|c|] </> [osp|f1|],
+            [osp|src|] </> [osp|a|] </> [osp|f2|],
+            [osp|src|] </> [osp|a|] </> [osp|b|] </> [osp|f3|],
+            [osp|src|] </> [osp|a|] </> [osp|f4|],
+            [osp|src|] </> [osp|a|] </> [osp|f5|],
+            [osp|src|] </> [osp|a|] </> [osp|b|] </> [osp|f5|]
           ]
   assertDirsExist $
-    (\s -> destDir </> U.strToPath s)
-      <$> [ "src/a/b/c",
-            "src/empty/d"
+    (destDir </>)
+      <$> [ [osp|src|] </> [osp|a|] </> [osp|b|] </> [osp|c|],
+            [osp|src|] </> [osp|empty|] </> [osp|d|]
           ]
 
 assertFilesExist :: (HasCallStack) => [OsPath] -> IO ()
 assertFilesExist = traverse_ $ \p -> do
   exists <- doesFileExist p
-  assertBool ("Expected file to exist: " <> U.pathToStr p) exists
+  assertBool ("Expected file to exist: " <> Utils.decodeOsToFpShow p) exists
 
 assertFilesDoNotExist :: (HasCallStack) => [OsPath] -> IO ()
 assertFilesDoNotExist = traverse_ $ \p -> do
   exists <- doesFileExist p
-  assertBool ("Expected file not to exist: " <> U.pathToStr p) (not exists)
+  assertBool ("Expected file not to exist: " <> Utils.decodeOsToFpShow p) (not exists)
 
 assertFileContents :: (HasCallStack) => [(OsPath, ByteString)] -> IO ()
 assertFileContents = traverse_ $ \(p, expected) -> do
   exists <- doesFileExist p
-  assertBool ("Expected file to exist: " <> U.pathToStr p) exists
+  assertBool ("Expected file to exist: " <> Utils.decodeOsToFpShow p) exists
   actual <- readBinaryFile p
   expected @=? actual
 
 assertDirsExist :: (HasCallStack) => [OsPath] -> IO ()
 assertDirsExist = traverse_ $ \p -> do
   exists <- doesDirectoryExist p
-  assertBool ("Expected directory to exist: " <> U.pathToStr p) exists
+  assertBool ("Expected directory to exist: " <> Utils.decodeOsToFpShow p) exists
 
 assertDirsDoNotExist :: (HasCallStack) => [OsPath] -> IO ()
 assertDirsDoNotExist = traverse_ $ \p -> do
   exists <- doesDirectoryExist p
-  assertBool ("Expected directory not to exist: " <> U.pathToStr p) (not exists)
+  assertBool ("Expected directory not to exist: " <> Utils.decodeOsToFpShow p) (not exists)
 
-mkTestPath :: IO OsPath -> String -> IO OsPath
+mkTestPath :: IO OsPath -> OsPath -> IO OsPath
 mkTestPath getPath s = do
   p <- getPath
-  pure $ p </> U.strToPath s
+  pure $ p </> s
+
+cfp :: FilePath -> FilePath -> FilePath
+cfp = Utils.combineFilePaths

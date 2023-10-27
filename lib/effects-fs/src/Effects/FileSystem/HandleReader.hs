@@ -48,11 +48,7 @@ import Data.ByteString qualified as BS
 import Data.Text (Text)
 import Data.Text.Encoding.Error (UnicodeException)
 import Effects.Exception (MonadThrow, addCS)
-import Effects.FileSystem.FileReader
-  ( decodeUtf8,
-    decodeUtf8Lenient,
-    decodeUtf8ThrowM,
-  )
+import Effects.FileSystem.Utils qualified as FsUtils
 import GHC.Stack (HasCallStack)
 import System.IO (BufferMode, Handle)
 import System.IO qualified as IO
@@ -309,14 +305,14 @@ hGetLineUtf8 ::
   ) =>
   Handle ->
   m (Either UnicodeException Text)
-hGetLineUtf8 = fmap decodeUtf8 . hGetLine
+hGetLineUtf8 = fmap FsUtils.decodeUtf8 . hGetLine
 {-# INLINEABLE hGetLineUtf8 #-}
 
 -- | 'hGetLine' that converts to UTF-8 in lenient mode.
 --
 -- @since 0.1
 hGetLineUtf8Lenient :: (HasCallStack, MonadHandleReader m) => Handle -> m Text
-hGetLineUtf8Lenient = fmap decodeUtf8Lenient . hGetLine
+hGetLineUtf8Lenient = fmap FsUtils.decodeUtf8Lenient . hGetLine
 {-# INLINEABLE hGetLineUtf8Lenient #-}
 
 -- | 'hGetLine' that throws 'UnicodeException' if UTF-8 conversion fails.
@@ -329,7 +325,7 @@ hGetLineUtf8ThrowM ::
   ) =>
   Handle ->
   m Text
-hGetLineUtf8ThrowM = hGetLine >=> decodeUtf8ThrowM
+hGetLineUtf8ThrowM = hGetLine >=> FsUtils.decodeUtf8ThrowM
 {-# INLINEABLE hGetLineUtf8ThrowM #-}
 
 -- | 'hGetContents' that attempts a UTF-8 conversion.
@@ -341,7 +337,7 @@ hGetContentsUtf8 ::
   ) =>
   Handle ->
   m (Either UnicodeException Text)
-hGetContentsUtf8 = fmap decodeUtf8 . hGetContents
+hGetContentsUtf8 = fmap FsUtils.decodeUtf8 . hGetContents
 {-# INLINEABLE hGetContentsUtf8 #-}
 
 -- | 'hGetContents' that converts to UTF-8 in lenient mode.
@@ -353,7 +349,7 @@ hGetContentsUtf8Lenient ::
   ) =>
   Handle ->
   m Text
-hGetContentsUtf8Lenient = fmap decodeUtf8Lenient . hGetContents
+hGetContentsUtf8Lenient = fmap FsUtils.decodeUtf8Lenient . hGetContents
 {-# INLINEABLE hGetContentsUtf8Lenient #-}
 
 -- | 'hGetContents' that throws 'UnicodeException' if UTF-8 conversion fails.
@@ -366,7 +362,7 @@ hGetContentsUtf8ThrowM ::
   ) =>
   Handle ->
   m Text
-hGetContentsUtf8ThrowM = hGetContents >=> decodeUtf8ThrowM
+hGetContentsUtf8ThrowM = hGetContents >=> FsUtils.decodeUtf8ThrowM
 {-# INLINEABLE hGetContentsUtf8ThrowM #-}
 
 -- | 'hGet' that attempts a UTF-8 conversion.
@@ -379,7 +375,7 @@ hGetUtf8 ::
   Handle ->
   Int ->
   m (Either UnicodeException Text)
-hGetUtf8 h = fmap decodeUtf8 . hGet h
+hGetUtf8 h = fmap FsUtils.decodeUtf8 . hGet h
 {-# INLINEABLE hGetUtf8 #-}
 
 -- | 'hGet' that converts to UTF-8 in lenient mode.
@@ -392,7 +388,7 @@ hGetUtf8Lenient ::
   Handle ->
   Int ->
   m Text
-hGetUtf8Lenient h = fmap decodeUtf8Lenient . hGet h
+hGetUtf8Lenient h = fmap FsUtils.decodeUtf8Lenient . hGet h
 {-# INLINEABLE hGetUtf8Lenient #-}
 
 -- | 'hGet' that throws 'UnicodeException' if UTF-8 conversion fails.
@@ -406,7 +402,7 @@ hGetUtf8ThrowM ::
   Handle ->
   Int ->
   m Text
-hGetUtf8ThrowM h = hGet h >=> decodeUtf8ThrowM
+hGetUtf8ThrowM h = hGet h >=> FsUtils.decodeUtf8ThrowM
 {-# INLINEABLE hGetUtf8ThrowM #-}
 
 -- | 'hGetSome' that attempts a UTF-8 conversion.
@@ -419,7 +415,7 @@ hGetSomeUtf8 ::
   Handle ->
   Int ->
   m (Either UnicodeException Text)
-hGetSomeUtf8 h = fmap decodeUtf8 . hGetSome h
+hGetSomeUtf8 h = fmap FsUtils.decodeUtf8 . hGetSome h
 {-# INLINEABLE hGetSomeUtf8 #-}
 
 -- | 'hGetSome' that converts to UTF-8 in lenient mode.
@@ -432,7 +428,7 @@ hGetSomeUtf8Lenient ::
   Handle ->
   Int ->
   m Text
-hGetSomeUtf8Lenient h = fmap decodeUtf8Lenient . hGetSome h
+hGetSomeUtf8Lenient h = fmap FsUtils.decodeUtf8Lenient . hGetSome h
 {-# INLINEABLE hGetSomeUtf8Lenient #-}
 
 -- | 'hGetSome' that throws 'UnicodeException' if UTF-8 conversion fails.
@@ -446,7 +442,7 @@ hGetSomeUtf8ThrowM ::
   Handle ->
   Int ->
   m Text
-hGetSomeUtf8ThrowM h = hGetSome h >=> decodeUtf8ThrowM
+hGetSomeUtf8ThrowM h = hGetSome h >=> FsUtils.decodeUtf8ThrowM
 {-# INLINEABLE hGetSomeUtf8ThrowM #-}
 
 -- | 'hGetNonBlocking' that attempts a UTF-8 conversion.
@@ -459,7 +455,7 @@ hGetNonBlockingUtf8 ::
   Handle ->
   Int ->
   m (Either UnicodeException Text)
-hGetNonBlockingUtf8 h = fmap decodeUtf8 . hGetNonBlocking h
+hGetNonBlockingUtf8 h = fmap FsUtils.decodeUtf8 . hGetNonBlocking h
 {-# INLINEABLE hGetNonBlockingUtf8 #-}
 
 -- | 'hGetNonBlocking' that converts to UTF-8 in lenient mode.
@@ -472,7 +468,7 @@ hGetNonBlockingUtf8Lenient ::
   Handle ->
   Int ->
   m Text
-hGetNonBlockingUtf8Lenient h = fmap decodeUtf8Lenient . hGetNonBlocking h
+hGetNonBlockingUtf8Lenient h = fmap FsUtils.decodeUtf8Lenient . hGetNonBlocking h
 {-# INLINEABLE hGetNonBlockingUtf8Lenient #-}
 
 -- | 'hGetNonBlocking' that throws 'UnicodeException' if UTF-8 conversion fails.
@@ -486,5 +482,5 @@ hGetNonBlockingUtf8ThrowM ::
   Handle ->
   Int ->
   m Text
-hGetNonBlockingUtf8ThrowM h = hGetNonBlocking h >=> decodeUtf8ThrowM
+hGetNonBlockingUtf8ThrowM h = hGetNonBlocking h >=> FsUtils.decodeUtf8ThrowM
 {-# INLINEABLE hGetNonBlockingUtf8ThrowM #-}

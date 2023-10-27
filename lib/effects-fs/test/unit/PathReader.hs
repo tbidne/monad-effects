@@ -1,12 +1,13 @@
+{-# LANGUAGE QuasiQuotes #-}
+
 module PathReader (tests) where
 
 import Control.Monad (zipWithM_)
 import Data.List qualified as L
 import Effects.FileSystem.PathReader qualified as PathReader
-import System.FilePath ((</>))
+import Effects.FileSystem.Utils (osp, (</>))
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCase, (@=?))
-import Utils qualified as U
 
 tests :: TestTree
 tests =
@@ -17,21 +18,23 @@ tests =
 
 testListDirectoryRecursive :: TestTree
 testListDirectoryRecursive = testCase "Recursively lists sub-files/dirs" $ do
-  (files, dirs) <- PathReader.listDirectoryRecursive (U.strToPath "./src")
+  (files, dirs) <- PathReader.listDirectoryRecursive [osp|src|]
   let (files', dirs') = (L.sort files, L.sort dirs)
-  zipWithM_ (@=?) expectedFiles (U.pathToStr <$> files')
-  zipWithM_ (@=?) expectedDirs (U.pathToStr <$> dirs')
+  zipWithM_ (@=?) expectedFiles files'
+  zipWithM_ (@=?) expectedDirs dirs'
   where
     expectedFiles =
-      [ "Effects" </> "FileSystem" </> "FileReader.hs",
-        "Effects" </> "FileSystem" </> "FileWriter.hs",
-        "Effects" </> "FileSystem" </> "HandleReader.hs",
-        "Effects" </> "FileSystem" </> "HandleWriter.hs",
-        "Effects" </> "FileSystem" </> "PathReader.hs",
-        "Effects" </> "FileSystem" </> "PathWriter.hs",
-        "Effects" </> "FileSystem" </> "Utils.hs"
+      [ prefix </> [osp|FileReader.hs|],
+        prefix </> [osp|FileWriter.hs|],
+        prefix </> [osp|HandleReader.hs|],
+        prefix </> [osp|HandleWriter.hs|],
+        prefix </> [osp|PathReader.hs|],
+        prefix </> [osp|PathWriter.hs|],
+        prefix </> [osp|Utils.hs|]
       ]
     expectedDirs =
-      [ "Effects",
-        "Effects" </> "FileSystem"
+      [ [osp|Effects|],
+        prefix
       ]
+
+    prefix = [osp|Effects|] </> [osp|FileSystem|]

@@ -11,8 +11,8 @@ module Effects.FileSystem.FileReader
     readFileUtf8Lenient,
     readFileUtf8ThrowM,
     FsUtils.decodeUtf8,
-    decodeUtf8Lenient,
-    decodeUtf8ThrowM,
+    FsUtils.decodeUtf8Lenient,
+    FsUtils.decodeUtf8ThrowM,
 
     -- * Reexports
     ByteString,
@@ -26,10 +26,8 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.ByteString (ByteString)
 import Data.Text (Text)
-import Data.Text.Encoding qualified as TEnc
 import Data.Text.Encoding.Error (UnicodeException)
-import Data.Text.Encoding.Error qualified as TEncError
-import Effects.Exception (MonadThrow, addCS, throwCS)
+import Effects.Exception (MonadThrow, addCS)
 import Effects.FileSystem.Utils (OsPath)
 import Effects.FileSystem.Utils qualified as FsUtils
 import GHC.Stack (HasCallStack)
@@ -53,27 +51,6 @@ instance (MonadFileReader m) => MonadFileReader (ReaderT e m) where
   readBinaryFile = lift . readBinaryFile
   {-# INLINEABLE readBinaryFile #-}
 
--- | Leniently decodes a 'ByteString' to UTF-8.
---
--- @since 0.1
-decodeUtf8Lenient :: ByteString -> Text
-decodeUtf8Lenient = TEnc.decodeUtf8With TEncError.lenientDecode
-
--- | Decodes a 'ByteString' to UTF-8. Can throw 'UnicodeException'.
---
--- @since 0.1
-decodeUtf8ThrowM ::
-  ( HasCallStack,
-    MonadThrow m
-  ) =>
-  ByteString ->
-  m Text
-decodeUtf8ThrowM =
-  FsUtils.decodeUtf8 >.> \case
-    Right txt -> pure txt
-    Left ex -> throwCS ex
-{-# INLINEABLE decodeUtf8ThrowM #-}
-
 -- | Reads a file as UTF-8.
 --
 -- @since 0.1
@@ -95,7 +72,7 @@ readFileUtf8Lenient ::
   ) =>
   OsPath ->
   m Text
-readFileUtf8Lenient = fmap decodeUtf8Lenient . readBinaryFile
+readFileUtf8Lenient = fmap FsUtils.decodeUtf8Lenient . readBinaryFile
 {-# INLINEABLE readFileUtf8Lenient #-}
 
 -- | Decodes a file as UTF-8. Throws 'UnicodeException' for decode errors.
@@ -108,12 +85,5 @@ readFileUtf8ThrowM ::
   ) =>
   OsPath ->
   m Text
-readFileUtf8ThrowM = readBinaryFile >=> decodeUtf8ThrowM
+readFileUtf8ThrowM = readBinaryFile >=> FsUtils.decodeUtf8ThrowM
 {-# INLINEABLE readFileUtf8ThrowM #-}
-
-(>.>) :: (a -> b) -> (b -> c) -> a -> c
-(>.>) = flip (.)
-
-infixl 9 >.>
-
-{-# INLINEABLE (>.>) #-}
