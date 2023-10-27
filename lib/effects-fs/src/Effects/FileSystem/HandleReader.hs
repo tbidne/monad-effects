@@ -44,7 +44,7 @@ import Control.Monad ((>=>))
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.ByteString (ByteString)
-import Data.ByteString qualified as BS
+import Data.ByteString.Char8 qualified as C8
 import Data.Text (Text)
 import Data.Text.Encoding.Error (UnicodeException)
 import Effects.Exception (MonadThrow, addCS)
@@ -117,27 +117,27 @@ class (Monad m) => MonadHandleReader m where
   -- @since 0.1
   hGetChar :: (HasCallStack) => Handle -> m Char
 
-  -- | Lifted 'BS.hGetLine'.
+  -- | Lifted 'C8.hGetLine'.
   --
   -- @since 0.1
   hGetLine :: (HasCallStack) => Handle -> m ByteString
 
-  -- | Lifted 'BS.hGetContents'.
+  -- | Lifted 'C8.hGetContents'.
   --
   -- @since 0.1
   hGetContents :: (HasCallStack) => Handle -> m ByteString
 
-  -- | Lifted 'BS.hGet'.
+  -- | Lifted 'C8.hGet'.
   --
   -- @since 0.1
   hGet :: (HasCallStack) => Handle -> Int -> m ByteString
 
-  -- | Lifted 'BS.hGetSome'.
+  -- | Lifted 'C8.hGetSome'.
   --
   -- @since 0.1
   hGetSome :: (HasCallStack) => Handle -> Int -> m ByteString
 
-  -- | Lifted 'BS.hGetNonBlocking'.
+  -- | Lifted 'C8.hGetNonBlocking'.
   --
   -- @since 0.1
   hGetNonBlocking :: (HasCallStack) => Handle -> Int -> m ByteString
@@ -168,15 +168,15 @@ instance MonadHandleReader IO where
   {-# INLINEABLE hReady #-}
   hGetChar = addCS . IO.hGetChar
   {-# INLINEABLE hGetChar #-}
-  hGetLine = addCS . BS.hGetLine
+  hGetLine = addCS . C8.hGetLine
   {-# INLINEABLE hGetLine #-}
-  hGetContents = addCS . BS.hGetContents
+  hGetContents = addCS . C8.hGetContents
   {-# INLINEABLE hGetContents #-}
-  hGet h = addCS . BS.hGet h
+  hGet h = addCS . C8.hGet h
   {-# INLINEABLE hGet #-}
-  hGetSome h = addCS . BS.hGetSome h
+  hGetSome h = addCS . C8.hGetSome h
   {-# INLINEABLE hGetSome #-}
-  hGetNonBlocking h = addCS . BS.hGetNonBlocking h
+  hGetNonBlocking h = addCS . C8.hGetNonBlocking h
   {-# INLINEABLE hGetNonBlocking #-}
 
 -- | @since 0.1
