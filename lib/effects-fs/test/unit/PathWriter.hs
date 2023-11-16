@@ -30,6 +30,8 @@ import Effects.FileSystem.PathReader
   ( MonadPathReader,
     doesDirectoryExist,
     doesFileExist,
+    doesSymbolicLinkExist,
+    getSymbolicLinkTarget,
   )
 import Effects.FileSystem.PathWriter
   ( CopyDirConfig (MkCopyDirConfig),
@@ -66,8 +68,98 @@ copyDirectoryRecursiveTests getTmpDir =
     "copyDirectoryRecursive"
     [ cdrOverwriteNoneTests getTmpDir,
       cdrOverwriteTargetTests getTmpDir,
-      cdrOverwriteAllTests getTmpDir
+      cdrOverwriteAllTests getTmpDir,
+      copyTestData getTmpDir,
+      copyDotDir getTmpDir,
+      copyHidden getTmpDir
     ]
+
+copyTestData :: IO OsPath -> TestTree
+copyTestData getTmpDir = testCase desc $ do
+  tmpDir <- getTmpDir
+
+  let srcDir = dataDir
+      destDir = tmpDir </> [osp|copyTestData|]
+
+  createDirectoryIfMissing False destDir
+
+  PathWriter.copyDirectoryRecursiveConfig
+    (overwriteConfig OverwriteNone)
+    srcDir
+    destDir
+
+  assertFilesExist $
+    (\p -> destDir </> [osp|data|] </> p)
+      <$> [ [osp|.hidden|] </> [osp|f1|],
+            [osp|bar|],
+            [osp|baz|],
+            [osp|foo|],
+            [osp|dir1|] </> [osp|f|],
+            [osp|dir2|] </> [osp|f|],
+            [osp|dir3|] </> [osp|f|],
+            [osp|dir3|] </> [osp|dir3.1|] </> [osp|f|]
+          ]
+  assertDirsExist $
+    (\p -> destDir </> [osp|data|] </> p)
+      <$> [ [osp|.hidden|],
+            [osp|dir1|],
+            [osp|dir2|],
+            [osp|dir3|],
+            [osp|dir3|] </> [osp|dir3.1|]
+          ]
+  assertSymlinksExist $
+    (\(l, t) -> (destDir </> [osp|data|] </> l, t))
+      <$> [ ([osp|l1|], [osp|foo|]),
+            ([osp|l2|], [osp|dir2|]),
+            ([osp|l3|], [osp|bad|])
+          ]
+  where
+    desc = "Copies test data directory with hidden dirs, symlinks"
+    dataDir = [osp|test|] </> [osp|data|]
+
+copyDotDir :: IO OsPath -> TestTree
+copyDotDir getTmpDir = testCase desc $ do
+  tmpDir <- mkTestPath getTmpDir [osp|copyDotDir|]
+
+  let srcDir = tmpDir </> [osp|src-0.2.2|]
+      destDir = tmpDir </> [osp|dest|]
+
+  createDirectoryIfMissing False tmpDir
+  createDirectoryIfMissing False destDir
+  createDirectoryIfMissing False srcDir
+  writeFiles [(srcDir </> [osp|f|], "")]
+
+  PathWriter.copyDirectoryRecursiveConfig
+    (overwriteConfig OverwriteNone)
+    srcDir
+    destDir
+
+  assertDirsExist [destDir </> [osp|src-0.2.2|]]
+  assertFilesExist [destDir </> [osp|src-0.2.2|] </> [osp|f|]]
+  where
+    desc = "Copies dir with dots in the name"
+
+copyHidden :: IO OsPath -> TestTree
+copyHidden getTmpDir = testCase desc $ do
+  tmpDir <- mkTestPath getTmpDir [osp|copyHidden|]
+
+  let srcDir = tmpDir </> [osp|.hidden|]
+      destDir = tmpDir </> [osp|dest|]
+
+  createDirectoryIfMissing False tmpDir
+  createDirectoryIfMissing False destDir
+  createDirectoryIfMissing False srcDir
+  writeFiles [(srcDir </> [osp|f|], "")]
+
+  PathWriter.copyDirectoryRecursiveConfig
+    (overwriteConfig OverwriteDirectories)
+    srcDir
+    destDir
+
+  assertDirsExist [destDir </> [osp|.hidden|]]
+  assertFilesExist [destDir </> [osp|.hidden|] </> [osp|f|]]
+  where
+    desc = "Copies top-level hidden dir"
 
 cdrOverwriteNoneTests :: IO OsPath -> TestTree
 cdrOverwriteNoneTests getTmpDir =
@@ -797,6 +889,14 @@ assertFilesDoNotExist :: (HasCallStack) => [OsPath] -> IO ()
 assertFilesDoNotExist = traverse_ $ \p -> do
   exists <- doesFileExist p
   assertBool ("Expected file not to exist: " <> Utils.decodeOsToFpShow p) (not exists)
+
+assertSymlinksExist :: (HasCallStack) => [(OsPath, OsPath)] -> IO ()
+assertSymlinksExist = traverse_ $ \(l, t) -> do
+  exists <- doesSymbolicLinkExist l
+  assertBool ("Expected symlink to exist: " <> Utils.decodeOsToFpShow l) exists
+
+  target <- getSymbolicLinkTarget l
+  t @=? target
 
 assertFileContents :: (HasCallStack) => [(OsPath, ByteString)] -> IO ()
 assertFileContents = traverse_ $ \(p, expected) -> do

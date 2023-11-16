@@ -9,6 +9,7 @@ module Effects.FileSystem.PathReader
     -- ** Functions
     findFile,
     findFiles,
+    doesSymbolicLinkExist,
 
     -- * XDG Utils
     getXdgData,
@@ -18,6 +19,7 @@ module Effects.FileSystem.PathReader
 
     -- * Misc
     listDirectoryRecursive,
+    listDirectoryRecursiveSymbolicLink,
 
     -- * Reexports
     XdgDirectory (..),
@@ -30,7 +32,7 @@ where
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Data.Time (UTCTime (UTCTime, utctDay, utctDayTime))
-import Effects.Exception (addCS)
+import Effects.Exception (MonadCatch, addCS, catchAny)
 import Effects.FileSystem.Utils (OsPath, (</>))
 import GHC.Stack (HasCallStack)
 import System.Directory
@@ -377,3 +379,75 @@ splitPaths root d = go
       if isDir
         then go files (dirEntry : dirs) ps
         else go (dirEntry : files) dirs ps
+
+-- | Like 'listDirectoryRecursive' except symbolic links are not traversed
+-- i.e. they are returned separately.
+--
+-- @since 0.1
+listDirectoryRecursiveSymbolicLink ::
+  forall m.
+  ( HasCallStack,
+    MonadCatch m,
+    MonadPathReader m
+  ) =>
+  -- | Root path.
+  OsPath ->
+  -- | (files, directories, symbolic links)
+  m ([OsPath], [OsPath], [OsPath])
+listDirectoryRecursiveSymbolicLink root = recurseDirs [emptyPath]
+  where
+    recurseDirs :: [OsPath] -> m ([OsPath], [OsPath], [OsPath])
+    recurseDirs [] = pure ([], [], [])
+    recurseDirs (d : ds) = do
+      (files, dirs, symlinks) <-
+        splitPathsSymboliclink root d [] [] [] =<< listDirectory (root </> d)
+      (files', dirs', symlinks') <- recurseDirs (dirs ++ ds)
+      pure (files ++ files', dirs ++ dirs', symlinks ++ symlinks')
+    emptyPath = mempty
+
+splitPathsSymboliclink ::
+  forall m.
+  ( HasCallStack,
+    MonadCatch m,
+    MonadPathReader m
+  ) =>
+  OsPath ->
+  OsPath ->
+  [OsPath] ->
+  [OsPath] ->
+  [OsPath] ->
+  [OsPath] ->
+  m ([OsPath], [OsPath], [OsPath])
+splitPathsSymboliclink root d = go
+  where
+    go :: [OsPath] -> [OsPath] -> [OsPath] -> [OsPath] -> m ([OsPath], [OsPath], [OsPath])
+    go files dirs symlinks [] = pure (reverse files, reverse dirs, symlinks)
+    go files dirs symlinks (p : ps) = do
+      let dirEntry = d </> p
+          fullPath = root </> dirEntry
+
+      isSymlink <- doesSymbolicLinkExist fullPath
+      if isSymlink
+        then go files dirs (dirEntry : symlinks) ps
+        else do
+          isDir <- doesDirectoryExist fullPath
+          if isDir
+            then go files (dirEntry : dirs) symlinks ps
+            else go (dirEntry : files) dirs symlinks ps
+
+-- | Returns true if the path is a symbolic link. Does not traverse the link.
+--
+-- @since 0.1
+doesSymbolicLinkExist ::
+  ( HasCallStack,
+    MonadCatch m,
+    MonadPathReader m
+  ) =>
+  OsPath ->
+  m Bool
+doesSymbolicLinkExist p =
+  -- pathIsSymbolicLink throws an exception if the path does not exist,
+  -- so we need to handle this. Note that the obvious alternative, prefacing
+  -- the call with doesPathExist does not work, as that operates on the link
+  -- target. doesFileExist also behaves this way.
+  pathIsSymbolicLink p `catchAny` \_ -> pure False

@@ -19,6 +19,7 @@ module Effects.FileSystem.PathWriter
     -- ** Functions
     copyDirectoryRecursive,
     copyDirectoryRecursiveConfig,
+    copySymbolicLink,
 
     -- ** Optics
     _OverwriteNone,
@@ -56,9 +57,11 @@ import Effects.FileSystem.PathReader
   ( MonadPathReader
       ( doesDirectoryExist,
         doesFileExist,
-        doesPathExist
+        doesPathExist,
+        getSymbolicLinkTarget
       ),
-    listDirectoryRecursive,
+    doesSymbolicLinkExist,
+    listDirectoryRecursiveSymbolicLink,
   )
 import Effects.FileSystem.Utils (OsPath, (</>))
 import Effects.FileSystem.Utils qualified as FsUtils
@@ -587,7 +590,21 @@ copyDirectoryRecursiveConfig config src destRoot = do
   let dest = case config ^. #targetName of
         -- Use source directory's name
         TargetNameSrc ->
-          destRoot </> FP.takeBaseName (FP.dropTrailingPathSeparator src)
+          let -- Previously we used takeBaseName, but this caused a bug
+              -- where e.g. dir-1.0.0 -> dir-1.0 (i.e. the last dot was treated
+              -- as an extension, that takeBaseName removes).
+              --
+              -- splitFileName seems to do what we want e.g.
+              --
+              -- (/path/to/, dir-1.0.0) === splitFileName /path/to/dir-1.0.0
+              --
+              -- Note that dropTrailingPathSeparator needs to be used first
+              -- to ensure correctness.
+              --
+              -- This also caused a bug where hidden directories were copied
+              -- incorrectly.
+              (_, name) = FP.splitFileName (FP.dropTrailingPathSeparator src)
+           in destRoot </> name
         -- Use the give name
         TargetNameLiteral p -> destRoot </> p
         -- Use dest itself (i.e. top-level copy)
@@ -639,10 +656,11 @@ copyDirectoryOverwrite overwriteFiles src dest = do
 
   copiedFilesRef <- newIORef []
   createdDirsRef <- newIORef []
+  copiedSymlinksRef <- newIORef []
 
   destExists <- doesDirectoryExist dest
 
-  let checkOverwrites =
+  let checkFileOverwrites =
         if not overwriteFiles
           then \f -> do
             exists <- doesFileExist f
@@ -651,8 +669,17 @@ copyDirectoryOverwrite overwriteFiles src dest = do
                 MkPathExistsException f
           else const (pure ())
 
+      checkSymlinkOverwrites =
+        if not overwriteFiles
+          then \f -> do
+            exists <- doesSymbolicLinkExist f
+            when exists $
+              throwCS $
+                MkPathExistsException f
+          else const (pure ())
+
       copyFiles = do
-        (subFiles, subDirs) <- listDirectoryRecursive src
+        (subFiles, subDirs, symlinks) <- listDirectoryRecursiveSymbolicLink src
 
         -- Create dest if it does not exist. Do not need to save dir
         -- in createdDirsRef IORef as it will be correctly deleted by
@@ -670,9 +697,16 @@ copyDirectoryOverwrite overwriteFiles src dest = do
         -- copy files
         for_ subFiles $ \f -> do
           let f' = dest </> f
-          checkOverwrites f'
+          checkFileOverwrites f'
           copyFileWithMetadata (src </> f) f'
           modifyIORef' copiedFilesRef (f' :)
+
+        -- copy symlinks
+        for_ symlinks $ \s -> do
+          let s' = dest </> s
+          checkSymlinkOverwrites s'
+          copySymbolicLink (src </> s) s'
+          modifyIORef' copiedSymlinksRef (s' :)
 
       cleanup =
         if destExists
@@ -680,6 +714,8 @@ copyDirectoryOverwrite overwriteFiles src dest = do
             -- manually delete files and dirs
             readIORef copiedFilesRef >>= traverse_ removeFile
             readIORef createdDirsRef >>= traverse_ removeDirectory
+            -- TODO: Should distinguish file vs. dir symlink for windows
+            readIORef copiedSymlinksRef >>= traverse_ removeDirectoryLink
           else removeDirectoryRecursive dest
 
   copyFiles `onException` mask_ cleanup
@@ -702,7 +738,7 @@ copyDirectoryNoOverwrite src dest = do
   when destExists $ throwCS (MkPathExistsException dest)
 
   let copyFiles = do
-        (subFiles, subDirs) <- listDirectoryRecursive src
+        (subFiles, subDirs, symlinks) <- listDirectoryRecursiveSymbolicLink src
         createDirectory dest
 
         -- create intermediate dirs if they do not exist
@@ -710,6 +746,9 @@ copyDirectoryNoOverwrite src dest = do
 
         -- copy files
         for_ subFiles $ \f -> copyFileWithMetadata (src </> f) (dest </> f)
+
+        -- copy symlinks
+        for_ symlinks $ \s -> copySymbolicLink (src </> s) (dest </> s)
 
       -- delete directory
       cleanup = removeDirectoryRecursive dest
@@ -774,3 +813,33 @@ removeIfExists :: (Monad m) => (t -> m Bool) -> (t -> m ()) -> t -> m ()
 removeIfExists existsFn deleteFn f =
   existsFn f >>= \b -> when b (deleteFn f)
 {-# INLINEABLE removeIfExists #-}
+
+-- | Copies the symbolic link /without/ traversing the link i.e. copy the
+-- link itself. Does not throw an exception if the target does exist.
+--
+-- __Windows:__ We have to distinguish between file and directory links
+-- (Posix makes no such distinction). If the target does not exist or is
+-- not considered a directory (e.g. it could also be a link), we fall back
+-- to creating a file link.
+--
+-- @since 0.1
+copySymbolicLink ::
+  ( HasCallStack,
+    MonadPathReader m,
+    MonadPathWriter m
+  ) =>
+  OsPath ->
+  OsPath ->
+  m ()
+copySymbolicLink src dest = do
+  -- TODO: Should we make these absolute?
+  target <- getSymbolicLinkTarget src
+
+  -- NOTE: The distinction between a directory vs. file link does not exist
+  -- for Posix, so this logic is for Windows. We test if the target exists
+  -- and is a directory, in which case we use createDirectoryLink. If the
+  -- target is a file, symlink itself, or does not exist, we fall back to
+  -- createFileLink.
+  doesDirectoryExist target >>= \case
+    True -> createDirectoryLink target dest
+    False -> createFileLink target dest
