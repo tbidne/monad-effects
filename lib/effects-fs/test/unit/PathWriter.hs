@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# OPTIONS_GHC -Wno-missing-methods #-}
 
@@ -13,6 +14,7 @@ import Data.List qualified as L
 import Data.Word (Word8)
 import Effects.Exception
   ( HasCallStack,
+    IOException,
     MonadCatch,
     MonadMask,
     MonadThrow,
@@ -26,6 +28,7 @@ import Effects.FileSystem.FileWriter
   ( MonadFileWriter (writeBinaryFile),
     OsPath,
   )
+import Effects.FileSystem.FileWriter qualified as FW
 import Effects.FileSystem.PathReader
   ( MonadPathReader,
     doesDirectoryExist,
@@ -43,11 +46,12 @@ import Effects.FileSystem.PathWriter
         removeFile
       ),
     Overwrite (OverwriteAll, OverwriteDirectories, OverwriteNone),
-    PathDoesNotExistException,
-    PathExistsException,
+    PathFoundException,
+    PathNotFoundException,
     TargetName (TargetNameDest, TargetNameLiteral, TargetNameSrc),
     createDirectoryIfMissing,
   )
+import Effects.FileSystem.PathWriter qualified as PW
 import Effects.FileSystem.PathWriter qualified as PathWriter
 import Effects.FileSystem.Utils (osp, (</>))
 import Effects.FileSystem.Utils qualified as Utils
@@ -59,19 +63,37 @@ tests :: IO OsPath -> TestTree
 tests getTmpDir = do
   testGroup
     "PathWriter"
-    [ copyDirectoryRecursiveTests getTmpDir
+    [ copyDirectoryRecursiveTests getTmpDir,
+      removeLinkTests getTmpDir,
+      copyLinkTests getTmpDir,
+      removeExistsTests getTmpDir
     ]
 
 copyDirectoryRecursiveTests :: IO OsPath -> TestTree
 copyDirectoryRecursiveTests getTmpDir =
   testGroup
     "copyDirectoryRecursive"
+    [ overwriteTests getTmpDir,
+      copyDirectoryRecursiveMiscTests getTmpDir
+    ]
+
+overwriteTests :: IO OsPath -> TestTree
+overwriteTests getTmpDir =
+  testGroup
+    "Overwrite"
     [ cdrOverwriteNoneTests getTmpDir,
       cdrOverwriteTargetTests getTmpDir,
-      cdrOverwriteAllTests getTmpDir,
-      copyTestData getTmpDir,
+      cdrOverwriteAllTests getTmpDir
+    ]
+
+copyDirectoryRecursiveMiscTests :: IO OsPath -> TestTree
+copyDirectoryRecursiveMiscTests getTmpDir =
+  testGroup
+    "Misc"
+    [ copyTestData getTmpDir,
       copyDotDir getTmpDir,
-      copyHidden getTmpDir
+      copyHidden getTmpDir,
+      copyDirNoSrcException getTmpDir
     ]
 
 copyTestData :: IO OsPath -> TestTree
@@ -107,7 +129,7 @@ copyTestData getTmpDir = testCase desc $ do
             [osp|dir3|],
             [osp|dir3|] </> [osp|dir3.1|]
           ]
-  assertSymlinksExist $
+  assertSymlinksExistTarget $
     (\(l, t) -> (destDir </> [osp|data|] </> l, t))
       <$> [ ([osp|l1|], [osp|foo|]),
             ([osp|l2|], [osp|dir2|]),
@@ -160,6 +182,28 @@ copyHidden getTmpDir = testCase desc $ do
   assertFilesExist [destDir </> [osp|.hidden|] </> [osp|f|]]
   where
     desc = "Copies top-level hidden dir"
+
+copyDirNoSrcException :: IO OsPath -> TestTree
+copyDirNoSrcException getTmpDir = testCase desc $ do
+  tmpDir <- mkTestPath getTmpDir [osp|copyDirNoSrcException|]
+
+  let badSrc = tmpDir </> [osp|badSrc|]
+      destDir = tmpDir </> [osp|dest|]
+
+  createDirectoryIfMissing False tmpDir
+  createDirectoryIfMissing False destDir
+
+  let copy =
+        PathWriter.copyDirectoryRecursiveConfig
+          (overwriteConfig OverwriteNone)
+          badSrc
+          destDir
+
+  tryCS @_ @PathNotFoundException copy >>= \case
+    Left _ -> pure ()
+    Right _ -> assertFailure "Expected PathNotFoundException"
+  where
+    desc = "Bad source throws exception"
 
 cdrOverwriteNoneTests :: IO OsPath -> TestTree
 cdrOverwriteNoneTests getTmpDir =
@@ -240,11 +284,11 @@ cdrnDestNonExtantFails getTmpDir = testCase desc $ do
         destDir
   resultEx <- case result of
     Right _ -> assertFailure "Expected exception, received none"
-    Left (ex :: PathDoesNotExistException) -> pure ex
+    Left (ex :: PathNotFoundException) -> pure ex
 
   let exText = displayException resultEx
 
-  assertBool exText ("Path does not exist:" `L.isPrefixOf` exText)
+  assertBool exText ("Path not found:" `L.isPrefixOf` exText)
   assertBool exText (suffix `L.isSuffixOf` exText)
 
   -- assert original files remain
@@ -280,7 +324,7 @@ cdrnOverwriteFails getTmpDir = testCase desc $ do
         destDir
   resultEx <- case result of
     Right _ -> assertFailure "Expected exception, received none"
-    Left (ex :: PathExistsException) -> pure ex
+    Left (ex :: PathFoundException) -> pure ex
 
   let exText = displayException resultEx
 
@@ -384,11 +428,11 @@ cdrtDestNonExtantFails getTmpDir = testCase desc $ do
       PathWriter.copyDirectoryRecursiveConfig (overwriteConfig OverwriteDirectories) srcDir destDir
   resultEx <- case result of
     Right _ -> assertFailure "Expected exception, received none"
-    Left (ex :: PathDoesNotExistException) -> pure ex
+    Left (ex :: PathNotFoundException) -> pure ex
 
   let exText = displayException resultEx
 
-  assertBool exText ("Path does not exist:" `L.isPrefixOf` exText)
+  assertBool exText ("Path not found:" `L.isPrefixOf` exText)
   assertBool exText (suffix `L.isSuffixOf` exText)
 
   -- assert original files remain
@@ -537,7 +581,7 @@ cdrtOverwriteTargetMergeFails getTmpDir = testCase desc $ do
         destDir
   resultEx <- case result of
     Right _ -> assertFailure "Expected exception, received none"
-    Left (ex :: PathExistsException) -> pure ex
+    Left (ex :: PathFoundException) -> pure ex
 
   let exText = displayException resultEx
 
@@ -607,7 +651,7 @@ cdrtOverwriteFileFails getTmpDir = testCase desc $ do
         destDir
   resultEx <- case result of
     Right _ -> assertFailure "Expected exception, received none"
-    Left (ex :: PathExistsException) -> pure ex
+    Left (ex :: PathFoundException) -> pure ex
 
   let exText = displayException resultEx
 
@@ -765,6 +809,270 @@ cdraOverwriteFileSucceeds getTmpDir = testCase desc $ do
   where
     desc = "Copy to extant dest/<target>/file succeeds"
 
+removeLinkTests :: IO OsPath -> TestTree
+removeLinkTests getTestDir =
+  testGroup
+    "removeSymbolicLink"
+    [ removeSymbolicLinkFileLink getTestDir,
+      removeSymbolicLinkFileException getTestDir,
+      removeSymbolicLinkBadException getTestDir
+    ]
+
+removeSymbolicLinkFileLink :: IO OsPath -> TestTree
+removeSymbolicLinkFileLink getTestDir = testCase desc $ do
+  testDir <- setupLinks getTestDir [osp|removeSymbolicLinkFileLink|]
+
+  assertSymlinksExist $ (testDir </>) <$> [[osp|file-link|], [osp|dir-link|]]
+
+  PW.removeSymbolicLink (testDir </> [osp|file-link|])
+  PW.removeSymbolicLink (testDir </> [osp|dir-link|])
+
+  assertSymlinksDoNotExist $ (testDir </>) <$> [[osp|file-link|], [osp|dir-link|]]
+  where
+    desc = "Removes symbolic links"
+
+removeSymbolicLinkFileException :: IO OsPath -> TestTree
+removeSymbolicLinkFileException getTestDir = testCase desc $ do
+  testDir <- setupLinks getTestDir [osp|removeSymbolicLinkFileLink|]
+  let filePath = testDir </> [osp|file|]
+
+  assertFilesExist [filePath]
+
+  tryCS @_ @IOException (PW.removeSymbolicLink filePath) >>= \case
+    Left _ -> pure ()
+    Right _ -> assertFailure "Expected IOException"
+
+  assertFilesExist [filePath]
+  where
+    desc = "Exception for file"
+
+removeSymbolicLinkBadException :: IO OsPath -> TestTree
+removeSymbolicLinkBadException getTestDir = testCase desc $ do
+  testDir <- setupLinks getTestDir [osp|removeSymbolicLinkBadException|]
+  let filePath = testDir </> [osp|bad-path|]
+
+  tryCS @_ @IOException (PW.removeSymbolicLink filePath) >>= \case
+    Left _ -> pure ()
+    Right _ -> assertFailure "Expected IOException"
+  where
+    desc = "Exception for bad path"
+
+copyLinkTests :: IO OsPath -> TestTree
+copyLinkTests getTestDir =
+  testGroup
+    "copySymbolicLink"
+    [ copySymbolicLinks getTestDir,
+      copySymbolicLinkFileException getTestDir,
+      copySymbolicLinkDirException getTestDir,
+      copySymbolicLinkBadException getTestDir
+    ]
+
+copySymbolicLinks :: IO OsPath -> TestTree
+copySymbolicLinks getTestDir = testCase desc $ do
+  testDir <- setupLinks getTestDir [osp|copyFileLink|]
+  let srcFile = testDir </> [osp|file-link|]
+      srcDir = testDir </> [osp|dir-link|]
+      destFile = testDir </> [osp|file-link2|]
+      destDir = testDir </> [osp|dir-link2|]
+
+  assertSymlinksExist [srcFile, srcDir]
+  assertSymlinksDoNotExist [destFile, destDir]
+
+  PW.copySymbolicLink srcFile destFile
+  PW.copySymbolicLink srcDir destDir
+
+  assertSymlinksExistTarget
+    [ (srcFile, testDir </> [osp|file|]),
+      (destFile, testDir </> [osp|file|]),
+      (srcDir, testDir </> [osp|dir|]),
+      (destDir, testDir </> [osp|dir|])
+    ]
+  where
+    desc = "Copies symbolic links"
+
+copySymbolicLinkFileException :: IO OsPath -> TestTree
+copySymbolicLinkFileException getTestDir = testCase desc $ do
+  testDir <- setupLinks getTestDir [osp|copySymbolicLinkFileException|]
+  let src = testDir </> [osp|file|]
+      dest = testDir </> [osp|dest|]
+  tryCS @_ @IOException (PW.copySymbolicLink src dest) >>= \case
+    Left _ -> pure ()
+    Right _ -> assertFailure "Exception IOException"
+  where
+    desc = "Exception for file"
+
+copySymbolicLinkDirException :: IO OsPath -> TestTree
+copySymbolicLinkDirException getTestDir = testCase desc $ do
+  testDir <- setupLinks getTestDir [osp|copySymbolicLinkDirException|]
+  let src = testDir </> [osp|dir|]
+      dest = testDir </> [osp|dest|]
+  tryCS @_ @IOException (PW.copySymbolicLink src dest) >>= \case
+    Left _ -> pure ()
+    Right _ -> assertFailure "Exception IOException"
+  where
+    desc = "Exception for directory"
+
+copySymbolicLinkBadException :: IO OsPath -> TestTree
+copySymbolicLinkBadException getTestDir = testCase desc $ do
+  testDir <- setupLinks getTestDir [osp|copySymbolicLinkBadException|]
+  let src = testDir </> [osp|bad-path|]
+      dest = testDir </> [osp|dest|]
+  tryCS @_ @IOException (PW.copySymbolicLink src dest) >>= \case
+    Left _ -> pure ()
+    Right _ -> assertFailure "Exception IOException"
+  where
+    desc = "Exception for file"
+
+-- NOTE: For removeExistsTests, we do not test all permutations. In particular,
+-- we do not test symlinks as "bad paths" for e.g. removeFileIfExists or
+-- removeDirIfExists because those functions are based on
+-- does(file|directory)Exist, and those return True based on the _target_
+-- for the link.
+--
+-- In other words, for an extant directory link, doesDirectoryExist will return
+-- true, yet removeDirectory will throw an exception.
+--
+-- doesFileExist / removeFile will work on Posix because Posix treats symlinks
+-- as files...but it wil fail on windows.
+--
+-- But we want to keep these functions as simple as possible i.e. the obvious
+-- doesXExist -> removeX. So we don't maintain any illusion that these
+-- functions are total for all possible path type inputs. Really you should
+-- only use them when you know the type of your potential path.
+
+removeExistsTests :: IO OsPath -> TestTree
+removeExistsTests getTestDir =
+  testGroup
+    "removeXIfExists"
+    [ removeFileIfExistsTrue getTestDir,
+      removeFileIfExistsFalseBad getTestDir,
+      removeFileIfExistsFalseWrongType getTestDir,
+      removeDirIfExistsTrue getTestDir,
+      removeDirIfExistsFalseBad getTestDir,
+      removeDirIfExistsFalseWrongType getTestDir,
+      removeSymlinkIfExistsTrue getTestDir,
+      removeSymlinkIfExistsFalseBad getTestDir,
+      removeSymlinkIfExistsFalseWrongType getTestDir
+    ]
+
+removeFileIfExistsTrue :: IO OsPath -> TestTree
+removeFileIfExistsTrue getTestDir = testCase desc $ do
+  testDir <- setupLinks getTestDir [osp|removeFileIfExistsTrue|]
+  let file = testDir </> [osp|file|]
+  assertFilesExist [file]
+
+  PW.removeFileIfExists file
+
+  assertFilesDoNotExist [file]
+  where
+    desc = "removeFileIfExists removes file"
+
+removeFileIfExistsFalseBad :: IO OsPath -> TestTree
+removeFileIfExistsFalseBad getTestDir = testCase desc $ do
+  testDir <- setupLinks getTestDir [osp|removeFileIfExistsFalseBad|]
+  let file = testDir </> [osp|bad-path|]
+  assertFilesDoNotExist [file]
+
+  PW.removeFileIfExists file
+
+  assertFilesDoNotExist [file]
+  where
+    desc = "removeFileIfExists does nothing for bad path"
+
+removeFileIfExistsFalseWrongType :: IO OsPath -> TestTree
+removeFileIfExistsFalseWrongType getTestDir = testCase desc $ do
+  testDir <- setupLinks getTestDir [osp|removeFileIfExistsFalseWrongType|]
+  let dir = testDir </> [osp|dir|]
+
+  assertDirsExist [dir]
+
+  PW.removeFileIfExists dir
+
+  assertDirsExist [dir]
+  where
+    desc = "removeFileIfExists does nothing for wrong file types"
+
+removeDirIfExistsTrue :: IO OsPath -> TestTree
+removeDirIfExistsTrue getTestDir = testCase desc $ do
+  testDir <- setupLinks getTestDir [osp|removeDirIfExistsTrue|]
+  let dir = testDir </> [osp|dir|]
+  assertDirsExist [dir]
+
+  PW.removeDirectoryIfExists dir
+
+  assertDirsDoNotExist [dir]
+  where
+    desc = "removeDirectoryIfExists removes dir"
+
+removeDirIfExistsFalseBad :: IO OsPath -> TestTree
+removeDirIfExistsFalseBad getTestDir = testCase desc $ do
+  testDir <- setupLinks getTestDir [osp|removeDirIfExistsFalseBad|]
+  let dir = testDir </> [osp|bad-path|]
+  assertDirsDoNotExist [dir]
+
+  PW.removeDirectoryIfExists dir
+
+  assertDirsDoNotExist [dir]
+  where
+    desc = "removeDirectoryIfExists does nothing for bad path"
+
+removeDirIfExistsFalseWrongType :: IO OsPath -> TestTree
+removeDirIfExistsFalseWrongType getTestDir = testCase desc $ do
+  testDir <- setupLinks getTestDir [osp|removeDirIfExistsFalseWrongType|]
+  let file = testDir </> [osp|file|]
+
+  assertFilesExist [file]
+
+  PW.removeDirectoryIfExists file
+
+  assertFilesExist [file]
+  where
+    desc = "removeDirectoryIfExists does nothing for wrong file types"
+
+removeSymlinkIfExistsTrue :: IO OsPath -> TestTree
+removeSymlinkIfExistsTrue getTestDir = testCase desc $ do
+  testDir <- setupLinks getTestDir [osp|removeSymlinkIfExistsTrue|]
+  let fileLink = testDir </> [osp|file-link|]
+      dirLink = testDir </> [osp|dir-link|]
+
+  assertSymlinksExist [fileLink, dirLink]
+
+  PW.removeSymbolicLinkIfExists fileLink
+  PW.removeSymbolicLinkIfExists dirLink
+
+  assertSymlinksDoNotExist [fileLink, dirLink]
+  where
+    desc = "removeSymbolicLinkIfExists removes links"
+
+removeSymlinkIfExistsFalseBad :: IO OsPath -> TestTree
+removeSymlinkIfExistsFalseBad getTestDir = testCase desc $ do
+  testDir <- setupLinks getTestDir [osp|removeSymlinkIfExistsFalseBad|]
+  let link = testDir </> [osp|bad-path|]
+  assertSymlinksDoNotExist [link]
+
+  PW.removeSymbolicLinkIfExists link
+
+  assertSymlinksDoNotExist [link]
+  where
+    desc = "removeSymbolicLinkIfExists does nothing for bad path"
+
+removeSymlinkIfExistsFalseWrongType :: IO OsPath -> TestTree
+removeSymlinkIfExistsFalseWrongType getTestDir = testCase desc $ do
+  testDir <- setupLinks getTestDir [osp|removeSymlinkIfExistsFalseWrongType|]
+  let file = testDir </> [osp|file|]
+      dir = testDir </> [osp|dir|]
+
+  assertFilesExist [file]
+  assertDirsExist [dir]
+
+  PW.removeSymbolicLinkIfExists file
+  PW.removeSymbolicLinkIfExists dir
+
+  assertFilesExist [file]
+  assertDirsExist [dir]
+  where
+    desc = "removeSymbolicLinkIfExists does nothing for wrong file types"
+
 -------------------------------------------------------------------------------
 --                                  Setup                                    --
 -------------------------------------------------------------------------------
@@ -797,6 +1105,21 @@ writeFiles = traverse_ (uncurry writeBinaryFile)
 
 overwriteConfig :: Overwrite -> CopyDirConfig
 overwriteConfig ow = MkCopyDirConfig ow TargetNameSrc
+
+setupLinks :: IO OsPath -> OsPath -> IO OsPath
+setupLinks getTestDir suffix = do
+  testDir <- (\t -> t </> [osp|path-writer|] </> suffix) <$> getTestDir
+  let fileLink = testDir </> [osp|file-link|]
+      dirLink = testDir </> [osp|dir-link|]
+      file = testDir </> [osp|file|]
+      dir = testDir </> [osp|dir|]
+
+  PW.createDirectoryIfMissing True dir
+  FW.writeBinaryFile file ""
+  PW.createFileLink file fileLink
+  PW.createDirectoryLink dir dirLink
+
+  pure testDir
 
 -------------------------------------------------------------------------------
 --                                  Mock                                     --
@@ -890,13 +1213,27 @@ assertFilesDoNotExist = traverse_ $ \p -> do
   exists <- doesFileExist p
   assertBool ("Expected file not to exist: " <> Utils.decodeOsToFpShow p) (not exists)
 
-assertSymlinksExist :: (HasCallStack) => [(OsPath, OsPath)] -> IO ()
-assertSymlinksExist = traverse_ $ \(l, t) -> do
+assertSymlinksExist :: (HasCallStack) => [OsPath] -> IO ()
+assertSymlinksExist = assertSymlinksExist' . fmap (,Nothing)
+
+assertSymlinksExistTarget :: (HasCallStack) => [(OsPath, OsPath)] -> IO ()
+assertSymlinksExistTarget = assertSymlinksExist' . (fmap . fmap) Just
+
+assertSymlinksExist' :: (HasCallStack) => [(OsPath, Maybe OsPath)] -> IO ()
+assertSymlinksExist' = traverse_ $ \(l, t) -> do
   exists <- doesSymbolicLinkExist l
   assertBool ("Expected symlink to exist: " <> Utils.decodeOsToFpShow l) exists
 
-  target <- getSymbolicLinkTarget l
-  t @=? target
+  case t of
+    Nothing -> pure ()
+    Just expectedTarget -> do
+      target <- getSymbolicLinkTarget l
+      expectedTarget @=? target
+
+assertSymlinksDoNotExist :: (HasCallStack) => [OsPath] -> IO ()
+assertSymlinksDoNotExist = traverse_ $ \l -> do
+  exists <- doesSymbolicLinkExist l
+  assertBool ("Expected symlink not to exist: " <> Utils.decodeOsToFpShow l) (not exists)
 
 assertFileContents :: (HasCallStack) => [(OsPath, ByteString)] -> IO ()
 assertFileContents = traverse_ $ \(p, expected) -> do
@@ -922,3 +1259,7 @@ mkTestPath getPath s = do
 
 cfp :: FilePath -> FilePath -> FilePath
 cfp = Utils.combineFilePaths
+
+-- TODO: more symlink tests (windows too)
+-- prob test that old code failed (so write tests here then cherry-pick on top
+-- of old commit)

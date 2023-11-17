@@ -79,6 +79,7 @@ module Effects.Exception
     Handler (..),
     catches,
     onException,
+    SafeEx.catchIOError,
 
     -- ** Masking
     -- $masking

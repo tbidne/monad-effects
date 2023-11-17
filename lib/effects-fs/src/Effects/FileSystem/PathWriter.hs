@@ -30,14 +30,19 @@ module Effects.FileSystem.PathWriter
     _TargetNameDest,
 
     -- * Removing
+    -- $if-exists
     removeFileIfExists,
     removeDirectoryIfExists,
     removeDirectoryRecursiveIfExists,
     removePathForciblyIfExists,
 
+    -- ** Symbolic Links
+    removeSymbolicLink,
+    removeSymbolicLinkIfExists,
+
     -- * Exceptions
-    PathExistsException (..),
-    PathDoesNotExistException (..),
+    PathFoundException (..),
+    PathNotFoundException (..),
 
     -- * Reexports
     Permissions (..),
@@ -52,16 +57,26 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Data.Foldable (for_, traverse_)
 import Data.Time (UTCTime (UTCTime, utctDay, utctDayTime))
-import Effects.Exception (MonadMask, addCS, mask_, onException, throwCS)
+import Effects.Exception
+  ( MonadCatch,
+    MonadMask,
+    MonadThrow,
+    addCS,
+    mask_,
+    onException,
+    throwCS,
+  )
 import Effects.FileSystem.PathReader
   ( MonadPathReader
       ( doesDirectoryExist,
         doesFileExist,
         doesPathExist,
-        getSymbolicLinkTarget
+        getSymbolicLinkTarget,
+        pathIsSymbolicLink
       ),
     doesSymbolicLinkExist,
     listDirectoryRecursiveSymbolicLink,
+    pathIsSymbolicDirectoryLink,
   )
 import Effects.FileSystem.Utils (OsPath, (</>))
 import Effects.FileSystem.Utils qualified as FsUtils
@@ -69,6 +84,20 @@ import Effects.IORef
   ( MonadIORef (modifyIORef', newIORef, readIORef),
   )
 import GHC.Generics (Generic)
+import GHC.IO.Encoding.Failure (CodingFailureMode (TransliterateCodingFailure))
+import GHC.IO.Encoding.UTF16 (mkUTF16le)
+import GHC.IO.Encoding.UTF8 (mkUTF8)
+import GHC.IO.Exception
+  ( IOException
+      ( IOError,
+        ioe_description,
+        ioe_errno,
+        ioe_filename,
+        ioe_handle,
+        ioe_location,
+        ioe_type
+      ),
+  )
 import GHC.Stack (HasCallStack)
 import Optics.Core
   ( A_Lens,
@@ -80,6 +109,7 @@ import Optics.Core
   )
 import System.Directory (Permissions)
 import System.Directory.OsPath qualified as Dir
+import System.IO.Error qualified as IO
 import System.OsPath qualified as FP
 
 -- | Represents file-system writer effects.
@@ -312,30 +342,30 @@ instance (MonadPathWriter m) => MonadPathWriter (ReaderT env m) where
 -- | Exception for trying to create a path that already exists.
 --
 -- @since 0.1
-newtype PathExistsException = MkPathExistsException OsPath
+newtype PathFoundException = MkPathFoundException OsPath
   deriving stock
     ( -- | @since 0.1
       Show
     )
 
 -- | @since 0.1
-instance Exception PathExistsException where
-  displayException (MkPathExistsException path) =
+instance Exception PathFoundException where
+  displayException (MkPathFoundException path) =
     "Path already exists: " <> FsUtils.decodeOsToFpShow path
 
 -- | Exception for when a path does not exist.
 --
 -- @since 0.1
-newtype PathDoesNotExistException = MkPathDoesNotExistException OsPath
+newtype PathNotFoundException = MkPathNotFoundException OsPath
   deriving stock
     ( -- | @since 0.1
       Show
     )
 
 -- | @since 0.1
-instance Exception PathDoesNotExistException where
-  displayException (MkPathDoesNotExistException path) =
-    "Path does not exist: " <> FsUtils.decodeOsToFpShow path
+instance Exception PathNotFoundException where
+  displayException (MkPathNotFoundException path) =
+    "Path not found: " <> FsUtils.decodeOsToFpShow path
 
 -- | Determines file/directory overwrite behavior.
 --
@@ -557,8 +587,8 @@ copyDirectoryRecursive = copyDirectoryRecursiveConfig defaultCopyDirConfig
 --
 -- __Throws:__
 --
--- * 'PathDoesNotExistException': if @dest@ does not exist.
--- * 'PathExistsException':
+-- * 'PathNotFoundException': if @dest@ does not exist.
+-- * 'PathFoundException':
 --
 --     * 'OverwriteNone' and @dest/\<src\>@ exists.
 --     * 'OverwriteDirectories' and some @dest/\<target\>\/p@ would be
@@ -581,11 +611,16 @@ copyDirectoryRecursiveConfig ::
   OsPath ->
   m ()
 copyDirectoryRecursiveConfig config src destRoot = do
+  srcExists <- doesDirectoryExist src
+  unless srcExists $
+    throwCS $
+      MkPathNotFoundException src
+
   destExists <- doesDirectoryExist destRoot
 
   unless destExists $
     throwCS $
-      MkPathDoesNotExistException destRoot
+      MkPathNotFoundException destRoot
 
   let dest = case config ^. #targetName of
         -- Use source directory's name
@@ -666,7 +701,7 @@ copyDirectoryOverwrite overwriteFiles src dest = do
             exists <- doesFileExist f
             when exists $
               throwCS $
-                MkPathExistsException f
+                MkPathFoundException f
           else const (pure ())
 
       checkSymlinkOverwrites =
@@ -675,7 +710,7 @@ copyDirectoryOverwrite overwriteFiles src dest = do
             exists <- doesSymbolicLinkExist f
             when exists $
               throwCS $
-                MkPathExistsException f
+                MkPathFoundException f
           else const (pure ())
 
       copyFiles = do
@@ -714,8 +749,7 @@ copyDirectoryOverwrite overwriteFiles src dest = do
             -- manually delete files and dirs
             readIORef copiedFilesRef >>= traverse_ removeFile
             readIORef createdDirsRef >>= traverse_ removeDirectory
-            -- TODO: Should distinguish file vs. dir symlink for windows
-            readIORef copiedSymlinksRef >>= traverse_ removeDirectoryLink
+            readIORef copiedSymlinksRef >>= traverse_ removeSymbolicLink
           else removeDirectoryRecursive dest
 
   copyFiles `onException` mask_ cleanup
@@ -735,7 +769,7 @@ copyDirectoryNoOverwrite ::
   m ()
 copyDirectoryNoOverwrite src dest = do
   destExists <- doesDirectoryExist dest
-  when destExists $ throwCS (MkPathExistsException dest)
+  when destExists $ throwCS (MkPathFoundException dest)
 
   let copyFiles = do
         (subFiles, subDirs, symlinks) <- listDirectoryRecursiveSymbolicLink src
@@ -809,13 +843,49 @@ removePathForciblyIfExists =
   removeIfExists doesPathExist removePathForcibly
 {-# INLINEABLE removePathForciblyIfExists #-}
 
+-- | Calls 'removeSymbolicLink' if 'doesSymbolicLinkExist' is 'True'.
+--
+-- @since 0.1
+removeSymbolicLinkIfExists ::
+  ( HasCallStack,
+    MonadCatch m,
+    MonadPathReader m,
+    MonadPathWriter m
+  ) =>
+  OsPath ->
+  m ()
+removeSymbolicLinkIfExists =
+  removeIfExists doesSymbolicLinkExist removeSymbolicLink
+
 removeIfExists :: (Monad m) => (t -> m Bool) -> (t -> m ()) -> t -> m ()
 removeIfExists existsFn deleteFn f =
   existsFn f >>= \b -> when b (deleteFn f)
 {-# INLINEABLE removeIfExists #-}
 
+-- | Removes a symbolic link. On Windows, attempts to distinguish
+-- file and directory links (Posix makes no distinction).
+--
+-- @since 0.1
+removeSymbolicLink ::
+  ( HasCallStack,
+    MonadCatch m,
+    MonadPathReader m,
+    MonadPathWriter m
+  ) =>
+  OsPath ->
+  m ()
+removeSymbolicLink p = do
+  -- see NOTE: [pathIsSymbolicLink does not exist exception]
+  throwIfNonSymlink "removeSymbolicLink" p
+
+  pathIsSymbolicDirectoryLink p >>= \case
+    True -> removeDirectoryLink p
+    False -> removeFile p
+{-# INLINEABLE removeSymbolicLink #-}
+
 -- | Copies the symbolic link /without/ traversing the link i.e. copy the
 -- link itself. Does not throw an exception if the target does exist.
+-- Throws an @IOException@ if the path is not a symbolic link.
 --
 -- __Windows:__ We have to distinguish between file and directory links
 -- (Posix makes no such distinction). If the target does not exist or is
@@ -825,14 +895,19 @@ removeIfExists existsFn deleteFn f =
 -- @since 0.1
 copySymbolicLink ::
   ( HasCallStack,
+    MonadCatch m,
     MonadPathReader m,
     MonadPathWriter m
   ) =>
+  -- | Source
   OsPath ->
+  -- | Dest
   OsPath ->
   m ()
 copySymbolicLink src dest = do
-  -- TODO: Should we make these absolute?
+  -- see NOTE: [pathIsSymbolicLink does not exist exception]
+  throwIfNonSymlink "copySymbolicLink" src
+
   target <- getSymbolicLinkTarget src
 
   -- NOTE: The distinction between a directory vs. file link does not exist
@@ -840,6 +915,60 @@ copySymbolicLink src dest = do
   -- and is a directory, in which case we use createDirectoryLink. If the
   -- target is a file, symlink itself, or does not exist, we fall back to
   -- createFileLink.
-  doesDirectoryExist target >>= \case
+  pathIsSymbolicDirectoryLink src >>= \case
     True -> createDirectoryLink target dest
     False -> createFileLink target dest
+{-# INLINEABLE copySymbolicLink #-}
+
+throwIfNonSymlink ::
+  ( HasCallStack,
+    MonadPathReader m,
+    MonadThrow m
+  ) =>
+  String ->
+  OsPath ->
+  m ()
+throwIfNonSymlink loc p = do
+  -- NOTE: [pathIsSymbolicLink does not exist exception]
+  -- pathIsSymbolicLink over doesSymbolicLinkExist for consistency.
+  --
+  -- Not only should this function throw when we encounter a non-symlink
+  -- (handled manually below), but we would like it to throw a "path not found"
+  -- type exception when the path does not exist (like remove(File|Directory)).
+  --
+  -- pathIsSymbolicLink does this for us.
+  isSymlink <- pathIsSymbolicLink p
+
+  unless isSymlink $
+    throwCS $
+      IOError
+        { ioe_handle = Nothing,
+          ioe_type = IO.illegalOperationErrorType,
+          ioe_location = loc,
+          ioe_description = "path is not a symbolic link",
+          ioe_errno = Nothing,
+          ioe_filename = Just $ decodeOsPath p
+        }
+{-# INLINEABLE throwIfNonSymlink #-}
+
+-- vendored from directory
+decodeOsPath :: OsPath -> FilePath
+decodeOsPath =
+  rightOrError
+    . FP.decodeWith
+      (mkUTF8 TransliterateCodingFailure)
+      (mkUTF16le TransliterateCodingFailure)
+
+rightOrError :: (Exception e) => Either e a -> a
+rightOrError (Left e) = error (displayException e)
+rightOrError (Right a) = a
+
+-- $if-exists
+-- The @removeXIfExists@ functions should be understood as helper combinators
+-- for the obvious @doesXExist -> removeX@ pattern. They should __not__ be
+-- understood as a total "delete arbitrary path if it exists" pattern.
+--
+-- For instance, 'doesDirectoryExist' will return true if the /target/ of a
+-- symbolic link is a directory, yet 'removeDirectory' will throw an exception.
+-- Thus these functions should only be used when the type (file, dir, symlink)
+-- of a (possibly non-extant) path is __known__.

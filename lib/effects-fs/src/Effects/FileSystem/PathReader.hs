@@ -1,3 +1,6 @@
+{-# LANGUAGE CPP #-}
+{-# OPTIONS_GHC -Wno-redundant-constraints #-}
+
 -- | Provides the MonadPathReader effect.
 --
 -- @since 0.1
@@ -9,7 +12,6 @@ module Effects.FileSystem.PathReader
     -- ** Functions
     findFile,
     findFiles,
-    doesSymbolicLinkExist,
 
     -- * XDG Utils
     getXdgData,
@@ -20,6 +22,9 @@ module Effects.FileSystem.PathReader
     -- * Misc
     listDirectoryRecursive,
     listDirectoryRecursiveSymbolicLink,
+    doesSymbolicLinkExist,
+    pathIsSymbolicDirectoryLink,
+    pathIsSymbolicFileLink,
 
     -- * Reexports
     XdgDirectory (..),
@@ -32,7 +37,7 @@ where
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Data.Time (UTCTime (UTCTime, utctDay, utctDayTime))
-import Effects.Exception (MonadCatch, addCS, catchAny)
+import Effects.Exception (IOException, MonadCatch, addCS, catchCS)
 import Effects.FileSystem.Utils (OsPath, (</>))
 import GHC.Stack (HasCallStack)
 import System.Directory
@@ -357,6 +362,7 @@ listDirectoryRecursive root = recurseDirs [emptyPath]
       (files', dirs') <- recurseDirs (dirs ++ ds)
       pure (files ++ files', dirs ++ dirs')
     emptyPath = mempty
+{-# INLINEABLE listDirectoryRecursive #-}
 
 splitPaths ::
   forall m.
@@ -379,6 +385,7 @@ splitPaths root d = go
       if isDir
         then go files (dirEntry : dirs) ps
         else go (dirEntry : files) dirs ps
+{-# INLINEABLE splitPaths #-}
 
 -- | Like 'listDirectoryRecursive' except symbolic links are not traversed
 -- i.e. they are returned separately.
@@ -404,6 +411,7 @@ listDirectoryRecursiveSymbolicLink root = recurseDirs [emptyPath]
       (files', dirs', symlinks') <- recurseDirs (dirs ++ ds)
       pure (files ++ files', dirs ++ dirs', symlinks ++ symlinks')
     emptyPath = mempty
+{-# INLINEABLE listDirectoryRecursiveSymbolicLink #-}
 
 splitPathsSymboliclink ::
   forall m.
@@ -434,6 +442,7 @@ splitPathsSymboliclink root d = go
           if isDir
             then go files (dirEntry : dirs) symlinks ps
             else go (dirEntry : files) dirs symlinks ps
+{-# INLINEABLE splitPathsSymboliclink #-}
 
 -- | Returns true if the path is a symbolic link. Does not traverse the link.
 --
@@ -450,4 +459,84 @@ doesSymbolicLinkExist p =
   -- so we need to handle this. Note that the obvious alternative, prefacing
   -- the call with doesPathExist does not work, as that operates on the link
   -- target. doesFileExist also behaves this way.
-  pathIsSymbolicLink p `catchAny` \_ -> pure False
+  --
+  -- TODO: We should probably use catchIOError here. Alas, we currently wrap
+  -- exceptions in a ExceptionCS, so we need to account for that.
+  -- Once the ExceptionCS machinery is removed, replace this with catchIOError.
+  pathIsSymbolicLink p `catchCS` \(_ :: IOException) -> pure False
+{-# INLINEABLE doesSymbolicLinkExist #-}
+
+-- | Like 'pathIsSymbolicDirectoryLink' but for files.
+--
+-- @since 0.1
+pathIsSymbolicFileLink ::
+  ( HasCallStack,
+    MonadCatch m,
+    MonadPathReader m
+  ) =>
+  OsPath ->
+  m Bool
+pathIsSymbolicFileLink = pathIsSymbolicLinkType doesFileExist
+{-# INLINEABLE pathIsSymbolicFileLink #-}
+
+-- | On Windows, returns true if @p@ is a symbolic link and it points to
+-- an extant directory.
+--
+-- On Posix, equivalent to 'doesSymbolicLinkExist'.
+--
+-- This function and 'pathIsSymbolicFileLink' are intended to distinguish file
+-- and directory links on Windows. This matters for knowing when to use:
+--
+--     - @createFileLink@ vs. @createDirectoryLink@
+--     - @removeFile@ vs. @removeDirectoryLink@
+--
+-- Suppose we want to copy an arbitrary path @p@. We first determine that
+-- @p@ is a symlink via 'doesSymbolicLinkExist'. If
+-- 'pathIsSymbolicDirectoryLink' returns true then we know we should use
+-- "Effects.FileSystem.PathWriter"'s @createDirectoryLink@. Otherwise we can
+-- fall back to @createFileLink@.
+--
+-- Because this relies on the symlink's target, this is best effort, and it is
+-- possible 'pathIsSymbolicDirectoryLink' and 'pathIsSymbolicFileLink' both
+-- return false.
+--
+-- @since 0.1
+pathIsSymbolicDirectoryLink ::
+  ( HasCallStack,
+    MonadCatch m,
+    MonadPathReader m
+  ) =>
+  OsPath ->
+  m Bool
+pathIsSymbolicDirectoryLink = pathIsSymbolicLinkType doesDirectoryExist
+{-# INLINEABLE pathIsSymbolicDirectoryLink #-}
+
+pathIsSymbolicLinkType ::
+  ( HasCallStack,
+    MonadCatch m,
+    MonadPathReader m
+  ) =>
+  (OsPath -> m Bool) ->
+  OsPath ->
+  m Bool
+#if WINDOWS
+pathIsSymbolicLinkType predicate p = do
+  -- Have this guard so we have similar semantics on Windows vs. Posix:
+  --   - If not a symlink, return false.
+  --   - If a symlink and posix, return true
+  --   - if a symlink and windows, check
+  isSymLink <- doesSymbolicLinkExist p
+  if not isSymLink
+    then pure False
+    else do
+      mtarget <- (Just <$> getSymbolicLinkTarget p)
+        -- TODO: Switch to catchIOError once ExceptionCS is gone.
+        `catchCS` \(_ :: IOException) -> pure Nothing
+
+      case mtarget of
+        Nothing -> pure False
+        Just target -> predicate target
+#else
+pathIsSymbolicLinkType _ = doesSymbolicLinkExist
+#endif
+{-# INLINEABLE pathIsSymbolicLinkType #-}

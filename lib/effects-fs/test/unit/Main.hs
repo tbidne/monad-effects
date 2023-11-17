@@ -23,7 +23,7 @@ main =
       testGroup
         "Unit Tests"
         [ Misc.tests args,
-          PathReader.tests,
+          PathReader.tests args,
           PathWriter.tests args
         ]
 
