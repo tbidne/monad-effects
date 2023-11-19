@@ -4,10 +4,12 @@
 module Effects.FileSystem.Utils
   ( -- * File paths
     OsPath,
+    OsString,
 
     -- ** To OsPath
 
     -- *** Encoding
+    osstr,
     encodeFpToOs,
     encodeFpToOsThrowM,
     encodeFpToOsFail,
@@ -78,6 +80,7 @@ import System.IO qualified as IO
 import System.OsPath (OsPath, osp, (</>))
 import System.OsPath qualified as OsPath
 import System.OsPath.Encoding (EncodingException (EncodingError))
+import System.OsString (OsString, osstr)
 
 -- | Encodes a 'FilePath' to an 'OsPath'. This is a pure version of filepath's
 -- 'OsPath.encodeUtf' that returns the 'EncodingException' in the event of an

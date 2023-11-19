@@ -122,8 +122,6 @@ Filesystem effects. In particular:
 * The `Path*` modules implement the `directory` interface.
 * The `Handle*` modules implement `System.IO` handle operations.
 
-These are written to be compatible with the upcoming `FilePath -> OsPath` change, i.e. if `filepath` and `directory` libraries are new enough (>= `1.4.100` and `1.3.8`, respectively), then the APIs require `OsPath`, not `FilePath`.
-
 ## effects-ioref
 
 ### Library: `base`
