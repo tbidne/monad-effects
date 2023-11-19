@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-redundant-constraints #-}
+
 -- | Provides filesystem utilities.
 --
 -- @since 0.1
@@ -23,25 +25,23 @@ module Effects.FileSystem.Utils
     unsafeEncodeFpToValidOs,
 
     -- ** From OsPath
-    osToFp,
-    osToText,
 
     -- *** Decoding
     decodeOsToFp,
     decodeOsToFpThrowM,
     decodeOsToFpFail,
+    decodeOsToFpDisplayEx,
     decodeOsToFpShow,
-    decodeOsToFpShowText,
     unsafeDecodeOsToFp,
 
     -- ** Functions
     (</>),
-    (</>!),
-    (!</>),
-    (<</>>!),
-    (!<</>>),
+    (<.>),
+    (-<.>),
 
     -- ** Legacy
+    (</>!),
+    (!</>),
     combineFilePaths,
 
     -- * IO actions
@@ -67,7 +67,6 @@ where
 import Control.Exception (Exception (displayException))
 import Data.ByteString (ByteString)
 import Data.Text (Text)
-import Data.Text qualified as T
 import Data.Text.Encoding qualified as TEnc
 import Data.Text.Encoding.Error (UnicodeException)
 import Data.Text.Encoding.Error qualified as TEncError
@@ -77,10 +76,14 @@ import System.File.OsPath qualified as FileIO
 import System.FilePath qualified as FP
 import System.IO (Handle, IOMode)
 import System.IO qualified as IO
-import System.OsPath (OsPath, osp, (</>))
+import System.OsPath (OsPath, osp, (-<.>), (<.>), (</>))
 import System.OsPath qualified as OsPath
 import System.OsPath.Encoding (EncodingException (EncodingError))
 import System.OsString (OsString, osstr)
+
+-- NOTE: -Wno-redundant-constraints is because the HasCallStack is redundant
+-- on some of these functions when the exceptions library is too old.
+-- Disabling the warning is easier than trying to get it right with cpp.
 
 -- | Encodes a 'FilePath' to an 'OsPath'. This is a pure version of filepath's
 -- 'OsPath.encodeUtf' that returns the 'EncodingException' in the event of an
@@ -106,7 +109,7 @@ encodeFpToValidOs fp = case encodeFpToOs fp of
 -- | 'encodeFpToOs' that throws 'EncodingException'.
 --
 -- @since 0.1
-encodeFpToOsThrowM :: (MonadThrow m) => FilePath -> m OsPath
+encodeFpToOsThrowM :: (HasCallStack, MonadThrow m) => FilePath -> m OsPath
 encodeFpToOsThrowM =
   encodeFpToOs >.> \case
     Right txt -> pure txt
@@ -115,7 +118,7 @@ encodeFpToOsThrowM =
 -- | 'encodeFpToValidOs' that throws 'EncodingException'.
 --
 -- @since 0.1
-encodeFpToValidOsThrowM :: (MonadThrow m) => FilePath -> m OsPath
+encodeFpToValidOsThrowM :: (HasCallStack, MonadThrow m) => FilePath -> m OsPath
 encodeFpToValidOsThrowM fp = case encodeFpToValidOs fp of
   Left ex -> throwM ex
   Right op -> pure op
@@ -168,7 +171,7 @@ decodeOsToFp = OsPath.decodeWith IO.utf8 IO.utf16le
 -- | 'decodeOsToFp' that throws 'EncodingException'.
 --
 -- @since 0.1
-decodeOsToFpThrowM :: (MonadThrow m) => OsPath -> m FilePath
+decodeOsToFpThrowM :: (HasCallStack, MonadThrow m) => OsPath -> m FilePath
 decodeOsToFpThrowM =
   decodeOsToFp >.> \case
     Right txt -> pure txt
@@ -183,6 +186,15 @@ decodeOsToFpFail p = case decodeOsToFp p of
   Left ex ->
     fail $ decodeFailure "decodeOsToFpFail" p (displayException ex)
 
+-- | Total conversion from 'OsPath' to 'String'. If decoding fails, displays
+-- the exception.
+--
+-- @since 0.1
+decodeOsToFpDisplayEx :: OsPath -> String
+decodeOsToFpDisplayEx p = case decodeOsToFp p of
+  Left ex -> decodeFailure "decodeOsToFpDisplayEx" p (displayException ex)
+  Right s -> s
+
 -- | Total conversion from 'OsPath' to 'String'. If decoding fails, falls back
 -- to its 'Show' instance.
 --
@@ -191,12 +203,6 @@ decodeOsToFpShow :: OsPath -> String
 decodeOsToFpShow p = case decodeOsToFp p of
   Left _ -> show p
   Right s -> s
-
--- | Convenience function for 'T.pack' and 'decodeOsToFpShow'.
---
--- @since 0.1
-decodeOsToFpShowText :: OsPath -> Text
-decodeOsToFpShowText = T.pack . decodeOsToFpShow
 
 -- | Unsafely converts an 'OsPath' to a 'FilePath' falling back to 'error'.
 --
@@ -291,33 +297,13 @@ decodeUtf8ThrowM =
     Right txt -> pure txt
     Left ex -> throwM ex
 
--- | Combines an 'OsPath' and a 'FilePath' via (</>), potentially throwing
--- 'EncodingException'. Like '(</>!)', exception uses 'MonadThrow' over 'error'.
---
--- @since 0.1
-(<</>>!) :: (MonadThrow m) => OsPath -> FilePath -> m OsPath
-p <</>>! fp = do
-  fp' <- encodeFpToOsThrowM fp
-  pure $ p </> fp'
-
-infixl 9 <</>>!
-
--- | Combines a 'FilePath' and an 'OsPath' via (</>), potentially throwing
--- 'EncodingException'. Like '(!</>)', exception uses 'MonadThrow' over 'error'.
---
--- @since 0.1
-(!<</>>) :: (MonadThrow m) => FilePath -> OsPath -> m OsPath
-(!<</>>) = flip (<</>>!)
-
-infixl 9 !<</>>
-
 -- | Unsafely combines an 'OsPath' and a 'FilePath' via (</>) with
 -- 'unsafeEncodeFpToOs'.
 --
 -- __WARNING: Partial__
 --
 -- @since 0.1
-(</>!) :: OsPath -> FilePath -> OsPath
+(</>!) :: (HasCallStack) => OsPath -> FilePath -> OsPath
 p </>! fp = p </> unsafeEncodeFpToOs fp
 
 infixl 9 </>!
@@ -328,7 +314,7 @@ infixl 9 </>!
 -- __WARNING: Partial__
 --
 -- @since 0.1
-(!</>) :: FilePath -> OsPath -> OsPath
+(!</>) :: (HasCallStack) => FilePath -> OsPath -> OsPath
 (!</>) = flip (</>!)
 
 infixl 9 !</>
@@ -347,16 +333,3 @@ combineFilePaths = (FP.</>)
 (>.>) = flip (.)
 
 infixl 9 >.>
-
--- | Converts 'OsPath' to 'FilePath' without any decoding i.e. the result
--- retains its encoding.
---
--- @since 0.1
-osToFp :: OsPath -> FilePath
-osToFp = fmap OsPath.toChar . OsPath.unpack
-
--- | 'Text' version of 'osToFp'.
---
--- @since 0.1
-osToText :: OsPath -> Text
-osToText = T.pack . osToFp

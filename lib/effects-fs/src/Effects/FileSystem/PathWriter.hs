@@ -84,9 +84,6 @@ import Effects.IORef
   ( MonadIORef (modifyIORef', newIORef, readIORef),
   )
 import GHC.Generics (Generic)
-import GHC.IO.Encoding.Failure (CodingFailureMode (TransliterateCodingFailure))
-import GHC.IO.Encoding.UTF16 (mkUTF16le)
-import GHC.IO.Encoding.UTF8 (mkUTF8)
 import GHC.IO.Exception
   ( IOException
       ( IOError,
@@ -947,21 +944,9 @@ throwIfNonSymlink loc p = do
           ioe_location = loc,
           ioe_description = "path is not a symbolic link",
           ioe_errno = Nothing,
-          ioe_filename = Just $ decodeOsPath p
+          ioe_filename = Just $ FsUtils.decodeOsToFpDisplayEx p
         }
 {-# INLINEABLE throwIfNonSymlink #-}
-
--- vendored from directory
-decodeOsPath :: OsPath -> FilePath
-decodeOsPath =
-  rightOrError
-    . FP.decodeWith
-      (mkUTF8 TransliterateCodingFailure)
-      (mkUTF16le TransliterateCodingFailure)
-
-rightOrError :: (Exception e) => Either e a -> a
-rightOrError (Left e) = error (displayException e)
-rightOrError (Right a) = a
 
 -- $if-exists
 -- The @removeXIfExists@ functions should be understood as helper combinators
