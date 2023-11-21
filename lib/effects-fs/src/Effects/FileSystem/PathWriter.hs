@@ -40,61 +40,46 @@ module Effects.FileSystem.PathWriter
     removeSymbolicLink,
     removeSymbolicLinkIfExists,
 
-    -- * Exceptions
-    PathFoundException (..),
-    PathNotFoundException (..),
-
     -- * Reexports
+    IOException,
     Permissions (..),
     UTCTime (..),
   )
 where
 
 import Control.DeepSeq (NFData)
-import Control.Exception (Exception (displayException))
 import Control.Monad (unless, when)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Data.Foldable (for_, traverse_)
 import Data.Time (UTCTime (UTCTime, utctDay, utctDayTime))
 import Effects.Exception
-  ( MonadCatch,
+  ( IOException,
+    MonadCatch,
     MonadMask,
-    MonadThrow,
     addCS,
     mask_,
     onException,
-    throwCS,
   )
 import Effects.FileSystem.PathReader
   ( MonadPathReader
       ( doesDirectoryExist,
         doesFileExist,
         doesPathExist,
-        getSymbolicLinkTarget,
-        pathIsSymbolicLink
+        getSymbolicLinkTarget
       ),
+    PathType (PathTypeDirectory, PathTypeSymbolicLink),
     doesSymbolicLinkExist,
     listDirectoryRecursiveSymbolicLink,
     pathIsSymbolicDirectoryLink,
   )
+import Effects.FileSystem.PathReader qualified as PR
 import Effects.FileSystem.Utils (OsPath, (</>))
 import Effects.FileSystem.Utils qualified as FsUtils
 import Effects.IORef
   ( MonadIORef (modifyIORef', newIORef, readIORef),
   )
 import GHC.Generics (Generic)
-import GHC.IO.Exception
-  ( IOException
-      ( IOError,
-        ioe_description,
-        ioe_errno,
-        ioe_filename,
-        ioe_handle,
-        ioe_location,
-        ioe_type
-      ),
-  )
 import GHC.Stack (HasCallStack)
 import Optics.Core
   ( A_Lens,
@@ -106,7 +91,7 @@ import Optics.Core
   )
 import System.Directory (Permissions)
 import System.Directory.OsPath qualified as Dir
-import System.IO.Error qualified as IO
+import System.IO.Error qualified as Error
 import System.OsPath qualified as FP
 
 -- | Represents file-system writer effects.
@@ -335,34 +320,6 @@ instance (MonadPathWriter m) => MonadPathWriter (ReaderT env m) where
   {-# INLINEABLE setAccessTime #-}
   setModificationTime p = lift . setModificationTime p
   {-# INLINEABLE setModificationTime #-}
-
--- | Exception for trying to create a path that already exists.
---
--- @since 0.1
-newtype PathFoundException = MkPathFoundException OsPath
-  deriving stock
-    ( -- | @since 0.1
-      Show
-    )
-
--- | @since 0.1
-instance Exception PathFoundException where
-  displayException (MkPathFoundException path) =
-    "Path already exists: " <> FsUtils.decodeOsToFpShow path
-
--- | Exception for when a path does not exist.
---
--- @since 0.1
-newtype PathNotFoundException = MkPathNotFoundException OsPath
-  deriving stock
-    ( -- | @since 0.1
-      Show
-    )
-
--- | @since 0.1
-instance Exception PathNotFoundException where
-  displayException (MkPathNotFoundException path) =
-    "Path not found: " <> FsUtils.decodeOsToFpShow path
 
 -- | Determines file/directory overwrite behavior.
 --
@@ -608,16 +565,8 @@ copyDirectoryRecursiveConfig ::
   OsPath ->
   m ()
 copyDirectoryRecursiveConfig config src destRoot = do
-  srcExists <- doesDirectoryExist src
-  unless srcExists $
-    throwCS $
-      MkPathNotFoundException src
-
-  destExists <- doesDirectoryExist destRoot
-
-  unless destExists $
-    throwCS $
-      MkPathNotFoundException destRoot
+  PR.throwIfWrongPathType "copyDirectoryRecursiveConfig" PathTypeDirectory src
+  PR.throwIfWrongPathType "copyDirectoryRecursiveConfig" PathTypeDirectory destRoot
 
   let dest = case config ^. #targetName of
         -- Use source directory's name
@@ -697,8 +646,11 @@ copyDirectoryOverwrite overwriteFiles src dest = do
           then \f -> do
             exists <- doesFileExist f
             when exists $
-              throwCS $
-                MkPathFoundException f
+              FsUtils.throwIOError
+                f
+                "copyDirectoryOverwrite"
+                Error.alreadyExistsErrorType
+                "Attempted file overwrite when CopyDirConfig.overwriteFiles is false"
           else const (pure ())
 
       checkSymlinkOverwrites =
@@ -706,8 +658,11 @@ copyDirectoryOverwrite overwriteFiles src dest = do
           then \f -> do
             exists <- doesSymbolicLinkExist f
             when exists $
-              throwCS $
-                MkPathFoundException f
+              FsUtils.throwIOError
+                f
+                "copyDirectoryOverwrite"
+                Error.alreadyExistsErrorType
+                "Attempted symlink overwrite when CopyDirConfig.overwriteFiles is false"
           else const (pure ())
 
       copyFiles = do
@@ -766,7 +721,12 @@ copyDirectoryNoOverwrite ::
   m ()
 copyDirectoryNoOverwrite src dest = do
   destExists <- doesDirectoryExist dest
-  when destExists $ throwCS (MkPathFoundException dest)
+  when destExists $
+    FsUtils.throwIOError
+      dest
+      "copyDirectoryNoOverwrite"
+      Error.alreadyExistsErrorType
+      "Attempted directory overwrite when CopyDirConfig.overwrite is OverwriteNone"
 
   let copyFiles = do
         (subFiles, subDirs, symlinks) <- listDirectoryRecursiveSymbolicLink src
@@ -872,8 +832,7 @@ removeSymbolicLink ::
   OsPath ->
   m ()
 removeSymbolicLink p = do
-  -- see NOTE: [pathIsSymbolicLink does not exist exception]
-  throwIfNonSymlink "removeSymbolicLink" p
+  PR.throwIfWrongPathType "removeSymbolicLink" PathTypeSymbolicLink p
 
   pathIsSymbolicDirectoryLink p >>= \case
     True -> removeDirectoryLink p
@@ -902,8 +861,7 @@ copySymbolicLink ::
   OsPath ->
   m ()
 copySymbolicLink src dest = do
-  -- see NOTE: [pathIsSymbolicLink does not exist exception]
-  throwIfNonSymlink "copySymbolicLink" src
+  PR.throwIfWrongPathType "copySymbolicLink" PathTypeSymbolicLink src
 
   target <- getSymbolicLinkTarget src
 
@@ -916,37 +874,6 @@ copySymbolicLink src dest = do
     True -> createDirectoryLink target dest
     False -> createFileLink target dest
 {-# INLINEABLE copySymbolicLink #-}
-
-throwIfNonSymlink ::
-  ( HasCallStack,
-    MonadPathReader m,
-    MonadThrow m
-  ) =>
-  String ->
-  OsPath ->
-  m ()
-throwIfNonSymlink loc p = do
-  -- NOTE: [pathIsSymbolicLink does not exist exception]
-  -- pathIsSymbolicLink over doesSymbolicLinkExist for consistency.
-  --
-  -- Not only should this function throw when we encounter a non-symlink
-  -- (handled manually below), but we would like it to throw a "path not found"
-  -- type exception when the path does not exist (like remove(File|Directory)).
-  --
-  -- pathIsSymbolicLink does this for us.
-  isSymlink <- pathIsSymbolicLink p
-
-  unless isSymlink $
-    throwCS $
-      IOError
-        { ioe_handle = Nothing,
-          ioe_type = IO.illegalOperationErrorType,
-          ioe_location = loc,
-          ioe_description = "path is not a symbolic link",
-          ioe_errno = Nothing,
-          ioe_filename = Just $ FsUtils.decodeOsToFpDisplayEx p
-        }
-{-# INLINEABLE throwIfNonSymlink #-}
 
 -- $if-exists
 -- The @removeXIfExists@ functions should be understood as helper combinators

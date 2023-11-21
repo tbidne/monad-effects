@@ -60,6 +60,7 @@ module Effects.FileSystem.Utils
     TEnc.encodeUtf8,
 
     -- * Misc
+    throwIOError,
     (>.>),
   )
 where
@@ -70,12 +71,24 @@ import Data.Text (Text)
 import Data.Text.Encoding qualified as TEnc
 import Data.Text.Encoding.Error (UnicodeException)
 import Data.Text.Encoding.Error qualified as TEncError
-import Effects.Exception (MonadThrow, throwM)
+import Effects.Exception (MonadThrow, throwCS, throwM)
+import GHC.IO.Exception
+  ( IOException
+      ( IOError,
+        ioe_description,
+        ioe_errno,
+        ioe_filename,
+        ioe_handle,
+        ioe_location,
+        ioe_type
+      ),
+  )
 import GHC.Stack (HasCallStack)
 import System.File.OsPath qualified as FileIO
 import System.FilePath qualified as FP
 import System.IO (Handle, IOMode)
 import System.IO qualified as IO
+import System.IO.Error (IOErrorType)
 import System.OsPath (OsPath, osp, (-<.>), (<.>), (</>))
 import System.OsPath qualified as OsPath
 import System.OsPath.Encoding (EncodingException (EncodingError))
@@ -325,6 +338,31 @@ infixl 9 !</>
 -- @since 0.1
 combineFilePaths :: FilePath -> FilePath -> FilePath
 combineFilePaths = (FP.</>)
+
+-- | Helper for throwing 'IOException'.
+--
+-- @since 0.1
+throwIOError ::
+  (HasCallStack, MonadThrow m) =>
+  -- | Path to the module where the exception was thrown.
+  OsPath ->
+  -- | String location (e.g. function name).
+  String ->
+  -- | Type of exception.
+  IOErrorType ->
+  -- | Description.
+  String ->
+  m a
+throwIOError path loc ty desc =
+  throwCS $
+    IOError
+      { ioe_handle = Nothing,
+        ioe_type = ty,
+        ioe_location = loc,
+        ioe_description = desc,
+        ioe_errno = Nothing,
+        ioe_filename = Just $ decodeOsToFpDisplayEx path
+      }
 
 -- | Flipped '(.)'.
 --

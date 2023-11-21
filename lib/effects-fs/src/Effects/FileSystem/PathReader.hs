@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
 -- | Provides the MonadPathReader effect.
@@ -19,6 +18,20 @@ module Effects.FileSystem.PathReader
     getXdgCache,
     getXdgState,
 
+    -- * Path Types
+    PathType (..),
+
+    -- ** Functions
+    displayPathType,
+    getPathType,
+    isPathType,
+    throwIfWrongPathType,
+
+    -- ** Optics
+    _PathTypeFile,
+    _PathTypeDirectory,
+    _PathTypeSymbolicLink,
+
     -- * Misc
     listDirectoryRecursive,
     listDirectoryRecursiveSymbolicLink,
@@ -34,18 +47,27 @@ module Effects.FileSystem.PathReader
   )
 where
 
+import Control.DeepSeq (NFData)
+import Control.Monad (unless)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
+import Data.String (IsString)
 import Data.Time (UTCTime (UTCTime, utctDay, utctDayTime))
 import Effects.Exception (IOException, MonadCatch, addCS, catchCS)
 import Effects.FileSystem.Utils (OsPath, (</>))
+import Effects.FileSystem.Utils qualified as Utils
+import GHC.Generics (Generic)
+import GHC.IO.Exception (IOErrorType (InappropriateType))
 import GHC.Stack (HasCallStack)
+import Optics.Core (Prism')
+import Optics.Prism (prism)
 import System.Directory
   ( Permissions,
     XdgDirectory (XdgCache, XdgConfig, XdgData, XdgState),
     XdgDirectoryList (XdgConfigDirs, XdgDataDirs),
   )
 import System.Directory.OsPath qualified as Dir
+import System.IO.Error qualified as IO.Error
 
 -- | Represents file-system reader effects.
 --
@@ -479,10 +501,8 @@ pathIsSymbolicFileLink ::
 pathIsSymbolicFileLink = pathIsSymbolicLinkType doesFileExist
 {-# INLINEABLE pathIsSymbolicFileLink #-}
 
--- | On Windows, returns true if @p@ is a symbolic link and it points to
--- an extant directory.
---
--- On Posix, equivalent to 'doesSymbolicLinkExist'.
+-- | Returns true if @p@ is a symbolic link and it points to an extant
+-- directory.
 --
 -- This function and 'pathIsSymbolicFileLink' are intended to distinguish file
 -- and directory links on Windows. This matters for knowing when to use:
@@ -499,6 +519,10 @@ pathIsSymbolicFileLink = pathIsSymbolicLinkType doesFileExist
 -- Because this relies on the symlink's target, this is best effort, and it is
 -- possible 'pathIsSymbolicDirectoryLink' and 'pathIsSymbolicFileLink' both
 -- return false.
+--
+-- Note that Posix makes no distinction between file and directory symbolic
+-- links. Thus if your system only has to work on Posix, you probably don't
+-- need this function.
 --
 -- @since 0.1
 pathIsSymbolicDirectoryLink ::
@@ -519,24 +543,179 @@ pathIsSymbolicLinkType ::
   (OsPath -> m Bool) ->
   OsPath ->
   m Bool
-#if WINDOWS
 pathIsSymbolicLinkType predicate p = do
-  -- Have this guard so we have similar semantics on Windows vs. Posix:
-  --   - If not a symlink, return false.
-  --   - If a symlink and posix, return true
-  --   - if a symlink and windows, check
   isSymLink <- doesSymbolicLinkExist p
   if not isSymLink
     then pure False
     else do
-      mtarget <- (Just <$> getSymbolicLinkTarget p)
-        -- TODO: Switch to catchIOError once ExceptionCS is gone.
-        `catchCS` \(_ :: IOException) -> pure Nothing
+      mtarget <-
+        (Just <$> getSymbolicLinkTarget p)
+          -- TODO: Switch to catchIOError once ExceptionCS is gone.
+          `catchCS` \(_ :: IOException) -> pure Nothing
 
       case mtarget of
         Nothing -> pure False
         Just target -> predicate target
-#else
-pathIsSymbolicLinkType _ = doesSymbolicLinkExist
-#endif
-{-# INLINEABLE pathIsSymbolicLinkType #-}
+
+-- | Path type.
+-- @since 0.1
+data PathType
+  = -- | @since 0.1
+    PathTypeFile
+  | -- | @since 0.1
+    PathTypeDirectory
+  | -- | @since 0.1
+    PathTypeSymbolicLink
+  deriving stock
+    ( -- | @since 0.1
+      Bounded,
+      -- | @since 0.1
+      Enum,
+      -- | @since 0.1
+      Eq,
+      -- | @since 0.1
+      Generic,
+      -- | @since 0.1
+      Ord,
+      -- | @since 0.1
+      Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
+    )
+
+-- | @since 0.1
+_PathTypeFile :: Prism' PathType ()
+_PathTypeFile =
+  prism
+    (const PathTypeFile)
+    ( \case
+        PathTypeFile -> Right ()
+        x -> Left x
+    )
+{-# INLINE _PathTypeFile #-}
+
+-- | @since 0.1
+_PathTypeDirectory :: Prism' PathType ()
+_PathTypeDirectory =
+  prism
+    (const PathTypeDirectory)
+    ( \case
+        PathTypeDirectory -> Right ()
+        x -> Left x
+    )
+{-# INLINE _PathTypeDirectory #-}
+
+-- | @since 0.1
+_PathTypeSymbolicLink :: Prism' PathType ()
+_PathTypeSymbolicLink =
+  prism
+    (const PathTypeSymbolicLink)
+    ( \case
+        PathTypeSymbolicLink -> Right ()
+        x -> Left x
+    )
+{-# INLINE _PathTypeSymbolicLink #-}
+
+-- | String representation of 'PathType'.
+--
+-- @since 0.1
+displayPathType :: (IsString a) => PathType -> a
+displayPathType PathTypeFile = "file"
+displayPathType PathTypeDirectory = "directory"
+displayPathType PathTypeSymbolicLink = "symlink"
+
+-- | Throws 'IOException' if the path does not exist or the expected path type
+-- does not match actual.
+--
+-- @since 0.1
+throwIfWrongPathType ::
+  ( HasCallStack,
+    MonadCatch m,
+    MonadPathReader m
+  ) =>
+  -- | The location for the thrown exception (e.g. function name)
+  String ->
+  -- | Expected path type
+  PathType ->
+  -- | Path
+  OsPath ->
+  m ()
+throwIfWrongPathType location expected path = do
+  actual <- getPathType path
+
+  let err =
+        mconcat
+          [ "Expected path '",
+            Utils.decodeOsToFpShow path,
+            "' to have type ",
+            displayPathType expected,
+            ", but detected ",
+            displayPathType actual
+          ]
+
+  unless (expected == actual) $
+    Utils.throwIOError
+      path
+      location
+      InappropriateType
+      err
+
+-- | Checks that the path type matches the expectation. Throws
+-- 'IOException' if the path does not exist or the type cannot be detected.
+--
+-- @since 0.1
+isPathType ::
+  ( HasCallStack,
+    MonadCatch m,
+    MonadPathReader m
+  ) =>
+  -- | Expected path type.
+  PathType ->
+  -- Path.
+  OsPath ->
+  m Bool
+isPathType expected = fmap (== expected) . getPathType
+
+-- | Returns the type for a given path without following symlinks.
+-- Throws 'IOException' if the path does not exist or the type cannot be
+-- detected.
+--
+-- @since 0.1
+getPathType ::
+  ( HasCallStack,
+    MonadCatch m,
+    MonadPathReader m
+  ) =>
+  OsPath ->
+  m PathType
+getPathType path = do
+  -- This needs to be first as does(Directory|File|Path)Exist acts on the target.
+  symlinkExists <- doesSymbolicLinkExist path
+  if symlinkExists
+    then pure PathTypeSymbolicLink
+    else do
+      dirExists <- doesDirectoryExist path
+      if dirExists
+        then pure PathTypeDirectory
+        else do
+          fileExists <- doesFileExist path
+          if fileExists
+            then pure PathTypeFile
+            else do
+              let loc = "getPathType"
+              pathExists <- doesPathExist path
+              if pathExists
+                then
+                  Utils.throwIOError
+                    path
+                    loc
+                    InappropriateType
+                    "path exists but has unknown type"
+                else
+                  Utils.throwIOError
+                    path
+                    loc
+                    IO.Error.doesNotExistErrorType
+                    "path does not exist"

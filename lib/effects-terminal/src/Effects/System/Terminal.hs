@@ -9,7 +9,6 @@
 module Effects.System.Terminal
   ( -- * Effect
     MonadTerminal (..),
-    TermSizeException (..),
 
     -- * Functions
     print,
@@ -36,7 +35,6 @@ where
 
 {- ORMOLU_ENABLE -}
 
-import Control.Exception (Exception (displayException))
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.ByteString (ByteString)
@@ -44,6 +42,18 @@ import Data.ByteString qualified as BS
 import Data.Text (Text)
 import Data.Text qualified as T
 import Effects.Exception (addCS, throwCS)
+import GHC.IO.Exception
+  ( IOErrorType (SystemError),
+    IOException
+      ( IOError,
+        ioe_description,
+        ioe_errno,
+        ioe_filename,
+        ioe_handle,
+        ioe_location,
+        ioe_type
+      ),
+  )
 import GHC.Natural (Natural)
 import GHC.Stack (HasCallStack)
 import System.Console.Terminal.Size (Window (Window, height, width), size)
@@ -51,33 +61,18 @@ import System.IO qualified as IO
 import Prelude
   ( Applicative (pure),
     Char,
-    Eq,
     IO,
     Maybe (Just, Nothing),
     Monad ((>>=)),
     Show (show),
     String,
-    const,
+    ($),
     (.),
     (<$>),
     (<>),
   )
 
 -- Explicit prelude because of IO clashes.
-
--- | @since 0.1
-data TermSizeException = MkTermSizeException
-  deriving stock
-    ( -- | @since 0.1
-      Eq,
-      -- | @since 0.1
-      Show
-    )
-
--- | @since 0.1
-instance Exception TermSizeException where
-  displayException = const "Failed to detect the terminal size."
-  {-# INLINEABLE displayException #-}
 
 {- ORMOLU_DISABLE -}
 
@@ -154,7 +149,15 @@ instance MonadTerminal IO where
   getTerminalSize =
     size >>= \case
       Just h -> pure h
-      Nothing -> throwCS MkTermSizeException
+      Nothing -> throwCS $
+        IOError
+          { ioe_handle = Nothing,
+            ioe_type = SystemError,
+            ioe_location = "getTerminalSize",
+            ioe_description = "Failed to detect the terminal size",
+            ioe_errno = Nothing,
+            ioe_filename = Nothing
+          }
   {-# INLINEABLE getTerminalSize #-}
 
 -- | @since 0.1

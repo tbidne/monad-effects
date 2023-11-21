@@ -46,8 +46,6 @@ import Effects.FileSystem.PathWriter
         removeFile
       ),
     Overwrite (OverwriteAll, OverwriteDirectories, OverwriteNone),
-    PathFoundException,
-    PathNotFoundException,
     TargetName (TargetNameDest, TargetNameLiteral, TargetNameSrc),
     createDirectoryIfMissing,
   )
@@ -199,7 +197,7 @@ copyDirNoSrcException getTmpDir = testCase desc $ do
           badSrc
           destDir
 
-  tryCS @_ @PathNotFoundException copy >>= \case
+  tryCS @_ @IOException copy >>= \case
     Left _ -> pure ()
     Right _ -> assertFailure "Expected PathNotFoundException"
   where
@@ -284,11 +282,10 @@ cdrnDestNonExtantFails getTmpDir = testCase desc $ do
         destDir
   resultEx <- case result of
     Right _ -> assertFailure "Expected exception, received none"
-    Left (ex :: PathNotFoundException) -> pure ex
+    Left (ex :: IOException) -> pure ex
 
   let exText = displayException resultEx
 
-  assertBool exText ("Path not found:" `L.isPrefixOf` exText)
   assertBool exText (suffix `L.isSuffixOf` exText)
 
   -- assert original files remain
@@ -298,11 +295,7 @@ cdrnDestNonExtantFails getTmpDir = testCase desc $ do
   assertDirsDoNotExist [destDir]
   where
     desc = "Copy to non-extant dest fails"
-    suffix =
-      "effects-fs"
-        `cfp` "unit"
-        `cfp` "cdrnDestNonExtantFails"
-        `cfp` "dest"
+    suffix = "dest: getPathType: does not exist (path does not exist)"
 
 cdrnOverwriteFails :: IO OsPath -> TestTree
 cdrnOverwriteFails getTmpDir = testCase desc $ do
@@ -324,11 +317,10 @@ cdrnOverwriteFails getTmpDir = testCase desc $ do
         destDir
   resultEx <- case result of
     Right _ -> assertFailure "Expected exception, received none"
-    Left (ex :: PathFoundException) -> pure ex
+    Left (ex :: IOException) -> pure ex
 
   let exText = displayException resultEx
 
-  assertBool exText ("Path already exists:" `L.isPrefixOf` exText)
   assertBool exText (suffix `L.isSuffixOf` exText)
 
   -- assert original files remain
@@ -343,11 +335,8 @@ cdrnOverwriteFails getTmpDir = testCase desc $ do
   where
     desc = "Copy to extant dest/<target> fails"
     suffix =
-      "effects-fs"
-        `cfp` "unit"
-        `cfp` "cdrnOverwriteFails"
-        `cfp` "dest"
-        `cfp` "src"
+      Utils.decodeOsToFpDisplayEx ([osp|dest|] </> [osp|src|])
+        <> ": copyDirectoryNoOverwrite: already exists (Attempted directory overwrite when CopyDirConfig.overwrite is OverwriteNone)"
 
 cdrnPartialFails :: IO OsPath -> TestTree
 cdrnPartialFails getTmpDir = testCase desc $ do
@@ -428,11 +417,10 @@ cdrtDestNonExtantFails getTmpDir = testCase desc $ do
       PathWriter.copyDirectoryRecursiveConfig (overwriteConfig OverwriteDirectories) srcDir destDir
   resultEx <- case result of
     Right _ -> assertFailure "Expected exception, received none"
-    Left (ex :: PathNotFoundException) -> pure ex
+    Left (ex :: IOException) -> pure ex
 
   let exText = displayException resultEx
 
-  assertBool exText ("Path not found:" `L.isPrefixOf` exText)
   assertBool exText (suffix `L.isSuffixOf` exText)
 
   -- assert original files remain
@@ -442,11 +430,7 @@ cdrtDestNonExtantFails getTmpDir = testCase desc $ do
   assertDirsDoNotExist [destDir]
   where
     desc = "Copy to non-extant dest fails"
-    suffix =
-      "effects-fs"
-        `cfp` "unit"
-        `cfp` "cdrtDestNonExtantFails"
-        `cfp` "dest"
+    suffix = "dest: getPathType: does not exist (path does not exist)"
 
 cdrtOverwriteTargetSucceeds :: IO OsPath -> TestTree
 cdrtOverwriteTargetSucceeds getTmpDir = testCase desc $ do
@@ -581,11 +565,10 @@ cdrtOverwriteTargetMergeFails getTmpDir = testCase desc $ do
         destDir
   resultEx <- case result of
     Right _ -> assertFailure "Expected exception, received none"
-    Left (ex :: PathFoundException) -> pure ex
+    Left (ex :: IOException) -> pure ex
 
   let exText = displayException resultEx
 
-  assertBool exText ("Path already exists:" `L.isPrefixOf` exText)
   assertBool exText (suffix `L.isSuffixOf` exText)
 
   -- assert dest unchanged from bad copy
@@ -624,12 +607,8 @@ cdrtOverwriteTargetMergeFails getTmpDir = testCase desc $ do
     desc = "copy to extant dest/<target> merge fails"
     config = MkCopyDirConfig OverwriteDirectories TargetNameDest
     suffix =
-      "effects-fs"
-        `cfp` "unit"
-        `cfp` "cdrtOverwriteTargetMergeFails"
-        `cfp` "dest"
-        `cfp` "two"
-        `cfp` "f3"
+      Utils.decodeOsToFpDisplayEx ([osp|dest|] </> [osp|two|] </> [osp|f3|])
+        <> ": copyDirectoryOverwrite: already exists (Attempted file overwrite when CopyDirConfig.overwriteFiles is false)"
 
 cdrtOverwriteFileFails :: IO OsPath -> TestTree
 cdrtOverwriteFileFails getTmpDir = testCase desc $ do
@@ -640,7 +619,7 @@ cdrtOverwriteFileFails getTmpDir = testCase desc $ do
   createDirectoryIfMissing True (destDir </> [osp|src|] </> [osp|a|] </> [osp|b|] </> [osp|c|])
 
   -- NOTE: this line causes it to die
-  writeFiles [(destDir </> [osp|src|] </> [osp|a|] </> [osp|b|] </> [osp|c|] </> [osp|f1|], "cat")]
+  writeFiles [(destDir </> pathEnd, "cat")]
 
   -- copy files
   result <-
@@ -651,28 +630,21 @@ cdrtOverwriteFileFails getTmpDir = testCase desc $ do
         destDir
   resultEx <- case result of
     Right _ -> assertFailure "Expected exception, received none"
-    Left (ex :: PathFoundException) -> pure ex
+    Left (ex :: IOException) -> pure ex
 
   let exText = displayException resultEx
 
-  assertBool exText ("Path already exists:" `L.isPrefixOf` exText)
   assertBool exText (suffix `L.isSuffixOf` exText)
 
   -- assert original files remain
   assertSrcExists tmpDir
-  assertFilesExist [destDir </> [osp|src|] </> [osp|a|] </> [osp|b|] </> [osp|c|] </> [osp|f1|]]
+  assertFilesExist [destDir </> pathEnd]
   where
     desc = "copy to extant dest/<target>/file fails"
+    pathEnd = [osp|src|] </> [osp|a|] </> [osp|b|] </> [osp|c|] </> [osp|f1|]
     suffix =
-      "effects-fs"
-        `cfp` "unit"
-        `cfp` "cdrtOverwriteFileFails"
-        `cfp` "dest"
-        `cfp` "src"
-        `cfp` "a"
-        `cfp` "b"
-        `cfp` "c"
-        `cfp` "f1"
+      Utils.decodeOsToFpDisplayEx ([osp|dest|] </> pathEnd)
+        <> ": copyDirectoryOverwrite: already exists (Attempted file overwrite when CopyDirConfig.overwriteFiles is false)"
 
 cdrtPartialFails :: IO OsPath -> TestTree
 cdrtPartialFails getTmpDir = testCase desc $ do
@@ -1256,10 +1228,3 @@ mkTestPath :: IO OsPath -> OsPath -> IO OsPath
 mkTestPath getPath s = do
   p <- getPath
   pure $ p </> s
-
-cfp :: FilePath -> FilePath -> FilePath
-cfp = Utils.combineFilePaths
-
--- TODO: more symlink tests (windows too)
--- prob test that old code failed (so write tests here then cherry-pick on top
--- of old commit)

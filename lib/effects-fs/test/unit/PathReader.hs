@@ -4,20 +4,23 @@
 module PathReader (tests) where
 
 import Data.List qualified as L
+import Effects.Exception (tryAny)
 import Effects.FileSystem.FileWriter qualified as FW
+import Effects.FileSystem.PathReader (PathType (PathTypeDirectory, PathTypeFile, PathTypeSymbolicLink))
 import Effects.FileSystem.PathReader qualified as PR
 import Effects.FileSystem.PathReader qualified as PathReader
 import Effects.FileSystem.PathWriter qualified as PW
 import Effects.FileSystem.Utils (OsPath, osp, (</>))
 import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.HUnit (assertBool, testCase, (@=?))
+import Test.Tasty.HUnit (assertBool, assertFailure, testCase, (@=?))
 
 tests :: IO OsPath -> TestTree
 tests getTmpDir =
   testGroup
     "PathReader"
     [ listDirectoryTests,
-      symlinkTests getTmpDir
+      symlinkTests getTmpDir,
+      pathTypeTests getTmpDir
     ]
 
 listDirectoryTests :: TestTree
@@ -181,12 +184,6 @@ pathIsSymbolicDirectoryLinkTrue getTestDir = testCase desc $ do
 
   isDirLink <- PR.pathIsSymbolicDirectoryLink (testDir </> [osp|dir-link|])
   assertBool "pathIsSymbolicDirectoryLink true for dir link" isDirLink
-
-#if !WINDOWS
-  isDirLink2 <- PR.pathIsSymbolicDirectoryLink (testDir </> [osp|file-link|])
-  assertBool "pathIsSymbolicDirectoryLink true for posix file link" isDirLink2
-#endif
-
   where
     desc = "pathIsSymbolicDirectoryLink true for dir link"
 
@@ -196,12 +193,6 @@ pathIsSymbolicFileLinkTrue getTestDir = testCase desc $ do
 
   isFileLink <- PR.pathIsSymbolicFileLink (testDir </> [osp|file-link|])
   assertBool "pathIsSymbolicFileLink true for file link" isFileLink
-
-#if !WINDOWS
-  isFileLink2 <- PR.pathIsSymbolicFileLink (testDir </> [osp|dir-link|])
-  assertBool "pathIsSymbolicDirectoryLink true for posix dir link" isFileLink2
-#endif
-
   where
     desc = "pathIsSymbolicDirectoryLink true for file link"
 
@@ -265,6 +256,129 @@ pathIsSymbolicFileLinkBad getTestDir = testCase desc $ do
   where
     desc = "pathIsSymbolicXLink false for bad path"
 
+pathTypeTests :: IO OsPath -> TestTree
+pathTypeTests getTestDir =
+  testGroup
+    "PathType"
+    [ getPathTypeSymlink getTestDir,
+      getPathTypeDirectory getTestDir,
+      getPathTypeFile getTestDir,
+      getPathTypeBad getTestDir
+    ]
+
+getPathTypeSymlink :: IO OsPath -> TestTree
+getPathTypeSymlink getTestDir = testCase desc $ do
+  testDir <- setupLinks getTestDir [osp|getPathTypeSymlink|]
+
+  let link1 = testDir </> [osp|file-link|]
+      link2 = testDir </> [osp|dir-link|]
+
+  -- getPathType
+  pathType1 <- PR.getPathType link1
+  PathTypeSymbolicLink @=? pathType1
+
+  -- isPathType
+  isSymlink <- PR.isPathType PathTypeSymbolicLink link1
+  assertBool "Should be a symlink" isSymlink
+
+  isDirectory <- PR.isPathType PathTypeDirectory link1
+  assertBool "Should not be a directory" (not isDirectory)
+
+  isFile <- PR.isPathType PathTypeFile link1
+  assertBool "Should not be a file" (not isFile)
+
+  -- throwIfWrongPathType
+  throwHelper PathTypeSymbolicLink link1
+  throwIfNoEx $ throwHelper PathTypeDirectory link1
+  throwIfNoEx $ throwHelper PathTypeFile link1
+
+  -- getPathType
+  pathType2 <- PR.getPathType (testDir </> [osp|dir-link|])
+  PathTypeSymbolicLink @=? pathType2
+
+  -- isPathType
+  isSymlink2 <- PR.isPathType PathTypeSymbolicLink link2
+  assertBool "Should be a symlink" isSymlink2
+
+  isDirectory2 <- PR.isPathType PathTypeDirectory link2
+  assertBool "Should not be a directory" (not isDirectory2)
+
+  isFile2 <- PR.isPathType PathTypeFile link2
+  assertBool "Should not be a file" (not isFile2)
+
+  -- throwIfWrongPathType
+  throwHelper PathTypeSymbolicLink link2
+  throwIfNoEx $ throwHelper PathTypeDirectory link2
+  throwIfNoEx $ throwHelper PathTypeFile link2
+  where
+    desc = "getPathType recognizes symlinks"
+    throwHelper = PR.throwIfWrongPathType "getPathTypeSymlink"
+
+getPathTypeDirectory :: IO OsPath -> TestTree
+getPathTypeDirectory getTestDir = testCase desc $ do
+  testDir <- setupLinks getTestDir [osp|getPathTypeDirectory|]
+
+  -- getPathType
+  pathType <- PR.getPathType testDir
+  PathTypeDirectory @=? pathType
+
+  -- isPathType
+  isSymlink <- PR.isPathType PathTypeSymbolicLink testDir
+  assertBool "Should not be a symlink" (not isSymlink)
+
+  isDirectory <- PR.isPathType PathTypeDirectory testDir
+  assertBool "Should be a directory" isDirectory
+
+  isFile <- PR.isPathType PathTypeFile testDir
+  assertBool "Should not be a file" (not isFile)
+
+  -- throwIfWrongPathType
+  throwIfNoEx $ throwHelper PathTypeSymbolicLink testDir
+  throwHelper PathTypeDirectory testDir
+  throwIfNoEx $ throwHelper PathTypeFile testDir
+  where
+    desc = "getPathType recognizes directories"
+    throwHelper = PR.throwIfWrongPathType "getPathTypeDirectory"
+
+getPathTypeFile :: IO OsPath -> TestTree
+getPathTypeFile getTestDir = testCase desc $ do
+  testDir <- setupLinks getTestDir [osp|getPathTypeFile|]
+  let path = testDir </> [osp|file|]
+
+  -- getPathType
+  pathType <- PR.getPathType path
+  PathTypeFile @=? pathType
+
+  -- isPathType
+  isSymlink <- PR.isPathType PathTypeSymbolicLink path
+  assertBool "Should not be a symlink" (not isSymlink)
+
+  isDirectory <- PR.isPathType PathTypeDirectory path
+  assertBool "Should not be a directory" (not isDirectory)
+
+  isFile <- PR.isPathType PathTypeFile path
+  assertBool "Should be a file" isFile
+
+  -- throwIfWrongPathType
+  throwIfNoEx $ throwHelper PathTypeSymbolicLink path
+  throwIfNoEx $ throwHelper PathTypeDirectory path
+  PR.throwIfWrongPathType "" PathTypeFile path
+  where
+    desc = "getPathType recognizes files"
+    throwHelper = PR.throwIfWrongPathType "getPathTypeFile"
+
+getPathTypeBad :: IO OsPath -> TestTree
+getPathTypeBad getTestDir = testCase desc $ do
+  testDir <- setupLinks getTestDir [osp|getPathTypeBad|]
+
+  eResult <- tryAny $ PR.getPathType (testDir </> [osp|bad file|])
+
+  case eResult of
+    Left _ -> pure ()
+    Right _ -> assertFailure "Expected exception, received none"
+  where
+    desc = "getPathType throws exception for non-extant path"
+
 setupLinks :: IO OsPath -> OsPath -> IO OsPath
 setupLinks getTestDir suffix = do
   testDir <- (\t -> t </> [osp|path-reader|] </> suffix) <$> getTestDir
@@ -279,3 +393,9 @@ setupLinks getTestDir suffix = do
   PW.createDirectoryLink dir dirLink
 
   pure testDir
+
+throwIfNoEx :: IO a -> IO ()
+throwIfNoEx m = do
+  tryAny m >>= \case
+    Left _ -> pure ()
+    Right _ -> assertFailure "Expected exception, received none"
