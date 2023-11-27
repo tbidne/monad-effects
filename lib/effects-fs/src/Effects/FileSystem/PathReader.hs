@@ -22,15 +22,15 @@ module Effects.FileSystem.PathReader
     PathType (..),
 
     -- ** Functions
-    displayPathType,
+    PC.displayPathType,
     getPathType,
     isPathType,
     throwIfWrongPathType,
 
     -- ** Optics
-    _PathTypeFile,
-    _PathTypeDirectory,
-    _PathTypeSymbolicLink,
+    PC._PathTypeFile,
+    PC._PathTypeDirectory,
+    PC._PathTypeSymbolicLink,
 
     -- * Misc
     listDirectoryRecursive,
@@ -39,7 +39,7 @@ module Effects.FileSystem.PathReader
     pathIsSymbolicDirectoryLink,
     pathIsSymbolicFileLink,
 
-    -- * Reexports
+    -- * Re-exports
     XdgDirectory (..),
     XdgDirectoryList (..),
     Permissions (..),
@@ -47,20 +47,23 @@ module Effects.FileSystem.PathReader
   )
 where
 
-import Control.DeepSeq (NFData)
-import Control.Monad (unless)
+import Control.Monad (unless, (>=>))
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
-import Data.String (IsString)
 import Data.Time (UTCTime (UTCTime, utctDay, utctDayTime))
 import Effects.Exception (IOException, MonadCatch, addCS, catchCS)
 import Effects.FileSystem.Utils (OsPath, (</>))
 import Effects.FileSystem.Utils qualified as Utils
-import GHC.Generics (Generic)
+import Effects.System.PosixCompat
+  ( PathType
+      ( PathTypeDirectory,
+        PathTypeFile,
+        PathTypeSymbolicLink
+      ),
+  )
+import Effects.System.PosixCompat qualified as PC
 import GHC.IO.Exception (IOErrorType (InappropriateType))
 import GHC.Stack (HasCallStack)
-import Optics.Core (Prism')
-import Optics.Prism (prism)
 import System.Directory
   ( Permissions,
     XdgDirectory (XdgCache, XdgConfig, XdgData, XdgState),
@@ -493,16 +496,16 @@ doesSymbolicLinkExist p =
 -- @since 0.1
 pathIsSymbolicFileLink ::
   ( HasCallStack,
-    MonadCatch m,
     MonadPathReader m
   ) =>
   OsPath ->
   m Bool
-pathIsSymbolicFileLink = pathIsSymbolicLinkType doesFileExist
+pathIsSymbolicFileLink = getSymbolicLinkTarget >=> doesFileExist
 {-# INLINEABLE pathIsSymbolicFileLink #-}
 
 -- | Returns true if @p@ is a symbolic link and it points to an extant
--- directory.
+-- directory. Throws an exception if the path is not a symbolic link or the
+-- target does not exist.
 --
 -- This function and 'pathIsSymbolicFileLink' are intended to distinguish file
 -- and directory links on Windows. This matters for knowing when to use:
@@ -527,107 +530,17 @@ pathIsSymbolicFileLink = pathIsSymbolicLinkType doesFileExist
 -- @since 0.1
 pathIsSymbolicDirectoryLink ::
   ( HasCallStack,
-    MonadCatch m,
     MonadPathReader m
   ) =>
   OsPath ->
   m Bool
-pathIsSymbolicDirectoryLink = pathIsSymbolicLinkType doesDirectoryExist
+pathIsSymbolicDirectoryLink = getSymbolicLinkTarget >=> doesDirectoryExist
 {-# INLINEABLE pathIsSymbolicDirectoryLink #-}
-
-pathIsSymbolicLinkType ::
-  ( HasCallStack,
-    MonadCatch m,
-    MonadPathReader m
-  ) =>
-  (OsPath -> m Bool) ->
-  OsPath ->
-  m Bool
-pathIsSymbolicLinkType predicate p = do
-  isSymLink <- doesSymbolicLinkExist p
-  if not isSymLink
-    then pure False
-    else do
-      mtarget <-
-        (Just <$> getSymbolicLinkTarget p)
-          -- TODO: Switch to catchIOError once ExceptionCS is gone.
-          `catchCS` \(_ :: IOException) -> pure Nothing
-
-      case mtarget of
-        Nothing -> pure False
-        Just target -> predicate target
-
--- | Path type.
--- @since 0.1
-data PathType
-  = -- | @since 0.1
-    PathTypeFile
-  | -- | @since 0.1
-    PathTypeDirectory
-  | -- | @since 0.1
-    PathTypeSymbolicLink
-  deriving stock
-    ( -- | @since 0.1
-      Bounded,
-      -- | @since 0.1
-      Enum,
-      -- | @since 0.1
-      Eq,
-      -- | @since 0.1
-      Generic,
-      -- | @since 0.1
-      Ord,
-      -- | @since 0.1
-      Show
-    )
-  deriving anyclass
-    ( -- | @since 0.1
-      NFData
-    )
-
--- | @since 0.1
-_PathTypeFile :: Prism' PathType ()
-_PathTypeFile =
-  prism
-    (const PathTypeFile)
-    ( \case
-        PathTypeFile -> Right ()
-        x -> Left x
-    )
-{-# INLINE _PathTypeFile #-}
-
--- | @since 0.1
-_PathTypeDirectory :: Prism' PathType ()
-_PathTypeDirectory =
-  prism
-    (const PathTypeDirectory)
-    ( \case
-        PathTypeDirectory -> Right ()
-        x -> Left x
-    )
-{-# INLINE _PathTypeDirectory #-}
-
--- | @since 0.1
-_PathTypeSymbolicLink :: Prism' PathType ()
-_PathTypeSymbolicLink =
-  prism
-    (const PathTypeSymbolicLink)
-    ( \case
-        PathTypeSymbolicLink -> Right ()
-        x -> Left x
-    )
-{-# INLINE _PathTypeSymbolicLink #-}
-
--- | String representation of 'PathType'.
---
--- @since 0.1
-displayPathType :: (IsString a) => PathType -> a
-displayPathType PathTypeFile = "file"
-displayPathType PathTypeDirectory = "directory"
-displayPathType PathTypeSymbolicLink = "symlink"
 
 -- | Throws 'IOException' if the path does not exist or the expected path type
 -- does not match actual.
+--
+-- For a faster version in terms of PosixCompat, see effects-unix-compat.
 --
 -- @since 0.1
 throwIfWrongPathType ::
@@ -650,20 +563,23 @@ throwIfWrongPathType location expected path = do
           [ "Expected path '",
             Utils.decodeOsToFpShow path,
             "' to have type ",
-            displayPathType expected,
+            PC.displayPathType expected,
             ", but detected ",
-            displayPathType actual
+            PC.displayPathType actual
           ]
 
   unless (expected == actual) $
-    Utils.throwIOError
+    Utils.throwPathIOError
       path
       location
       InappropriateType
       err
+{-# INLINEABLE throwIfWrongPathType #-}
 
 -- | Checks that the path type matches the expectation. Throws
 -- 'IOException' if the path does not exist or the type cannot be detected.
+--
+-- For a faster version in terms of PosixCompat, see effects-unix-compat.
 --
 -- @since 0.1
 isPathType ::
@@ -677,10 +593,13 @@ isPathType ::
   OsPath ->
   m Bool
 isPathType expected = fmap (== expected) . getPathType
+{-# INLINEABLE isPathType #-}
 
 -- | Returns the type for a given path without following symlinks.
 -- Throws 'IOException' if the path does not exist or the type cannot be
 -- detected.
+--
+-- For a faster version in terms of PosixCompat, see effects-unix-compat.
 --
 -- @since 0.1
 getPathType ::
@@ -708,14 +627,15 @@ getPathType path = do
               pathExists <- doesPathExist path
               if pathExists
                 then
-                  Utils.throwIOError
+                  Utils.throwPathIOError
                     path
                     loc
                     InappropriateType
                     "path exists but has unknown type"
                 else
-                  Utils.throwIOError
+                  Utils.throwPathIOError
                     path
                     loc
                     IO.Error.doesNotExistErrorType
                     "path does not exist"
+{-# INLINEABLE getPathType #-}

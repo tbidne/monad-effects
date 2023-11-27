@@ -646,7 +646,7 @@ copyDirectoryOverwrite overwriteFiles src dest = do
           then \f -> do
             exists <- doesFileExist f
             when exists $
-              FsUtils.throwIOError
+              FsUtils.throwPathIOError
                 f
                 "copyDirectoryOverwrite"
                 Error.alreadyExistsErrorType
@@ -658,7 +658,7 @@ copyDirectoryOverwrite overwriteFiles src dest = do
           then \f -> do
             exists <- doesSymbolicLinkExist f
             when exists $
-              FsUtils.throwIOError
+              FsUtils.throwPathIOError
                 f
                 "copyDirectoryOverwrite"
                 Error.alreadyExistsErrorType
@@ -722,7 +722,7 @@ copyDirectoryNoOverwrite ::
 copyDirectoryNoOverwrite src dest = do
   destExists <- doesDirectoryExist dest
   when destExists $
-    FsUtils.throwIOError
+    FsUtils.throwPathIOError
       dest
       "copyDirectoryNoOverwrite"
       Error.alreadyExistsErrorType

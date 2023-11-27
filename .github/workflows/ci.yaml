@@ -51,6 +51,27 @@ jobs:
 
       - name: Test effects-time
         run: cabal test effects-time --test-options '--hedgehog-tests 100000'
+
+      - name: Test effects-unix-compat
+        run: cabal test effects-unix-compat
+
+      - name: Benchmark effects-fs/unix-compat
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        id: bench
+        run: |
+          cabal bench effects-fs:benchmark:benchmarks --benchmark-options '
+            --csv bench/bench_${{ matrix.os }}_${{ matrix.ghc }}_ci.csv
+            --svg bench/bench_${{ matrix.os }}_${{ matrix.ghc }}_ci.svg
+            --fail-if-slower 30
+            --fail-if-faster 30'
+
+      - uses: actions/upload-artifact@v3
+        if: ${{ failure() && steps.bench.conclusion == 'failure' }}
+        with:
+          name: build-artifacts
+          path: |
+            lib/effects-fs/bench/bench_${{ matrix.os }}_${{ matrix.ghc }}_ci.csv
+            lib/effects-fs/bench/bench_${{ matrix.os }}_${{ matrix.ghc }}_ci.svg
   nix:
     strategy:
       fail-fast: false

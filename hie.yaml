@@ -18,6 +18,12 @@ cradle:
     - path: "./lib/effects-fs/test/unit"
       component: "effects-fs:test:unit"
 
+    - path: "./lib/effects-fs/benchmarks/Main.hs"
+      component: "effects-fs:bench:benchmarks"
+
+    - path: "./lib/effects-fs/benchmarks/Bench/Prelude.hs"
+      component: "effects-fs:bench:benchmarks"
+
     - path: "./lib/effects-ioref/src"
       component: "lib:effects-ioref"
 
@@ -50,3 +56,6 @@ cradle:
 
     - path: "./lib/effects-unix-compat/src"
       component: "lib:effects-unix-compat"
+
+    - path: "./lib/effects-unix-compat/test/unit"
+      component: "effects-unix-compat:test:unit"

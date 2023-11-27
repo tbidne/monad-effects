@@ -37,14 +37,14 @@
     flake-parts.lib.mkFlake { inherit inputs; } {
       perSystem = { pkgs, ... }:
         let
-          ghc-version = "ghc962";
+          ghc-version = "ghc963";
           hlib = pkgs.haskell.lib;
           compiler = pkgs.haskell.packages."${ghc-version}".override {
             overrides = final: prev: {
-              file-io = final.callHackage "file-io" "0.1.0.1" { };
-              hedgehog = prev.hedgehog_1_3;
+              hedgehog = prev.hedgehog_1_4;
               hlint = prev.hlint_3_6_1;
-              ormolu = prev.ormolu_0_7_1_0;
+              ormolu = prev.ormolu_0_7_2_0;
+              tasty-hedgehog = prev.tasty-hedgehog_1_4_0_2;
             } // nix-hs-utils.mkLibs inputs final [
               "algebra-simple"
               "bounds"
@@ -107,6 +107,7 @@
             source-overrides = {
               effects-exceptions = ./lib/effects-exceptions;
               effects-ioref = ./lib/effects-ioref;
+              effects-unix-compat = ./lib/effects-unix-compat;
             };
           };
           packages.effects-ioref = mkPkgsException "effects-ioref" ./lib/effects-ioref;
@@ -120,6 +121,7 @@
               effects-exceptions = ./lib/effects-exceptions;
               effects-fs = ./lib/effects-fs;
               effects-ioref = ./lib/effects-ioref;
+              effects-unix-compat = ./lib/effects-unix-compat;
             };
           packages.effects-stm = mkPkgsException "effects-stm" ./lib/effects-stm;
           packages.effects-time = mkPkgsException "effects-time" ./lib/effects-time;
@@ -127,7 +129,7 @@
           packages.effects-thread = mkPkgsException "effects-thread" ./lib/effects-thread;
           packages.effects-typed-process =
             mkPkgsException "effects-typed-process" ./lib/effects-typed-process;
-          packages.effects-unix-compat = mkPkg "effects-unix-compat" ./lib/effects-unix-compat { };
+          packages.effects-unix-compat = mkPkgsException "effects-unix-compat" ./lib/effects-unix-compat;
 
           devShells.default = hsOverlay.shellFor {
             inherit packages;

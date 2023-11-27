@@ -6,12 +6,10 @@
 module Effects.FileSystem.Utils
   ( -- * File paths
     OsPath,
-    OsString,
 
     -- ** To OsPath
 
     -- *** Encoding
-    osstr,
     encodeFpToOs,
     encodeFpToOsThrowM,
     encodeFpToOsFail,
@@ -60,7 +58,7 @@ module Effects.FileSystem.Utils
     TEnc.encodeUtf8,
 
     -- * Misc
-    throwIOError,
+    throwPathIOError,
     (>.>),
   )
 where
@@ -71,18 +69,8 @@ import Data.Text (Text)
 import Data.Text.Encoding qualified as TEnc
 import Data.Text.Encoding.Error (UnicodeException)
 import Data.Text.Encoding.Error qualified as TEncError
-import Effects.Exception (MonadThrow, throwCS, throwM)
-import GHC.IO.Exception
-  ( IOException
-      ( IOError,
-        ioe_description,
-        ioe_errno,
-        ioe_filename,
-        ioe_handle,
-        ioe_location,
-        ioe_type
-      ),
-  )
+import Effects.Exception (MonadThrow, throwM)
+import Effects.System.PosixCompat qualified as PC
 import GHC.Stack (HasCallStack)
 import System.File.OsPath qualified as FileIO
 import System.FilePath qualified as FP
@@ -92,7 +80,6 @@ import System.IO.Error (IOErrorType)
 import System.OsPath (OsPath, osp, (-<.>), (<.>), (</>))
 import System.OsPath qualified as OsPath
 import System.OsPath.Encoding (EncodingException (EncodingError))
-import System.OsString (OsString, osstr)
 
 -- NOTE: -Wno-redundant-constraints is because the HasCallStack is redundant
 -- on some of these functions when the exceptions library is too old.
@@ -342,9 +329,9 @@ combineFilePaths = (FP.</>)
 -- | Helper for throwing 'IOException'.
 --
 -- @since 0.1
-throwIOError ::
+throwPathIOError ::
   (HasCallStack, MonadThrow m) =>
-  -- | Path to the module where the exception was thrown.
+  -- | Path upon which the IO operation failed.
   OsPath ->
   -- | String location (e.g. function name).
   String ->
@@ -353,16 +340,7 @@ throwIOError ::
   -- | Description.
   String ->
   m a
-throwIOError path loc ty desc =
-  throwCS $
-    IOError
-      { ioe_handle = Nothing,
-        ioe_type = ty,
-        ioe_location = loc,
-        ioe_description = desc,
-        ioe_errno = Nothing,
-        ioe_filename = Just $ decodeOsToFpDisplayEx path
-      }
+throwPathIOError path = PC.throwPathIOError (decodeOsToFpDisplayEx path)
 
 -- | Flipped '(.)'.
 --

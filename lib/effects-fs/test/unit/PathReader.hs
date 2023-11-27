@@ -6,7 +6,13 @@ module PathReader (tests) where
 import Data.List qualified as L
 import Effects.Exception (tryAny)
 import Effects.FileSystem.FileWriter qualified as FW
-import Effects.FileSystem.PathReader (PathType (PathTypeDirectory, PathTypeFile, PathTypeSymbolicLink))
+import Effects.FileSystem.PathReader
+  ( PathType
+      ( PathTypeDirectory,
+        PathTypeFile,
+        PathTypeSymbolicLink
+      ),
+  )
 import Effects.FileSystem.PathReader qualified as PR
 import Effects.FileSystem.PathReader qualified as PathReader
 import Effects.FileSystem.PathWriter qualified as PW
@@ -230,31 +236,25 @@ pathIsSymbolicFileLinkFileFalse :: IO OsPath -> TestTree
 pathIsSymbolicFileLinkFileFalse getTestDir = testCase desc $ do
   testDir <- setupLinks getTestDir [osp|pathIsSymbolicFileLinkFileFalse|]
 
-  isFileLink <- PR.pathIsSymbolicFileLink (testDir </> [osp|file|])
-  assertBool "pathIsSymbolicFileLink false for file" (not isFileLink)
+  throwIfNoEx $ PR.pathIsSymbolicFileLink (testDir </> [osp|file|])
 
-  isFileLink2 <- PR.pathIsSymbolicFileLink (testDir </> [osp|dir|])
-  assertBool "pathIsSymbolicFileLink false for dir" (not isFileLink2)
+  throwIfNoEx $ PR.pathIsSymbolicFileLink (testDir </> [osp|dir|])
 
-  isDirLink <- PR.pathIsSymbolicDirectoryLink (testDir </> [osp|file|])
-  assertBool "pathIsSymbolicDirectoryLink false for file" (not isDirLink)
+  throwIfNoEx $ PR.pathIsSymbolicDirectoryLink (testDir </> [osp|file|])
 
-  isDirLink2 <- PR.pathIsSymbolicDirectoryLink (testDir </> [osp|dir|])
-  assertBool "pathIsSymbolicDirectoryLink false for dir" (not isDirLink2)
+  throwIfNoEx $ PR.pathIsSymbolicDirectoryLink (testDir </> [osp|dir|])
   where
-    desc = "pathIsSymbolicXLink false for non symlinks"
+    desc = "pathIsSymbolicXLink exception for non symlinks"
 
 pathIsSymbolicFileLinkBad :: IO OsPath -> TestTree
 pathIsSymbolicFileLinkBad getTestDir = testCase desc $ do
   testDir <- setupLinks getTestDir [osp|pathIsSymbolicFileLinkBad|]
 
-  isFileLink <- PR.pathIsSymbolicFileLink (testDir </> [osp|bad|])
-  assertBool "pathIsSymbolicFileLink false for bad path" (not isFileLink)
+  throwIfNoEx $ PR.pathIsSymbolicFileLink (testDir </> [osp|bad|])
 
-  isDirLink <- PR.pathIsSymbolicDirectoryLink (testDir </> [osp|bad|])
-  assertBool "pathIsSymbolicFileLink false for bad path" (not isDirLink)
+  throwIfNoEx $ PR.pathIsSymbolicDirectoryLink (testDir </> [osp|bad|])
   where
-    desc = "pathIsSymbolicXLink false for bad path"
+    desc = "pathIsSymbolicXLink exception for bad path"
 
 pathTypeTests :: IO OsPath -> TestTree
 pathTypeTests getTestDir =
