@@ -16,5 +16,5 @@ for d in $dirs; do
   # shellcheck disable=SC2086
   rm -rf docs/$d*
   # shellcheck disable=SC2086
-  cp -r dist-newstyle/build/x86_64-linux/ghc-9.6.2/$d-0.1/doc/html/* docs/
+  cp -r dist-newstyle/build/x86_64-linux/ghc-*/$d-0.1/doc/html/* docs/
 done
