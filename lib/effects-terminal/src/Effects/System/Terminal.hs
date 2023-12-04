@@ -56,10 +56,12 @@ import GHC.IO.Exception
   )
 import GHC.Natural (Natural)
 import GHC.Stack (HasCallStack)
+import System.Console.Pretty qualified as CPretty
 import System.Console.Terminal.Size (Window (Window, height, width), size)
 import System.IO qualified as IO
 import Prelude
   ( Applicative (pure),
+    Bool,
     Char,
     IO,
     Maybe (Just, Nothing),
@@ -124,10 +126,15 @@ class Monad m => MonadTerminal m where
   -- @since 0.1
   getTerminalSize :: HasCallStack => m (Window Natural)
 
+  -- | Determines if we support ANSI styling.
+  --
+  -- @since 0.1
+  supportsPretty :: HasCallStack => m Bool
+
 #if MIN_VERSION_base(4,15,0)
-  {-# MINIMAL putStr, putBinary, getChar, getLine, getContents', getTerminalSize #-}
+  {-# MINIMAL putStr, putBinary, getChar, getLine, getContents', getTerminalSize, supportsPretty #-}
 #else
-  {-# MINIMAL putStr , putBinary, getChar, getLine, getTerminalSize #-}
+  {-# MINIMAL putStr , putBinary, getChar, getLine, getTerminalSize, supportsPretty #-}
 #endif
 
 -- | @since 0.1
@@ -160,6 +167,9 @@ instance MonadTerminal IO where
           }
   {-# INLINEABLE getTerminalSize #-}
 
+  supportsPretty = CPretty.supportsPretty
+  {-# INLINEABLE supportsPretty #-}
+
 -- | @since 0.1
 instance MonadTerminal m => MonadTerminal (ReaderT e m) where
   putStr = lift . putStr
@@ -178,6 +188,8 @@ instance MonadTerminal m => MonadTerminal (ReaderT e m) where
 #endif
   getTerminalSize = lift getTerminalSize
   {-# INLINEABLE getTerminalSize #-}
+  supportsPretty = lift supportsPretty
+  {-# INLINEABLE supportsPretty #-}
 
 {- ORMOLU_ENABLE -}
 
