@@ -1,4 +1,5 @@
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 -- | Provides namespaced logging functionality on top of 'MonadLogger'.
@@ -9,6 +10,26 @@ module Effects.LoggerNS
     MonadLoggerNS (..),
     Namespace (..),
     addNamespace,
+
+    -- * Levels
+    LogLevel (..),
+    levelTrace,
+    levelFatal,
+
+    -- ** Logging functions
+
+    -- *** Levels
+    logTrace,
+    MLogger.logDebug,
+    MLogger.logInfo,
+    MLogger.logWarn,
+    MLogger.logError,
+    MLogger.logOther,
+    logFatal,
+
+    -- *** Level checks
+    guardLevel,
+    shouldLog,
 
     -- * Formatting
     LogFormatter (..),
@@ -21,6 +42,17 @@ module Effects.LoggerNS
     logStrToText,
 
     -- * Optics
+
+    -- ** LogLevels
+    _LevelTrace,
+    _LevelInfo,
+    _LevelDebug,
+    _LevelWarn,
+    _LevelError,
+    _LevelOther,
+    _LevelFatal,
+
+    -- ** LocStrategy
     _LocPartial,
     _LocStable,
     _LocNone,
@@ -33,13 +65,16 @@ module Effects.LoggerNS
 where
 
 import Control.DeepSeq (NFData)
+import Control.Monad (when)
 import Control.Monad.Logger
   ( Loc (Loc),
     LogLevel (LevelDebug, LevelError, LevelInfo, LevelOther, LevelWarn),
     LogStr,
     MonadLogger (monadLoggerLog),
     ToLogStr (toLogStr),
+    liftLoc,
   )
+import Control.Monad.Logger qualified as MLogger
 import Data.ByteString (ByteString)
 import Data.ByteString.Builder (Builder)
 import Data.Foldable (Foldable (foldMap'))
@@ -50,12 +85,14 @@ import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TEnc
 import Data.Text.Encoding.Error qualified as TEncError
+import Data.Word (Word8)
 import Effects.Time (MonadTime (getSystemZonedTime), getSystemTime)
 import Effects.Time qualified as MonadTime
 import GHC.Exts (IsList (Item, fromList, toList))
 import GHC.Generics (Generic)
 import GHC.Stack (HasCallStack)
 import Language.Haskell.TH (Loc (loc_filename, loc_start))
+import Language.Haskell.TH.Syntax (Exp, Lift (lift), Q, Quasi (qLocation))
 import Optics.Core
   ( A_Lens,
     An_Iso,
@@ -64,6 +101,7 @@ import Optics.Core
     iso,
     lensVL,
     over',
+    preview,
     prism,
     view,
     (^.),
@@ -342,7 +380,7 @@ showLevel LevelDebug = "Debug"
 showLevel LevelInfo = "Info"
 showLevel LevelWarn = "Warn"
 showLevel LevelError = "Error"
-showLevel (LevelOther txt) = "Other " <> txt
+showLevel (LevelOther txt) = txt
 
 -- LogStr uses ByteString's Builder internally, so we might as well use it
 -- for constants.
@@ -359,3 +397,165 @@ logStrToBs = FL.fromLogStr
 -- | @since 0.1
 logStrToText :: LogStr -> Text
 logStrToText = TEnc.decodeUtf8With TEncError.lenientDecode . FL.fromLogStr
+
+-- Vendored from monad-logger
+logTH :: LogLevel -> Q Exp
+logTH level =
+  [|
+    monadLoggerLog $(qLocation >>= liftLoc) (T.pack "") $(lift level)
+      . (id :: Text -> Text)
+    |]
+
+-- | @since 0.1
+levelTrace :: LogLevel
+levelTrace = LevelOther "Trace"
+
+-- | @since 0.1
+levelFatal :: LogLevel
+levelFatal = LevelOther "Fatal"
+
+-- | @since 0.1
+logTrace :: Q Exp
+logTrace = logTH levelTrace
+
+-- | @since 0.1
+logFatal :: Q Exp
+logFatal = logTH levelFatal
+
+-- | @guardLevel configLvl lvl m@ runs @m@ iff @'shouldLog' configLvl lvl@.
+--
+-- @since 0.1
+guardLevel ::
+  (Applicative f) =>
+  -- | The configured log level to check against.
+  LogLevel ->
+  -- | The log level for this action.
+  LogLevel ->
+  -- | The logging action to run if the level passes.
+  f () ->
+  f ()
+guardLevel configLvl lvl = when (shouldLog configLvl lvl)
+
+-- | @shouldLog configLvl lvl@ returns true iff @configLvl <= lvl@. Uses
+-- LogLevel's built-in ordering with special cases for "Trace"
+-- (@LevelOther "Trace"@) and "Fatal" (@LevelOther "Fatal"@). The ad-hoc
+-- ordering is thus:
+--
+-- @
+--   LevelOther \"Trace\"
+--     < LevelDebug
+--     < LevelInfo
+--     < LevelWarn
+--     < LevelError
+--     < LevelOther \"Fatal\"
+--     < LevelOther \"\<any\>\"
+-- @
+--
+-- In other words, 'LogLevel''s usual 'Ord' is respected, with the additional
+-- cases. Note that any other @LevelOther "custom"@ sit at the the highest
+-- level and compare via Text's 'Ord', just like 'LogLevel''s usual 'Ord'.
+--
+-- @since 0.1
+shouldLog ::
+  -- | The configured log level to check against.
+  LogLevel ->
+  -- | Level for this log
+  LogLevel ->
+  -- | Whether we should log
+  Bool
+shouldLog configLvl lvl =
+  -- If both are LevelOther and not Trace/Fatal then we need to compare
+  -- labels, as that is how Ord works.
+  case (preview _LevelOther configLvl, preview _LevelOther lvl) of
+    (Just configTxt, Just lvlTxt)
+      | isCustom configTxt && isCustom lvlTxt -> configTxt <= lvlTxt
+    _ -> logLevelToWord configLvl <= logLevelToWord lvl
+  where
+    isCustom t =
+      t /= "Trace" && t /= "Fatal"
+
+-- | @since 0.1
+_LevelTrace :: Prism' LogLevel ()
+_LevelTrace =
+  prism
+    (const levelTrace)
+    ( \case
+        LevelOther "Trace" -> Right ()
+        other -> Left other
+    )
+{-# INLINE _LevelTrace #-}
+
+-- | @since 0.1
+_LevelDebug :: Prism' LogLevel ()
+_LevelDebug =
+  prism
+    (const LevelDebug)
+    ( \case
+        LevelDebug -> Right ()
+        other -> Left other
+    )
+{-# INLINE _LevelDebug #-}
+
+-- | @since 0.1
+_LevelInfo :: Prism' LogLevel ()
+_LevelInfo =
+  prism
+    (const LevelInfo)
+    ( \case
+        LevelInfo -> Right ()
+        other -> Left other
+    )
+{-# INLINE _LevelInfo #-}
+
+-- | @since 0.1
+_LevelWarn :: Prism' LogLevel ()
+_LevelWarn =
+  prism
+    (const LevelWarn)
+    ( \case
+        LevelWarn -> Right ()
+        other -> Left other
+    )
+{-# INLINE _LevelWarn #-}
+
+-- | @since 0.1
+_LevelError :: Prism' LogLevel ()
+_LevelError =
+  prism
+    (const LevelError)
+    ( \case
+        LevelError -> Right ()
+        other -> Left other
+    )
+{-# INLINE _LevelError #-}
+
+-- | @since 0.1
+_LevelOther :: Prism' LogLevel Text
+_LevelOther =
+  prism
+    LevelOther
+    ( \case
+        LevelOther l -> Right l
+        other -> Left other
+    )
+{-# INLINE _LevelOther #-}
+
+-- | @since 0.1
+_LevelFatal :: Prism' LogLevel ()
+_LevelFatal =
+  prism
+    (const levelFatal)
+    ( \case
+        LevelOther "Fatal" -> Right ()
+        other -> Left other
+    )
+{-# INLINE _LevelFatal #-}
+
+logLevelToWord :: LogLevel -> Word8
+logLevelToWord (LevelOther "Trace") = 0
+logLevelToWord LevelDebug = 1
+logLevelToWord LevelInfo = 2
+logLevelToWord LevelWarn = 3
+logLevelToWord LevelError = 4
+logLevelToWord (LevelOther "Fatal") = 5
+logLevelToWord (LevelOther _) = 6
