@@ -324,14 +324,14 @@ infoProps = testPropertyNamed "Info properties" "infoProps" $ do
     if LevelInfo `shouldLog` lvl
       then
         assert $
-          lvl == LevelInfo
-            || lvl == LevelWarn
-            || lvl == LevelError
+          LevelInfo == lvl
+            || LevelWarn == lvl
+            || LevelError == lvl
             || isOtherNonTrace lvl
       else
         assert $
           isTrace lvl
-            || lvl == LevelDebug
+            || LevelDebug == lvl
 
     if lvl `shouldLog` LevelInfo
       then
@@ -353,14 +353,14 @@ warnProps = testPropertyNamed "Warn properties" "warnProps" $ do
     if LevelWarn `shouldLog` lvl
       then
         assert $
-          lvl == LevelWarn
-            || lvl == LevelError
+          LevelWarn == lvl
+            || LevelError == lvl
             || isOtherNonTrace lvl
       else
         assert $
           isTrace lvl
-            || lvl == LevelDebug
-            || lvl == LevelInfo
+            || LevelDebug == lvl
+            || LevelInfo == lvl
 
     if lvl `shouldLog` LevelWarn
       then
@@ -382,14 +382,14 @@ errorProps = testPropertyNamed "Error properties" "errorProps" $ do
     if LevelError `shouldLog` lvl
       then
         assert $
-          lvl == LevelError
+          LevelError == lvl
             || isOtherNonTrace lvl
       else
         assert $
           isTrace lvl
-            || lvl == LevelDebug
-            || lvl == LevelInfo
-            || lvl == LevelWarn
+            || LevelDebug == lvl
+            || LevelInfo == lvl
+            || LevelWarn == lvl
 
     if lvl `shouldLog` LevelError
       then
@@ -460,7 +460,7 @@ customProps = testPropertyNamed "Custom properties" "customProps" $ do
         Just l -> assert $ l > customLvl
 
 stdLevelsFollowOrd :: TestTree
-stdLevelsFollowOrd = testPropertyNamed "Trace is the lowest level" "traceLowest" $ do
+stdLevelsFollowOrd = testPropertyNamed "Std levels follow Ord" "stdLevelsFollowOrd" $ do
   property $ do
     lvl1 <- forAll genStdLevel
     lvl2 <- forAll genStdLevel
