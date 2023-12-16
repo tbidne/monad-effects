@@ -31,6 +31,7 @@ module Effects.FileSystem.PathReader
     PC._PathTypeFile,
     PC._PathTypeDirectory,
     PC._PathTypeSymbolicLink,
+    PC._PathTypeOther,
 
     -- * Misc
     listDirectoryRecursive,
@@ -58,6 +59,7 @@ import Effects.System.PosixCompat
   ( PathType
       ( PathTypeDirectory,
         PathTypeFile,
+        PathTypeOther,
         PathTypeSymbolicLink
       ),
   )
@@ -623,19 +625,13 @@ getPathType path = do
           if fileExists
             then pure PathTypeFile
             else do
-              let loc = "getPathType"
               pathExists <- doesPathExist path
               if pathExists
-                then
-                  Utils.throwPathIOError
-                    path
-                    loc
-                    InappropriateType
-                    "path exists but has unknown type"
+                then pure PathTypeOther
                 else
                   Utils.throwPathIOError
                     path
-                    loc
+                    "getPathType"
                     IO.Error.doesNotExistErrorType
                     "path does not exist"
 {-# INLINEABLE getPathType #-}

@@ -18,6 +18,7 @@ module Effects.System.PosixCompat
     _PathTypeFile,
     _PathTypeDirectory,
     _PathTypeSymbolicLink,
+    _PathTypeOther,
 
     -- * Utils
     throwPathIOError,
@@ -28,6 +29,7 @@ import Control.DeepSeq (NFData)
 import Control.Monad (unless)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
+import Data.Functor ((<&>))
 import Data.String (IsString)
 import Effects.Exception (MonadCatch, MonadThrow, throwCS)
 import GHC.Generics (Generic)
@@ -59,10 +61,6 @@ import System.PosixCompat.Types
   )
 
 {- HLINT ignore "Redundant bracket" -}
-
--- TODO:
---
--- - Path vs. FilePath
 
 -- | Class for unix-compat effects.
 --
@@ -245,6 +243,7 @@ instance (MonadPosixCompat m) => MonadPosixCompat (ReaderT e m) where
   {-# INLINEABLE getFdPathVar #-}
 
 -- | Path type.
+--
 -- @since 0.1
 data PathType
   = -- | @since 0.1
@@ -253,6 +252,8 @@ data PathType
     PathTypeDirectory
   | -- | @since 0.1
     PathTypeSymbolicLink
+  | -- | @since 0.1
+    PathTypeOther
   deriving stock
     ( -- | @since 0.1
       Bounded,
@@ -305,6 +306,17 @@ _PathTypeSymbolicLink =
     )
 {-# INLINE _PathTypeSymbolicLink #-}
 
+-- | @since 0.1
+_PathTypeOther :: Prism' PathType ()
+_PathTypeOther =
+  prism
+    (const PathTypeOther)
+    ( \case
+        PathTypeOther -> Right ()
+        x -> Left x
+    )
+{-# INLINE _PathTypeOther #-}
+
 -- | String representation of 'PathType'.
 --
 -- @since 0.1
@@ -312,6 +324,7 @@ displayPathType :: (IsString a) => PathType -> a
 displayPathType PathTypeFile = "file"
 displayPathType PathTypeDirectory = "directory"
 displayPathType PathTypeSymbolicLink = "symlink"
+displayPathType PathTypeOther = "other"
 
 -- | Throws 'IOException' if the path does not exist or the expected path type
 -- does not match actual.
@@ -353,7 +366,6 @@ throwIfWrongPathType location expected path = do
 -- @since 0.1
 isPathType ::
   ( HasCallStack,
-    MonadCatch m,
     MonadPosixCompat m
   ) =>
   PathType ->
@@ -369,23 +381,17 @@ isPathType expected = fmap (== expected) . getPathType
 -- @since 0.1
 getPathType ::
   ( HasCallStack,
-    MonadPosixCompat m,
-    MonadThrow m
+    MonadPosixCompat m
   ) =>
   FilePath ->
   m PathType
 getPathType path = do
-  status <- getSymbolicLinkStatus path
-  if
-    | PFiles.isSymbolicLink status -> pure PathTypeSymbolicLink
-    | PFiles.isDirectory status -> pure PathTypeDirectory
-    | PFiles.isRegularFile status -> pure PathTypeFile
-    | otherwise ->
-        throwPathIOError
-          path
-          "getPathType"
-          InappropriateType
-          "path exists but has unknown type"
+  getSymbolicLinkStatus path <&> \status ->
+    if
+      | PFiles.isSymbolicLink status -> PathTypeSymbolicLink
+      | PFiles.isDirectory status -> PathTypeDirectory
+      | PFiles.isRegularFile status -> PathTypeFile
+      | otherwise -> PathTypeOther
 {-# INLINEABLE getPathType #-}
 
 -- | Helper for throwing 'IOException'.
