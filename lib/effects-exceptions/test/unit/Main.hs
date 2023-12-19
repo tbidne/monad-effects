@@ -4,15 +4,23 @@
 module Main (main) where
 
 import Control.Monad (when, zipWithM_)
+import Control.Monad.IO.Class (MonadIO (liftIO))
+import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
+import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import Data.List qualified as L
 #if WINDOWS
 import Data.Text qualified as T
 #endif
+import Data.Proxy (Proxy (Proxy))
 import Effects.Exception
   ( Exception (displayException, fromException, toException),
     ExceptionCS (MkExceptionCS),
+    ExceptionProxy (MkExceptionProxy),
+    ExitCode (ExitFailure, ExitSuccess),
     SomeException,
     addCS,
+    displayCSNoMatch,
+    displayCSNoMatchHandler,
     displayException,
     displayNoCS,
     exitFailure,
@@ -31,22 +39,30 @@ main :: IO ()
 main =
   defaultMain $
     testGroup
-      "CallStack Tests"
-      [ throwsCallStack,
-        throwsExitFailure,
-        throwsExitSuccess,
+      "Effects.Exceptions"
+      [ throwsTests,
         catchTests,
         toExceptionTests,
         addsCallStack,
         addsCallStackMerges,
         fromExceptionTests,
-        displaysNoCallStack,
-        displaysNoCallStackNested
+        displaysCSTests,
+        displayNoCSIfMatchTests,
+        displayNoCSIfMatchHandlerTests
       ]
 
 data Ex = MkEx
   deriving stock (Eq, Show)
   deriving anyclass (Exception)
+
+throwsTests :: TestTree
+throwsTests =
+  testGroup
+    "Throwing"
+    [ throwsCallStack,
+      throwsExitFailure,
+      throwsExitSuccess
+    ]
 
 throwsCallStack :: (HasCallStack) => TestTree
 throwsCallStack = testCase "Throws with callstack" $ do
@@ -259,6 +275,14 @@ addsCallStackMerges = testCase "Adds callstack merges callstacks" $ do
           "  addCS, called at test/unit/Main.hs:0:0 in main:Main"
         ]
 
+displaysCSTests :: TestTree
+displaysCSTests =
+  testGroup
+    "displayNoCS"
+    [ displaysNoCallStack,
+      displaysNoCallStackNested
+    ]
+
 displaysNoCallStack :: (HasCallStack) => TestTree
 displaysNoCallStack = testCase "Does not display callstack" $ do
   tryAny (throwCS MkEx) >>= \case
@@ -277,11 +301,215 @@ displaysNoCallStackNested = testCase "Does not display nested callstack" $ do
         )
         callStack
 
+data ExA = MkExA
+  deriving stock (Eq, Show)
+  deriving anyclass (Exception)
+
+data ExB = MkExB
+  deriving stock (Eq, Show)
+  deriving anyclass (Exception)
+
+data ExC = MkExC
+  deriving stock (Eq, Show)
+  deriving anyclass (Exception)
+
+displayNoCSIfMatchTests :: TestTree
+displayNoCSIfMatchTests =
+  testGroup
+    "displayCSNoMatch"
+    [ displaysNoCSForSingleMatch,
+      displaysNoCSForLaterMatch,
+      displaysNoCSForMultiMatch,
+      displaysCSForNoSingleMatch,
+      displaysCSForNoMultiMatch
+    ]
+
+displaysNoCSForSingleMatch :: (HasCallStack) => TestTree
+displaysNoCSForSingleMatch = testCase "Does not display callstack for single match" $ do
+  tryAny (throwCS MkExB) >>= \case
+    Left e -> "MkExB" @=? displayCSNoMatch matches e
+    Right _ -> assertFailure "Error: did not catch expected exception."
+  where
+    matches = [MkExceptionProxy (Proxy @ExB)]
+
+displaysNoCSForLaterMatch :: (HasCallStack) => TestTree
+displaysNoCSForLaterMatch = testCase "Does not display callstack for later match" $ do
+  tryAny (throwCS MkExC) >>= \case
+    Left e -> "MkExC" @=? displayCSNoMatch matches e
+    Right _ -> assertFailure "Error: did not catch expected exception."
+  where
+    matches =
+      [ MkExceptionProxy (Proxy @ExA),
+        MkExceptionProxy (Proxy @ExC)
+      ]
+
+displaysNoCSForMultiMatch :: (HasCallStack) => TestTree
+displaysNoCSForMultiMatch = testCase "Does not display callstack for match" $ do
+  tryAny (throwCS MkExC) >>= \case
+    Left e -> "MkExC" @=? displayCSNoMatch matches e
+    Right _ -> assertFailure "Error: did not catch expected exception."
+  where
+    matches =
+      [ MkExceptionProxy (Proxy @ExC),
+        MkExceptionProxy (Proxy @ExC)
+      ]
+
+displaysCSForNoSingleMatch :: (HasCallStack) => TestTree
+displaysCSForNoSingleMatch = testCase "Displays callstack for no single match" $ do
+  tryAny (throwCS MkExC) >>= \case
+    Left e -> assertResults expected (L.lines $ sanitize $ displayCSNoMatch matches e)
+    Right _ -> assertFailure "Error: did not catch expected exception."
+  where
+    matches = [MkExceptionProxy (Proxy @ExB)]
+    expected =
+      fmap
+        portPaths
+        [ "MkExC",
+          "CallStack (from HasCallStack):",
+          "  throwCS, called at test/unit/Main.hs:0:0 in main:Main",
+          "  displaysCSForNoSingleMatch, called at test/unit/Main.hs:0:0 in main:Main"
+        ]
+
+displaysCSForNoMultiMatch :: (HasCallStack) => TestTree
+displaysCSForNoMultiMatch = testCase "Displays callstack for no multi match" $ do
+  tryAny (throwCS MkExB) >>= \case
+    Left e -> assertResults expected (L.lines $ sanitize $ displayCSNoMatch matches e)
+    Right _ -> assertFailure "Error: did not catch expected exception."
+  where
+    matches =
+      [ MkExceptionProxy (Proxy @ExA),
+        MkExceptionProxy (Proxy @ExC)
+      ]
+    expected =
+      fmap
+        portPaths
+        [ "MkExB",
+          "CallStack (from HasCallStack):",
+          "  throwCS, called at test/unit/Main.hs:0:0 in main:Main",
+          "  displaysCSForNoMultiMatch, called at test/unit/Main.hs:0:0 in main:Main"
+        ]
+
+displayNoCSIfMatchHandlerTests :: TestTree
+displayNoCSIfMatchHandlerTests =
+  testGroup
+    "displayCSNoMatchHandler"
+    [ displayNoCSIfMatchHandlerDefault,
+      displayNoCSIfMatchHandlerNoMatches,
+      displayNoCSIfMatchHandlerSkipsMatch,
+      displayNoCSIfMatchHandlerSkipsCSMatch,
+      displayNoCSIfMatchHandlerExitFailure,
+      displayNoCSIfMatchHandlerNoExitSuccess,
+      displayNoCSIfMatchHandlerNoCSExitSuccess
+    ]
+
+displayNoCSIfMatchHandlerDefault :: (HasCallStack) => TestTree
+displayNoCSIfMatchHandlerDefault = testCase "Displays callstack by default" $ do
+  str <- runDisplayNoCSIfMatchHandler [] ex
+  assertResults expected (L.lines $ sanitize str)
+  where
+    ex = toException (MkExceptionCS MkExA callStack)
+    expected =
+      fmap
+        portPaths
+        [ "MkExA",
+          "CallStack (from HasCallStack):",
+          "  displayNoCSIfMatchHandlerDefault, called at test/unit/Main.hs:0:0 in main:Main"
+        ]
+
+displayNoCSIfMatchHandlerNoMatches :: (HasCallStack) => TestTree
+displayNoCSIfMatchHandlerNoMatches = testCase "Displays callstack by no proxy matches" $ do
+  str <- runDisplayNoCSIfMatchHandler proxies ex
+  assertResults expected (L.lines $ sanitize str)
+  where
+    ex = toException (MkExceptionCS MkExA callStack)
+    expected =
+      fmap
+        portPaths
+        [ "MkExA",
+          "CallStack (from HasCallStack):",
+          "  displayNoCSIfMatchHandlerNoMatches, called at test/unit/Main.hs:0:0 in main:Main"
+        ]
+    proxies =
+      [ MkExceptionProxy $ Proxy @ExB,
+        MkExceptionProxy $ Proxy @ExC
+      ]
+
+displayNoCSIfMatchHandlerSkipsMatch :: (HasCallStack) => TestTree
+displayNoCSIfMatchHandlerSkipsMatch = testCase "Does not display callstack for match" $ do
+  str <- runDisplayNoCSIfMatchHandler [MkExceptionProxy $ Proxy @ExB] ex
+  "MkExB" @=? str
+  where
+    ex = toException MkExB
+
+displayNoCSIfMatchHandlerSkipsCSMatch :: (HasCallStack) => TestTree
+displayNoCSIfMatchHandlerSkipsCSMatch = testCase "Does not display callstack for cs match" $ do
+  str <- runDisplayNoCSIfMatchHandler proxies ex
+  "MkExB" @=? str
+  where
+    ex = toException (MkExceptionCS MkExB callStack)
+    proxies =
+      [ MkExceptionProxy $ Proxy @ExB,
+        MkExceptionProxy $ Proxy @ExC
+      ]
+
+displayNoCSIfMatchHandlerExitFailure :: (HasCallStack) => TestTree
+displayNoCSIfMatchHandlerExitFailure = testCase "Displays callstack for ExitFailure" $ do
+  str <- runDisplayNoCSIfMatchHandler [] ex
+  assertResults expected (L.lines $ sanitize str)
+  where
+    ex = toException (MkExceptionCS (ExitFailure 1) callStack)
+    expected =
+      fmap
+        portPaths
+        [ "ExitFailure 0",
+          "CallStack (from HasCallStack):",
+          "  displayNoCSIfMatchHandlerExitFailure, called at test/unit/Main.hs:0:0 in main:Main"
+        ]
+
+displayNoCSIfMatchHandlerNoExitSuccess :: (HasCallStack) => TestTree
+displayNoCSIfMatchHandlerNoExitSuccess = testCase desc $ do
+  str <- runDisplayNoCSIfMatchHandler [] ex
+  "" @=? str
+  where
+    desc = "Does not display callstack for ExitSuccess"
+    ex = toException ExitSuccess
+
+displayNoCSIfMatchHandlerNoCSExitSuccess :: (HasCallStack) => TestTree
+displayNoCSIfMatchHandlerNoCSExitSuccess = testCase desc $ do
+  str <- runDisplayNoCSIfMatchHandler [] ex
+  "" @=? str
+  where
+    desc = "Does not display callstack for CallStack ExitSuccess"
+    ex = toException (MkExceptionCS ExitSuccess callStack)
+
+runDisplayNoCSIfMatchHandler :: [ExceptionProxy] -> SomeException -> IO String
+runDisplayNoCSIfMatchHandler proxies = runTestIO . testIO
+  where
+    testIO :: SomeException -> TestIO ()
+    testIO = displayCSNoMatchHandler proxies testHandler
+
+    runTestIO :: TestIO a -> IO String
+    runTestIO m = do
+      ref <- newIORef ""
+      _ <- unTestIO m ref
+      readIORef ref
+
+    testHandler :: String -> TestIO ()
+    testHandler str = do
+      ref <- MkTestIO ask
+      liftIO $ writeIORef ref str
+
+newtype TestIO a = MkTestIO (ReaderT (IORef String) IO a)
+  deriving (Applicative, Functor, Monad, MonadIO) via ReaderT (IORef String) IO
+
+unTestIO :: TestIO a -> IORef String -> IO a
+unTestIO (MkTestIO io) = runReaderT io
+
 show' :: (Show a) => a -> String
 show' = zeroNums . show
 
 displayException' :: (Exception e) => e -> String
-displayException' = stripPkgName . zeroNums . displayException
+displayException' = sanitize . displayException
 
 zeroNums :: String -> String
 zeroNums [] = []
@@ -293,6 +521,9 @@ zeroNums (x : xs) = case TR.readMaybe @Int [x] of
     skipNums (y : ys) = case TR.readMaybe @Int [y] of
       Nothing -> y : ys
       Just _ -> skipNums ys
+
+sanitize :: String -> String
+sanitize = stripPkgName . zeroNums
 
 -- crude, but it works
 stripPkgName :: String -> String
