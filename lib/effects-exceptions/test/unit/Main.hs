@@ -8,13 +8,16 @@ import Data.List qualified as L
 #if WINDOWS
 import Data.Text qualified as T
 #endif
+import Data.Proxy (Proxy (Proxy))
 import Effects.Exception
   ( Exception (displayException, fromException, toException),
     ExceptionCS (MkExceptionCS),
+    ExceptionProxy (MkExceptionProxy),
     SomeException,
     addCS,
     displayException,
     displayNoCS,
+    displayNoCSIfMatch,
     exitFailure,
     throwCS,
     throwM,
@@ -41,7 +44,12 @@ main =
         addsCallStackMerges,
         fromExceptionTests,
         displaysNoCallStack,
-        displaysNoCallStackNested
+        displaysNoCallStackNested,
+        displaysNoCSForSingleMatch,
+        displaysNoCSForLaterMatch,
+        displaysNoCSForMultiMatch,
+        displaysCSForNoSingleMatch,
+        displaysCSForNoMultiMatch
       ]
 
 data Ex = MkEx
@@ -277,11 +285,88 @@ displaysNoCallStackNested = testCase "Does not display nested callstack" $ do
         )
         callStack
 
+data ExA = MkExA
+  deriving stock (Eq, Show)
+  deriving anyclass (Exception)
+
+data ExB = MkExB
+  deriving stock (Eq, Show)
+  deriving anyclass (Exception)
+
+data ExC = MkExC
+  deriving stock (Eq, Show)
+  deriving anyclass (Exception)
+
+displaysNoCSForSingleMatch :: (HasCallStack) => TestTree
+displaysNoCSForSingleMatch = testCase "Does not display callstack for single match" $ do
+  tryAny (throwCS MkExB) >>= \case
+    Left e -> "MkExB" @=? displayNoCSIfMatch matches e
+    Right _ -> assertFailure "Error: did not catch expected exception."
+  where
+    matches = [MkExceptionProxy (Proxy @ExB)]
+
+displaysNoCSForLaterMatch :: (HasCallStack) => TestTree
+displaysNoCSForLaterMatch = testCase "Does not display callstack for later match" $ do
+  tryAny (throwCS MkExC) >>= \case
+    Left e -> "MkExC" @=? displayNoCSIfMatch matches e
+    Right _ -> assertFailure "Error: did not catch expected exception."
+  where
+    matches =
+      [ MkExceptionProxy (Proxy @ExA),
+        MkExceptionProxy (Proxy @ExC)
+      ]
+
+displaysNoCSForMultiMatch :: (HasCallStack) => TestTree
+displaysNoCSForMultiMatch = testCase "Does not display callstack for match" $ do
+  tryAny (throwCS MkExC) >>= \case
+    Left e -> "MkExC" @=? displayNoCSIfMatch matches e
+    Right _ -> assertFailure "Error: did not catch expected exception."
+  where
+    matches =
+      [ MkExceptionProxy (Proxy @ExC),
+        MkExceptionProxy (Proxy @ExC)
+      ]
+
+displaysCSForNoSingleMatch :: (HasCallStack) => TestTree
+displaysCSForNoSingleMatch = testCase "Dipslays callstack for no single match" $ do
+  tryAny (throwCS MkExC) >>= \case
+    Left e -> assertResults expected (L.lines $ sanitize $ displayNoCSIfMatch matches e)
+    Right _ -> assertFailure "Error: did not catch expected exception."
+  where
+    matches = [MkExceptionProxy (Proxy @ExB)]
+    expected =
+      fmap
+        portPaths
+        [ "MkExC",
+          "CallStack (from HasCallStack):",
+          "  throwCS, called at test/unit/Main.hs:0:0 in main:Main",
+          "  displaysCSForNoSingleMatch, called at test/unit/Main.hs:0:0 in main:Main"
+        ]
+
+displaysCSForNoMultiMatch :: (HasCallStack) => TestTree
+displaysCSForNoMultiMatch = testCase "Dipslays callstack for no multi match" $ do
+  tryAny (throwCS MkExB) >>= \case
+    Left e -> assertResults expected (L.lines $ sanitize $ displayNoCSIfMatch matches e)
+    Right _ -> assertFailure "Error: did not catch expected exception."
+  where
+    matches =
+      [ MkExceptionProxy (Proxy @ExA),
+        MkExceptionProxy (Proxy @ExC)
+      ]
+    expected =
+      fmap
+        portPaths
+        [ "MkExB",
+          "CallStack (from HasCallStack):",
+          "  throwCS, called at test/unit/Main.hs:0:0 in main:Main",
+          "  displaysCSForNoMultiMatch, called at test/unit/Main.hs:0:0 in main:Main"
+        ]
+
 show' :: (Show a) => a -> String
 show' = zeroNums . show
 
 displayException' :: (Exception e) => e -> String
-displayException' = stripPkgName . zeroNums . displayException
+displayException' = sanitize . displayException
 
 zeroNums :: String -> String
 zeroNums [] = []
@@ -293,6 +378,9 @@ zeroNums (x : xs) = case TR.readMaybe @Int [x] of
     skipNums (y : ys) = case TR.readMaybe @Int [y] of
       Nothing -> y : ys
       Just _ -> skipNums ys
+
+sanitize :: String -> String
+sanitize = stripPkgName . zeroNums
 
 -- crude, but it works
 stripPkgName :: String -> String

@@ -58,7 +58,9 @@ module Effects.Exception
     addOuterCS,
 
     -- ** Utils
+    ExceptionProxy (..),
     displayNoCS,
+    displayNoCSIfMatch,
 
     -- * Basic exceptions
     -- $basics
@@ -132,6 +134,8 @@ import Control.Monad.Catch
 import Control.Monad.Catch qualified as Ex
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
+import Data.Maybe qualified as Maybe
+import Data.Proxy (Proxy (Proxy))
 import Data.Set qualified as Set
 import Data.Typeable (cast)
 import GHC.Conc.Sync qualified as Sync
@@ -436,10 +440,50 @@ ordNub = go Set.empty
 --
 -- @since 0.1
 displayNoCS :: forall e. (Exception e) => e -> String
-displayNoCS ex =
-  case fromException (toException ex) of
-    Nothing -> displayException ex
-    Just (MkExceptionCS (ex' :: SomeException) _) -> displayException ex'
+displayNoCS = displayNoCSIfMatch [MkExceptionProxy (Proxy @SomeException)]
+
+-- | Proxy for exception types. Used with 'displayNoCSIfMatch'.
+--
+-- @since 0.1
+data ExceptionProxy
+  = forall e. (Exception e) => MkExceptionProxy (Proxy e)
+
+-- | @displayNoCSIfMatch proxies e@ is equivalent to 'displayNoCS' if @e@
+-- matches the type of some proxy in p. Otherwise calls 'displayException'.
+--
+-- This can be useful if we ordinarily do not want to print callstacks, doing
+-- so only in an unexpected case. For instance, we can use the following to
+-- ensure we do not print callstacks for specific @Ex1@ and @Ex2@:
+--
+-- @
+-- data Ex1 = ... deriving anyclass Exception
+-- data Ex2 = ... deriving anyclass Exception
+--
+-- let  displayEx' :: SomeException -> String
+--      displayEx' =
+--        displayNoCSIfMatch
+--          [ MkExceptionProxy (Proxy \@Ex1),
+--            MkExceptionProxy (Proxy \@Ex2)
+--          ]
+--
+-- -- in main
+-- setUncaughtExceptionHandler displayEx'
+-- @
+--
+-- @since 0.1
+displayNoCSIfMatch :: (Exception e) => [ExceptionProxy] -> e -> String
+displayNoCSIfMatch proxies ex =
+  case Maybe.mapMaybe matches proxies of
+    (innerEx : _) -> displayException innerEx
+    _ -> displayException ex
+  where
+    se = toException ex
+    matches :: ExceptionProxy -> Maybe SomeException
+    matches (MkExceptionProxy (_ :: Proxy e)) = case fromException se of
+      Just (MkExceptionCS innerEx _) -> case fromException @e innerEx of
+        Just _ -> Just innerEx
+        Nothing -> Nothing
+      Nothing -> Nothing
 
 -------------------------------------------------------------------------------
 --                                 Exceptions                                --
