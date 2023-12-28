@@ -1,4 +1,13 @@
+{-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
+
+-- 1.4.200.0 inadvertently deprecates some symbols we use. Including this here
+-- so CI does not complain.
+--
+-- https://github.com/haskell/filepath/issues/209
+#if MIN_VERSION_filepath(1,4,200) && !MIN_VERSION_filepath(1,5,0)
+{-# OPTIONS_GHC -Wno-deprecations #-}
+#endif
 
 -- | Provides filesystem utilities.
 --

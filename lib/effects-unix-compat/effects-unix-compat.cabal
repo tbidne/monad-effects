@@ -3,9 +3,7 @@ name:               effects-unix-compat
 version:            0.1
 license:            MIT
 license-file:       LICENSE
-tested-with:
-  GHC ==8.10.7 || ==9.0.2 || ==9.2.8 || ==9.4.6 || ==9.6.2
-
+tested-with:        GHC ==9.2.8 || ==9.4.7 || ==9.6.3
 copyright:          2022-2023 Thomas Bidne
 author:             Thomas Bidne
 maintainer:         tbidne@protonmail.com
@@ -50,7 +48,7 @@ library
   import:           common-lang
   exposed-modules:  Effects.System.PosixCompat
   build-depends:
-    , base                >=4.14.0.0 && <4.19
+    , base                >=4.16.0.0 && <4.19
     , deepseq             >=1.4.4.0  && <1.6
     , effects-exceptions  ^>=0.1
     , optics-core         ^>=0.4
@@ -72,7 +70,7 @@ test-suite unit
     , effects-exceptions
     , effects-unix-compat
     , env-guard            ^>=0.2
-    , filepath             >=1.4.100.1 && <1.5
+    , filepath             >=1.4.100.1 && <1.6
     , tasty                >=1.1.0.3   && <1.6
     , tasty-hunit          >=0.9       && <0.11
 
