@@ -20,7 +20,7 @@
     inputs.nixpkgs.follows = "nixpkgs";
   };
   inputs.smart-math = {
-    url = "github:tbidne/smart-math";
+    url = "github:tbidne/smart-math/interval";
     inputs.flake-parts.follows = "flake-parts";
     inputs.nix-hs-utils.follows = "nix-hs-utils";
     inputs.nixpkgs.follows = "nixpkgs";
