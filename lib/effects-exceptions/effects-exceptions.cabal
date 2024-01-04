@@ -44,6 +44,19 @@ common common-lang
     TypeFamilies
     TypeOperators
 
+  -- NOTE: [TypeAbstractions default extensions]
+  --
+  -- We would like to enable TypeAbstractions globally i.e. the below logic,
+  -- however, that runs afoul of our format job because cabal/cabal-fmt does
+  -- not recognize the extension yet. We need a greater version of cabal,
+  -- presumably.
+  --
+  -- Until our ci (nix) has a cabal that recognizes TypeAbstractions,
+  -- enable it in the module.
+  --
+  --if impl(ghc >=9.8.1)
+  --  default-extensions: TypeAbstractions
+
   if os(windows)
     cpp-options: -DWINDOWS
 

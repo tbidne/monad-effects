@@ -1,5 +1,11 @@
 {-# LANGUAGE CPP #-}
 
+-- see NOTE: [TypeAbstractions default extensions]
+
+#if __GLASGOW_HASKELL__ >= 908
+{-# LANGUAGE TypeAbstractions #-}
+#endif
+
 -- | Exception handling. The interface here combines ideas from the following
 -- three libraries in a somewhat idiosyncratic way:
 --
@@ -485,7 +491,7 @@ displayCSNoMatch proxies ex =
   where
     se = toException ex
     matches :: ExceptionProxy -> Maybe SomeException
-    matches (MkExceptionProxy (_ :: Proxy e)) = case fromException se of
+    matches (MkExceptionProxy @e _) = case fromException se of
       Just (MkExceptionCS innerEx _) -> case fromException @e innerEx of
         Just _ -> Just innerEx
         Nothing -> Nothing
