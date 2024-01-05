@@ -1,0 +1,495 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- | Provides the 'MonadThread' typeclass.</span><span>
+</span><span id="line-2"></span><span class="hs-comment">--</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Effects.Concurrent.Thread</span><span>
+</span><span id="line-5"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Thread Effect</span></span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.Thread.html#MonadThread"><span class="hs-identifier">MonadThread</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-7"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.Thread.html#microsleep"><span class="hs-identifier">microsleep</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.Thread.html#sleep"><span class="hs-identifier">sleep</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Reexports</span></span><span>
+</span><span id="line-11"></span><span>    </span><span class="annot"><span class="hs-identifier">Natural</span></span><span class="hs-special">,</span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><span class="hs-identifier">ThreadId</span></span><span class="hs-special">,</span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span>    </span><span class="annot"><span class="hs-comment">-- * QSem Effect</span></span><span>
+</span><span id="line-15"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.Thread.html#MonadQSem"><span class="hs-identifier">MonadQSem</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-16"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.Thread.html#MonadQSemN"><span class="hs-identifier">MonadQSemN</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Reexports</span></span><span>
+</span><span id="line-19"></span><span>    </span><span class="annot"><span class="hs-identifier">QSem</span></span><span class="hs-special">,</span><span>
+</span><span id="line-20"></span><span>    </span><span class="annot"><span class="hs-identifier">QSemN</span></span><span class="hs-special">,</span><span>
+</span><span id="line-21"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-22"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Concurrent</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ThreadId</span></span><span class="hs-special">)</span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Concurrent</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">CC</span></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Concurrent.QSem</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">QSem</span></span><span class="hs-special">)</span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Concurrent.QSem</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">QSem</span></span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Concurrent.QSemN</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">QSemN</span></span><span class="hs-special">)</span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Concurrent.QSemN</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">QSemN</span></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Exception</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Exception</span></span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Class</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadTrans</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">lift</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Reader</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ReaderT</span></span><span class="hs-special">)</span><span>
+</span><span id="line-33"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Foldable</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">for_</span></span><span class="hs-special">)</span><span>
+</span><span id="line-34"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.6.3/effects-exceptions-0.1/doc/html/effects-exceptions/src/Effects.Exception.html"><span class="hs-identifier">Effects.Exception</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.6.3/effects-exceptions-0.1/doc/html/effects-exceptions/src/Effects.Exception.html#addCS"><span class="hs-identifier">addCS</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-35"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Natural</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Natural</span></span><span class="hs-special">)</span><span>
+</span><span id="line-36"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Stack</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">HasCallStack</span></span><span class="hs-special">)</span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span class="hs-comment">-- | Represents thread effects.</span><span>
+</span><span id="line-39"></span><span class="hs-comment">--</span><span>
+</span><span id="line-40"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-41"></span><span class="hs-keyword">class</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Monad</span></span><span> </span><span class="annot"><a href="#local-6989586621679038723"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span id="MonadThread"><span class="annot"><a href="Effects.Concurrent.Thread.html#MonadThread"><span class="hs-identifier hs-var">MonadThread</span></a></span></span><span> </span><span id="local-6989586621679038723"><span class="annot"><a href="#local-6989586621679038723"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-42"></span><span>  </span><span class="hs-comment">-- | Suspends the current thread for a given number of microseconds</span><span>
+</span><span id="line-43"></span><span>  </span><span class="hs-comment">-- (GHC only).</span><span>
+</span><span id="line-44"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-45"></span><span>  </span><span class="hs-comment">-- There is no guarantee that the thread will be rescheduled promptly</span><span>
+</span><span id="line-46"></span><span>  </span><span class="hs-comment">-- when the delay has expired, but the thread will never continue to</span><span>
+</span><span id="line-47"></span><span>  </span><span class="hs-comment">-- run /earlier/ than specified.</span><span>
+</span><span id="line-48"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-49"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-50"></span><span>  </span><span id="threadDelay"><span class="annot"><a href="Effects.Concurrent.Thread.html#threadDelay"><span class="hs-identifier hs-type">threadDelay</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679038723"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-51"></span><span>
+</span><span id="line-52"></span><span>  </span><span class="hs-comment">-- | 'throwTo' raises an arbitrary exception in the target thread (GHC only).</span><span>
+</span><span id="line-53"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-54"></span><span>  </span><span class="hs-comment">-- Exception delivery synchronizes between the source and target thread:</span><span>
+</span><span id="line-55"></span><span>  </span><span class="hs-comment">-- 'throwTo' does not return until the exception has been raised in the</span><span>
+</span><span id="line-56"></span><span>  </span><span class="hs-comment">-- target thread. The calling thread can thus be certain that the target</span><span>
+</span><span id="line-57"></span><span>  </span><span class="hs-comment">-- thread has received the exception. Exception delivery is also atomic</span><span>
+</span><span id="line-58"></span><span>  </span><span class="hs-comment">-- with respect to other exceptions. Atomicity is a useful property to have</span><span>
+</span><span id="line-59"></span><span>  </span><span class="hs-comment">-- when dealing with race conditions: e.g. if there are two threads that</span><span>
+</span><span id="line-60"></span><span>  </span><span class="hs-comment">-- can kill each other, it is guaranteed that only one of the threads</span><span>
+</span><span id="line-61"></span><span>  </span><span class="hs-comment">-- will get to kill the other.</span><span>
+</span><span id="line-62"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-63"></span><span>  </span><span class="hs-comment">-- Whatever work the target thread was doing when the exception was</span><span>
+</span><span id="line-64"></span><span>  </span><span class="hs-comment">-- raised is not lost: the computation is suspended until required by</span><span>
+</span><span id="line-65"></span><span>  </span><span class="hs-comment">-- another thread.</span><span>
+</span><span id="line-66"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-67"></span><span>  </span><span class="hs-comment">-- If the target thread is currently making a foreign call, then the</span><span>
+</span><span id="line-68"></span><span>  </span><span class="hs-comment">-- exception will not be raised (and hence 'throwTo' will not return)</span><span>
+</span><span id="line-69"></span><span>  </span><span class="hs-comment">-- until the call has completed. This is the case regardless of whether</span><span>
+</span><span id="line-70"></span><span>  </span><span class="hs-comment">-- the call is inside a 'mask' or not. However, in GHC a foreign call</span><span>
+</span><span id="line-71"></span><span>  </span><span class="hs-comment">-- can be annotated as @interruptible@, in which case a 'throwTo' will</span><span>
+</span><span id="line-72"></span><span>  </span><span class="hs-comment">-- cause the RTS to attempt to cause the call to return; see the GHC</span><span>
+</span><span id="line-73"></span><span>  </span><span class="hs-comment">-- documentation for more details.</span><span>
+</span><span id="line-74"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-75"></span><span>  </span><span class="hs-comment">-- Important note: the behaviour of 'throwTo' differs from that described in</span><span>
+</span><span id="line-76"></span><span>  </span><span class="hs-comment">-- the paper \&quot;Asynchronous exceptions in Haskell\&quot;</span><span>
+</span><span id="line-77"></span><span>  </span><span class="hs-comment">-- (&lt;http://research.microsoft.com/~simonpj/Papers/asynch-exns.htm&gt;).</span><span>
+</span><span id="line-78"></span><span>  </span><span class="hs-comment">-- In the paper, 'throwTo' is non-blocking; but the library implementation</span><span>
+</span><span id="line-79"></span><span>  </span><span class="hs-comment">-- adopts a more synchronous design in which 'throwTo' does not return until</span><span>
+</span><span id="line-80"></span><span>  </span><span class="hs-comment">-- the exception is received by the target thread. The trade-off is</span><span>
+</span><span id="line-81"></span><span>  </span><span class="hs-comment">-- discussed in Section 9 of the paper. Like any blocking operation,</span><span>
+</span><span id="line-82"></span><span>  </span><span class="hs-comment">-- 'throwTo' is therefore interruptible (see Section 5.3 of the paper).</span><span>
+</span><span id="line-83"></span><span>  </span><span class="hs-comment">-- Unlike other interruptible operations, however, 'throwTo' is /always/</span><span>
+</span><span id="line-84"></span><span>  </span><span class="hs-comment">-- interruptible, even if it does not actually block.</span><span>
+</span><span id="line-85"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-86"></span><span>  </span><span class="hs-comment">-- There is no guarantee that the exception will be delivered promptly,</span><span>
+</span><span id="line-87"></span><span>  </span><span class="hs-comment">-- although the runtime will endeavour to ensure that arbitrary</span><span>
+</span><span id="line-88"></span><span>  </span><span class="hs-comment">-- delays don't occur. In GHC, an exception can only be raised when a</span><span>
+</span><span id="line-89"></span><span>  </span><span class="hs-comment">-- thread reaches a /safe point/, where a safe point is where memory</span><span>
+</span><span id="line-90"></span><span>  </span><span class="hs-comment">-- allocation occurs. Some loops do not perform any memory allocation</span><span>
+</span><span id="line-91"></span><span>  </span><span class="hs-comment">-- inside the loop and therefore cannot be interrupted by a 'throwTo'.</span><span>
+</span><span id="line-92"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-93"></span><span>  </span><span class="hs-comment">-- If the target of 'throwTo' is the calling thread, then the behaviour</span><span>
+</span><span id="line-94"></span><span>  </span><span class="hs-comment">-- is the same as 'Control.Exception.throwIO', except that the exception</span><span>
+</span><span id="line-95"></span><span>  </span><span class="hs-comment">-- is thrown as an asynchronous exception. This means that if there is</span><span>
+</span><span id="line-96"></span><span>  </span><span class="hs-comment">-- an enclosing pure computation, which would be the case if the current</span><span>
+</span><span id="line-97"></span><span>  </span><span class="hs-comment">-- IO operation is inside 'unsafePerformIO' or 'unsafeInterleaveIO', that</span><span>
+</span><span id="line-98"></span><span>  </span><span class="hs-comment">-- computation is not permanently replaced by the exception, but is</span><span>
+</span><span id="line-99"></span><span>  </span><span class="hs-comment">-- suspended as if it had received an asynchronous exception.</span><span>
+</span><span id="line-100"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-101"></span><span>  </span><span class="hs-comment">-- Note that if 'throwTo' is called with the current thread as the</span><span>
+</span><span id="line-102"></span><span>  </span><span class="hs-comment">-- target, the exception will be thrown even if the thread is currently</span><span>
+</span><span id="line-103"></span><span>  </span><span class="hs-comment">-- inside 'mask' or 'uninterruptibleMask'.</span><span>
+</span><span id="line-104"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-105"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-106"></span><span>  </span><span id="throwTo"><span class="annot"><a href="Effects.Concurrent.Thread.html#throwTo"><span class="hs-identifier hs-type">throwTo</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span id="local-6989586621679038726"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Exception</span></span><span> </span><span class="annot"><a href="#local-6989586621679038726"><span class="hs-identifier hs-type">e</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ThreadId</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679038726"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679038723"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-107"></span><span>
+</span><span id="line-108"></span><span>  </span><span class="hs-comment">-- | Returns the number of Haskell threads that can run truly</span><span>
+</span><span id="line-109"></span><span>  </span><span class="hs-comment">-- simultaneously (on separate physical processors) at any given time.</span><span>
+</span><span id="line-110"></span><span>  </span><span class="hs-comment">-- To change this value, use 'setNumCapabilities'.</span><span>
+</span><span id="line-111"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-112"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-113"></span><span>  </span><span id="getNumCapabilities"><span class="annot"><a href="Effects.Concurrent.Thread.html#getNumCapabilities"><span class="hs-identifier hs-type">getNumCapabilities</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679038723"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-114"></span><span>
+</span><span id="line-115"></span><span>  </span><span class="hs-comment">-- | Set the number of Haskell threads that can run truly simultaneously</span><span>
+</span><span id="line-116"></span><span>  </span><span class="hs-comment">-- (on separate physical processors) at any given time. The number</span><span>
+</span><span id="line-117"></span><span>  </span><span class="hs-comment">-- passed to `forkOn` is interpreted modulo this value. The initial</span><span>
+</span><span id="line-118"></span><span>  </span><span class="hs-comment">-- value is given by the @+RTS -N@ runtime flag.</span><span>
+</span><span id="line-119"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-120"></span><span>  </span><span class="hs-comment">-- This is also the number of threads that will participate in parallel</span><span>
+</span><span id="line-121"></span><span>  </span><span class="hs-comment">-- garbage collection. It is strongly recommended that the number of</span><span>
+</span><span id="line-122"></span><span>  </span><span class="hs-comment">-- capabilities is not set larger than the number of physical processor</span><span>
+</span><span id="line-123"></span><span>  </span><span class="hs-comment">-- cores, and it may often be beneficial to leave one or more cores free</span><span>
+</span><span id="line-124"></span><span>  </span><span class="hs-comment">-- to avoid contention with other processes in the machine.</span><span>
+</span><span id="line-125"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-126"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-127"></span><span>  </span><span id="setNumCapabilities"><span class="annot"><a href="Effects.Concurrent.Thread.html#setNumCapabilities"><span class="hs-identifier hs-type">setNumCapabilities</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679038723"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-128"></span><span>
+</span><span id="line-129"></span><span>  </span><span class="hs-comment">-- | Returns the number of the capability on which the thread is currently</span><span>
+</span><span id="line-130"></span><span>  </span><span class="hs-comment">-- running, and a boolean indicating whether the thread is locked to</span><span>
+</span><span id="line-131"></span><span>  </span><span class="hs-comment">-- that capability or not. A thread is locked to a capability if it</span><span>
+</span><span id="line-132"></span><span>  </span><span class="hs-comment">-- was created with @forkOn@.</span><span>
+</span><span id="line-133"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-134"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-135"></span><span>  </span><span id="threadCapability"><span class="annot"><a href="Effects.Concurrent.Thread.html#threadCapability"><span class="hs-identifier hs-type">threadCapability</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ThreadId</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679038723"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">)</span><span>
+</span><span id="line-136"></span><span>
+</span><span id="line-137"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-138"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#MonadThread"><span class="hs-identifier hs-type">MonadThread</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-139"></span><span>  </span><span id="local-6989586621679038817"><span class="annot"><span class="annottext">threadDelay :: HasCallStack =&gt; Int -&gt; IO ()
+</span><a href="Effects.Concurrent.Thread.html#threadDelay"><span class="hs-identifier hs-var hs-var hs-var hs-var">threadDelay</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO () -&gt; IO ()
+forall (m :: * -&gt; *) a. (HasCallStack, MonadCatch m) =&gt; m a -&gt; m a
+</span><a href="file:///home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.6.3/effects-exceptions-0.1/doc/html/effects-exceptions/src/Effects.Exception.html#addCS"><span class="hs-identifier hs-var">addCS</span></a></span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; IO ()) -&gt; (Int -&gt; IO ()) -&gt; Int -&gt; IO ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; IO ()
+</span><span class="hs-identifier hs-var">CC.threadDelay</span></span><span>
+</span><span id="line-140"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#threadDelay"><span class="hs-pragma hs-type">threadDelay</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-141"></span><span>  </span><span id="local-6989586621679038826"><span class="annot"><span class="annottext">throwTo :: forall e. (Exception e, HasCallStack) =&gt; ThreadId -&gt; e -&gt; IO ()
+</span><a href="Effects.Concurrent.Thread.html#throwTo"><span class="hs-identifier hs-var hs-var hs-var hs-var">throwTo</span></a></span></span><span> </span><span id="local-6989586621679038827"><span class="annot"><span class="annottext">ThreadId
+</span><a href="#local-6989586621679038827"><span class="hs-identifier hs-var">tid</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO () -&gt; IO ()
+forall (m :: * -&gt; *) a. (HasCallStack, MonadCatch m) =&gt; m a -&gt; m a
+</span><a href="file:///home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.6.3/effects-exceptions-0.1/doc/html/effects-exceptions/src/Effects.Exception.html#addCS"><span class="hs-identifier hs-var">addCS</span></a></span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; IO ()) -&gt; (e -&gt; IO ()) -&gt; e -&gt; IO ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ThreadId -&gt; e -&gt; IO ()
+forall e. Exception e =&gt; ThreadId -&gt; e -&gt; IO ()
+</span><span class="hs-identifier hs-var">CC.throwTo</span></span><span> </span><span class="annot"><span class="annottext">ThreadId
+</span><a href="#local-6989586621679038827"><span class="hs-identifier hs-var">tid</span></a></span><span>
+</span><span id="line-142"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#throwTo"><span class="hs-pragma hs-type">throwTo</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-143"></span><span>  </span><span id="local-6989586621679038833"><span class="annot"><span class="annottext">getNumCapabilities :: HasCallStack =&gt; IO Int
+</span><a href="Effects.Concurrent.Thread.html#getNumCapabilities"><span class="hs-identifier hs-var hs-var hs-var hs-var">getNumCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO Int -&gt; IO Int
+forall (m :: * -&gt; *) a. (HasCallStack, MonadCatch m) =&gt; m a -&gt; m a
+</span><a href="file:///home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.6.3/effects-exceptions-0.1/doc/html/effects-exceptions/src/Effects.Exception.html#addCS"><span class="hs-identifier hs-var">addCS</span></a></span><span> </span><span class="annot"><span class="annottext">IO Int
+</span><span class="hs-identifier hs-var">CC.getNumCapabilities</span></span><span>
+</span><span id="line-144"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#getNumCapabilities"><span class="hs-pragma hs-type">getNumCapabilities</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-145"></span><span>  </span><span id="local-6989586621679038839"><span class="annot"><span class="annottext">setNumCapabilities :: HasCallStack =&gt; Int -&gt; IO ()
+</span><a href="Effects.Concurrent.Thread.html#setNumCapabilities"><span class="hs-identifier hs-var hs-var hs-var hs-var">setNumCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO () -&gt; IO ()
+forall (m :: * -&gt; *) a. (HasCallStack, MonadCatch m) =&gt; m a -&gt; m a
+</span><a href="file:///home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.6.3/effects-exceptions-0.1/doc/html/effects-exceptions/src/Effects.Exception.html#addCS"><span class="hs-identifier hs-var">addCS</span></a></span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; IO ()) -&gt; (Int -&gt; IO ()) -&gt; Int -&gt; IO ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; IO ()
+</span><span class="hs-identifier hs-var">CC.setNumCapabilities</span></span><span>
+</span><span id="line-146"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#setNumCapabilities"><span class="hs-pragma hs-type">setNumCapabilities</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-147"></span><span>  </span><span id="local-6989586621679038845"><span class="annot"><span class="annottext">threadCapability :: HasCallStack =&gt; ThreadId -&gt; IO (Int, Bool)
+</span><a href="Effects.Concurrent.Thread.html#threadCapability"><span class="hs-identifier hs-var hs-var hs-var hs-var">threadCapability</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO (Int, Bool) -&gt; IO (Int, Bool)
+forall (m :: * -&gt; *) a. (HasCallStack, MonadCatch m) =&gt; m a -&gt; m a
+</span><a href="file:///home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.6.3/effects-exceptions-0.1/doc/html/effects-exceptions/src/Effects.Exception.html#addCS"><span class="hs-identifier hs-var">addCS</span></a></span><span> </span><span class="annot"><span class="annottext">(IO (Int, Bool) -&gt; IO (Int, Bool))
+-&gt; (ThreadId -&gt; IO (Int, Bool)) -&gt; ThreadId -&gt; IO (Int, Bool)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ThreadId -&gt; IO (Int, Bool)
+</span><span class="hs-identifier hs-var">CC.threadCapability</span></span><span>
+</span><span id="line-148"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#threadCapability"><span class="hs-pragma hs-type">threadCapability</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-149"></span><span>
+</span><span id="line-150"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-151"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679038742"><span id="local-6989586621679038743"><span class="hs-special">(</span><span class="annot"><a href="Effects.Concurrent.Thread.html#MonadThread"><span class="hs-identifier hs-type">MonadThread</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679038742"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#MonadThread"><span class="hs-identifier hs-type">MonadThread</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ReaderT</span></span><span> </span><span class="annot"><a href="#local-6989586621679038743"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679038742"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-152"></span><span>  </span><span id="local-6989586621679038865"><span class="annot"><span class="annottext">threadDelay :: HasCallStack =&gt; Int -&gt; ReaderT e m ()
+</span><a href="Effects.Concurrent.Thread.html#threadDelay"><span class="hs-identifier hs-var hs-var hs-var hs-var">threadDelay</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ()) -&gt; (Int -&gt; m ()) -&gt; Int -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; m ()
+forall (m :: * -&gt; *). (MonadThread m, HasCallStack) =&gt; Int -&gt; m ()
+</span><a href="Effects.Concurrent.Thread.html#threadDelay"><span class="hs-identifier hs-var">threadDelay</span></a></span><span>
+</span><span id="line-153"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#threadDelay"><span class="hs-pragma hs-type">threadDelay</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-154"></span><span>  </span><span id="local-6989586621679038874"><span class="annot"><span class="annottext">throwTo :: forall e.
+(Exception e, HasCallStack) =&gt;
+ThreadId -&gt; e -&gt; ReaderT e m ()
+</span><a href="Effects.Concurrent.Thread.html#throwTo"><span class="hs-identifier hs-var hs-var hs-var hs-var">throwTo</span></a></span></span><span> </span><span id="local-6989586621679038875"><span class="annot"><span class="annottext">ThreadId
+</span><a href="#local-6989586621679038875"><span class="hs-identifier hs-var">tid</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ()) -&gt; (e -&gt; m ()) -&gt; e -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ThreadId -&gt; e -&gt; m ()
+forall e. (Exception e, HasCallStack) =&gt; ThreadId -&gt; e -&gt; m ()
+forall (m :: * -&gt; *) e.
+(MonadThread m, Exception e, HasCallStack) =&gt;
+ThreadId -&gt; e -&gt; m ()
+</span><a href="Effects.Concurrent.Thread.html#throwTo"><span class="hs-identifier hs-var">throwTo</span></a></span><span> </span><span class="annot"><span class="annottext">ThreadId
+</span><a href="#local-6989586621679038875"><span class="hs-identifier hs-var">tid</span></a></span><span>
+</span><span id="line-155"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#throwTo"><span class="hs-pragma hs-type">throwTo</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-156"></span><span>  </span><span id="local-6989586621679038882"><span class="annot"><span class="annottext">getNumCapabilities :: HasCallStack =&gt; ReaderT e m Int
+</span><a href="Effects.Concurrent.Thread.html#getNumCapabilities"><span class="hs-identifier hs-var hs-var hs-var hs-var">getNumCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Int -&gt; ReaderT e m Int
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m Int
+forall (m :: * -&gt; *). (MonadThread m, HasCallStack) =&gt; m Int
+</span><a href="Effects.Concurrent.Thread.html#getNumCapabilities"><span class="hs-identifier hs-var">getNumCapabilities</span></a></span><span>
+</span><span id="line-157"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#getNumCapabilities"><span class="hs-pragma hs-type">getNumCapabilities</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-158"></span><span>  </span><span id="local-6989586621679038889"><span class="annot"><span class="annottext">setNumCapabilities :: HasCallStack =&gt; Int -&gt; ReaderT e m ()
+</span><a href="Effects.Concurrent.Thread.html#setNumCapabilities"><span class="hs-identifier hs-var hs-var hs-var hs-var">setNumCapabilities</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ()) -&gt; (Int -&gt; m ()) -&gt; Int -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; m ()
+forall (m :: * -&gt; *). (MonadThread m, HasCallStack) =&gt; Int -&gt; m ()
+</span><a href="Effects.Concurrent.Thread.html#setNumCapabilities"><span class="hs-identifier hs-var">setNumCapabilities</span></a></span><span>
+</span><span id="line-159"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#setNumCapabilities"><span class="hs-pragma hs-type">setNumCapabilities</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-160"></span><span>  </span><span id="local-6989586621679038896"><span class="annot"><span class="annottext">threadCapability :: HasCallStack =&gt; ThreadId -&gt; ReaderT e m (Int, Bool)
+</span><a href="Effects.Concurrent.Thread.html#threadCapability"><span class="hs-identifier hs-var hs-var hs-var hs-var">threadCapability</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m (Int, Bool) -&gt; ReaderT e m (Int, Bool)
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m (Int, Bool) -&gt; ReaderT e m (Int, Bool))
+-&gt; (ThreadId -&gt; m (Int, Bool))
+-&gt; ThreadId
+-&gt; ReaderT e m (Int, Bool)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ThreadId -&gt; m (Int, Bool)
+forall (m :: * -&gt; *).
+(MonadThread m, HasCallStack) =&gt;
+ThreadId -&gt; m (Int, Bool)
+</span><a href="Effects.Concurrent.Thread.html#threadCapability"><span class="hs-identifier hs-var">threadCapability</span></a></span><span>
+</span><span id="line-161"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#threadCapability"><span class="hs-pragma hs-type">threadCapability</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-162"></span><span>
+</span><span id="line-163"></span><span class="hs-comment">-- | 'threadDelay' in terms of unbounded 'Natural' rather than 'Int' i.e.</span><span>
+</span><span id="line-164"></span><span class="hs-comment">-- runs sleep in the current thread for the specified number of microseconds.</span><span>
+</span><span id="line-165"></span><span class="hs-comment">--</span><span>
+</span><span id="line-166"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-167"></span><span id="local-6989586621679038750"><span class="annot"><a href="Effects.Concurrent.Thread.html#microsleep"><span class="hs-identifier hs-type">microsleep</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#MonadThread"><span class="hs-identifier hs-type">MonadThread</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679038750"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Natural</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679038750"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-168"></span><span id="microsleep"><span class="annot"><span class="annottext">microsleep :: forall (m :: * -&gt; *).
+(HasCallStack, MonadThread m) =&gt;
+Natural -&gt; m ()
+</span><a href="Effects.Concurrent.Thread.html#microsleep"><span class="hs-identifier hs-var hs-var">microsleep</span></a></span></span><span> </span><span id="local-6989586621679038908"><span class="annot"><span class="annottext">Natural
+</span><a href="#local-6989586621679038908"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; (Int -&gt; m ()) -&gt; m ()
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Foldable t, Applicative f) =&gt;
+t a -&gt; (a -&gt; f b) -&gt; f ()
+</span><span class="hs-identifier hs-var">for_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Natural -&gt; [Int]
+</span><a href="Effects.Concurrent.Thread.html#natToInts"><span class="hs-identifier hs-var">natToInts</span></a></span><span> </span><span class="annot"><span class="annottext">Natural
+</span><a href="#local-6989586621679038908"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int -&gt; m ()
+forall (m :: * -&gt; *). (MonadThread m, HasCallStack) =&gt; Int -&gt; m ()
+</span><a href="Effects.Concurrent.Thread.html#threadDelay"><span class="hs-identifier hs-var">threadDelay</span></a></span><span>
+</span><span id="line-169"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#microsleep"><span class="hs-pragma hs-type">microsleep</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-170"></span><span>
+</span><span id="line-171"></span><span class="hs-comment">-- | Runs sleep in the current thread for the specified number of</span><span>
+</span><span id="line-172"></span><span class="hs-comment">-- seconds.</span><span>
+</span><span id="line-173"></span><span class="hs-comment">--</span><span>
+</span><span id="line-174"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-175"></span><span id="local-6989586621679038910"><span class="annot"><a href="Effects.Concurrent.Thread.html#sleep"><span class="hs-identifier hs-type">sleep</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#MonadThread"><span class="hs-identifier hs-type">MonadThread</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679038910"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Natural</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679038910"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-176"></span><span id="sleep"><span class="annot"><span class="annottext">sleep :: forall (m :: * -&gt; *).
+(HasCallStack, MonadThread m) =&gt;
+Natural -&gt; m ()
+</span><a href="Effects.Concurrent.Thread.html#sleep"><span class="hs-identifier hs-var hs-var">sleep</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Natural -&gt; m ()
+forall (m :: * -&gt; *).
+(HasCallStack, MonadThread m) =&gt;
+Natural -&gt; m ()
+</span><a href="Effects.Concurrent.Thread.html#microsleep"><span class="hs-identifier hs-var">microsleep</span></a></span><span> </span><span class="annot"><span class="annottext">(Natural -&gt; m ()) -&gt; (Natural -&gt; Natural) -&gt; Natural -&gt; m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Natural -&gt; Natural -&gt; Natural
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">*</span></span><span> </span><span class="annot"><span class="annottext">Natural
+</span><span class="hs-number">1_000_000</span></span><span class="hs-special">)</span><span>
+</span><span id="line-177"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#sleep"><span class="hs-pragma hs-type">sleep</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-178"></span><span>
+</span><span id="line-179"></span><span class="annot"><a href="Effects.Concurrent.Thread.html#natToInts"><span class="hs-identifier hs-type">natToInts</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Natural</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">]</span><span>
+</span><span id="line-180"></span><span id="natToInts"><span class="annot"><span class="annottext">natToInts :: Natural -&gt; [Int]
+</span><a href="Effects.Concurrent.Thread.html#natToInts"><span class="hs-identifier hs-var hs-var">natToInts</span></a></span></span><span> </span><span id="local-6989586621679038919"><span class="annot"><span class="annottext">Natural
+</span><a href="#local-6989586621679038919"><span class="hs-identifier hs-var">n</span></a></span></span><span>
+</span><span id="line-181"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Natural
+</span><a href="#local-6989586621679038919"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Natural -&gt; Natural -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&gt;</span></span><span> </span><span class="annot"><span class="annottext">Natural
+</span><a href="#local-6989586621679038921"><span class="hs-identifier hs-var">maxIntAsNat</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679038922"><span class="hs-identifier hs-var">maxInt</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; [Int] -&gt; [Int]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">Natural -&gt; [Int]
+</span><a href="Effects.Concurrent.Thread.html#natToInts"><span class="hs-identifier hs-var">natToInts</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Natural
+</span><a href="#local-6989586621679038919"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Natural -&gt; Natural -&gt; Natural
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">Natural
+</span><a href="#local-6989586621679038921"><span class="hs-identifier hs-var">maxIntAsNat</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-182"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Natural -&gt; Int
+</span><a href="Effects.Concurrent.Thread.html#n2i"><span class="hs-identifier hs-var">n2i</span></a></span><span> </span><span class="annot"><span class="annottext">Natural
+</span><a href="#local-6989586621679038919"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-183"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-184"></span><span>    </span><span class="annot"><a href="#local-6989586621679038922"><span class="hs-identifier hs-type">maxInt</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-185"></span><span>    </span><span id="local-6989586621679038922"><span class="annot"><span class="annottext">maxInt :: Int
+</span><a href="#local-6989586621679038922"><span class="hs-identifier hs-var hs-var">maxInt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
+forall a. Bounded a =&gt; a
+</span><span class="hs-identifier hs-var">maxBound</span></span><span>
+</span><span id="line-186"></span><span>    </span><span class="annot"><a href="#local-6989586621679038921"><span class="hs-identifier hs-type">maxIntAsNat</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Natural</span></span><span>
+</span><span id="line-187"></span><span>    </span><span id="local-6989586621679038921"><span class="annot"><span class="annottext">maxIntAsNat :: Natural
+</span><a href="#local-6989586621679038921"><span class="hs-identifier hs-var hs-var">maxIntAsNat</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Natural
+</span><a href="Effects.Concurrent.Thread.html#i2n"><span class="hs-identifier hs-var">i2n</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679038922"><span class="hs-identifier hs-var">maxInt</span></a></span><span>
+</span><span id="line-188"></span><span>
+</span><span id="line-189"></span><span class="annot"><a href="Effects.Concurrent.Thread.html#n2i"><span class="hs-identifier hs-type">n2i</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Natural</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-190"></span><span id="n2i"><span class="annot"><span class="annottext">n2i :: Natural -&gt; Int
+</span><a href="Effects.Concurrent.Thread.html#n2i"><span class="hs-identifier hs-var hs-var">n2i</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Natural -&gt; Int
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">fromIntegral</span></span><span>
+</span><span id="line-191"></span><span>
+</span><span id="line-192"></span><span class="annot"><a href="Effects.Concurrent.Thread.html#i2n"><span class="hs-identifier hs-type">i2n</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Natural</span></span><span>
+</span><span id="line-193"></span><span id="i2n"><span class="annot"><span class="annottext">i2n :: Int -&gt; Natural
+</span><a href="Effects.Concurrent.Thread.html#i2n"><span class="hs-identifier hs-var hs-var">i2n</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Natural
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">fromIntegral</span></span><span>
+</span><span id="line-194"></span><span>
+</span><span id="line-195"></span><span class="hs-comment">-- | Effect for 'QSem' semaphore.</span><span>
+</span><span id="line-196"></span><span class="hs-comment">--</span><span>
+</span><span id="line-197"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-198"></span><span class="hs-keyword">class</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Monad</span></span><span> </span><span class="annot"><a href="#local-6989586621679038764"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span id="MonadQSem"><span class="annot"><a href="Effects.Concurrent.Thread.html#MonadQSem"><span class="hs-identifier hs-var">MonadQSem</span></a></span></span><span> </span><span id="local-6989586621679038764"><span class="annot"><a href="#local-6989586621679038764"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-199"></span><span>  </span><span class="hs-comment">-- | Build a new 'QSem' with a supplied initial quantity.</span><span>
+</span><span id="line-200"></span><span>  </span><span class="hs-comment">-- The initial quantity must be at least 0.</span><span>
+</span><span id="line-201"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-202"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-203"></span><span>  </span><span id="newQSem"><span class="annot"><a href="Effects.Concurrent.Thread.html#newQSem"><span class="hs-identifier hs-type">newQSem</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679038764"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">QSem</span></span><span>
+</span><span id="line-204"></span><span>
+</span><span id="line-205"></span><span>  </span><span class="hs-comment">-- | Wait for a unit to become available.</span><span>
+</span><span id="line-206"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-207"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-208"></span><span>  </span><span id="waitQSem"><span class="annot"><a href="Effects.Concurrent.Thread.html#waitQSem"><span class="hs-identifier hs-type">waitQSem</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">QSem</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679038764"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-209"></span><span>
+</span><span id="line-210"></span><span>  </span><span class="hs-comment">-- | Signal that a unit of the 'QSem' is available.</span><span>
+</span><span id="line-211"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-212"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-213"></span><span>  </span><span id="signalQSem"><span class="annot"><a href="Effects.Concurrent.Thread.html#signalQSem"><span class="hs-identifier hs-type">signalQSem</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">QSem</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679038764"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-214"></span><span>
+</span><span id="line-215"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-216"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#MonadQSem"><span class="hs-identifier hs-type">MonadQSem</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-217"></span><span>  </span><span id="local-6989586621679038937"><span class="annot"><span class="annottext">newQSem :: Int -&gt; IO QSem
+</span><a href="Effects.Concurrent.Thread.html#newQSem"><span class="hs-identifier hs-var hs-var hs-var hs-var">newQSem</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; IO QSem
+</span><span class="hs-identifier hs-var">QSem.newQSem</span></span><span>
+</span><span id="line-218"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#newQSem"><span class="hs-pragma hs-type">newQSem</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-219"></span><span>  </span><span id="local-6989586621679038939"><span class="annot"><span class="annottext">waitQSem :: QSem -&gt; IO ()
+</span><a href="Effects.Concurrent.Thread.html#waitQSem"><span class="hs-identifier hs-var hs-var hs-var hs-var">waitQSem</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">QSem -&gt; IO ()
+</span><span class="hs-identifier hs-var">QSem.waitQSem</span></span><span>
+</span><span id="line-220"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#waitQSem"><span class="hs-pragma hs-type">waitQSem</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-221"></span><span>  </span><span id="local-6989586621679038941"><span class="annot"><span class="annottext">signalQSem :: QSem -&gt; IO ()
+</span><a href="Effects.Concurrent.Thread.html#signalQSem"><span class="hs-identifier hs-var hs-var hs-var hs-var">signalQSem</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">QSem -&gt; IO ()
+</span><span class="hs-identifier hs-var">QSem.signalQSem</span></span><span>
+</span><span id="line-222"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#signalQSem"><span class="hs-pragma hs-type">signalQSem</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-223"></span><span>
+</span><span id="line-224"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-225"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679038769"><span id="local-6989586621679038770"><span class="hs-special">(</span><span class="annot"><a href="Effects.Concurrent.Thread.html#MonadQSem"><span class="hs-identifier hs-type">MonadQSem</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679038769"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#MonadQSem"><span class="hs-identifier hs-type">MonadQSem</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ReaderT</span></span><span> </span><span class="annot"><a href="#local-6989586621679038770"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679038769"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-226"></span><span>  </span><span id="local-6989586621679038954"><span class="annot"><span class="annottext">newQSem :: Int -&gt; ReaderT e m QSem
+</span><a href="Effects.Concurrent.Thread.html#newQSem"><span class="hs-identifier hs-var hs-var hs-var hs-var">newQSem</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m QSem -&gt; ReaderT e m QSem
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m QSem -&gt; ReaderT e m QSem)
+-&gt; (Int -&gt; m QSem) -&gt; Int -&gt; ReaderT e m QSem
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; m QSem
+forall (m :: * -&gt; *). MonadQSem m =&gt; Int -&gt; m QSem
+</span><a href="Effects.Concurrent.Thread.html#newQSem"><span class="hs-identifier hs-var">newQSem</span></a></span><span>
+</span><span id="line-227"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#newQSem"><span class="hs-pragma hs-type">newQSem</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-228"></span><span>  </span><span id="local-6989586621679038958"><span class="annot"><span class="annottext">waitQSem :: QSem -&gt; ReaderT e m ()
+</span><a href="Effects.Concurrent.Thread.html#waitQSem"><span class="hs-identifier hs-var hs-var hs-var hs-var">waitQSem</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ())
+-&gt; (QSem -&gt; m ()) -&gt; QSem -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">QSem -&gt; m ()
+forall (m :: * -&gt; *). MonadQSem m =&gt; QSem -&gt; m ()
+</span><a href="Effects.Concurrent.Thread.html#waitQSem"><span class="hs-identifier hs-var">waitQSem</span></a></span><span>
+</span><span id="line-229"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#waitQSem"><span class="hs-pragma hs-type">waitQSem</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-230"></span><span>  </span><span id="local-6989586621679038962"><span class="annot"><span class="annottext">signalQSem :: QSem -&gt; ReaderT e m ()
+</span><a href="Effects.Concurrent.Thread.html#signalQSem"><span class="hs-identifier hs-var hs-var hs-var hs-var">signalQSem</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ())
+-&gt; (QSem -&gt; m ()) -&gt; QSem -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">QSem -&gt; m ()
+forall (m :: * -&gt; *). MonadQSem m =&gt; QSem -&gt; m ()
+</span><a href="Effects.Concurrent.Thread.html#signalQSem"><span class="hs-identifier hs-var">signalQSem</span></a></span><span>
+</span><span id="line-231"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#signalQSem"><span class="hs-pragma hs-type">signalQSem</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-232"></span><span>
+</span><span id="line-233"></span><span class="hs-comment">-- | Effect for 'QSemN' semaphore.</span><span>
+</span><span id="line-234"></span><span class="hs-comment">--</span><span>
+</span><span id="line-235"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-236"></span><span class="hs-keyword">class</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Monad</span></span><span> </span><span class="annot"><a href="#local-6989586621679038771"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span id="MonadQSemN"><span class="annot"><a href="Effects.Concurrent.Thread.html#MonadQSemN"><span class="hs-identifier hs-var">MonadQSemN</span></a></span></span><span> </span><span id="local-6989586621679038771"><span class="annot"><a href="#local-6989586621679038771"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-237"></span><span>  </span><span class="hs-comment">-- | Build a new 'QSemN' with a supplied initial quantity.</span><span>
+</span><span id="line-238"></span><span>  </span><span class="hs-comment">-- The initial quantity must be at least 0.</span><span>
+</span><span id="line-239"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-240"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-241"></span><span>  </span><span id="newQSemN"><span class="annot"><a href="Effects.Concurrent.Thread.html#newQSemN"><span class="hs-identifier hs-type">newQSemN</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679038771"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">QSemN</span></span><span>
+</span><span id="line-242"></span><span>
+</span><span id="line-243"></span><span>  </span><span class="hs-comment">-- | Wait for the specified quantity to become available.</span><span>
+</span><span id="line-244"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-245"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-246"></span><span>  </span><span id="waitQSemN"><span class="annot"><a href="Effects.Concurrent.Thread.html#waitQSemN"><span class="hs-identifier hs-type">waitQSemN</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">QSemN</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679038771"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-247"></span><span>
+</span><span id="line-248"></span><span>  </span><span class="hs-comment">-- | Signal that a given quantity is now available from the 'QSemN'.</span><span>
+</span><span id="line-249"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-250"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-251"></span><span>  </span><span id="signalQSemN"><span class="annot"><a href="Effects.Concurrent.Thread.html#signalQSemN"><span class="hs-identifier hs-type">signalQSemN</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">QSemN</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679038771"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-252"></span><span>
+</span><span id="line-253"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-254"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#MonadQSemN"><span class="hs-identifier hs-type">MonadQSemN</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-255"></span><span>  </span><span id="local-6989586621679038974"><span class="annot"><span class="annottext">newQSemN :: Int -&gt; IO QSemN
+</span><a href="Effects.Concurrent.Thread.html#newQSemN"><span class="hs-identifier hs-var hs-var hs-var hs-var">newQSemN</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; IO QSemN
+</span><span class="hs-identifier hs-var">QSemN.newQSemN</span></span><span>
+</span><span id="line-256"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#newQSemN"><span class="hs-pragma hs-type">newQSemN</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-257"></span><span>  </span><span id="local-6989586621679038976"><span class="annot"><span class="annottext">waitQSemN :: QSemN -&gt; Int -&gt; IO ()
+</span><a href="Effects.Concurrent.Thread.html#waitQSemN"><span class="hs-identifier hs-var hs-var hs-var hs-var">waitQSemN</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">QSemN -&gt; Int -&gt; IO ()
+</span><span class="hs-identifier hs-var">QSemN.waitQSemN</span></span><span>
+</span><span id="line-258"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#waitQSemN"><span class="hs-pragma hs-type">waitQSemN</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-259"></span><span>  </span><span id="local-6989586621679038978"><span class="annot"><span class="annottext">signalQSemN :: QSemN -&gt; Int -&gt; IO ()
+</span><a href="Effects.Concurrent.Thread.html#signalQSemN"><span class="hs-identifier hs-var hs-var hs-var hs-var">signalQSemN</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">QSemN -&gt; Int -&gt; IO ()
+</span><span class="hs-identifier hs-var">QSemN.signalQSemN</span></span><span>
+</span><span id="line-260"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#signalQSemN"><span class="hs-pragma hs-type">signalQSemN</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-261"></span><span>
+</span><span id="line-262"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-263"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679038776"><span id="local-6989586621679038777"><span class="hs-special">(</span><span class="annot"><a href="Effects.Concurrent.Thread.html#MonadQSemN"><span class="hs-identifier hs-type">MonadQSemN</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679038776"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#MonadQSemN"><span class="hs-identifier hs-type">MonadQSemN</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ReaderT</span></span><span> </span><span class="annot"><a href="#local-6989586621679038777"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679038776"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-264"></span><span>  </span><span id="local-6989586621679038991"><span class="annot"><span class="annottext">newQSemN :: Int -&gt; ReaderT e m QSemN
+</span><a href="Effects.Concurrent.Thread.html#newQSemN"><span class="hs-identifier hs-var hs-var hs-var hs-var">newQSemN</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m QSemN -&gt; ReaderT e m QSemN
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m QSemN -&gt; ReaderT e m QSemN)
+-&gt; (Int -&gt; m QSemN) -&gt; Int -&gt; ReaderT e m QSemN
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; m QSemN
+forall (m :: * -&gt; *). MonadQSemN m =&gt; Int -&gt; m QSemN
+</span><a href="Effects.Concurrent.Thread.html#newQSemN"><span class="hs-identifier hs-var">newQSemN</span></a></span><span>
+</span><span id="line-265"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#newQSemN"><span class="hs-pragma hs-type">newQSemN</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-266"></span><span>  </span><span id="local-6989586621679038995"><span class="annot"><span class="annottext">waitQSemN :: QSemN -&gt; Int -&gt; ReaderT e m ()
+</span><a href="Effects.Concurrent.Thread.html#waitQSemN"><span class="hs-identifier hs-var hs-var hs-var hs-var">waitQSemN</span></a></span></span><span> </span><span id="local-6989586621679038996"><span class="annot"><span class="annottext">QSemN
+</span><a href="#local-6989586621679038996"><span class="hs-identifier hs-var">q</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ()) -&gt; (Int -&gt; m ()) -&gt; Int -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">QSemN -&gt; Int -&gt; m ()
+forall (m :: * -&gt; *). MonadQSemN m =&gt; QSemN -&gt; Int -&gt; m ()
+</span><a href="Effects.Concurrent.Thread.html#waitQSemN"><span class="hs-identifier hs-var">waitQSemN</span></a></span><span> </span><span class="annot"><span class="annottext">QSemN
+</span><a href="#local-6989586621679038996"><span class="hs-identifier hs-var">q</span></a></span><span>
+</span><span id="line-267"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#waitQSemN"><span class="hs-pragma hs-type">waitQSemN</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-268"></span><span>  </span><span id="local-6989586621679039000"><span class="annot"><span class="annottext">signalQSemN :: QSemN -&gt; Int -&gt; ReaderT e m ()
+</span><a href="Effects.Concurrent.Thread.html#signalQSemN"><span class="hs-identifier hs-var hs-var hs-var hs-var">signalQSemN</span></a></span></span><span> </span><span id="local-6989586621679039001"><span class="annot"><span class="annottext">QSemN
+</span><a href="#local-6989586621679039001"><span class="hs-identifier hs-var">q</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ()) -&gt; (Int -&gt; m ()) -&gt; Int -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">QSemN -&gt; Int -&gt; m ()
+forall (m :: * -&gt; *). MonadQSemN m =&gt; QSemN -&gt; Int -&gt; m ()
+</span><a href="Effects.Concurrent.Thread.html#signalQSemN"><span class="hs-identifier hs-var">signalQSemN</span></a></span><span> </span><span class="annot"><span class="annottext">QSemN
+</span><a href="#local-6989586621679039001"><span class="hs-identifier hs-var">q</span></a></span><span>
+</span><span id="line-269"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.Thread.html#signalQSemN"><span class="hs-pragma hs-type">signalQSemN</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-270"></span></pre></body></html>
