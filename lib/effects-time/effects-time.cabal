@@ -3,7 +3,7 @@ name:               effects-time
 version:            0.1
 license:            MIT
 license-file:       LICENSE
-tested-with:        GHC ==9.2.8 || ==9.4.7 || ==9.6.3
+tested-with:        GHC ==9.2.8 || ==9.4.7 || ==9.6.3 || ==9.8.1
 copyright:          2022-2023 Thomas Bidne
 author:             Thomas Bidne
 maintainer:         tbidne@protonmail.com
@@ -55,7 +55,7 @@ library
   exposed-modules:  Effects.Time
   build-depends:
     , algebra-simple      ^>=0.1
-    , base                >=4.16.0.0 && <4.19
+    , base                >=4.16.0.0 && <4.20
     , bounds              ^>=0.1
     , deepseq             >=1.4.4.0  && <1.6
     , effects-exceptions  ^>=0.1

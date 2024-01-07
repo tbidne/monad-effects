@@ -36,12 +36,12 @@ program-options
 source-repository-package
     type: git
     location: https://github.com/tbidne/algebra-simple.git
-    tag: 0e7b02ba5b420d7421c8f652aec5d219d0402395
+    tag: a23ee42d30893dee44e96308c49e9441edfa052b
 
 source-repository-package
     type: git
     location: https://github.com/tbidne/bounds.git
-    tag: 1d7451a64d38d3998ce647075663fb81fdf34ad4
+    tag: 3223a637ab618a2bbf3c40ca0225484043a7bacb
 
 source-repository-package
     type: git

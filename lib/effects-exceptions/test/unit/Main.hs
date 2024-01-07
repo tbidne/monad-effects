@@ -557,10 +557,10 @@ assertResults expected results = do
     lenResults = length results
 
 portPaths :: String -> String
-#if WINDOWS && GHC_9_4
-portPaths = T.unpack . (T.replace "/" "\\") . T.pack
-#elif WINDOWS
+#if WINDOWS && GHC_LT_9_4
 portPaths = T.unpack . (T.replace "/" "\\\\") . T.pack
+#elif WINDOWS
+portPaths = T.unpack . (T.replace "/" "\\") . T.pack
 #else
 portPaths = id
 #endif
