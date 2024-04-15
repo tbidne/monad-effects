@@ -24,18 +24,18 @@ tests :: IO OsPath -> TestTree
 tests getTmpDir =
   testGroup
     "PathReader"
-    [ listDirectoryTests,
+    [ listDirectoryTests getTmpDir,
       symlinkTests getTmpDir,
       pathTypeTests getTmpDir
     ]
 
-listDirectoryTests :: TestTree
-listDirectoryTests =
+listDirectoryTests :: IO OsPath -> TestTree
+listDirectoryTests getTmpDir =
   testGroup
     "listDirectoryRecursive"
     [ testListDirectoryRecursive,
-      testListDirectoryRecursiveSymlinkTargets,
-      testListDirectoryRecursiveSymbolicLink
+      testListDirectoryRecursiveSymlinkTargets getTmpDir,
+      testListDirectoryRecursiveSymbolicLink getTmpDir
     ]
 
 testListDirectoryRecursive :: TestTree
@@ -61,8 +61,11 @@ testListDirectoryRecursive = testCase "Recursively lists sub-files/dirs" $ do
 
     prefix = [osp|Effects|] </> [osp|FileSystem|]
 
-testListDirectoryRecursiveSymlinkTargets :: TestTree
-testListDirectoryRecursiveSymlinkTargets = testCase desc $ do
+testListDirectoryRecursiveSymlinkTargets :: IO OsPath -> TestTree
+testListDirectoryRecursiveSymlinkTargets getTmpDir = testCase desc $ do
+  tmpDir <- getTmpDir
+  let dataDir = tmpDir </> [osp|data|]
+
   (files, dirs) <- PathReader.listDirectoryRecursive dataDir
   let (files', dirs') = (L.sort files, L.sort dirs)
 
@@ -70,7 +73,6 @@ testListDirectoryRecursiveSymlinkTargets = testCase desc $ do
   expectedDirs @=? dirs'
   where
     desc = "Symlinks are categorized via targets"
-    dataDir = [osp|test|] </> [osp|data|]
     expectedFiles =
       [ [osp|.hidden|] </> [osp|f1|],
         [osp|bar|],
@@ -93,9 +95,13 @@ testListDirectoryRecursiveSymlinkTargets = testCase desc $ do
         [osp|l2|]
       ]
 
-testListDirectoryRecursiveSymbolicLink :: TestTree
-testListDirectoryRecursiveSymbolicLink = testCase desc $ do
+testListDirectoryRecursiveSymbolicLink :: IO OsPath -> TestTree
+testListDirectoryRecursiveSymbolicLink getTmpDir = testCase desc $ do
+  tmpDir <- getTmpDir
+  let dataDir = tmpDir </> [osp|data|]
+
   (files, dirs, symlinks) <- PathReader.listDirectoryRecursiveSymbolicLink dataDir
+
   let (files', dirs', symlinks') = (L.sort files, L.sort dirs, L.sort symlinks)
 
   expectedFiles @=? files'
@@ -103,7 +109,6 @@ testListDirectoryRecursiveSymbolicLink = testCase desc $ do
   expectedSymlinks @=? symlinks'
   where
     desc = "Recursively lists sub-files/dirs/symlinks"
-    dataDir = [osp|test|] </> [osp|data|]
     expectedFiles =
       [ [osp|.hidden|] </> [osp|f1|],
         [osp|bar|],
