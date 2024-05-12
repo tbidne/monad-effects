@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -78,6 +79,9 @@ import Control.Monad.Logger qualified as MLogger
 import Data.ByteString (ByteString)
 import Data.ByteString.Builder (Builder)
 import Data.Foldable (Foldable (foldMap'))
+#if MIN_VERSION_base(4, 18, 0)
+import Data.Functor ((<&>))
+#endif
 import Data.Sequence (Seq ((:|>)))
 import Data.Sequence qualified as Seq
 import Data.String (IsString (fromString))
@@ -86,6 +90,8 @@ import Data.Text qualified as T
 import Data.Text.Encoding qualified as TEnc
 import Data.Text.Encoding.Error qualified as TEncError
 import Data.Word (Word8)
+import Effects.Concurrent.Thread (MonadThread)
+import Effects.Concurrent.Thread qualified as Thread
 import Effects.Time (MonadTime (getSystemZonedTime), getSystemTime)
 import Effects.Time qualified as MonadTime
 import GHC.Exts (IsList (Item, fromList, toList))
@@ -250,14 +256,19 @@ _LocNone =
 --
 -- @since 0.1
 data LogFormatter = MkLogFormatter
-  { -- | If true, append a newline.
-    --
-    -- @since 0.1
-    newline :: !Bool,
-    -- | How to log the code location.
+  { -- | How to log the code location.
     --
     -- @since 0.1
     locStrategy :: !LocStrategy,
+    -- | If true, append a newline.
+    --
+    -- @since 0.1
+    newline :: !Bool,
+    -- | Whether to include the thread's label set by 'Thread.labelThread'.
+    -- Falls back to the thread's 'ThreadId' when the label has not been set.
+    --
+    -- @since 0.1
+    threadLabel :: !Bool,
     -- | Whether to include the timezone in the timestamp.
     --
     -- @since 0.1
@@ -274,20 +285,38 @@ data LogFormatter = MkLogFormatter
 
 -- | @since 0.1
 instance
-  (k ~ A_Lens, a ~ Bool, b ~ Bool) =>
-  LabelOptic "newline" k LogFormatter LogFormatter a b
+  (k ~ A_Lens, a ~ LocStrategy, b ~ LocStrategy) =>
+  LabelOptic "locStrategy" k LogFormatter LogFormatter a b
   where
-  labelOptic = lensVL $ \f (MkLogFormatter _newline _locStrategy _timezone) ->
-    fmap (\newline' -> MkLogFormatter newline' _locStrategy _timezone) (f _newline)
+  labelOptic =
+    lensVL $ \f (MkLogFormatter _locStrategy _newline _threadLabel _timezone) ->
+      fmap
+        (\locStrategy' -> MkLogFormatter locStrategy' _newline _threadLabel _timezone)
+        (f _locStrategy)
   {-# INLINE labelOptic #-}
 
 -- | @since 0.1
 instance
-  (k ~ A_Lens, a ~ LocStrategy, b ~ LocStrategy) =>
-  LabelOptic "locStrategy" k LogFormatter LogFormatter a b
+  (k ~ A_Lens, a ~ Bool, b ~ Bool) =>
+  LabelOptic "newline" k LogFormatter LogFormatter a b
   where
-  labelOptic = lensVL $ \f (MkLogFormatter _newline _locStrategy _timezone) ->
-    fmap (\locStrategy' -> MkLogFormatter _newline locStrategy' _timezone) (f _locStrategy)
+  labelOptic =
+    lensVL $ \f (MkLogFormatter _locStrategy _newline _threadLabel _timezone) ->
+      fmap
+        (\newline' -> MkLogFormatter _locStrategy newline' _threadLabel _timezone)
+        (f _newline)
+  {-# INLINE labelOptic #-}
+
+-- | @since 0.1
+instance
+  (k ~ A_Lens, a ~ Bool, b ~ Bool) =>
+  LabelOptic "threadLabel" k LogFormatter LogFormatter a b
+  where
+  labelOptic =
+    lensVL $ \f (MkLogFormatter _locStrategy _newline _threadLabel _timezone) ->
+      fmap
+        (\threadLabel' -> MkLogFormatter _locStrategy _newline threadLabel' _timezone)
+        (f _threadLabel)
   {-# INLINE labelOptic #-}
 
 -- | @since 0.1
@@ -295,15 +324,19 @@ instance
   (k ~ A_Lens, a ~ Bool, b ~ Bool) =>
   LabelOptic "timezone" k LogFormatter LogFormatter a b
   where
-  labelOptic = lensVL $ \f (MkLogFormatter _newline _locStrategy _timezone) ->
-    fmap (MkLogFormatter _newline _locStrategy) (f _timezone)
+  labelOptic =
+    lensVL $ \f (MkLogFormatter _locStrategy _newline _threadLabel _timezone) ->
+      fmap
+        (MkLogFormatter _locStrategy _newline _threadLabel)
+        (f _timezone)
   {-# INLINE labelOptic #-}
 
 -- | 'LogFormatter' with:
 --
 -- @
--- 'newline' = 'True'
 -- 'locStrategy' = 'LocPartial' loc
+-- 'newline' = 'True'
+-- 'threadLabel' = 'False'
 -- 'timezone' = 'False'
 -- @
 --
@@ -311,8 +344,9 @@ instance
 defaultLogFormatter :: Loc -> LogFormatter
 defaultLogFormatter loc =
   MkLogFormatter
-    { newline = True,
-      locStrategy = LocPartial loc,
+    { locStrategy = LocPartial loc,
+      newline = True,
+      threadLabel = False,
       timezone = False
     }
 
@@ -322,6 +356,7 @@ defaultLogFormatter loc =
 formatLog ::
   ( HasCallStack,
     MonadLoggerNS m,
+    MonadThread m,
     MonadTime m,
     ToLogStr msg
   ) =>
@@ -332,6 +367,10 @@ formatLog ::
 formatLog formatter lvl msg = do
   timestampTxt <- timeFn
   namespace <- getNamespace
+  threadLabel <-
+    if formatter ^. #threadLabel
+      then getThreadLabel
+      else pure ""
   let locTxt = case formatter ^. #locStrategy of
         LocPartial loc -> (brackets . toLogStr . partialLoc) loc
         LocStable loc -> (brackets . toLogStr . stableLoc) loc
@@ -345,6 +384,7 @@ formatLog formatter lvl msg = do
       formatted =
         mconcat
           [ brackets timestampTxt,
+            threadLabel,
             brackets namespaceTxt,
             brackets lvlTxt,
             locTxt,
@@ -359,6 +399,25 @@ formatLog formatter lvl msg = do
         then toLogStr . MonadTime.formatZonedTime <$> getSystemZonedTime
         else toLogStr . MonadTime.formatLocalTime <$> getSystemTime
 {-# INLINEABLE formatLog #-}
+
+{- ORMOLU_DISABLE -}
+
+-- | Retrieves the thread label or thread id, if the former has not been set.
+getThreadLabel :: (HasCallStack, MonadThread m) => m LogStr
+getThreadLabel = do
+#if MIN_VERSION_base(4, 18, 0)
+  tid <- Thread.myThreadId
+  Thread.threadLabel tid <&> \case
+    Just label -> bracketsLogStr label
+    Nothing -> bracketsLogStr $ show tid
+#else
+  bracketsLogStr . show <$> Thread.myThreadId
+#endif
+  where
+    bracketsLogStr = brackets . toLogStr
+{-# INLINEABLE getThreadLabel #-}
+
+{- ORMOLU_ENABLE -}
 
 partialLoc :: Loc -> Builder
 partialLoc Loc {loc_filename, loc_start} =

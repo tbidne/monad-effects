@@ -1,17 +1,25 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# OPTIONS_GHC -Wno-missing-methods #-}
 
 module Main (main) where
 
+import Control.Concurrent qualified as CC
+import Control.Monad.IO.Class (MonadIO (liftIO))
 import Control.Monad.Logger (Loc (Loc), NoLoggingT (runNoLoggingT))
 import Control.Monad.Logger.CallStack (LogLevel (LevelDebug))
+import Control.Monad.Trans.Reader (ReaderT (runReaderT), asks, local)
 import Data.ByteString.Char8 qualified as Char8
 import Data.Sequence qualified as Seq
 import Data.Text (Text)
+import Data.Text qualified as T
 import Data.Time.Calendar.OrdinalDate (fromOrdinalDate)
 import Data.Time.LocalTime (TimeOfDay (TimeOfDay), utc)
+import Effects.Concurrent.Thread (MonadThread)
+import Effects.Concurrent.Thread qualified as Thread
 import Effects.LoggerNS
   ( LocStrategy (LocNone, LocPartial, LocStable),
-    LogFormatter (MkLogFormatter, locStrategy, newline, timezone),
+    LogFormatter (MkLogFormatter, locStrategy, newline, threadLabel, timezone),
     LogLevel (LevelError, LevelInfo, LevelOther, LevelWarn),
     LogStr,
     MonadLogger (monadLoggerLog),
@@ -53,18 +61,23 @@ import Test.Tasty (TestTree, defaultMain, testGroup)
 import Test.Tasty.HUnit (assertBool, testCase, (@=?))
 import Test.Tasty.Hedgehog (testPropertyNamed)
 
-newtype Logger a = MkLogger {runLogger :: Namespace -> a}
-  deriving stock (Functor)
+data Env = MkEnv
+  { namespace :: Namespace,
+    threadLabel :: Maybe String
+  }
 
-instance Applicative Logger where
-  pure x = MkLogger $ const x
-  MkLogger f <*> MkLogger g = MkLogger $ \ns -> f ns (g ns)
+newtype Logger a = MkLogger {unLogger :: (ReaderT Env IO a)}
+  deriving (Applicative, Functor, Monad) via (ReaderT Env IO)
 
-instance Monad Logger where
-  MkLogger f >>= k = MkLogger $ \ns ->
-    let a = f ns
-        MkLogger mkB = k a
-     in mkB ns
+runLogger :: Logger a -> Namespace -> IO a
+runLogger (MkLogger rdr) ns = runReaderT rdr (MkEnv ns Nothing)
+
+instance MonadThread Logger where
+  myThreadId = MkLogger $ liftIO CC.myThreadId
+
+#if MIN_VERSION_base(4, 18, 0)
+  threadLabel _ = MkLogger $ asks (.threadLabel)
+#endif
 
 instance MonadTime Logger where
   getSystemZonedTime = pure zonedTime
@@ -74,8 +87,11 @@ instance MonadLogger Logger where
   monadLoggerLog _loc _src _lvl _msg = pure ()
 
 instance MonadLoggerNS Logger where
-  getNamespace = MkLogger id
-  localNamespace f (MkLogger g) = MkLogger (g . f)
+  getNamespace = MkLogger $ asks (\(MkEnv ns _) -> ns)
+  localNamespace f =
+    MkLogger
+      . local (\env -> MkEnv (f env.namespace) env.threadLabel)
+      . unLogger
 
 main :: IO ()
 main =
@@ -97,99 +113,152 @@ formatTests =
       formatNewline,
       formatTimezone,
       formatLocStable,
-      formatLocPartial
+      formatLocPartial,
+      formatThreadId,
+      formatThreadLabel
     ]
 
 formatBasic :: TestTree
-formatBasic =
-  testCase "Formats a basic namespaced log" $
-    "[2022-02-08 10:20:05][one.two][Warn] msg" @=? fromLogStr logMsg
+formatBasic = testCase "Formats a basic namespaced log" $ do
+  logMsg <- runLogger (formatNamespaced fmt) emptyNamespace
+  "[2022-02-08 10:20:05][one.two][Warn] msg" @=? fromLogStr logMsg
   where
-    logMsg = runLogger (formatNamespaced fmt) emptyNamespace
     fmt =
       MkLogFormatter
-        { newline = False,
-          locStrategy = LocNone,
+        { locStrategy = LocNone,
+          newline = False,
+          threadLabel = False,
           timezone = False
         }
 
 formatBasicTrace :: TestTree
-formatBasicTrace =
-  testCase "Formats a trace log" $
-    "[2022-02-08 10:20:05][one.two][Trace] msg" @=? fromLogStr logMsg
+formatBasicTrace = testCase "Formats a trace log" $ do
+  logMsg <- runLogger (formatTrace fmt) emptyNamespace
+  "[2022-02-08 10:20:05][one.two][Trace] msg" @=? fromLogStr logMsg
   where
-    logMsg = runLogger (formatTrace fmt) emptyNamespace
     fmt =
       MkLogFormatter
-        { newline = False,
-          locStrategy = LocNone,
+        { locStrategy = LocNone,
+          newline = False,
+          threadLabel = False,
           timezone = False
         }
 
 formatBasicFatal :: TestTree
-formatBasicFatal =
-  testCase "Formats a fatal log" $
-    "[2022-02-08 10:20:05][one.two][Fatal] msg" @=? fromLogStr logMsg
+formatBasicFatal = testCase "Formats a fatal log" $ do
+  logMsg <- runLogger (formatFatal fmt) emptyNamespace
+  "[2022-02-08 10:20:05][one.two][Fatal] msg" @=? fromLogStr logMsg
   where
-    logMsg = runLogger (formatFatal fmt) emptyNamespace
     fmt =
       MkLogFormatter
-        { newline = False,
-          locStrategy = LocNone,
+        { locStrategy = LocNone,
+          newline = False,
+          threadLabel = False,
           timezone = False
         }
 
 formatNewline :: TestTree
-formatNewline =
-  testCase "Formats a log with a newline" $
-    "[2022-02-08 10:20:05][one.two][Warn] msg\n" @=? fromLogStr logMsg
+formatNewline = testCase "Formats a log with a newline" $ do
+  logMsg <- runLogger (formatNamespaced fmt) emptyNamespace
+  "[2022-02-08 10:20:05][one.two][Warn] msg\n" @=? fromLogStr logMsg
   where
-    logMsg = runLogger (formatNamespaced fmt) emptyNamespace
     fmt =
       MkLogFormatter
-        { newline = True,
-          locStrategy = LocNone,
+        { locStrategy = LocNone,
+          newline = True,
+          threadLabel = False,
           timezone = False
         }
 
 formatTimezone :: TestTree
-formatTimezone =
-  testCase "Formats a log with a timezone" $
-    "[2022-02-08 10:20:05 UTC][one.two][Warn] msg" @=? fromLogStr logMsg
+formatTimezone = testCase "Formats a log with a timezone" $ do
+  logMsg <- runLogger (formatNamespaced fmt) emptyNamespace
+  "[2022-02-08 10:20:05 UTC][one.two][Warn] msg" @=? fromLogStr logMsg
   where
-    logMsg = runLogger (formatNamespaced fmt) emptyNamespace
     fmt =
       MkLogFormatter
-        { newline = False,
-          locStrategy = LocNone,
+        { locStrategy = LocNone,
+          newline = False,
+          threadLabel = False,
           timezone = True
         }
 
 formatLocStable :: TestTree
-formatLocStable =
-  testCase "Formats a log with stable loc" $
-    "[2022-02-08 10:20:05][one.two][Warn][filename] msg" @=? fromLogStr logMsg
+formatLocStable = testCase "Formats a log with stable loc" $ do
+  logMsg <- runLogger (formatNamespaced fmt) emptyNamespace
+  "[2022-02-08 10:20:05][one.two][Warn][filename] msg" @=? fromLogStr logMsg
   where
-    logMsg = runLogger (formatNamespaced fmt) emptyNamespace
     fmt =
       MkLogFormatter
-        { newline = False,
-          locStrategy = LocStable loc,
+        { locStrategy = LocStable loc,
+          newline = False,
+          threadLabel = False,
           timezone = False
         }
 
 formatLocPartial :: TestTree
-formatLocPartial =
-  testCase "Formats a log with partial loc" $
-    "[2022-02-08 10:20:05][one.two][Warn][filename:1:2] msg" @=? fromLogStr logMsg
+formatLocPartial = testCase "Formats a log with partial loc" $ do
+  logMsg <- runLogger (formatNamespaced fmt) emptyNamespace
+  "[2022-02-08 10:20:05][one.two][Warn][filename:1:2] msg" @=? fromLogStr logMsg
   where
-    logMsg = runLogger (formatNamespaced fmt) emptyNamespace
     fmt =
       MkLogFormatter
-        { newline = False,
-          locStrategy = LocPartial loc,
+        { locStrategy = LocPartial loc,
+          newline = False,
+          threadLabel = False,
           timezone = False
         }
+
+formatThreadId :: TestTree
+formatThreadId = testCase "Formats a log with thread id" $ do
+  logMsg <- runLogger (formatNamespaced fmt) emptyNamespace
+  let logMsgStr = fromLogStr logMsg
+      logMsgTxt = T.pack logMsgStr
+
+  -- The thread id itself is non-deterministic, so we have to split the
+  -- asserts up.
+  assertBool logMsgStr ("[2022-02-08 10:20:05][ThreadId " `T.isPrefixOf` logMsgTxt)
+  assertBool logMsgStr ("][one.two][Warn] msg" `T.isSuffixOf` logMsgTxt)
+  where
+    fmt =
+      MkLogFormatter
+        { locStrategy = LocNone,
+          newline = False,
+          threadLabel = True,
+          timezone = False
+        }
+
+{- ORMOLU_DISABLE -}
+
+formatThreadLabel :: TestTree
+formatThreadLabel = testCase "Formats a log with thread label" $ do
+  logMsg <- runLoggerThreadLabel (formatNamespaced fmt) emptyNamespace
+#if MIN_VERSION_base(4, 18, 0)
+  "[2022-02-08 10:20:05][some-thread][one.two][Warn] msg"
+    @=? fromLogStr logMsg
+#else
+
+  -- TODO: Remove this case once we unconditionally have base >= 4.18
+  let logMsgStr = fromLogStr logMsg
+      logMsgTxt = T.pack logMsgStr
+
+  assertBool logMsgStr ("[2022-02-08 10:20:05][ThreadId " `T.isPrefixOf` logMsgTxt)
+  assertBool logMsgStr ("][one.two][Warn] msg" `T.isSuffixOf` logMsgTxt)
+#endif
+  where
+    fmt =
+      MkLogFormatter
+        { locStrategy = LocNone,
+          newline = False,
+          threadLabel = True,
+          timezone = False
+        }
+
+    runLoggerThreadLabel :: Logger a -> Namespace -> IO a
+    runLoggerThreadLabel (MkLogger rdr) ns =
+      runReaderT rdr (MkEnv ns (Just "some-thread"))
+
+{- ORMOLU_ENABLE -}
 
 logLevelTH :: TestTree
 logLevelTH = testCase "TH logging compiles" $ do
@@ -204,6 +273,7 @@ logLevelTH = testCase "TH logging compiles" $ do
 
 formatNamespaced ::
   ( MonadLoggerNS m,
+    MonadThread m,
     MonadTime m
   ) =>
   LogFormatter ->
@@ -215,6 +285,7 @@ formatNamespaced fmt =
 
 formatTrace ::
   ( MonadLoggerNS m,
+    MonadThread m,
     MonadTime m
   ) =>
   LogFormatter ->
@@ -226,6 +297,7 @@ formatTrace fmt =
 
 formatFatal ::
   ( MonadLoggerNS m,
+    MonadThread m,
     MonadTime m
   ) =>
   LogFormatter ->

@@ -114,6 +114,7 @@
           packages.effects-logger-ns =
             mkPkg "effects-logger-ns" ./lib/effects-logger-ns {
               effects-exceptions = ./lib/effects-exceptions;
+              effects-thread = ./lib/effects-thread;
               effects-time = ./lib/effects-time;
             };
           packages.effects-optparse =
@@ -124,8 +125,8 @@
               effects-unix-compat = ./lib/effects-unix-compat;
             };
           packages.effects-stm = mkPkgsException "effects-stm" ./lib/effects-stm;
-          packages.effects-time = mkPkgsException "effects-time" ./lib/effects-time;
           packages.effects-terminal = mkPkgsException "effects-terminal" ./lib/effects-terminal;
+          packages.effects-time = mkPkgsException "effects-time" ./lib/effects-time;
           packages.effects-thread = mkPkgsException "effects-thread" ./lib/effects-thread;
           packages.effects-typed-process =
             mkPkgsException "effects-typed-process" ./lib/effects-typed-process;
