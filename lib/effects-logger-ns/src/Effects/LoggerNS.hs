@@ -224,9 +224,9 @@ _LocPartial :: Prism' LocStrategy Loc
 _LocPartial =
   prism
     LocPartial
-    ( \x -> case x of
+    ( \case
         LocPartial loc -> Right loc
-        _ -> Left x
+        other -> Left other
     )
 {-# INLINE _LocPartial #-}
 
@@ -235,9 +235,9 @@ _LocStable :: Prism' LocStrategy Loc
 _LocStable =
   prism
     LocStable
-    ( \x -> case x of
+    ( \case
         LocStable loc -> Right loc
-        _ -> Left x
+        other -> Left other
     )
 {-# INLINE _LocStable #-}
 
@@ -246,9 +246,9 @@ _LocNone :: Prism' LocStrategy ()
 _LocNone =
   prism
     (const LocNone)
-    ( \x -> case x of
+    ( \case
         LocNone -> Right ()
-        _ -> Left x
+        other -> Left other
     )
 {-# INLINE _LocNone #-}
 
