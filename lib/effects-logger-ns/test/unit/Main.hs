@@ -40,6 +40,7 @@ import Effects.LoggerNS
     _LevelOther,
     _LevelTrace,
   )
+import Effects.LoggerNS qualified as LoggerNS
 import Effects.Time
   ( LocalTime (LocalTime),
     MonadTime (getMonotonicTime, getSystemZonedTime),
@@ -52,10 +53,12 @@ import Hedgehog
     failure,
     forAll,
     property,
+    (===),
   )
 import Hedgehog.Gen qualified as Gen
+import Hedgehog.Gen qualified as HG
 import Hedgehog.Range qualified as Range
-import Optics.Core (An_AffineFold, Is, Optic', Prism', preview, prism)
+import Optics.Core (An_AffineFold, Is, Optic', Prism', preview, prism, set', (^.))
 import Optics.Core.Extras (is)
 import Test.Tasty (TestTree, defaultMain, testGroup)
 import Test.Tasty.HUnit (assertBool, testCase, (@=?))
@@ -100,7 +103,8 @@ main =
       "Effects.LoggerNS"
       [ formatTests,
         logLevelTH,
-        shouldLevelTests
+        shouldLevelTests,
+        accessorTests
       ]
 
 formatTests :: TestTree
@@ -603,3 +607,60 @@ _LevelCustom =
         LevelOther c -> Right c
         other -> Left other
     )
+
+accessorTests :: TestTree
+accessorTests =
+  testGroup
+    "Accessors"
+    [ testLogFormatterAccessors
+    ]
+
+testLogFormatterAccessors :: TestTree
+testLogFormatterAccessors = testPropertyNamed desc "testLogFormatterAccessors" $ do
+  property $ do
+    logFormatter <- forAll genLogFormatter
+    locStrategy' <- forAll genLocStrategy
+    bool' <- forAll HG.bool
+
+    -- get
+    logFormatter.locStrategy === logFormatter ^. #locStrategy
+    logFormatter.newline === logFormatter ^. #newline
+    logFormatter.threadLabel === logFormatter ^. #threadLabel
+    logFormatter.timezone === logFormatter ^. #timezone
+
+    -- set
+    logFormatter {locStrategy = locStrategy'} === set' #locStrategy locStrategy' logFormatter
+    logFormatter {newline = bool'} === set' #newline bool' logFormatter
+    logFormatter {LoggerNS.threadLabel = bool'} === set' #threadLabel bool' logFormatter
+    logFormatter {timezone = bool'} === set' #timezone bool' logFormatter
+  where
+    desc = "LogFormatter"
+
+genLogFormatter :: Gen LogFormatter
+genLogFormatter = do
+  MkLogFormatter
+    <$> genLocStrategy
+    <*> HG.bool
+    <*> HG.bool
+    <*> HG.bool
+
+genLocStrategy :: Gen LocStrategy
+genLocStrategy =
+  HG.choice
+    [ pure LocNone,
+      LocStable <$> genLoc,
+      LocPartial <$> genLoc
+    ]
+
+genLoc :: Gen Loc
+genLoc = do
+  Loc
+    <$> genStr
+    <*> genStr
+    <*> genStr
+    <*> genCharPos
+    <*> genCharPos
+  where
+    genStr = HG.list (Range.linear 0 100) HG.unicode
+    genCharPos = (,) <$> genInt <*> genInt
+    genInt = HG.integral (Range.linear 0 1_000)
