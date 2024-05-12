@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 -- | Provides the 'MonadThread' typeclass.
 --
 -- @since 0.1
@@ -32,8 +34,11 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.Foldable (for_)
 import Effects.Exception (addCS)
+import GHC.Conc.Sync qualified as Sync
 import GHC.Natural (Natural)
 import GHC.Stack (HasCallStack)
+
+{- ORMOLU_DISABLE -}
 
 -- | Represents thread effects.
 --
@@ -134,6 +139,25 @@ class (Monad m) => MonadThread m where
   -- @since 0.1
   threadCapability :: (HasCallStack) => ThreadId -> m (Int, Bool)
 
+  -- | Lifted 'CC.myThreadId'.
+  --
+  -- @since 0.1
+  myThreadId :: (HasCallStack) => m ThreadId
+
+  -- | Lifted 'Sync.labelThread'.
+  --
+  -- @since 0.1
+  labelThread :: (HasCallStack) => ThreadId -> String -> m ()
+
+#if MIN_VERSION_base(4, 18, 0)
+
+  -- | Lifted 'Sync.threadLabel'.
+  --
+  -- @since 0.1
+  threadLabel :: (HasCallStack) => ThreadId -> m (Maybe String)
+
+#endif
+
 -- | @since 0.1
 instance MonadThread IO where
   threadDelay = addCS . CC.threadDelay
@@ -146,6 +170,14 @@ instance MonadThread IO where
   {-# INLINEABLE setNumCapabilities #-}
   threadCapability = addCS . CC.threadCapability
   {-# INLINEABLE threadCapability #-}
+  myThreadId = addCS CC.myThreadId
+  {-# INLINEABLE myThreadId #-}
+  labelThread tid = addCS . Sync.labelThread tid
+  {-# INLINEABLE labelThread #-}
+#if MIN_VERSION_base(4, 18, 0)
+  threadLabel = addCS . Sync.threadLabel
+  {-# INLINEABLE threadLabel #-}
+#endif
 
 -- | @since 0.1
 instance (MonadThread m) => MonadThread (ReaderT e m) where
@@ -159,6 +191,16 @@ instance (MonadThread m) => MonadThread (ReaderT e m) where
   {-# INLINEABLE setNumCapabilities #-}
   threadCapability = lift . threadCapability
   {-# INLINEABLE threadCapability #-}
+  myThreadId = lift myThreadId
+  {-# INLINEABLE myThreadId #-}
+  labelThread tid = lift . labelThread tid
+  {-# INLINEABLE labelThread #-}
+#if MIN_VERSION_base(4, 18, 0)
+  threadLabel = lift . threadLabel
+  {-# INLINEABLE threadLabel #-}
+#endif
+
+{- ORMOLU_ENABLE -}
 
 -- | 'threadDelay' in terms of unbounded 'Natural' rather than 'Int' i.e.
 -- runs sleep in the current thread for the specified number of microseconds.
