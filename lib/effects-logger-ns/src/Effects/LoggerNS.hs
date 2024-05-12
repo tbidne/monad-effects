@@ -494,6 +494,7 @@ guardLevel ::
   f () ->
   f ()
 guardLevel configLvl lvl = when (shouldLog configLvl lvl)
+{-# INLINEABLE guardLevel #-}
 
 -- | @shouldLog configLvl lvl@ returns true iff @configLvl <= lvl@. Uses
 -- LogLevel's built-in ordering with special cases for "Trace"
