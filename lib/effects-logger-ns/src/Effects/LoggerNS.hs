@@ -245,7 +245,7 @@ _LocStable =
 _LocNone :: Prism' LocStrategy ()
 _LocNone =
   prism
-    (\() -> LocNone)
+    (const LocNone)
     ( \x -> case x of
         LocNone -> Right ()
         _ -> Left x
