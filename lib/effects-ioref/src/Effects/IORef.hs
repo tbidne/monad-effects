@@ -24,41 +24,32 @@ import GHC.Stack (HasCallStack)
 --
 -- @since 0.1
 class (Monad m) => MonadIORef m where
-  -- | Build a new 'IORef'.
+  -- | Lifted 'IORef.newIORef'.
   --
   -- @since 0.1
   newIORef :: (HasCallStack) => a -> m (IORef a)
 
-  -- | Read the value of an 'IORef'.
+  -- | Lifted 'IORef.readIORef'.
   --
   -- @since 0.1
   readIORef :: (HasCallStack) => IORef a -> m a
 
-  -- | Write a new value into an 'IORef'.
+  -- | Lifted 'IORef.writeIORef'.
   --
   -- @since 0.1
   writeIORef :: (HasCallStack) => IORef a -> a -> m ()
 
-  -- | Variant of 'writeIORef' with the \"barrier to reordering\" property that
-  -- 'atomicModifyIORef' has.
+  -- | Lifted 'IORef.atomicWriteIORef'.
   --
   -- @since 0.1
   atomicWriteIORef :: (HasCallStack) => IORef a -> a -> m ()
 
-  -- | Strict version of 'modifyIORef'.
+  -- | Lifted 'IORef.modifyIORef''.
   --
   -- @since 0.1
   modifyIORef' :: (HasCallStack) => IORef a -> (a -> a) -> m ()
 
-  -- | Strict version of 'Data.IORef.atomicModifyIORef'. This forces both
-  -- the value stored in the 'IORef' and the value returned. The new value
-  -- is installed in the 'IORef' before the returned value is forced.
-  -- So
-  --
-  -- @atomicModifyIORef' ref (\x -> (x+1, undefined))@
-  --
-  -- will increment the 'IORef' and then throw an exception in the calling
-  -- thread.
+  -- | Lifted 'IORef.atomicModifyIORef''.
   --
   -- @since 0.1
   atomicModifyIORef' :: (HasCallStack) => IORef a -> (a -> (a, b)) -> m b
@@ -97,6 +88,6 @@ instance (MonadIORef m) => MonadIORef (ReaderT e m) where
 -- old and new values. The result of the function is forced.
 --
 -- @since 0.1
-atomicModifyIORef'_ :: (MonadIORef m) => IORef a -> (a -> a) -> m ()
+atomicModifyIORef'_ :: (HasCallStack, MonadIORef m) => IORef a -> (a -> a) -> m ()
 atomicModifyIORef'_ ref f = atomicModifyIORef' ref $ \a -> (f a, ())
 {-# INLINEABLE atomicModifyIORef'_ #-}

@@ -561,10 +561,6 @@ displayCSNoMatchHandler proxies handler ex = case fromException ex of
 -- | Run an action only if an exception is thrown in the main action. The
 -- exception is not caught, simply rethrown.
 --
--- /NOTE/ The action is only run if an /exception/ is thrown. If the monad
--- supports other ways of aborting the computation, the action won't run if
--- those other kinds of errors are thrown. See 'onError'.
---
 -- /NOTE/ This is __not__ the @onException@ re-exported from either
 -- @exceptions@ or @safe-exceptions@. Why? The @exceptions@ variant reuses its
 -- @catch@, which does not have the async exception behavior we want
@@ -592,7 +588,7 @@ onException action handler =
 #endif
 
 -- | Like 'Ex.throwM' but any thrown asynchronous exceptions will be thrown
--- synchronously via 'toSyncException'.
+-- synchronously via 'SafeEx.toSyncException'.
 --
 -- @since 0.1
 throwM :: (HAS_CALL_STACK) => (MonadThrow m, Exception e) => e -> m a
@@ -730,31 +726,7 @@ exitSuccess :: (HAS_CALL_STACK) => (MonadThrow m) => m a
 exitSuccess = exitWith ExitSuccess
 {-# INLINEABLE exitSuccess #-}
 
--- | Computation 'exitWith' @code@ throws 'ExitCode' @code@.
--- Normally this terminates the program, returning @code@ to the
--- program's caller.
---
--- On program termination, the standard 'Handle's 'stdout' and
--- 'stderr' are flushed automatically; any other buffered 'Handle's
--- need to be flushed manually, otherwise the buffered data will be
--- discarded.
---
--- A program that fails in any other way is treated as if it had
--- called 'exitFailure'.
--- A program that terminates successfully without calling 'exitWith'
--- explicitly is treated as if it had called 'exitWith' 'ExitSuccess'.
---
--- As an 'ExitCode' is not an 'IOError', 'exitWith' bypasses
--- the error handling in the 'IO' monad and cannot be intercepted by
--- 'catch' from the "Prelude". However it is a 'Control.Exception.SomeException', and can
--- be caught using the functions of "Control.Exception". This means
--- that cleanup computations added with 'Control.Exception.bracket'
--- (from "Control.Exception") are also executed properly on 'exitWith'.
---
--- Note: in GHC, 'exitWith' should be called from the main program
--- thread in order to exit the process. When called from another
--- thread, 'exitWith' will throw an 'ExitException' as normal, but the
--- exception will not cause the process itself to exit.
+-- | Lifted 'System.Exit.exitWith'.
 --
 -- @since 0.1
 exitWith :: (HAS_CALL_STACK) => (MonadThrow m) => ExitCode -> m a

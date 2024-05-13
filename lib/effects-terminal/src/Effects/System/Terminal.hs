@@ -82,40 +82,35 @@ import Prelude
 --
 -- @since 0.1
 class Monad m => MonadTerminal m where
-  -- | Write a character to the standard output device
-  -- (same as 'hPutChar' 'stdout').
+  -- | Lifted 'IO.putStr'.
   --
   -- @since 0.1
   putStr :: HasCallStack => String -> m ()
 
-  -- | The same as 'putStr', but adds a newline character.
+  -- | Lifted 'IO.putStrLn'.
   --
   -- @since 0.1
   putStrLn :: HasCallStack => String -> m ()
   putStrLn = putStr . (<> "\n")
   {-# INLINEABLE putStrLn #-}
 
-  -- | Write a ByteString to 'stdout'.
+  -- | Lifted 'BS.putStr'.
   --
   -- @since 0.1
   putBinary :: HasCallStack => ByteString -> m ()
 
-  -- | Read a character from the standard input device
-  -- (same as 'hGetChar' 'stdin').
+  -- | Lifted 'IO.getChar'.
   --
   -- @since 0.1
   getChar :: HasCallStack => m Char
 
-  -- | Read a line from the standard input device
-  -- (same as 'hGetLine' 'stdin').
+  -- | Lifted 'IO.getLine'.
   --
   -- @since 0.1
   getLine :: HasCallStack => m String
 
 #if MIN_VERSION_base(4,15,0)
-  -- | The 'getContents'' operation returns all user input as a single string,
-  -- which is fully read before being returned
-  -- (same as 'hGetContents'' 'stdin').
+  -- | Lifted 'IO.getContents\''.
   --
   -- @since 0.1
   getContents' :: HasCallStack => m String
@@ -126,7 +121,7 @@ class Monad m => MonadTerminal m where
   -- @since 0.1
   getTerminalSize :: HasCallStack => m (Window Natural)
 
-  -- | Determines if we support ANSI styling.
+  -- | Lifted 'CPretty.supportsPretty'.
   --
   -- @since 0.1
   supportsPretty :: HasCallStack => m Bool
@@ -193,16 +188,7 @@ instance MonadTerminal m => MonadTerminal (ReaderT e m) where
 
 {- ORMOLU_ENABLE -}
 
--- | The 'print' function outputs a value of any printable type to the
--- standard output device.
--- Printable types are those that are instances of class 'Show'; 'print'
--- converts values to strings for output using the 'show' operation and
--- adds a newline.
---
--- For example, a program to print the first 20 integers and their
--- powers of 2 could be written as:
---
--- > main = print ([(n, 2^n) | n <- [0..19]])
+-- | 'putStrLn' and 'show'.
 --
 -- @since 0.1
 print :: (HasCallStack, MonadTerminal m, Show a) => a -> m ()

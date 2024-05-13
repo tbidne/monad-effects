@@ -265,7 +265,7 @@ data LogFormatter = MkLogFormatter
     -- @since 0.1
     newline :: !Bool,
     -- | Whether to include the thread's label set by 'Thread.labelThread'.
-    -- Falls back to the thread's 'ThreadId' when the label has not been set.
+    -- Falls back to the thread's 'Thread.ThreadId' when the label has not been set.
     --
     -- @since 0.1
     threadLabel :: !Bool,
@@ -526,9 +526,9 @@ guardLevel configLvl lvl = when (shouldLog configLvl lvl)
 --     < LevelOther \"\<any\>\"
 -- @
 --
--- In other words, 'LogLevel''s usual 'Ord' is respected, with the additional
+-- In other words, 'LogLevel'\'s usual 'Ord' is respected, with the additional
 -- cases. Note that any other @LevelOther "custom"@ sit at the the highest
--- level and compare via Text's 'Ord', just like 'LogLevel''s usual 'Ord'.
+-- level and compare via Text's 'Ord', just like 'LogLevel'\'s usual 'Ord'.
 --
 -- @since 0.1
 shouldLog ::

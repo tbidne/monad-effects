@@ -335,7 +335,7 @@ infixl 9 !</>
 combineFilePaths :: FilePath -> FilePath -> FilePath
 combineFilePaths = (FP.</>)
 
--- | Helper for throwing 'IOException'.
+-- | Helper for throwing 'Control.Exception.IOException'.
 --
 -- @since 0.1
 throwPathIOError ::

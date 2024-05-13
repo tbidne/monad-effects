@@ -171,7 +171,7 @@ hPutNonBlockingUtf8 ::
 hPutNonBlockingUtf8 h = hPutNonBlocking h . FsUtils.encodeUtf8
 {-# INLINEABLE hPutNonBlockingUtf8 #-}
 
--- | Write given error message to `stderr` and terminate with `exitFailure`.
+-- | Write given error message to 'IO.stderr' and terminate with `exitFailure`.
 --
 -- @since 0.1
 die :: (HasCallStack, MonadHandleWriter m, MonadThrow m) => String -> m a

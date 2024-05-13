@@ -38,31 +38,14 @@ import Effects.Exception (addCS)
 import GHC.Stack (HasCallStack)
 import Numeric.Natural (Natural)
 
--- | 'STM' effect.
+-- | 'STM' effect. Note that this class is for monads that can lift entire
+-- STM transactions (i.e. atomically). It is not intended for "STM-like"
+-- monads -- hence has no STM instance -- as the semantics for "STM-like" and
+-- "can lift STM atomically" are different.
 --
 -- @since 0.1
 class (Monad m) => MonadSTM m where
-  -- | Perform a series of STM actions atomically.
-  --
-  -- Using 'atomically' inside an 'unsafePerformIO' or 'unsafeInterleaveIO'
-  -- subverts some of guarantees that STM provides. It makes it possible to
-  -- run a transaction inside of another transaction, depending on when the
-  -- thunk is evaluated. If a nested transaction is attempted, an exception
-  -- is thrown by the runtime. It is possible to safely use 'atomically' inside
-  -- 'unsafePerformIO' or 'unsafeInterleaveIO', but the typechecker does not
-  -- rule out programs that may attempt nested transactions, meaning that
-  -- the programmer must take special care to prevent these.
-  --
-  -- However, there are functions for creating transactional variables that
-  -- can always be safely called in 'unsafePerformIO'. See: 'newTVarIO',
-  -- 'Control.Concurrent.STM.TChan.newTChanIO',
-  -- 'Control.Concurrent.STM.TChan.newBroadcastTChanIO',
-  -- 'Control.Concurrent.STM.TQueue.newTQueueIO',
-  -- 'Control.Concurrent.STM.TBQueue.newTBQueueIO', and
-  -- 'Control.Concurrent.STM.TMVar.newTMVarIO'.
-  --
-  -- Using 'unsafePerformIO' inside of 'atomically' is also dangerous but for
-  -- different reasons. See 'unsafeIOToSTM' for more on this.
+  -- | Lifted 'STM.atomically'.
   --
   -- @since 0.1
   atomically :: (HasCallStack) => STM a -> m a
@@ -127,7 +110,7 @@ readTBQueueA :: (HasCallStack, MonadSTM m) => TBQueue a -> m a
 readTBQueueA = atomically . TBQueue.readTBQueue
 {-# INLINEABLE readTBQueueA #-}
 
--- | A version of 'readTBQueue' which does not retry. Instead it
+-- | A version of 'TBQueue.readTBQueue' which does not retry. Instead it
 -- returns @Nothing@ if no value is available. Lifts via 'atomically'.
 --
 -- @since 0.1

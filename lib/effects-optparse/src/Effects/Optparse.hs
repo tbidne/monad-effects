@@ -29,20 +29,17 @@ import Options.Applicative qualified as OA
 --
 -- @since 0.1
 class (Monad m) => MonadOptparse m where
-  -- | Run a program description.
-  --
-  -- Parse command line arguments. Display help text and exit if any parse error
-  -- occurs.
+  -- | Lifted 'OA.execParser'.
   --
   -- @since 0.1
   execParser :: (HasCallStack) => ParserInfo a -> m a
 
-  -- | Run a program description with custom preferences.
+  -- | Lifted 'OA.customExecParser'.
   --
   -- @since 0.1
   customExecParser :: (HasCallStack) => ParserPrefs -> ParserInfo a -> m a
 
-  -- | Handle `ParserResult`.
+  -- | Lifted 'OA.handleParseResult'.
   --
   -- @since 0.1
   handleParseResult :: (HasCallStack) => ParserResult a -> m a

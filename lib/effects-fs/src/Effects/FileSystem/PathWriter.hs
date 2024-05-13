@@ -541,8 +541,7 @@ copyDirectoryRecursive = copyDirectoryRecursiveConfig defaultCopyDirConfig
 --
 -- __Throws:__
 --
--- * 'PathNotFoundException': if @dest@ does not exist.
--- * 'PathFoundException':
+-- * 'Control.Exception.IOException': if @dest@ does not exist or one of:
 --
 --     * 'OverwriteNone' and @dest/\<src\>@ exists.
 --     * 'OverwriteDirectories' and some @dest/\<target\>\/p@ would be
