@@ -334,10 +334,10 @@ instance
 -- | 'LogFormatter' with:
 --
 -- @
--- 'locStrategy' = 'LocPartial' loc
--- 'newline' = 'True'
--- 'threadLabel' = 'False'
--- 'timezone' = 'False'
+-- locStrategy = 'LocPartial' loc
+-- newline = 'True'
+-- threadLabel = 'False'
+-- timezone = 'False'
 -- @
 --
 -- @since 0.1
@@ -360,9 +360,13 @@ formatLog ::
     MonadTime m,
     ToLogStr msg
   ) =>
+  -- | Formatter to use.
   LogFormatter ->
+  -- | The level in which to log.
   LogLevel ->
+  -- | Message.
   msg ->
+  -- | Formatted LogStr.
   m LogStr
 formatLog formatter lvl msg = do
   timestampTxt <- timeFn
@@ -482,6 +486,17 @@ logFatal :: Q Exp
 logFatal = logTH levelFatal
 
 -- | @guardLevel configLvl lvl m@ runs @m@ iff @'shouldLog' configLvl lvl@.
+-- This can be useful for writing a logging function e.g.
+--
+-- @
+--   -- logs msg to file iff configLogLevel <= lvl e.g.
+--   -- configLogLevel := 'LevelWarn'
+--   -- lvl            := 'LevelError'
+--   logMsg lvl msg = do
+--   configLogLevel <- getConfigLogLevel -- e.g. ReaderT Env
+--   guardLevel configLogLevel lvl $ do
+--     logToFile msg
+-- @
 --
 -- @since 0.1
 guardLevel ::
