@@ -110,7 +110,7 @@ class Monad m => MonadTerminal m where
   getLine :: HasCallStack => m String
 
 #if MIN_VERSION_base(4,15,0)
-  -- | Lifted 'IO.getContents\''.
+  -- | Lifted 'IO.getContents''.
   --
   -- @since 0.1
   getContents' :: HasCallStack => m String
