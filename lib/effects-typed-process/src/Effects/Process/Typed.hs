@@ -110,7 +110,6 @@ where
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Data.ByteString.Lazy qualified as BSL
-import Effects.Exception (addCS)
 import GHC.Stack (HasCallStack)
 import System.Exit (ExitCode)
 import System.Process.Typed
@@ -303,43 +302,43 @@ class (Monad m) => MonadTypedProcess m where
 
 -- | @since 0.1
 instance MonadTypedProcess IO where
-  runProcess = addCS . P.runProcess
+  runProcess = P.runProcess
   {-# INLINEABLE runProcess #-}
-  readProcess = addCS . P.readProcess
+  readProcess = P.readProcess
   {-# INLINEABLE readProcess #-}
-  readProcessStdout = addCS . P.readProcessStdout
+  readProcessStdout = P.readProcessStdout
   {-# INLINEABLE readProcessStdout #-}
-  readProcessStderr = addCS . P.readProcessStderr
+  readProcessStderr = P.readProcessStderr
   {-# INLINEABLE readProcessStderr #-}
-  readProcessInterleaved = addCS . P.readProcessInterleaved
+  readProcessInterleaved = P.readProcessInterleaved
   {-# INLINEABLE readProcessInterleaved #-}
-  withProcessWait pc = addCS . P.withProcessWait pc
+  withProcessWait = P.withProcessWait
   {-# INLINEABLE withProcessWait #-}
-  withProcessTerm pc = addCS . P.withProcessTerm pc
+  withProcessTerm = P.withProcessTerm
   {-# INLINEABLE withProcessTerm #-}
-  startProcess = addCS . P.startProcess
+  startProcess = P.startProcess
   {-# INLINEABLE startProcess #-}
-  stopProcess = addCS . P.stopProcess
+  stopProcess = P.stopProcess
   {-# INLINEABLE stopProcess #-}
-  runProcess_ = addCS . P.runProcess_
+  runProcess_ = P.runProcess_
   {-# INLINEABLE runProcess_ #-}
-  readProcess_ = addCS . P.readProcess_
+  readProcess_ = P.readProcess_
   {-# INLINEABLE readProcess_ #-}
-  readProcessStdout_ = addCS . P.readProcessStdout_
+  readProcessStdout_ = P.readProcessStdout_
   {-# INLINEABLE readProcessStdout_ #-}
-  readProcessStderr_ = addCS . P.readProcessStderr_
+  readProcessStderr_ = P.readProcessStderr_
   {-# INLINEABLE readProcessStderr_ #-}
-  readProcessInterleaved_ = addCS . P.readProcessInterleaved_
+  readProcessInterleaved_ = P.readProcessInterleaved_
   {-# INLINEABLE readProcessInterleaved_ #-}
-  withProcessWait_ pc = addCS . P.withProcessWait_ pc
+  withProcessWait_ = P.withProcessWait_
   {-# INLINEABLE withProcessWait_ #-}
-  withProcessTerm_ pc = addCS . P.withProcessTerm_ pc
+  withProcessTerm_ = P.withProcessTerm_
   {-# INLINEABLE withProcessTerm_ #-}
-  waitExitCode = addCS . P.waitExitCode
+  waitExitCode = P.waitExitCode
   {-# INLINEABLE waitExitCode #-}
-  getExitCode = addCS . P.getExitCode
+  getExitCode = P.getExitCode
   {-# INLINEABLE getExitCode #-}
-  checkExitCode = addCS . P.checkExitCode
+  checkExitCode = P.checkExitCode
   {-# INLINEABLE checkExitCode #-}
 
 -- | @since 0.1

@@ -27,7 +27,7 @@ import Control.Monad.Trans.Reader (ReaderT)
 import Data.ByteString (ByteString)
 import Data.Text (Text)
 import Data.Text.Encoding.Error (UnicodeException)
-import Effects.Exception (MonadThrow, addCS)
+import Effects.Exception (MonadThrow)
 import Effects.FileSystem.Utils (OsPath)
 import Effects.FileSystem.Utils qualified as FsUtils
 import GHC.Stack (HasCallStack)
@@ -43,7 +43,7 @@ class (Monad m) => MonadFileReader m where
 
 -- | @since 0.1
 instance MonadFileReader IO where
-  readBinaryFile = addCS . FsUtils.readBinaryFileIO
+  readBinaryFile = FsUtils.readBinaryFileIO
   {-# INLINEABLE readBinaryFile #-}
 
 -- | @since 0.1

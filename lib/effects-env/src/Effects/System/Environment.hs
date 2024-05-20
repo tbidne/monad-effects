@@ -11,7 +11,6 @@ where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
-import Effects.Exception (addCS)
 import GHC.Stack (HasCallStack)
 import System.Environment qualified as Env
 
@@ -72,29 +71,29 @@ class Monad m => MonadEnv m where
 
 -- | @since 0.1
 instance MonadEnv IO where
-  getArgs = addCS Env.getArgs
+  getArgs = Env.getArgs
   {-# INLINEABLE getArgs #-}
-  getProgName = addCS Env.getProgName
+  getProgName = Env.getProgName
   {-# INLINEABLE getProgName #-}
 #if MIN_VERSION_base(4,17,0)
-  executablePath = fmap addCS Env.executablePath
+  executablePath = Env.executablePath
   {-# INLINEABLE executablePath #-}
 #endif
-  getExecutablePath = addCS Env.getExecutablePath
+  getExecutablePath = Env.getExecutablePath
   {-# INLINEABLE getExecutablePath #-}
-  getEnv = addCS . Env.getEnv
+  getEnv = Env.getEnv
   {-# INLINEABLE getEnv #-}
-  lookupEnv = addCS . Env.lookupEnv
+  lookupEnv = Env.lookupEnv
   {-# INLINEABLE lookupEnv #-}
-  setEnv x = addCS . Env.setEnv x
+  setEnv = Env.setEnv
   {-# INLINEABLE setEnv #-}
-  unsetEnv = addCS . Env.unsetEnv
+  unsetEnv = Env.unsetEnv
   {-# INLINEABLE unsetEnv #-}
-  withArgs x = addCS . Env.withArgs x
+  withArgs = Env.withArgs
   {-# INLINEABLE withArgs #-}
-  withProgName x = addCS . Env.withProgName x
+  withProgName = Env.withProgName
   {-# INLINEABLE withProgName #-}
-  getEnvironment = addCS Env.getEnvironment
+  getEnvironment = Env.getEnvironment
   {-# INLINEABLE getEnvironment #-}
 
 -- | @since 0.1

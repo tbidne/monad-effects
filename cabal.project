@@ -50,4 +50,11 @@ source-repository-package
 
 allow-newer: hedgehog-1.2:template-haskell
 
+allow-newer: *:*
+
 test-show-details: direct
+
+contraints: os-string
+
+package file-io
+  flags: +os-string

@@ -29,7 +29,7 @@ import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Char8 qualified as Char8
 import Data.Text (Text)
-import Effects.Exception (MonadThrow, addCS, exitFailure)
+import Effects.Exception (MonadThrow, exitFailure)
 import Effects.FileSystem.Utils (OsPath)
 import Effects.FileSystem.Utils qualified as FsUtils
 import GHC.Stack (HasCallStack)
@@ -102,27 +102,27 @@ class (Monad m) => MonadHandleWriter m where
 
 -- | @since 0.1
 instance MonadHandleWriter IO where
-  openBinaryFile f = addCS . FsUtils.openBinaryFileIO f
+  openBinaryFile = FsUtils.openBinaryFileIO
   {-# INLINEABLE openBinaryFile #-}
-  withBinaryFile f m = addCS . FsUtils.withBinaryFileIO f m
+  withBinaryFile = FsUtils.withBinaryFileIO
   {-# INLINEABLE withBinaryFile #-}
-  hClose = addCS . IO.hClose
+  hClose = IO.hClose
   {-# INLINEABLE hClose #-}
-  hFlush = addCS . IO.hFlush
+  hFlush = IO.hFlush
   {-# INLINEABLE hFlush #-}
-  hSetFileSize h = addCS . IO.hSetFileSize h
+  hSetFileSize = IO.hSetFileSize
   {-# INLINEABLE hSetFileSize #-}
-  hSetBuffering h = addCS . IO.hSetBuffering h
+  hSetBuffering = IO.hSetBuffering
   {-# INLINEABLE hSetBuffering #-}
-  hSeek h m = addCS . IO.hSeek h m
+  hSeek = IO.hSeek
   {-# INLINEABLE hSeek #-}
-  hTell = addCS . IO.hTell
+  hTell = IO.hTell
   {-# INLINEABLE hTell #-}
-  hSetEcho h = addCS . IO.hSetEcho h
+  hSetEcho = IO.hSetEcho
   {-# INLINEABLE hSetEcho #-}
-  hPut h = addCS . BS.hPut h
+  hPut = BS.hPut
   {-# INLINEABLE hPut #-}
-  hPutNonBlocking h = addCS . BS.hPutNonBlocking h
+  hPutNonBlocking = BS.hPutNonBlocking
   {-# INLINEABLE hPutNonBlocking #-}
 
 -- | @since 0.1

@@ -95,10 +95,9 @@
         {
           packages.effects-async =
             mkPkg "effects-async" ./lib/effects-async {
-              effects-exceptions = ./lib/effects-exceptions;
               effects-thread = ./lib/effects-thread;
             };
-          packages.effects-env = mkPkgsException "effects-env" ./lib/effects-env;
+          packages.effects-env = mkPkg "effects-env" ./lib/effects-env { };
           packages.effects-exceptions = mkPkg "effects-exceptions" ./lib/effects-exceptions { };
           packages.effects-fs = compiler.developPackage {
             name = "effects-fs";
@@ -113,23 +112,20 @@
           packages.effects-ioref = mkPkgsException "effects-ioref" ./lib/effects-ioref;
           packages.effects-logger-ns =
             mkPkg "effects-logger-ns" ./lib/effects-logger-ns {
-              effects-exceptions = ./lib/effects-exceptions;
               effects-thread = ./lib/effects-thread;
               effects-time = ./lib/effects-time;
             };
           packages.effects-optparse =
             mkPkg "effects-optparse" ./lib/effects-optparse {
-              effects-exceptions = ./lib/effects-exceptions;
               effects-fs = ./lib/effects-fs;
               effects-ioref = ./lib/effects-ioref;
               effects-unix-compat = ./lib/effects-unix-compat;
             };
-          packages.effects-stm = mkPkgsException "effects-stm" ./lib/effects-stm;
+          packages.effects-stm = mkPkg "effects-stm" ./lib/effects-stm { };
           packages.effects-terminal = mkPkgsException "effects-terminal" ./lib/effects-terminal;
-          packages.effects-time = mkPkgsException "effects-time" ./lib/effects-time;
-          packages.effects-thread = mkPkgsException "effects-thread" ./lib/effects-thread;
-          packages.effects-typed-process =
-            mkPkgsException "effects-typed-process" ./lib/effects-typed-process;
+          packages.effects-time = mkPkg "effects-time" ./lib/effects-time { };
+          packages.effects-thread = mkPkg "effects-thread" ./lib/effects-thread { };
+          packages.effects-typed-process = mkPkg "effects-typed-process" ./lib/effects-typed-process { };
           packages.effects-unix-compat = mkPkgsException "effects-unix-compat" ./lib/effects-unix-compat;
 
           devShells.default = hsOverlay.shellFor {

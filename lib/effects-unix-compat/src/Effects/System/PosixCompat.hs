@@ -31,7 +31,7 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.Functor ((<&>))
 import Data.String (IsString)
-import Effects.Exception (MonadCatch, MonadThrow, throwCS)
+import Effects.Exception (MonadCatch, MonadThrow, throwM)
 import GHC.Generics (Generic)
 import GHC.IO.Exception
   ( IOErrorType (InappropriateType),
@@ -409,7 +409,7 @@ throwPathIOError ::
   String ->
   m a
 throwPathIOError path loc ty desc =
-  throwCS $
+  throwM $
     IOError
       { ioe_handle = Nothing,
         ioe_type = ty,
