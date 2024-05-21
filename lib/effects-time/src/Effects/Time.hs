@@ -1,6 +1,8 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+{- ORMOLU_DISABLE -}
+
 -- | Provides the 'MonadTime' class.
 --
 -- @since 0.1
@@ -34,9 +36,12 @@ module Effects.Time
 
     -- * Parsing
     parseLocalTime,
-    parseLocalTimeCallStack,
     parseZonedTime,
+
+#if !MIN_VERSION_base(4, 20, 0)
+    parseLocalTimeCallStack,
     parseZonedTimeCallStack,
+#endif
 
     -- * Misc
     getSystemTimeString,
@@ -61,6 +66,8 @@ module Effects.Time
   )
 where
 
+{- ORMOLU_ENABLE -}
+
 import Control.DeepSeq (NFData)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
@@ -71,7 +78,11 @@ import Data.Time.LocalTime
     ZonedTime (ZonedTime, zonedTimeToLocalTime, zonedTimeZone),
   )
 import Data.Time.LocalTime qualified as Local
+#if !MIN_VERSION_base(4,20,0)
 import Effects.Exception (MonadCatch, addCS)
+#else
+import Effects.Exception (addCS)
+#endif
 import GHC.Clock qualified as C
 #if MIN_VERSION_base(4,17,0)
 import GHC.Float (properFractionDouble)
@@ -329,9 +340,13 @@ getSystemZonedTimeString :: (HasCallStack, MonadTime m) => m String
 getSystemZonedTimeString = fmap formatZonedTime getSystemZonedTime
 {-# INLINEABLE getSystemZonedTimeString #-}
 
--- | Parses the 'LocalTime' from @YYYY-MM-DD HH:MM:SS@. If the 'MonadFail'
--- instance throws an 'Control.Exception.Exception' consider
--- 'parseLocalTimeCallStack'.
+-- TODO: It would be nice if parse(Local|Zoned)Time included a callstack
+-- when f is IO. Alas, IO's MonadFail instance uses failIO, which does NOT
+-- add backtrace information.
+--
+-- Keeping this note in case this changes.
+
+-- | Parses the 'LocalTime' from @YYYY-MM-DD HH:MM:SS@.
 --
 -- @since 0.1
 parseLocalTime :: (MonadFail f) => String -> f LocalTime
@@ -342,23 +357,7 @@ parseLocalTime =
     localTimeFormat
 {-# INLINEABLE parseLocalTime #-}
 
--- | Variant of 'parseLocalTime' that includes CallStack for thrown
--- exceptions.
---
--- @since 0.1
-parseLocalTimeCallStack ::
-  ( HasCallStack,
-    MonadCatch m,
-    MonadFail m
-  ) =>
-  String ->
-  m LocalTime
-parseLocalTimeCallStack = addCS . parseLocalTime
-{-# INLINEABLE parseLocalTimeCallStack #-}
-
--- | Parses the 'ZonedTime' from @YYYY-MM-DD HH:MM:SS Z@. If the 'MonadFail'
--- instance throws an 'Control.Exception.Exception' consider
--- 'parseZonedTimeCallStack'.
+-- | Parses the 'ZonedTime' from @YYYY-MM-DD HH:MM:SS Z@.
 --
 -- ==== __Known Timezones__
 --
@@ -384,6 +383,22 @@ parseZonedTime =
     zonedTimeFormat
 {-# INLINEABLE parseZonedTime #-}
 
+#if !MIN_VERSION_base(4, 20, 0)
+
+-- | Variant of 'parseLocalTime' that includes CallStack for thrown
+-- exceptions.
+--
+-- @since 0.1
+parseLocalTimeCallStack ::
+  ( HasCallStack,
+    MonadCatch m,
+    MonadFail m
+  ) =>
+  String ->
+  m LocalTime
+parseLocalTimeCallStack = addCS . parseLocalTime
+{-# INLINEABLE parseLocalTimeCallStack #-}
+
 -- | Variant of 'parseZonedTime' that includes CallStack for thrown
 -- exceptions.
 --
@@ -397,6 +412,8 @@ parseZonedTimeCallStack ::
   m ZonedTime
 parseZonedTimeCallStack = addCS . parseZonedTime
 {-# INLINEABLE parseZonedTimeCallStack #-}
+
+#endif
 
 localTimeFormat :: String
 localTimeFormat = "%0Y-%m-%d %H:%M:%S"

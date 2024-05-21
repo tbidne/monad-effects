@@ -3,8 +3,10 @@ name:               effects-exceptions
 version:            0.1
 license:            MIT
 license-file:       LICENSE
-tested-with:        GHC ==9.2.8 || ==9.4.7 || ==9.6.3 || ==9.8.1
-copyright:          2022-2023 Thomas Bidne
+tested-with:
+  GHC ==9.2.8 || ==9.4.8 || ==9.6.5 || ==9.8.3 || ==9.10.1
+
+copyright:          2022-2024 Thomas Bidne
 author:             Thomas Bidne
 maintainer:         tbidne@protonmail.com
 homepage:           https://github.com/tbidne/monad-effects/
@@ -65,9 +67,14 @@ common common-lang
 
 library
   import:           common-lang
-  exposed-modules:  Effects.Exception
+  exposed-modules:
+    Effects.Exception
+    Effects.Exception.Annotation.CallStack.Legacy
+    Effects.Exception.Annotation.Common
+    Effects.Exception.Annotation.Utils
+
   build-depends:
-    , base             >=4.16.0.0 && <4.20
+    , base             >=4.16.0.0 && <4.21
     , containers       >=0.6.3.1  && <0.8
     , deepseq          >=1.4.4.0  && <1.6
     , exceptions       ^>=0.10.4
@@ -81,6 +88,10 @@ test-suite unit
   import:           common-lang
   type:             exitcode-stdio-1.0
   main-is:          Main.hs
+  other-modules:
+    Annotation.CallStack.Legacy
+    Annotation.Utils
+
   build-depends:
     , base
     , effects-exceptions
@@ -88,7 +99,7 @@ test-suite unit
     , tasty-hunit         >=0.9     && <0.11
     , transformers
 
-  if os(windows)
+  if (os(windows) || impl(ghc >=9.10.1))
     build-depends: text >=1.2.4.0 && <2.2
 
   hs-source-dirs:   test/unit

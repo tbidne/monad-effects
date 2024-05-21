@@ -1,14 +1,36 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# OPTIONS_GHC -Wno-unused-imports #-}
+
+-- The Data.Text import is only used for Windows and base < 4.20.
+-- We could conditionally import it here, but then -Wunused-packages would
+-- complain about:
+--
+--     if os(windows)
+--       build-depends: text >=1.2.4.0 && <2.2
+--
+-- Sadly we cannot include a condition on the base version.
+-- The easiest thing to do is to just include it here with only the
+-- Windows condition and a note that we can remove it once we require
+-- base >= 4.20
 
 module Main (main) where
 
 import Control.Concurrent (threadDelay)
+#if !MIN_VERSION_base(4, 20, 0)
 import Control.Exception (Exception, SomeException, displayException, try)
 import Control.Monad (void, when, zipWithM_)
+#else
+import Control.Monad (void)
+#endif
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Data.Fixed (Fixed (MkFixed))
+#if !MIN_VERSION_base(4, 20, 0)
 import Data.List qualified as L
+#endif
+#if WINDOWS
+import Data.Text qualified as T
+#endif
 import Data.Time.Calendar.OrdinalDate (fromOrdinalDate)
 import Data.Time.LocalTime (TimeOfDay (TimeOfDay), utc)
 import Effects.Time
@@ -23,9 +45,15 @@ import Hedgehog.Range qualified as R
 import Numeric.Natural (Natural)
 import Optics.Core (view)
 import Test.Tasty (TestTree, defaultMain, testGroup)
+#if !MIN_VERSION_base(4, 20, 0)
 import Test.Tasty.HUnit (assertBool, assertFailure, testCase, (@=?))
+#else
+import Test.Tasty.HUnit (assertBool, testCase, (@=?))
+#endif
 import Test.Tasty.Hedgehog (testPropertyNamed)
+#if !MIN_VERSION_base(4, 20, 0)
 import Text.Read qualified as TR
+#endif
 
 main :: IO ()
 main =
@@ -222,23 +250,27 @@ localTimeTests :: TestTree
 localTimeTests =
   testGroup
     "LocalTime"
-    [ formatsLocalTime,
-      parsesLocalTime,
-      formatParseLocalTimeRoundTrip,
-      parseFormatLocalTimeEpsilon,
-      parsesLocalTimeCallStack
-    ]
+    $ [ formatsLocalTime,
+        parsesLocalTime,
+        formatParseLocalTimeRoundTrip,
+        parseFormatLocalTimeEpsilon
+      ]
+#if !MIN_VERSION_base(4, 20, 0)
+    ++ [parsesLocalTimeCallStack]
+#endif
 
 zonedTimeTests :: TestTree
 zonedTimeTests =
   testGroup
     "ZonedTime"
-    [ formatsZonedTime,
-      parsesZonedTime,
-      formatParseZonedTimeRoundTrip,
-      parseFormatZonedTimeEpsilon,
-      parsesZonedTimeCallStack
-    ]
+    $ [ formatsZonedTime,
+        parsesZonedTime,
+        formatParseZonedTimeRoundTrip,
+        parseFormatZonedTimeEpsilon
+      ]
+#if !MIN_VERSION_base(4, 20, 0)
+    ++ [parsesZonedTimeCallStack]
+#endif
 
 formatsLocalTime :: TestTree
 formatsLocalTime =
@@ -275,36 +307,6 @@ parseFormatLocalTimeEpsilon = testPropertyNamed desc "parseFormatLocalTimeEpsilo
     diff lt eqLocalTimeEpsilon lt'
   where
     desc = "(parseLocalTime . formatLocalTime) x ~= x (up to < 1 second)"
-
-parsesLocalTimeCallStack :: TestTree
-parsesLocalTimeCallStack = testCase "Parses LocalTime failure gives CallStack" $ do
-  try @SomeException parseAction >>= \case
-    Left e -> assertResults expected (L.lines $ stableCallStack e)
-    Right _ -> assertFailure "Error: did not catch expected exception."
-  where
-    parseAction = MonadTime.parseLocalTimeCallStack "2022-02-08 10:20:05 UTC"
-#if WINDOWS && GHC_9_4
-    expected =
-      [ "user error (parseTimeM: no parse of \"0-0-0 0:0:0 UTC\")",
-        "CallStack (from HasCallStack):",
-        "  addCS, called at src\\Effects\\Time.hs:0:0 in effects-time-0.0-<pkg>:Effects.Time",
-        "  parseLocalTimeCallStack, called at test\\unit\\Main.hs:0:0 in main:Main"
-      ]
-#elif WINDOWS
-    expected =
-      [ "user error (parseTimeM: no parse of \"0-0-0 0:0:0 UTC\")",
-        "CallStack (from HasCallStack):",
-        "  addCS, called at src\\\\Effects\\\\Time.hs:0:0 in effects-time-0.0-<pkg>:Effects.Time",
-        "  parseLocalTimeCallStack, called at test\\\\unit\\\\Main.hs:0:0 in main:Main"
-      ]
-#else
-    expected =
-      [ "user error (parseTimeM: no parse of \"0-0-0 0:0:0 UTC\")",
-        "CallStack (from HasCallStack):",
-        "  addCS, called at src/Effects/Time.hs:0:0 in effects-time-0.0-<pkg>:Effects.Time",
-        "  parseLocalTimeCallStack, called at test/unit/Main.hs:0:0 in main:Main"
-      ]
-#endif
 
 formatsZonedTime :: TestTree
 formatsZonedTime =
@@ -344,6 +346,25 @@ parseFormatZonedTimeEpsilon = testPropertyNamed desc "parseFormatZonedTimeEpsilo
   where
     desc = "(parseZonedTime . formatZonedTime) x ~= x (up to < 1 second)"
 
+#if !MIN_VERSION_base(4, 20, 0)
+
+parsesLocalTimeCallStack :: TestTree
+parsesLocalTimeCallStack = testCase "Parses LocalTime failure gives CallStack" $ do
+  try @SomeException parseAction >>= \case
+    Left e -> assertResults expected (L.lines $ stableCallStack e)
+    Right _ -> assertFailure "Error: did not catch expected exception."
+  where
+    parseAction = MonadTime.parseLocalTimeCallStack "2022-02-08 10:20:05 UTC"
+
+    expected =
+      massagePath
+        <$> [ "user error (parseTimeM: no parse of \"0-0-0 0:0:0 UTC\")",
+              "CallStack (from HasCallStack):",
+              "  addCS, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception",
+              "  addCS, called at src/Effects/Time.hs:0:0 in effects-time-0.0-<pkg>:Effects.Time",
+              "  parseLocalTimeCallStack, called at test/unit/Main.hs:0:0 in main:Main"
+            ]
+
 parsesZonedTimeCallStack :: TestTree
 parsesZonedTimeCallStack =
   testCase "Parses ZonedTime failure gives CallStack" $
@@ -352,27 +373,16 @@ parsesZonedTimeCallStack =
       Right _ -> assertFailure "Error: did not catch expected exception."
   where
     parseAction = MonadTime.parseZonedTimeCallStack "2022-02-08 10:20:05"
-#if WINDOWS && GHC_9_4
+
     expected =
-      [ "user error (parseTimeM: no parse of \"0-0-0 0:0:0\")",
-        "CallStack (from HasCallStack):",
-        "  addCS, called at src\\Effects\\Time.hs:0:0 in effects-time-0.0-<pkg>:Effects.Time",
-        "  parseZonedTimeCallStack, called at test\\unit\\Main.hs:0:0 in main:Main"
-      ]
-#elif WINDOWS
-    expected =
-      [ "user error (parseTimeM: no parse of \"0-0-0 0:0:0\")",
-        "CallStack (from HasCallStack):",
-        "  addCS, called at src\\\\Effects\\\\Time.hs:0:0 in effects-time-0.0-<pkg>:Effects.Time",
-        "  parseZonedTimeCallStack, called at test\\\\unit\\\\Main.hs:0:0 in main:Main"
-      ]
-#else
-    expected =
-      [ "user error (parseTimeM: no parse of \"0-0-0 0:0:0\")",
-        "CallStack (from HasCallStack):",
-        "  addCS, called at src/Effects/Time.hs:0:0 in effects-time-0.0-<pkg>:Effects.Time",
-        "  parseZonedTimeCallStack, called at test/unit/Main.hs:0:0 in main:Main"
-      ]
+      massagePath
+        <$> [ "user error (parseTimeM: no parse of \"0-0-0 0:0:0\")",
+              "CallStack (from HasCallStack):",
+              "  addCS, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception",
+              "  addCS, called at src/Effects/Time.hs:0:0 in effects-time-0.0-<pkg>:Effects.Time",
+              "  parseZonedTimeCallStack, called at test/unit/Main.hs:0:0 in main:Main"
+            ]
+
 #endif
 
 localTime :: LocalTime
@@ -483,6 +493,8 @@ genTimeSpec = MkTimeSpec <$> genSec <*> genNSec
     genSec = Gen.integral (R.linearFrom 5 0 10)
     genNSec = Gen.integral (R.linearFrom 0 0 10_000_000_000)
 
+#if !MIN_VERSION_base(4, 20, 0)
+
 stableCallStack :: (Exception e) => e -> String
 stableCallStack = stripPkgName . zeroNums . displayException
 
@@ -501,10 +513,14 @@ zeroNums (x : xs) = case TR.readMaybe @Int [x] of
 
 -- crude, but it works
 stripPkgName :: String -> String
-stripPkgName [] = []
-stripPkgName (L.stripPrefix "effects-time-0.0-" -> Just rest) =
-  "effects-time-0.0-<pkg>" ++ skipUntilColon rest
-stripPkgName (x : xs) = x : stripPkgName xs
+stripPkgName = go
+  where
+    go [] = []
+    go (L.stripPrefix "effects-time-0.0-" -> Just rest) =
+      "effects-time-0.0-<pkg>" ++ stripPkgName (skipUntilColon rest)
+    go (L.stripPrefix "effects-exceptions-0.0-" -> Just rest) =
+      "effects-exceptions-0.0-<pkg>" ++ stripPkgName (skipUntilColon rest)
+    go (x : xs) = x : stripPkgName xs
 
 skipUntilColon :: String -> String
 skipUntilColon [] = []
@@ -520,9 +536,25 @@ assertResults expected results = do
           show lenExpected,
           ") did not match results length (",
           show lenResults,
-          ")."
+          ").\n\nExpected:\n",
+          show expected,
+          "\n\nResults:\n",
+          show results
         ]
   zipWithM_ (@=?) expected results
   where
     lenExpected = length expected
     lenResults = length results
+
+massagePath :: String -> String
+
+#if WINDOWS && GHC_9_4
+massagePath = T.unpack . T.replace "/" "\\" . T.pack
+#elif WINDOWS
+massagePath = T.unpack . T.replace "/" "\\\\" . T.pack
+#else
+massagePath = id
+#endif
+
+#endif
+-- !MIN_VERSION_base(4, 20, 0)
