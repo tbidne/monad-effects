@@ -1,4 +1,7 @@
 {-# LANGUAGE CPP #-}
+{-# OPTIONS_GHC -Wno-redundant-constraints #-}
+
+{- ORMOLU_DISABLE -}
 
 -- see NOTE: [TypeAbstractions default extensions]
 
@@ -9,7 +12,6 @@
 -- | Exception handling. The interface here combines ideas from the following
 -- three libraries in a somewhat idiosyncratic way:
 --
--- * [annotated-exception](https://hackage.haskell.org/package/annotated-exception)
 -- * [exceptions](https://hackage.haskell.org/package/exceptions)
 -- * [safe-exceptions](https://hackage.haskell.org/package/safe-exceptions)
 --
@@ -17,17 +19,13 @@
 --
 -- 1. Typeclass abstraction: @exceptions@'s
 --    'MonadThrow'\/'MonadCatch'\/'MonadMask' hierarchy.
--- 2. Throw exceptions w/ 'CallStack': Inspired by @annotated-exception@, we
---    use a custom type 'ExceptionCS' for this purpose. This functionality may
---    be removed once GHC natively supports combining exceptions and
---    'CallStack' (tentatively GHC 9.8). See the following proposal for more
---    information:
---    https://github.com/ghc-proposals/ghc-proposals/pull/330
+--
+-- 2. Throw exceptions w/ 'CallStack': On base < 4.20 (GHC 9.10), we use
+--    legacy implementation from "Effects.Exception.CallStack.Legacy".
+--    For base >= 4.20, we use GHC's native annotation framework.
 --
 -- 3. Throw/catch exceptions in accordance with @safe-exceptions@: That is,
---    do not throw or catch async exceptions. We do not actually re-export
---    @safe-exceptions@ functions; the functions here are bespoke, primarily
---    to add `HasCallStack` constraints.
+--    do not throw or catch async exceptions.
 --
 -- 4. Masking/bracket uses 'Ex.mask', not 'Ex.uninterruptibleMask': We take
 --    the position that 'Ex.uninterruptibleMask' should /not/ be the default
@@ -49,12 +47,46 @@
 module Effects.Exception
   ( -- * Global mechanisms
     MonadGlobalException (..),
-    setUncaughtExceptionDisplay,
-    setUncaughtExceptionDisplayCSNoMatch,
 
-    -- * CallStack
+#if MIN_VERSION_base(4,20,0)
+
+    Annotation.Utils.setUncaughtExceptionDisplay,
+    Annotation.Utils.setUncaughtExceptionDisplayInnerMatch,
+
+#else
+
+    CallStack.Legacy.setUncaughtExceptionDisplay,
+    CallStack.Legacy.setUncaughtExceptionDisplayCSNoMatch,
+
+#endif
+
+    -- * Annotations
+
+#if MIN_VERSION_base(4,20,0)
+
+    -- $annotations
+
+    -- ** Utils
+    Annotation.Utils.ExceptionProxy (..),
+    Annotation.Utils.displayInner,
+    Annotation.Utils.displayInnerMatch,
+    Annotation.Utils.displayInnerMatchHandler,
+
+#else
+
+    -- ** CallStack
     -- $callstack
-    ExceptionCS (..),
+    CallStack.Legacy.ExceptionCS (..),
+
+    -- *** Utils
+    CallStack.Legacy.ExceptionProxy (..),
+    CallStack.Legacy.displayNoCS,
+    CallStack.Legacy.displayCSNoMatch,
+    CallStack.Legacy.displayCSNoMatchHandler,
+
+#endif
+
+    -- ** Legacy
     throwCS,
     catchCS,
     catchAnyCS,
@@ -63,32 +95,25 @@ module Effects.Exception
     tryCS,
     tryAnyCS,
     addCS,
-    addOuterCS,
-
-    -- ** Utils
-    ExceptionProxy (..),
-    displayNoCS,
-    displayCSNoMatch,
-    displayCSNoMatchHandler,
 
     -- * Basic exceptions
     -- $basics
 
     -- ** Throwing
     MonadThrow,
-    throwM,
+    SafeEx.throwM,
     SafeEx.throwString,
 
     -- ** Catching
     MonadCatch,
-    catch,
-    catchAny,
-    handle,
-    handleAny,
-    try,
-    tryAny,
+    SafeEx.catch,
+    SafeEx.catchAny,
+    SafeEx.handle,
+    SafeEx.handleAny,
+    SafeEx.try,
+    SafeEx.tryAny,
     Handler (..),
-    catches,
+    SafeEx.catches,
     onException,
     SafeEx.catchIOError,
 
@@ -130,7 +155,8 @@ module Effects.Exception
   )
 where
 
-import Control.DeepSeq (NFData)
+{- ORMOLU_ENABLE -}
+
 import Control.Exception.Safe qualified as SafeEx
 import Control.Monad.Catch
   ( Exception (displayException, fromException, toException),
@@ -138,73 +164,44 @@ import Control.Monad.Catch
     MonadCatch,
     MonadMask (generalBracket, mask, uninterruptibleMask),
     MonadThrow,
-    SomeException (SomeException),
+    SomeException,
   )
 import Control.Monad.Catch qualified as Ex
-import Control.Monad.Trans.Class (MonadTrans (lift))
-import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
-import Data.Maybe qualified as Maybe
-import Data.Proxy (Proxy (Proxy))
-import Data.Set qualified as Set
-import Data.Typeable (cast)
-import GHC.Conc.Sync qualified as Sync
-import GHC.Generics (Generic)
+#if !MIN_VERSION_base(4,20,0)
+import Effects.Exception.Annotation.CallStack.Legacy qualified as CallStack.Legacy
+#endif
+import Effects.Exception.Annotation.Common
+  ( MonadGlobalException (getUncaughtExceptionHandler, setUncaughtExceptionHandler),
+  )
+#if MIN_VERSION_base(4,20,0)
+import Effects.Exception.Annotation.Utils qualified as Annotation.Utils
+#endif
 import GHC.IO.Exception (IOErrorType (InvalidArgument), IOException (IOError))
 import GHC.Stack
   ( CallStack,
     HasCallStack,
-    callStack,
-    prettyCallStack,
     withFrozenCallStack,
   )
-import GHC.Stack.Types (SrcLoc (SrcLoc), fromCallSiteList, getCallStack)
 import System.Exit (ExitCode (ExitFailure, ExitSuccess))
 
--------------------------------------------------------------------------------
---                           MonadGlobalException                            --
--------------------------------------------------------------------------------
-
--- | Effect for global exception mechanisms.
+-- $annotations
+-- GHC 9.10 introduces a new Exception Annotation framework e.g.
 --
--- @since 0.1
-class (Monad m) => MonadGlobalException m where
-  -- | Lifted 'Sync.setUncaughtExceptionHandler'.
-  --
-  -- @since 0.1
-  setUncaughtExceptionHandler :: (HasCallStack) => (SomeException -> m ()) -> m ()
-
-  -- | Lifted 'Sync.getUncaughtExceptionHandler'.
-  --
-  -- @since 0.1
-  getUncaughtExceptionHandler :: (HasCallStack) => m (SomeException -> m ())
-
--- | @since 0.1
-instance MonadGlobalException IO where
-  setUncaughtExceptionHandler = addCS . Sync.setUncaughtExceptionHandler
-  {-# INLINEABLE setUncaughtExceptionHandler #-}
-
-  getUncaughtExceptionHandler = addCS Sync.getUncaughtExceptionHandler
-  {-# INLINEABLE getUncaughtExceptionHandler #-}
-
--- | @since 0.1
-instance (MonadGlobalException m) => MonadGlobalException (ReaderT env m) where
-  setUncaughtExceptionHandler f =
-    ask >>= \e ->
-      lift $ setUncaughtExceptionHandler (\ex -> runReaderT (f ex) e)
-  {-# INLINEABLE setUncaughtExceptionHandler #-}
-
-  getUncaughtExceptionHandler =
-    ask >>= \e -> lift (runReaderT getUncaughtExceptionHandler e)
-  {-# INLINEABLE getUncaughtExceptionHandler #-}
-
--------------------------------------------------------------------------------
---                                 CallStack                                 --
--------------------------------------------------------------------------------
-
--- NOTE: Post GHC 9.8, this entire section will be removed. We will instead
--- use GHC's native exception handling.
+-- - "Control.Exception"
+-- - "Control.Exception.Annotation"
+-- - "Control.Exception.Backtrace"
+-- - "Control.Exception.Context"
+--
+-- We do not re-export anything related to annotations here except for some
+-- utilities for display / ignoring annotations in some circumstances.
 
 -- $callstack
+--
+-- __IMPORTANT:__ This functionality is __deprecated__ as it has been replaced
+-- by GHC's native annotation framework, introduced in base 4.20 (GHC 9.10).
+-- It will still exist in "Effects.Exception.CallStack.Legacy", but it will
+-- not be re-exported here.
+--
 -- The callstack API and implementation is heavily inspired by the excellent
 -- [annotated-exception](https://hackage.haskell.org/package/annotated-exception)
 -- library.
@@ -227,323 +224,173 @@ instance (MonadGlobalException m) => MonadGlobalException (ReaderT env m) where
 -- no longer catch it with normal @catch \@e@, as it is now a
 -- @ExceptionCS e@. You can instead use @catchCS \@e@.
 
--- | Attaches a 'CallStack' to an arbitrary exception. The 'Show' instance
--- uses 'displayException' i.e. the underlying exceptions' 'displayException'
--- and pretty-prints the 'CallStack' due to some libraries (e.g. testing)
--- defaulting to 'Show' when printing exceptions.
---
--- @since 0.1
-data ExceptionCS e = MkExceptionCS e CallStack
-  deriving stock
-    ( -- | @since 0.1
-      Generic,
-      -- | @since 0.1
-      Functor
-    )
-  deriving anyclass
-    ( -- | @since 0.1
-      NFData
-    )
+-------------------------------------------------------------------------------
+--                             CallStack Compat                              --
+-------------------------------------------------------------------------------
 
--- | @since 0.1
-instance Applicative ExceptionCS where
-  pure x = MkExceptionCS x callStack
-
-  MkExceptionCS f cs <*> MkExceptionCS x cs' =
-    MkExceptionCS (f x) (mergeCallStack cs cs')
-
--- | @since 0.1
-instance Monad ExceptionCS where
-  MkExceptionCS x cs >>= f =
-    let MkExceptionCS x' cs' = f x
-     in MkExceptionCS x' (mergeCallStack cs cs')
-
--- | Alias for 'displayException'.
---
--- @since 0.1
-instance (Exception e) => Show (ExceptionCS e) where
-  show = displayException
-
--- | @since 0.1
-instance (Exception e) => Exception (ExceptionCS e) where
-  -- Converting underlying exception so that we can predictably convert to
-  -- ExceptionCS SomeException
-  toException (MkExceptionCS ex cs) =
-    tryFlatten $ SomeException (MkExceptionCS (toException ex) cs)
-
-  fromException someEx@(SomeException innerEx)
-    -- innerEx == ExceptionCS e
-    -- ==> ExceptionCS e
-    | Just x <- cast innerEx = Just x
-    -- innerEx == ExceptionCS innerSomeEx@SomeException
-    -- innerSomeEx == e
-    -- ==> ExceptionCS e
-    | Just (MkExceptionCS (innerSomeEx :: SomeException) cs) <- cast innerEx,
-      Just x <- fromException innerSomeEx =
-        Just $ MkExceptionCS x cs
-    -- SomeException == e
-    -- ==> ExceptionCS e
-    | Just x <- fromException someEx = Just $ pure x
-    -- We did our best
-    | otherwise = Nothing
-
-  displayException (MkExceptionCS e cs) =
-    mconcat
-      [ displayException e,
-        "\n",
-        prettyCallStack cs
-      ]
-
-flatten :: ExceptionCS (ExceptionCS e) -> ExceptionCS e
-flatten (MkExceptionCS (MkExceptionCS ex old) new) =
-  MkExceptionCS ex (mergeCallStack old new)
-
-tryFlatten :: SomeException -> SomeException
-tryFlatten ex =
-  case fromException ex of
-    Just (ex' :: ExceptionCS (ExceptionCS SomeException)) ->
-      SomeException $ flatten ex'
-    Nothing ->
-      ex
-
--- | Wraps an exception in 'ExceptionCS' and rethrows. If the @e@ is
--- also an 'ExceptionCS', the callStacks are merged.
---
--- @since 0.1
+-- | Legacy throw with callstack. For base >= 4.20 (GHC 9.10), alias for
+-- 'SafeEx.throwM'.
 throwCS ::
   forall m e a.
-  (Exception e, HasCallStack, MonadThrow m) =>
+  ( Exception e,
+    HasCallStack,
+    MonadThrow m
+  ) =>
   e ->
   m a
-throwCS ex =
-  withFrozenCallStack $ throwM $ MkExceptionCS ex callStack
 {-# INLINEABLE throwCS #-}
 
--- | Catches both @e@ and @ExceptionCS e@. The given handler is
--- wrapped in 'addCS'.
---
--- @since 0.1
+-- | Legacy catch with callstack. For base >= 4.20 (GHC 9.10), alias for
+-- 'SafeEx.catch'.
 catchCS ::
   forall m e a.
-  (Exception e, HasCallStack, MonadCatch m) =>
+  ( Exception e,
+    HasCallStack,
+    MonadCatch m
+  ) =>
   m a ->
   (e -> m a) ->
   m a
-catchCS action handler =
-  withFrozenCallStack
-    catches
-    action
-    [ Handler $ \ex -> addCS $ handler ex,
-      -- "Forget" about the callstack unless another is raised.
-      Handler $ \(MkExceptionCS ex cs) -> addOuterCS cs $ handler ex
-    ]
 {-# INLINEABLE catchCS #-}
 
--- | 'catchCS' specialized to all synchronous exceptions.
---
--- @since 0.1
+-- | Legacy catch any with callstack. For base >= 4.20 (GHC 9.10), alias for
+-- 'SafeEx.catchAny'.
 catchAnyCS ::
   forall m a.
   (HasCallStack, MonadCatch m) =>
   m a ->
   (SomeException -> m a) ->
   m a
-catchAnyCS = catchCS
 {-# INLINEABLE catchAnyCS #-}
 
--- | Flipped 'catchCS'.
---
--- @since 0.1
+-- | Legacy handle with callstack. For base >= 4.20 (GHC 9.10), alias for
+-- 'SafeEx.handle'.
 handleCS ::
   forall m e a.
   (Exception e, HasCallStack, MonadCatch m) =>
   (e -> m a) ->
   m a ->
   m a
-handleCS = flip catchCS
 {-# INLINEABLE handleCS #-}
 
--- | 'handleCS' specialized to 'SomeException'.
---
--- @since 0.1
+-- | Legacy handle any with callstack. For base >= 4.20 (GHC 9.10), alias for
+-- 'SafeEx.handleAny'.
 handleAnyCS ::
   forall m a.
   (HasCallStack, MonadCatch m) =>
   (SomeException -> m a) ->
   m a ->
   m a
-handleAnyCS = handleCS
 {-# INLINEABLE handleAnyCS #-}
 
--- | Try for 'catchCS'.
---
--- @since 0.1
+-- | Legacy try with callstack. For base >= 4.20 (GHC 9.10), alias for
+-- 'SafeEx.try'.
 tryCS ::
   forall m e a.
   (Exception e, MonadCatch m) =>
   m a ->
   m (Either e a)
-tryCS m = (Right <$> m) `catchCS` (pure . Left)
 {-# INLINEABLE tryCS #-}
 
--- | 'tryCS' specialized to 'SomeException'.
---
--- @since 0.1
+-- | Legacy try any with callstack. For base >= 4.20 (GHC 9.10), alias for
+-- 'SafeEx.tryAny'.
 tryAnyCS ::
   forall m a.
   (MonadCatch m) =>
   m a ->
   m (Either SomeException a)
-tryAnyCS = tryCS
 {-# INLINEABLE tryAnyCS #-}
 
--- | Turns any caught exceptions @e@ into an @ExceptionCS e@ with
--- attached 'CallStack' and rethrows.
---
--- @since 0.1
+-- | Legacy function for attaching a callstack to a thrown exception.
+-- For base >= 4.20 (GHC 9.10), alias for 'id'.
 addCS :: forall m a. (HasCallStack, MonadCatch m) => m a -> m a
-addCS = withFrozenCallStack addOuterCS callStack
 {-# INLINEABLE addCS #-}
 
--- | Like 'addCS', except it merges the given "outer callstack" with
--- the one generated by a caught exception.
---
--- @since 0.1
-addOuterCS :: forall m a. (HasCallStack, MonadCatch m) => CallStack -> m a -> m a
-addOuterCS outerCS m =
-  m `catch` \(ex :: SomeException) ->
-    throwM $ case fromException ex of
-      Just (MkExceptionCS (innerEx :: SomeException) innerCS) ->
-        MkExceptionCS
-          innerEx
-          (innerCS `mergeCallStack` outerCS `mergeCallStack` callStack)
-      Nothing -> MkExceptionCS ex (outerCS `mergeCallStack` callStack)
-{-# INLINEABLE addOuterCS #-}
+#if MIN_VERSION_base(4,20,0)
 
-mergeCallStack :: CallStack -> CallStack -> CallStack
-mergeCallStack innerCS outerCS =
-  fromCallSiteList $
-    fmap (fmap fromSrcLocOrd) $
-      ordNub $
-        fmap (fmap toSrcLocOrd) $
-          getCallStack innerCS <> getCallStack outerCS
+throwCS = SafeEx.throwM
+{-# DEPRECATED throwCS "For base >= 4.20 (GHC 9.10), throwCS is an alias for throwM." #-}
 
-toSrcLocOrd :: SrcLoc -> ([Char], [Char], [Char], Int, Int, Int, Int)
-toSrcLocOrd (SrcLoc a b c d e f g) =
-  (a, b, c, d, e, f, g)
+catchCS = SafeEx.catch
+{-# DEPRECATED catchCS "For base >= 4.20 (GHC 9.10), catchCS is an alias for catch." #-}
 
-fromSrcLocOrd :: ([Char], [Char], [Char], Int, Int, Int, Int) -> SrcLoc
-fromSrcLocOrd (a, b, c, d, e, f, g) =
-  SrcLoc a b c d e f g
+catchAnyCS = SafeEx.catchAny
+{-# DEPRECATED catchAnyCS "For base >= 4.20 (GHC 9.10), catchAnyCS is an alias for catchAny." #-}
 
-ordNub :: (Ord a) => [a] -> [a]
-ordNub = go Set.empty
-  where
-    go _ [] = []
-    go s (x : xs)
-      | Set.member x s = go s xs
-      | otherwise = x : go (Set.insert x s) xs
+handleCS = SafeEx.handle
+{-# DEPRECATED handleCS "For base >= 4.20 (GHC 9.10), handleCS is an alias for handle." #-}
 
--- | Like 'displayException', except it has specific logic to skip any
--- found 'CallStack's.
---
--- @since 0.1
-displayNoCS :: forall e. (Exception e) => e -> String
-displayNoCS = displayCSNoMatch [someExceptionProxy]
+handleAnyCS = SafeEx.handleAny
+{-# DEPRECATED handleAnyCS "For base >= 4.20 (GHC 9.10), handleAnyCS is an alias for handleAny." #-}
 
-someExceptionProxy :: ExceptionProxy
-someExceptionProxy = MkExceptionProxy (Proxy @SomeException)
+tryCS = SafeEx.try
+{-# DEPRECATED tryCS "For base >= 4.20 (GHC 9.10), tryCS is an alias for try." #-}
 
--- | Proxy for exception types. Used with 'displayCSNoMatch'.
---
--- @since 0.1
-data ExceptionProxy
-  = forall e. (Exception e) => MkExceptionProxy (Proxy e)
+tryAnyCS = SafeEx.tryAny
+{-# DEPRECATED tryAnyCS "For base >= 4.20 (GHC 9.10), tryAnyCS is an alias for tryAny." #-}
 
--- | @displayCSNoMatch proxies e@ is equivalent to 'displayNoCS' if @e@
--- matches the type of some proxy in p. Otherwise calls 'displayException'.
---
--- This can be useful if we ordinarily do not want to print callstacks, doing
--- so only in an unexpected case. For instance, we can use the following to
--- ensure we do not print callstacks for specific @Ex1@ and @Ex2@:
---
--- @
--- data Ex1 = ... deriving anyclass Exception
--- data Ex2 = ... deriving anyclass Exception
---
--- let  displayEx' :: SomeException -> String
---      displayEx' =
---        displayCSNoMatch
---          [ MkExceptionProxy (Proxy \@Ex1),
---            MkExceptionProxy (Proxy \@Ex2)
---          ]
---
--- -- in main
--- setUncaughtExceptionHandler displayEx'
--- @
---
--- @since 0.1
-displayCSNoMatch :: (Exception e) => [ExceptionProxy] -> e -> String
-displayCSNoMatch proxies ex =
-  case Maybe.mapMaybe matches proxies of
-    (innerEx : _) -> displayException innerEx
-    _ -> displayException ex
-  where
-    se = toException ex
-    matches :: ExceptionProxy -> Maybe SomeException
-    matches (MkExceptionProxy @e _) = case fromException se of
-      Just (MkExceptionCS innerEx _) -> case fromException @e innerEx of
-        Just _ -> Just innerEx
-        Nothing -> Nothing
-      Nothing -> Nothing
+addCS = id
+{-# DEPRECATED addCS "For base >= 4.20 (GHC 9.10), addCS is an alias for id." #-}
 
--- | 'setUncaughtExceptionHandler' with 'displayCSNoMatchHandler' i.e. calls
--- 'displayException' on any uncaught exceptions, passing the result to the
--- param handler. 'ExitSuccess' is ignored.
---
--- @since 0.1
-setUncaughtExceptionDisplay ::
-  ( HasCallStack,
-    MonadGlobalException m
-  ) =>
-  (String -> m ()) ->
-  m ()
-setUncaughtExceptionDisplay = setUncaughtExceptionDisplayCSNoMatch []
-{-# INLINEABLE setUncaughtExceptionDisplay #-}
+#else
 
--- | Like 'setUncaughtExceptionDisplay', except callstacks are not printed for
--- exceptions matching the param proxies a la 'displayCSNoMatch'.
---
--- @since 0.1
-setUncaughtExceptionDisplayCSNoMatch ::
-  ( HasCallStack,
-    MonadGlobalException m
-  ) =>
-  [ExceptionProxy] ->
-  (String -> m ()) ->
-  m ()
-setUncaughtExceptionDisplayCSNoMatch proxies =
-  setUncaughtExceptionHandler
-    . displayCSNoMatchHandler proxies
-{-# INLINEABLE setUncaughtExceptionDisplayCSNoMatch #-}
+throwCS = CallStack.Legacy.throwCS
+{-# DEPRECATED throwCS
+  [ "The legacy CallStack exception annotations are deprecated as",
+    "the functionality is subsumed in base 4.20 (GHC 9.10)."
+  ]
+  #-}
 
--- | Calls 'displayCSNoMatch' on any uncaught exceptions, passing the result to
--- the param handler. 'ExitSuccess' is ignored.
---
--- @since 0.1
-displayCSNoMatchHandler ::
-  (Applicative f) =>
-  [ExceptionProxy] ->
-  (String -> f ()) ->
-  SomeException ->
-  f ()
-displayCSNoMatchHandler proxies handler ex = case fromException ex of
-  -- Need to handle ExitSuccess and MkExceptionCS ExitSuccess, which this
-  -- does.
-  Just (MkExceptionCS ExitSuccess _) -> pure ()
-  Just (MkExceptionCS (ExitFailure _) _) -> handler $ displayCSNoMatch proxies ex
-  Nothing -> handler $ displayCSNoMatch proxies ex
-{-# INLINEABLE displayCSNoMatchHandler #-}
+catchCS = CallStack.Legacy.catchCS
+{-# DEPRECATED catchCS
+  [ "The legacy CallStack exception annotations are deprecated as",
+    "the functionality is subsumed in base 4.20 (GHC 9.10)."
+  ]
+  #-}
+
+catchAnyCS = CallStack.Legacy.catchAnyCS
+{-# DEPRECATED catchAnyCS
+  [ "The legacy CallStack exception annotations are deprecated as",
+    "the functionality is subsumed in base 4.20 (GHC 9.10)."
+  ]
+  #-}
+
+handleCS = CallStack.Legacy.handleCS
+{-# DEPRECATED handleCS
+  [ "The legacy CallStack exception annotations are deprecated as",
+    "the functionality is subsumed in base 4.20 (GHC 9.10)."
+  ]
+  #-}
+
+handleAnyCS = CallStack.Legacy.handleAnyCS
+{-# DEPRECATED handleAnyCS
+  [ "The legacy CallStack exception annotations are deprecated as",
+    "the functionality is subsumed in base 4.20 (GHC 9.10)."
+  ]
+  #-}
+
+tryCS = CallStack.Legacy.tryCS
+{-# DEPRECATED tryCS
+  [ "The legacy CallStack exception annotations are deprecated as",
+    "the functionality is subsumed in base 4.20 (GHC 9.10)."
+  ]
+  #-}
+
+tryAnyCS = CallStack.Legacy.tryAnyCS
+{-# DEPRECATED tryAnyCS
+  [ "The legacy CallStack exception annotations are deprecated as",
+    "the functionality is subsumed in base 4.20 (GHC 9.10)."
+  ]
+  #-}
+
+addCS = CallStack.Legacy.addCS
+{-# DEPRECATED addCS
+  [ "The legacy CallStack exception annotations are deprecated as",
+    "the functionality is subsumed in base 4.20 (GHC 9.10)."
+  ]
+  #-}
+
+#endif
 
 -------------------------------------------------------------------------------
 --                                 Exceptions                                --
@@ -574,131 +421,8 @@ displayCSNoMatchHandler proxies handler ex = case fromException ex of
 -- @since 0.1
 onException :: forall m a b. (HasCallStack, MonadCatch m) => m a -> m b -> m a
 onException action handler =
-  withFrozenCallStack catchAny action (\e -> handler *> throwM e)
+  withFrozenCallStack SafeEx.catchAny action (\e -> handler *> SafeEx.throwM e)
 {-# INLINEABLE onException #-}
-
--- Using the same idea from exceptions. We generally want HasCallStack on our
--- functions, but only if exceptions also has them (0.10.6), otherwise we
--- receive -Wredundant-constraint warnings.
-
-#if MIN_VERSION_exceptions(0,10,6)
-# define HAS_CALL_STACK HasCallStack
-#else
-# define HAS_CALL_STACK ()
-#endif
-
--- | Like 'Ex.throwM' but any thrown asynchronous exceptions will be thrown
--- synchronously via 'SafeEx.toSyncException'.
---
--- @since 0.1
-throwM :: (HAS_CALL_STACK) => (MonadThrow m, Exception e) => e -> m a
-throwM = Ex.throwM . SafeEx.toSyncException
-
--- | Like upstream 'Ex.catch', but will not catch asynchronous exceptions.
---
--- @since 0.1
-catch ::
-  forall m e a.
-  (HAS_CALL_STACK) =>
-  ( MonadCatch m,
-    Exception e
-  ) =>
-  m a ->
-  (e -> m a) ->
-  m a
-catch f g =
-  f `Ex.catch` \e ->
-    if SafeEx.isSyncException e
-      then g e
-      else -- intentionally rethrowing an async exception synchronously,
-      -- since we want to preserve async behavior
-        Ex.throwM e
-
--- | 'catch' specialized to all synchronous exceptions.
---
--- @since 0.1
-catchAny ::
-  forall m a.
-  (HAS_CALL_STACK) =>
-  ( MonadCatch m
-  ) =>
-  m a ->
-  (SomeException -> m a) ->
-  m a
-catchAny = catch
-
--- | Flipped version of 'catch'.
---
--- @since 0.1
-handle ::
-  forall m e a.
-  (HAS_CALL_STACK) =>
-  ( MonadCatch m,
-    Exception e
-  ) =>
-  (e -> m a) ->
-  m a ->
-  m a
-handle = flip catch
-
--- | Flipped version of 'catchAny'.
---
--- @since 0.1
-handleAny ::
-  forall m a.
-  (HAS_CALL_STACK) =>
-  (MonadCatch m) =>
-  (SomeException -> m a) ->
-  m a ->
-  m a
-handleAny = flip catchAny
-
--- | Like upstream 'Ex.try', but will not catch asynchronous exceptions.
---
--- @since 0.1
-try ::
-  forall m e a.
-  (HAS_CALL_STACK) =>
-  ( MonadCatch m,
-    Exception e
-  ) =>
-  m a ->
-  m (Either e a)
-try f = catch (fmap Right f) (pure . Left)
-
--- | 'try' specialized to catch all synchronous exceptions.
---
--- @since 0.1
-tryAny ::
-  forall m a.
-  (HAS_CALL_STACK) =>
-  (MonadCatch m) =>
-  m a ->
-  m (Either SomeException a)
-tryAny = try
-
--- | Like upstream 'Ex.catches', but will not catch asynchronous exceptions.
---
--- @since 0.1
-catches ::
-  forall m a.
-  (HAS_CALL_STACK) =>
-  (MonadCatch m) =>
-  m a ->
-  [Handler m a] ->
-  m a
-catches io handlers = io `catch` catchesHandler handlers
-
-catchesHandler ::
-  forall m a.
-  (HAS_CALL_STACK) =>
-  (MonadThrow m) =>
-  [Handler m a] ->
-  SomeException ->
-  m a
-catchesHandler handlers e = foldr tryHandler (throwM e) handlers
-  where
-    tryHandler (Handler handler) res = maybe res handler (fromException e)
 
 -------------------------------------------------------------------------------
 --                                    Exit                                   --
@@ -713,7 +437,7 @@ catchesHandler handlers e = foldr tryHandler (throwM e) handlers
 -- where /exitfail/ is implementation-dependent.
 --
 -- @since 0.1
-exitFailure :: (HAS_CALL_STACK) => (MonadThrow m) => m a
+exitFailure :: (HasCallStack, MonadThrow m) => m a
 exitFailure = exitWith (ExitFailure 1)
 {-# INLINEABLE exitFailure #-}
 
@@ -722,14 +446,14 @@ exitFailure = exitWith (ExitFailure 1)
 -- successfully.
 --
 -- @since 0.1
-exitSuccess :: (HAS_CALL_STACK) => (MonadThrow m) => m a
+exitSuccess :: (HasCallStack, MonadThrow m) => m a
 exitSuccess = exitWith ExitSuccess
 {-# INLINEABLE exitSuccess #-}
 
 -- | Lifted 'System.Exit.exitWith'.
 --
 -- @since 0.1
-exitWith :: (HAS_CALL_STACK) => (MonadThrow m) => ExitCode -> m a
+exitWith :: (HasCallStack, MonadThrow m) => ExitCode -> m a
 exitWith ExitSuccess = throwCS ExitSuccess
 exitWith code@(ExitFailure n)
   | n /= 0 = throwCS code

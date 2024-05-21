@@ -18,9 +18,10 @@ jobs:
       matrix:
         ghc:
           - "9.2.8"
-          - "9.4.7"
-          - "9.6.3"
-          - "9.8.1"
+          - "9.4.8"
+          - "9.6.5"
+          - "9.8.2"
+          - "9.10.1"
         os:
           - "macos-latest"
           - "ubuntu-latest"
@@ -34,7 +35,7 @@ jobs:
           ghc-version: ${{ matrix.ghc }}
 
       - name: Configure
-        run: cabal configure --enable-tests --ghc-options -Werror
+        run: cabal configure --enable-tests --ghc-options='-Wno-deprecations -Werror'
 
       - name: Compile
         run: cabal build all
