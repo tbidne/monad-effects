@@ -36,17 +36,17 @@ program-options
 source-repository-package
     type: git
     location: https://github.com/tbidne/algebra-simple.git
-    tag: 405fc928e70a8378479cc5195db06374b829c1ec
+    tag: f8590486ec0fc66acf7db20308e1ed6993a52151
 
 source-repository-package
     type: git
     location: https://github.com/tbidne/bounds.git
-    tag: b0d13257c28399f3ac1a3c05c40a8d5ca275cf50
+    tag: f93b202c9d154b25b42b048570cf6648451aa577
 
 source-repository-package
     type: git
     location: https://github.com/tbidne/smart-math.git
-    tag: d141ad4d0b597abb481a67b589bcf3e1ff6ccde4
+    tag: 9bd570201445904d12d0e0b792f171d02e6f361e
 
 allow-newer: hedgehog:containers
 allow-newer: hedgehog:template-haskell
