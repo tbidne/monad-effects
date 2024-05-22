@@ -46,9 +46,11 @@ common common-lang
     TypeFamilies
     TypeOperators
 
+  default-language:   Haskell2010
+
 library
-  import:           common-lang
-  exposed-modules:  Effects.System.PosixCompat
+  import:          common-lang
+  exposed-modules: Effects.System.PosixCompat
   build-depends:
     , base                >=4.16.0.0 && <4.21
     , deepseq             >=1.4.4.0  && <1.6
@@ -57,14 +59,13 @@ library
     , transformers        >=0.5.6.2  && <0.7
     , unix-compat         >=0.6      && <0.8
 
-  hs-source-dirs:   src
-  default-language: Haskell2010
+  hs-source-dirs:  src
 
 test-suite unit
-  import:           common-lang
-  type:             exitcode-stdio-1.0
-  main-is:          Main.hs
-  other-modules:    PosixCompat
+  import:         common-lang
+  type:           exitcode-stdio-1.0
+  main-is:        Main.hs
+  other-modules:  PosixCompat
   build-depends:
     , base
     , bytestring           >=0.10.12.0 && <0.13
@@ -76,5 +77,4 @@ test-suite unit
     , tasty                >=1.1.0.3   && <1.6
     , tasty-hunit          >=0.9       && <0.11
 
-  hs-source-dirs:   test/unit
-  default-language: Haskell2010
+  hs-source-dirs: test/unit

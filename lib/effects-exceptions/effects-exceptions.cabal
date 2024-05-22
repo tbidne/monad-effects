@@ -46,6 +46,8 @@ common common-lang
     TypeFamilies
     TypeOperators
 
+  default-language:   Haskell2010
+
   -- NOTE: [TypeAbstractions default extensions]
   --
   -- We would like to enable TypeAbstractions globally i.e. the below logic,
@@ -66,7 +68,7 @@ common common-lang
     cpp-options: -DGHC_LT_9_4
 
 library
-  import:           common-lang
+  import:          common-lang
   exposed-modules:
     Effects.Exception
     Effects.Exception.Annotation.CallStack.Legacy
@@ -81,13 +83,12 @@ library
     , safe-exceptions  ^>=0.1.7.0
     , transformers     >=0.5.6.2  && <0.7
 
-  hs-source-dirs:   src
-  default-language: Haskell2010
+  hs-source-dirs:  src
 
 test-suite unit
-  import:           common-lang
-  type:             exitcode-stdio-1.0
-  main-is:          Main.hs
+  import:         common-lang
+  type:           exitcode-stdio-1.0
+  main-is:        Main.hs
   other-modules:
     Annotation.CallStack.Legacy
     Annotation.Utils
@@ -102,6 +103,5 @@ test-suite unit
   if (os(windows) || impl(ghc >=9.10.1))
     build-depends: text >=1.2.4.0 && <2.2
 
-  hs-source-dirs:   test/unit
-  ghc-options:      -threaded -with-rtsopts=-N
-  default-language: Haskell2010
+  hs-source-dirs: test/unit
+  ghc-options:    -threaded -with-rtsopts=-N
