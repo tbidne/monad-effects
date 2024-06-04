@@ -64,6 +64,7 @@ import Prelude
     Bool,
     Char,
     IO,
+    Integral,
     Maybe (Just, Nothing),
     Monad ((>>=)),
     Show (show),
@@ -119,7 +120,7 @@ class Monad m => MonadTerminal m where
   -- | Retrieves the terminal size.
   --
   -- @since 0.1
-  getTerminalSize :: HasCallStack => m (Window Natural)
+  getTerminalSize :: (HasCallStack, Integral a) => m (Window a)
 
   -- | Lifted 'CPretty.supportsPretty'.
   --
@@ -228,13 +229,13 @@ getTextContents' = T.pack <$> getContents'
 -- | Retrieves the terminal width.
 --
 -- @since 0.1
-getTerminalWidth :: (HasCallStack, MonadTerminal m) => m Natural
+getTerminalWidth :: (HasCallStack, Integral a, MonadTerminal m) => m a
 getTerminalWidth = width <$> getTerminalSize
 {-# INLINEABLE getTerminalWidth #-}
 
 -- | Retrieves the terminal height.
 --
 -- @since 0.1
-getTerminalHeight :: (HasCallStack, MonadTerminal m) => m Natural
+getTerminalHeight :: (HasCallStack, Integral a, MonadTerminal m) => m a
 getTerminalHeight = height <$> getTerminalSize
 {-# INLINEABLE getTerminalHeight #-}
