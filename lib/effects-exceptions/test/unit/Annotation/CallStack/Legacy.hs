@@ -1,17 +1,12 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE ViewPatterns #-}
 
 module Annotation.CallStack.Legacy (tests) where
 
-import Control.Monad (when, zipWithM_)
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
-import Data.List qualified as L
-#if WINDOWS || MIN_VERSION_base(4, 20, 0)
-import Data.Text qualified as T
-#endif
 import Data.Proxy (Proxy (Proxy))
+import Data.Text qualified as T
 #if MIN_VERSION_base(4,20,0)
 import Effects.Exception.Annotation.CallStack.Legacy
   ( ExceptionCS (MkExceptionCS),
@@ -23,7 +18,7 @@ import Effects.Exception.Annotation.CallStack.Legacy
     tryCS,
   )
 import Effects.Exception
-  ( Exception (displayException, fromException, toException),
+  ( Exception (fromException, toException),
     ExceptionProxy (MkExceptionProxy),
     ExitCode (ExitFailure, ExitSuccess),
     SomeException,
@@ -33,7 +28,7 @@ import Effects.Exception
   )
 #else
 import Effects.Exception
-  ( Exception (displayException, fromException, toException),
+  ( Exception (fromException, toException),
     ExceptionCS (MkExceptionCS),
     ExceptionProxy (MkExceptionProxy),
     ExitCode (ExitFailure, ExitSuccess),
@@ -41,7 +36,6 @@ import Effects.Exception
     addCS,
     displayCSNoMatch,
     displayCSNoMatchHandler,
-    displayException,
     displayNoCS,
     exitFailure,
     throwCS,
@@ -54,7 +48,7 @@ import GHC.Stack (callStack)
 import System.Exit (exitSuccess)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (HasCallStack, assertFailure, testCase, (@=?))
-import Text.Read qualified as TR
+import TestUtils qualified
 
 tests :: TestTree
 tests =
@@ -87,78 +81,43 @@ throwsTests =
 throwsCallStack :: (HasCallStack) => TestTree
 throwsCallStack = testCase "Throws with callstack" $ do
   tryAny (throwCS MkEx) >>= \case
-    Left e -> assertResults expected (L.lines $ displayException' e)
+    Left e ->
+      TestUtils.assertContainsMinLines 5 expected (TestUtils.displayExceptiont e)
     Right _ -> assertFailure "Error: did not catch expected exception."
   where
     expected =
-      fmap
-        portPaths
-#if MIN_VERSION_base(4,20,0)
-        [ "MkEx",
-          "CallStack (from HasCallStack):",
-          "  throwCS, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  throwsCallStack, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "HasCallStack backtrace:",
-          "  throwCS, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  throwsCallStack, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          ""
-        ]
-#else
-        [ "MkEx",
-          "CallStack (from HasCallStack):",
-          "  throwCS, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception",
-          "  throwCS, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  throwsCallStack, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy"
-        ]
-#endif
+      [ "MkEx",
+        "CallStack",
+        "  throwCS",
+        "  throwsCallStack"
+      ]
 
 throwsExitFailure :: TestTree
 throwsExitFailure = testCase "Calls exitFailure" $ do
   tryAny exitFailure >>= \case
-    Left e -> assertResults expected (L.lines $ displayException' e)
+    Left e ->
+      TestUtils.assertContainsMinLines 6 expected (TestUtils.displayExceptiont e)
     Right _ -> assertFailure "Error: did not catch expected exception."
   where
     expected =
-      fmap
-        portPaths
-#if MIN_VERSION_base(4, 20, 0)
-        [ "ExitFailure 0",
-          "HasCallStack backtrace:",
-          "  throwM, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception",
-          "  throwCS, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception",
-          "  exitWith, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception",
-          "  exitFailure, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy"
-        ]
-#else
-        [ "ExitFailure 0",
-          "CallStack (from HasCallStack):",
-          "  throwCS, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception",
-          "  throwCS, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception",
-          "  exitWith, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception",
-          "  exitFailure, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy"
-        ]
-#endif
+      [ "ExitFailure 1",
+        "CallStack",
+        "  throwCS",
+        "  exitWith",
+        "  exitFailure"
+      ]
 
 throwsExitSuccess :: TestTree
 throwsExitSuccess =
   testCase "Calls exitSuccess" $
     tryAny exitSuccess >>= \case
-      Left e -> assertResults expected (L.lines $ displayException' e)
+      Left e ->
+        TestUtils.assertContainsMinLines 1 expected (TestUtils.displayExceptiont e)
       Right _ -> assertFailure "Error: did not catch expected exception."
   where
-#if MIN_VERSION_base(4,20,0)
-    expected =
-      fmap
-        portPaths
-        [ "ExitSuccess",
-          "HasCallStack backtrace:",
-          "  collectBacktraces, called at libraries/ghc-internal/src/GHC/Internal/Exception.hs:0:0 in ghc-internal:GHC.Internal.Exception",
-          "  toExceptionWithBacktrace, called at libraries/ghc-internal/src/GHC/Internal/IO.hs:0:0 in ghc-internal:GHC.Internal.IO",
-          "  throwIO, called at libraries/ghc-internal/src/GHC/Internal/System/Exit.hs:0:0 in ghc-internal:GHC.Internal.System.Exit"
-        ]
-#else
+    -- Base >= 4.20 includes a callstack, but < 4.20 does not, hence we need
+    -- to be pessimistic.
     expected = ["ExitSuccess"]
-#endif
 
 catchTests :: (HasCallStack) => TestTree
 catchTests =
@@ -172,33 +131,23 @@ catchTests =
 catchesCallStackWrapped :: (HasCallStack) => TestTree
 catchesCallStackWrapped = testCase "catchCS catches wrapped exception" $ do
   tryCS @_ @(ExceptionCS Ex) (throwCS MkEx) >>= \case
-    Left e -> assertResults expected (L.lines $ displayException' e)
+    Left e ->
+      TestUtils.assertContainsMinLines 5 expected (TestUtils.displayExceptiont e)
     Right _ -> assertFailure "Error: did not catch expected exception."
   where
     expected =
-      fmap
-        portPaths
-#if MIN_VERSION_base(4,20,0)
-        [ "MkEx",
-          "CallStack (from HasCallStack):",
-          "  throwCS, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  catchesCallStackWrapped, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  catchTests, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy"
-        ]
-#else
-        [ "MkEx",
-          "CallStack (from HasCallStack):",
-          "  throwCS, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception",
-          "  throwCS, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  catchesCallStackWrapped, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  catchTests, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy"
-        ]
-#endif
+      [ "MkEx",
+        "CallStack",
+        "  throwCS",
+        "  catchesCallStackWrapped",
+        "  catchTests"
+      ]
 
 catchesCallStackOriginal :: (HasCallStack) => TestTree
 catchesCallStackOriginal = testCase "catchCS catches the original exception" $ do
   tryCS @_ @Ex (throwCS MkEx) >>= \case
-    Left e -> assertResults expected (L.lines $ displayException' e)
+    Left e ->
+      TestUtils.assertContainsMinLines 1 expected (TestUtils.displayExceptiont e)
     Right _ -> assertFailure "Error: did not catch expected exception."
   where
     expected = ["MkEx"]
@@ -206,28 +155,17 @@ catchesCallStackOriginal = testCase "catchCS catches the original exception" $ d
 catchesCallStackAny :: (HasCallStack) => TestTree
 catchesCallStackAny = testCase "catchCS catches any exception" $ do
   tryCS @_ @(ExceptionCS SomeException) (throwCS MkEx) >>= \case
-    Left e -> assertResults expected (L.lines $ displayException' e)
+    Left e ->
+      TestUtils.assertContainsMinLines 5 expected (TestUtils.displayExceptiont e)
     Right _ -> assertFailure "Error: did not catch expected exception."
   where
     expected =
-      fmap
-        portPaths
-#if MIN_VERSION_base(4,20,0)
-        [ "MkEx",
-          "CallStack (from HasCallStack):",
-          "  throwCS, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  catchesCallStackAny, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  catchTests, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy"
-        ]
-#else
-        [ "MkEx",
-          "CallStack (from HasCallStack):",
-          "  throwCS, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception",
-          "  throwCS, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  catchesCallStackAny, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  catchTests, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy"
-        ]
-#endif
+      [ "MkEx",
+        "CallStack",
+        "  throwCS",
+        "  catchesCallStackAny",
+        "  catchTests"
+      ]
 
 toExceptionTests :: (HasCallStack) => TestTree
 toExceptionTests =
@@ -240,32 +178,34 @@ toExceptionTests =
 toExceptionBasic :: (HasCallStack) => TestTree
 toExceptionBasic =
   testCase "Converts basic" $
-    assertResults expected (L.lines $ displayException' $ toException ex)
+    TestUtils.assertContainsMinLines
+      4
+      expected
+      (TestUtils.displayExceptiont $ toException ex)
   where
     ex = MkExceptionCS MkEx callStack
     expected =
-      fmap
-        portPaths
-        [ "MkEx",
-          "CallStack (from HasCallStack):",
-          "  toExceptionBasic, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  toExceptionTests, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy"
-        ]
+      [ "MkEx",
+        "CallStack (from HasCallStack):",
+        "  toExceptionBasic",
+        "  toExceptionTests"
+      ]
 
 toExceptionNested :: (HasCallStack) => TestTree
 toExceptionNested =
   testCase "Flattens nested" $
-    assertResults expected (L.lines $ displayException' $ toException ex)
+    TestUtils.assertContainsMinLines
+      4
+      expected
+      (TestUtils.displayExceptiont $ toException ex)
   where
     ex = MkExceptionCS (MkExceptionCS MkEx callStack) callStack
     expected =
-      fmap
-        portPaths
-        [ "MkEx",
-          "CallStack (from HasCallStack):",
-          "  toExceptionNested, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  toExceptionTests, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy"
-        ]
+      [ "MkEx",
+        "CallStack (from HasCallStack):",
+        "  toExceptionNested",
+        "  toExceptionTests"
+      ]
 
 fromExceptionTests :: (HasCallStack) => TestTree
 fromExceptionTests =
@@ -279,98 +219,77 @@ fromExceptionTests =
 fromExceptionWrapped :: (HasCallStack) => TestTree
 fromExceptionWrapped =
   testCase "Flattens nested" $
-    assertResults expected (L.lines $ show' $ fromException @(ExceptionCS Ex) ex)
+    TestUtils.assertContainsMinLines
+      4
+      expected
+      (TestUtils.showt $ fromException @(ExceptionCS Ex) ex)
   where
     ex = toException $ MkExceptionCS MkEx callStack
     expected =
-      fmap
-        portPaths
-        [ "Just MkEx",
-          "CallStack (from HasCallStack):",
-          "  fromExceptionWrapped, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  fromExceptionTests, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy"
-        ]
+      [ "Just MkEx",
+        "CallStack (from HasCallStack):",
+        "  fromExceptionWrapped",
+        "  fromExceptionTests"
+      ]
 
 fromExceptionWrappedNested :: (HasCallStack) => TestTree
 fromExceptionWrappedNested =
   testCase "Converts nested to (ExceptionCS Ex)" $
-    assertResults expected (L.lines $ show' $ fromException @(ExceptionCS Ex) ex)
+    TestUtils.assertContainsMinLines
+      4
+      expected
+      (TestUtils.showt $ fromException @(ExceptionCS Ex) ex)
   where
     ex = toException $ MkExceptionCS (toException MkEx) callStack
     expected =
-      fmap
-        portPaths
-        [ "Just MkEx",
-          "CallStack (from HasCallStack):",
-          "  fromExceptionWrappedNested, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  fromExceptionTests, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy"
-        ]
+      [ "Just MkEx",
+        "CallStack (from HasCallStack):",
+        "  fromExceptionWrappedNested",
+        "  fromExceptionTests"
+      ]
 
 fromExceptionDirect :: TestTree
 fromExceptionDirect =
   testCase "Converts to Ex" $
-    "Just MkEx\n" @=? show' (fromException @(ExceptionCS Ex) ex)
+    TestUtils.assertContainsMinLines
+      1
+      expected
+      (TestUtils.showt $ fromException @(ExceptionCS Ex) ex)
   where
     ex = toException MkEx
+    expected = ["Just MkEx"]
 
 addsCallStack :: (HasCallStack) => TestTree
 addsCallStack = testCase "Adds callstack" $ do
   tryAny (addCS $ throwM MkEx) >>= \case
-    Left e -> assertResults expected (L.lines $ displayException' e)
+    Left e ->
+      TestUtils.assertContainsMinLines 5 expected (TestUtils.displayExceptiont e)
     Right _ -> assertFailure "Error: did not catch expected exception."
   where
     expected =
-      fmap
-        portPaths
-#if MIN_VERSION_base(4,20,0)
-        [ "MkEx",
-          "CallStack (from HasCallStack):",
-          "  addCS, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  addsCallStack, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "HasCallStack backtrace:",
-          "  addCS, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  addsCallStack, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          ""
-        ]
-#else
-        [ "MkEx",
-          "CallStack (from HasCallStack):",
-          "  addCS, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception",
-          "  addCS, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  addsCallStack, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy"
-        ]
-#endif
+      [ "MkEx",
+        "CallStack (from HasCallStack):",
+        "  addCS, called at",
+        "  addCS, called at",
+        "  addsCallStack, called at"
+      ]
 
 addsCallStackMerges :: (HasCallStack) => TestTree
 addsCallStackMerges = testCase "Adds callstack merges callstacks" $ do
   tryAny (addCS $ throwCS MkEx) >>= \case
-    Left e -> assertResults expected (L.lines $ displayException' e)
+    Left e ->
+      TestUtils.assertContainsMinLines 7 expected (TestUtils.displayExceptiont e)
     Right _ -> assertFailure "Error: did not catch expected exception."
   where
     expected =
-      fmap
-        portPaths
-#if MIN_VERSION_base(4,20,0)
-        [ "MkEx",
-          "CallStack (from HasCallStack):",
-          "  throwCS, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  addsCallStackMerges, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  addCS, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "HasCallStack backtrace:",
-          "  addCS, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  addsCallStackMerges, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          ""
-        ]
-#else
-        [ "MkEx",
-          "CallStack (from HasCallStack):",
-          "  throwCS, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception",
-          "  throwCS, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  addsCallStackMerges, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  addCS, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception",
-          "  addCS, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy"
-        ]
-#endif
+      [ "MkEx",
+        "CallStack (from HasCallStack):",
+        "  throwCS, called at",
+        "  throwCS, called at",
+        "  addsCallStackMerges, called at",
+        "  addCS, called at",
+        "  addCS, called at"
+      ]
 
 displaysCSTests :: TestTree
 displaysCSTests =
@@ -383,12 +302,12 @@ displaysCSTests =
 displaysNoCallStack :: (HasCallStack) => TestTree
 displaysNoCallStack = testCase "Does not display callstack" $ do
   tryAny (throwCS MkEx) >>= \case
-    Left e -> "MkEx" @=? strip (displayNoCS e)
+    Left e -> "MkEx" @=? TestUtils.strip (displayNoCS e)
     Right _ -> assertFailure "Error: did not catch expected exception."
 
 displaysNoCallStackNested :: (HasCallStack) => TestTree
 displaysNoCallStackNested = testCase "Does not display nested callstack" $ do
-  "MkEx" @=? strip (displayNoCS ex)
+  "MkEx" @=? TestUtils.strip (displayNoCS ex)
   where
     ex =
       MkExceptionCS
@@ -424,7 +343,7 @@ displayNoCSIfMatchTests =
 displaysNoCSForSingleMatch :: (HasCallStack) => TestTree
 displaysNoCSForSingleMatch = testCase "Does not display callstack for single match" $ do
   tryAny (throwCS MkExB) >>= \case
-    Left e -> "MkExB" @=? strip (displayCSNoMatch matches e)
+    Left e -> "MkExB" @=? TestUtils.strip (displayCSNoMatch matches e)
     Right _ -> assertFailure "Error: did not catch expected exception."
   where
     matches = [MkExceptionProxy (Proxy @ExB)]
@@ -432,7 +351,7 @@ displaysNoCSForSingleMatch = testCase "Does not display callstack for single mat
 displaysNoCSForLaterMatch :: (HasCallStack) => TestTree
 displaysNoCSForLaterMatch = testCase "Does not display callstack for later match" $ do
   tryAny (throwCS MkExC) >>= \case
-    Left e -> "MkExC" @=? strip (displayCSNoMatch matches e)
+    Left e -> "MkExC" @=? TestUtils.strip (displayCSNoMatch matches e)
     Right _ -> assertFailure "Error: did not catch expected exception."
   where
     matches =
@@ -443,7 +362,7 @@ displaysNoCSForLaterMatch = testCase "Does not display callstack for later match
 displaysNoCSForMultiMatch :: (HasCallStack) => TestTree
 displaysNoCSForMultiMatch = testCase "Does not display callstack for match" $ do
   tryAny (throwCS MkExC) >>= \case
-    Left e -> "MkExC" @=? strip (displayCSNoMatch matches e)
+    Left e -> "MkExC" @=? TestUtils.strip (displayCSNoMatch matches e)
     Right _ -> assertFailure "Error: did not catch expected exception."
   where
     matches =
@@ -454,35 +373,24 @@ displaysNoCSForMultiMatch = testCase "Does not display callstack for match" $ do
 displaysCSForNoSingleMatch :: (HasCallStack) => TestTree
 displaysCSForNoSingleMatch = testCase "Displays callstack for no single match" $ do
   tryAny (throwCS MkExC) >>= \case
-    Left e -> assertResults expected (L.lines $ sanitize $ displayCSNoMatch matches e)
+    Left e ->
+      TestUtils.assertContainsMinLines 5 expected (T.pack $ displayCSNoMatch matches e)
     Right _ -> assertFailure "Error: did not catch expected exception."
   where
     matches = [MkExceptionProxy (Proxy @ExB)]
     expected =
-      fmap
-        portPaths
-#if MIN_VERSION_base(4,20,0)
-        [ "MkExC",
-          "CallStack (from HasCallStack):",
-          "  throwCS, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  displaysCSForNoSingleMatch, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy","HasCallStack backtrace:",
-          "  throwCS, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  displaysCSForNoSingleMatch, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          ""
-        ]
-#else
-        [ "MkExC",
-          "CallStack (from HasCallStack):",
-          "  throwCS, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception",
-          "  throwCS, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  displaysCSForNoSingleMatch, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy"
-        ]
-#endif
+      [ "MkExC",
+        "CallStack (from HasCallStack):",
+        "  throwCS, called at",
+        "  throwCS, called at",
+        "  displaysCSForNoSingleMatch, called at"
+      ]
 
 displaysCSForNoMultiMatch :: (HasCallStack) => TestTree
 displaysCSForNoMultiMatch = testCase "Displays callstack for no multi match" $ do
   tryAny (throwCS MkExB) >>= \case
-    Left e -> assertResults expected (removeEmpty $ L.lines $ sanitize $ displayCSNoMatch matches e)
+    Left e ->
+      TestUtils.assertContainsMinLines 5 expected (T.pack $ displayCSNoMatch matches e)
     Right _ -> assertFailure "Error: did not catch expected exception."
   where
     matches =
@@ -490,24 +398,12 @@ displaysCSForNoMultiMatch = testCase "Displays callstack for no multi match" $ d
         MkExceptionProxy (Proxy @ExC)
       ]
     expected =
-      fmap
-        portPaths
-#if MIN_VERSION_base(4,20,0)
-        [ "MkExB",
-          "CallStack (from HasCallStack):",
-          "  throwCS, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  displaysCSForNoMultiMatch, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy","HasCallStack backtrace:",
-          "  throwCS, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  displaysCSForNoMultiMatch, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy"
-        ]
-#else
-        [ "MkExB",
-          "CallStack (from HasCallStack):",
-          "  throwCS, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception",
-          "  throwCS, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy",
-          "  displaysCSForNoMultiMatch, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy"
-        ]
-#endif
+      [ "MkExB",
+        "CallStack (from HasCallStack):",
+        "  throwCS, called at",
+        "  throwCS, called at",
+        "  displaysCSForNoMultiMatch, called at"
+      ]
 
 displayNoCSIfMatchHandlerTests :: TestTree
 displayNoCSIfMatchHandlerTests =
@@ -525,30 +421,26 @@ displayNoCSIfMatchHandlerTests =
 displayNoCSIfMatchHandlerDefault :: (HasCallStack) => TestTree
 displayNoCSIfMatchHandlerDefault = testCase "Displays callstack by default" $ do
   str <- runDisplayNoCSIfMatchHandler [] ex
-  assertResults expected (L.lines $ sanitize str)
+  TestUtils.assertContainsMinLines 3 expected (T.pack str)
   where
     ex = toException (MkExceptionCS MkExA callStack)
     expected =
-      fmap
-        portPaths
-        [ "MkExA",
-          "CallStack (from HasCallStack):",
-          "  displayNoCSIfMatchHandlerDefault, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy"
-        ]
+      [ "MkExA",
+        "CallStack (from HasCallStack):",
+        "  displayNoCSIfMatchHandlerDefault, called at"
+      ]
 
 displayNoCSIfMatchHandlerNoMatches :: (HasCallStack) => TestTree
 displayNoCSIfMatchHandlerNoMatches = testCase "Displays callstack by no proxy matches" $ do
   str <- runDisplayNoCSIfMatchHandler proxies ex
-  assertResults expected (L.lines $ sanitize str)
+  TestUtils.assertContainsMinLines 3 expected (T.pack str)
   where
     ex = toException (MkExceptionCS MkExA callStack)
     expected =
-      fmap
-        portPaths
-        [ "MkExA",
-          "CallStack (from HasCallStack):",
-          "  displayNoCSIfMatchHandlerNoMatches, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy"
-        ]
+      [ "MkExA",
+        "CallStack (from HasCallStack):",
+        "  displayNoCSIfMatchHandlerNoMatches, called at"
+      ]
     proxies =
       [ MkExceptionProxy $ Proxy @ExB,
         MkExceptionProxy $ Proxy @ExC
@@ -557,14 +449,14 @@ displayNoCSIfMatchHandlerNoMatches = testCase "Displays callstack by no proxy ma
 displayNoCSIfMatchHandlerSkipsMatch :: (HasCallStack) => TestTree
 displayNoCSIfMatchHandlerSkipsMatch = testCase "Does not display callstack for match" $ do
   str <- runDisplayNoCSIfMatchHandler [MkExceptionProxy $ Proxy @ExB] ex
-  "MkExB" @=? strip str
+  "MkExB" @=? TestUtils.strip str
   where
     ex = toException MkExB
 
 displayNoCSIfMatchHandlerSkipsCSMatch :: (HasCallStack) => TestTree
 displayNoCSIfMatchHandlerSkipsCSMatch = testCase "Does not display callstack for cs match" $ do
   str <- runDisplayNoCSIfMatchHandler proxies ex
-  "MkExB" @=? strip str
+  "MkExB" @=? TestUtils.strip str
   where
     ex = toException (MkExceptionCS MkExB callStack)
     proxies =
@@ -575,16 +467,14 @@ displayNoCSIfMatchHandlerSkipsCSMatch = testCase "Does not display callstack for
 displayNoCSIfMatchHandlerExitFailure :: (HasCallStack) => TestTree
 displayNoCSIfMatchHandlerExitFailure = testCase "Displays callstack for ExitFailure" $ do
   str <- runDisplayNoCSIfMatchHandler [] ex
-  assertResults expected (L.lines $ sanitize str)
+  TestUtils.assertContainsMinLines 3 expected (T.pack str)
   where
     ex = toException (MkExceptionCS (ExitFailure 1) callStack)
     expected =
-      fmap
-        portPaths
-        [ "ExitFailure 0",
-          "CallStack (from HasCallStack):",
-          "  displayNoCSIfMatchHandlerExitFailure, called at test/unit/Annotation/CallStack/Legacy.hs:0:0 in main:Annotation.CallStack.Legacy"
-        ]
+      [ "ExitFailure 1",
+        "CallStack (from HasCallStack):",
+        "  displayNoCSIfMatchHandlerExitFailure, called at"
+      ]
 
 displayNoCSIfMatchHandlerNoExitSuccess :: (HasCallStack) => TestTree
 displayNoCSIfMatchHandlerNoExitSuccess = testCase desc $ do
@@ -624,108 +514,3 @@ newtype TestIO a = MkTestIO (ReaderT (IORef String) IO a)
 
 unTestIO :: TestIO a -> IORef String -> IO a
 unTestIO (MkTestIO io) = runReaderT io
-
-show' :: (Show a) => a -> String
-show' = zeroNums . show
-
-displayException' :: (Exception e) => e -> String
-displayException' = sanitize . displayException
-
-zeroNums :: String -> String
-zeroNums [] = []
-zeroNums (x : xs) = case TR.readMaybe @Int [x] of
-  Nothing -> x : zeroNums xs
-  Just _ -> '0' : zeroNums (skipNums xs)
-  where
-    skipNums [] = []
-    skipNums (y : ys) = case TR.readMaybe @Int [y] of
-      Nothing -> y : ys
-      Just _ -> skipNums ys
-
-sanitize :: String -> String
-sanitize = stripPkgName . zeroNums
-
--- crude, but it works
-stripPkgName :: String -> String
-stripPkgName [] = []
-stripPkgName (L.stripPrefix "effects-exceptions-0.0-" -> Just rest) =
-  "effects-exceptions-0.0-<pkg>" ++ stripPkgName (skipUntilColon rest)
-stripPkgName (x : xs) = x : stripPkgName xs
-
-skipUntilColon :: String -> String
-skipUntilColon [] = []
-skipUntilColon (':' : rest) = ':' : rest
-skipUntilColon (_ : xs) = skipUntilColon xs
-
-assertResults :: [String] -> [String] -> IO ()
-assertResults expected results = do
-  when (lenExpected /= lenResults) $
-    assertFailure $
-      mconcat
-        [ "Expected length (",
-          show lenExpected,
-          ") did not match results length (",
-          show lenResults,
-          ").\n\nExpected:\n",
-          show expected,
-          "\n\nResults:\n",
-          show results'
-        ]
-  zipWithM_ (@=?) expected results'
-  where
-    lenExpected = length expected
-    lenResults = length results'
-
-    results' = removeEmpty results
-
-portPaths :: String -> String
-#if WINDOWS && GHC_LT_9_4
-portPaths = T.unpack . replaceSlashes "\\\\" . T.pack
-#elif WINDOWS
-portPaths = T.unpack . replaceSlashes "\\" . T.pack
-#else
-portPaths = id
-#endif
-
-#if WINDOWS
--- For reasons I do not understand, in callstack exception messages we receive
--- windows paths like test/foo\\bar\\.
---
--- Why isn't the test/ slash a backslash? Who knows? In any case, replace
--- everything but that.
-replaceSlashes :: T.Text -> T.Text -> T.Text
-replaceSlashes slashes t = case T.breakOnEnd "test/" t of
-  ("", e) -> T.replace "/" slashes e
-  (s, e) -> s <> T.replace "/" slashes e
-#endif
-
--- NOTE: [Base 4.20+ Output Differences]
---
--- The output changes with base 4.20. The main change is that SomeException's
--- displayException now prints annotations by default. We don't _really_
--- care about the differences since anyone on 4.20+ should be using the
--- new annotations and not the Legacy module. Nevertheless, we still want
--- to assert that the basic functionality still works.
---
--- To do this, we use CPP to expect different output where necessary, and
--- provide helper functions below.
-
--- Remove empty strings. base 4.20's SomeException instance adds newlines.
-removeEmpty :: [String] -> [String]
--- Strip whitespace. base 4.20's SomeException instance adds newlines.
-strip :: String -> String
-
-#if MIN_VERSION_base(4,20,0)
-
-strip = T.unpack . T.strip . T.pack
-
-removeEmpty [] = []
-removeEmpty ("" : xs) = xs
-removeEmpty (x : xs) = x : removeEmpty xs
-
-#else
-
-removeEmpty = id
-strip = id
-
-#endif

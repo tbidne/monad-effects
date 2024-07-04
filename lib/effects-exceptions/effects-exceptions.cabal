@@ -48,24 +48,18 @@ common common-lang
 
   default-language:   Haskell2010
 
-  -- NOTE: [TypeAbstractions default extensions]
-  --
-  -- We would like to enable TypeAbstractions globally i.e. the below logic,
-  -- however, that runs afoul of our format job because cabal/cabal-fmt does
-  -- not recognize the extension yet. We need a greater version of cabal,
-  -- presumably.
-  --
-  -- Until our ci (nix) has a cabal that recognizes TypeAbstractions,
-  -- enable it in the module.
-  --
-  --if impl(ghc >=9.8.1)
-  --  default-extensions: TypeAbstractions
-
-  if os(windows)
-    cpp-options: -DWINDOWS
-
-  if impl(ghc <9.4)
-    cpp-options: -DGHC_LT_9_4
+-- NOTE: [TypeAbstractions default extensions]
+--
+-- We would like to enable TypeAbstractions globally i.e. the below logic,
+-- however, that runs afoul of our format job because cabal/cabal-fmt does
+-- not recognize the extension yet. We need a greater version of cabal,
+-- presumably.
+--
+-- Until our ci (nix) has a cabal that recognizes TypeAbstractions,
+-- enable it in the module.
+--
+--if impl(ghc >=9.8.1)
+--  default-extensions: TypeAbstractions
 
 library
   import:          common-lang
@@ -92,16 +86,15 @@ test-suite unit
   other-modules:
     Annotation.CallStack.Legacy
     Annotation.Utils
+    TestUtils
 
   build-depends:
     , base
     , effects-exceptions
     , tasty               >=1.1.0.3 && <1.6
     , tasty-hunit         >=0.9     && <0.11
+    , text                >=1.2.4.0 && <2.2
     , transformers
-
-  if (os(windows) || impl(ghc >=9.10.1))
-    build-depends: text >=1.2.4.0 && <2.2
 
   hs-source-dirs: test/unit
   ghc-options:    -threaded -with-rtsopts=-N

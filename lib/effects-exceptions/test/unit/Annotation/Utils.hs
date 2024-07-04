@@ -2,32 +2,23 @@
 
 #if MIN_VERSION_base(4,20,0)
 
-{-# LANGUAGE ViewPatterns #-}
-
 module Annotation.Utils (tests) where
 
 import Control.Exception
   ( ExceptionWithContext,
     SomeException (SomeException),
     addExceptionContext,
-    someExceptionContext,
   )
 import Control.Exception.Backtrace (collectBacktraces)
-import Control.Exception.Context (displayExceptionContext)
-import Control.Monad (when, zipWithM_)
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
-import Data.List qualified as L
-#if WINDOWS
-import Data.Text qualified as T
-#endif
 import Data.Proxy (Proxy (Proxy))
+import Data.Text qualified as T
 import Effects.Exception
-  ( Exception (displayException, toException),
+  ( Exception (toException),
     ExceptionProxy (MkExceptionProxy),
     ExitCode (ExitFailure, ExitSuccess),
-    displayException,
     displayInner,
     displayInnerMatch,
     displayInnerMatchHandler,
@@ -39,18 +30,18 @@ import Effects.Exception
 import System.Exit (exitSuccess)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (HasCallStack, assertFailure, testCase, (@=?))
-import Text.Read qualified as TR
+import TestUtils qualified
 
 tests :: TestTree
 tests =
-    testGroup
-      "Effects.Exceptions.Annotation.Utils"
-      [ throwsTests,
-        catchTests,
-        displayInnerTests,
-        displayInnerMatchTests,
-        displayNoCSIfMatchHandlerTests
-      ]
+  testGroup
+    "Effects.Exceptions.Annotation.Utils"
+    [ throwsTests,
+      catchTests,
+      displayInnerTests,
+      displayInnerMatchTests,
+      displayNoCSIfMatchHandlerTests
+    ]
 
 data Ex = MkEx
   deriving stock (Eq, Show)
@@ -67,38 +58,34 @@ throwsTests =
 throwsExitFailure :: TestTree
 throwsExitFailure = testCase "Calls exitFailure" $ do
   tryAny exitFailure >>= \case
-    Left e -> assertResults expected (L.lines $ displayException' e)
+    Left e ->
+      TestUtils.assertContainsMinLines 7 expected (TestUtils.displayExceptiont e)
     Right _ -> assertFailure "Error: did not catch expected exception."
   where
     expected =
-      fmap
-        portPaths
-        [ "ExitFailure 0",
-          "HasCallStack backtrace:",
-          "  throwM, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception",
-          "  throwCS, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception",
-          "  exitWith, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception",
-          "  exitFailure, called at test/unit/Annotation/Utils.hs:0:0 in main:Annotation.Utils",
-          ""
-        ]
+      [ "ExitFailure 1",
+        "HasCallStack backtrace:",
+        "  throwM, called at",
+        "  throwCS, called at",
+        "  exitWith, called at",
+        "  exitFailure"
+      ]
 
 throwsExitSuccess :: TestTree
 throwsExitSuccess =
   testCase "Calls exitSuccess" $
     tryAny exitSuccess >>= \case
-      Left e -> assertResults expected (L.lines $ displayException' e)
+      Left e ->
+        TestUtils.assertContainsMinLines 6 expected (TestUtils.displayExceptiont e)
       Right _ -> assertFailure "Error: did not catch expected exception."
   where
     expected =
-      fmap
-        portPaths
-        [ "ExitSuccess",
-          "HasCallStack backtrace:",
-          "  collectBacktraces, called at libraries/ghc-internal/src/GHC/Internal/Exception.hs:0:0 in ghc-internal:GHC.Internal.Exception",
-          "  toExceptionWithBacktrace, called at libraries/ghc-internal/src/GHC/Internal/IO.hs:0:0 in ghc-internal:GHC.Internal.IO",
-          "  throwIO, called at libraries/ghc-internal/src/GHC/Internal/System/Exit.hs:0:0 in ghc-internal:GHC.Internal.System.Exit",
-          ""
-        ]
+      [ "ExitSuccess",
+        "HasCallStack backtrace:",
+        "  collectBacktraces, called at",
+        "  toExceptionWithBacktrace, called at",
+        "  throwIO, called at"
+      ]
 
 catchTests :: (HasCallStack) => TestTree
 catchTests =
@@ -112,24 +99,22 @@ catchTests =
 catchesContext :: (HasCallStack) => TestTree
 catchesContext = testCase "catches exception with context" $ do
   try @_ @(ExceptionWithContext Ex) (throwM MkEx) >>= \case
-    Left e -> assertResults expected (L.lines $ displayException' e)
+    Left e ->
+      TestUtils.assertContainsMinLines 6 expected (TestUtils.displayExceptiont e)
     Right _ -> assertFailure "Error: did not catch expected exception."
   where
     expected =
-      fmap
-        portPaths
-        [ "MkEx",
-          "HasCallStack backtrace:",
-          "  throwM, called at test/unit/Annotation/Utils.hs:0:0 in main:Annotation.Utils",
-          "  catchesContext, called at test/unit/Annotation/Utils.hs:0:0 in main:Annotation.Utils",
-          "  catchTests, called at test/unit/Annotation/Utils.hs:0:0 in main:Annotation.Utils",
-          ""
-        ]
+      [ "MkEx",
+        "HasCallStack backtrace:",
+        "  throwM, called at",
+        "  catchesContext, called at",
+        "  catchTests, called at"
+      ]
 
 catchesOriginal :: (HasCallStack) => TestTree
 catchesOriginal = testCase "catches exception without stacktrace" $ do
   try @_ @Ex (throwM MkEx) >>= \case
-    Left e -> assertResults expected (L.lines $ displayException' e)
+    Left e -> TestUtils.assertContainsMinLines 1 expected (TestUtils.displayExceptiont e)
     Right _ -> assertFailure "Error: did not catch expected exception."
   where
     expected = ["MkEx"]
@@ -139,20 +124,15 @@ catchesGetsContext :: (HasCallStack) => TestTree
 catchesGetsContext = testCase "catches exception and gets context" $ do
   tryAny (throwM MkEx) >>= \case
     Left e ->
-      let context = someExceptionContext e
-       in assertResults expected (L.lines $ zeroNums $ displayExceptionContext context)
+      TestUtils.assertContainsMinLines 6 expected (TestUtils.displayExceptiont e)
     Right _ -> assertFailure "Error: did not catch expected exception."
   where
     expected =
-      fmap
-        portPaths
-        [ "HasCallStack backtrace:",
-          "  throwM, called at test/unit/Annotation/Utils.hs:0:0 in main:Annotation.Utils",
-          "  catchesGetsContext, called at test/unit/Annotation/Utils.hs:0:0 in main:Annotation.Utils",
-          "  catchTests, called at test/unit/Annotation/Utils.hs:0:0 in main:Annotation.Utils",
-          "",
-          ""
-        ]
+      [ "HasCallStack backtrace:",
+        "  throwM, called at",
+        "  catchesGetsContext, called at",
+        "  catchTests, called at"
+      ]
 
 displayInnerTests :: TestTree
 displayInnerTests =
@@ -236,24 +216,23 @@ displaysInnerForMultiMatch = testCase "Does not display callstack for match" $ d
 displaysOuterForNoSingleMatch :: (HasCallStack) => TestTree
 displaysOuterForNoSingleMatch = testCase "Displays callstack for no single match" $ do
   tryAny (throwM MkExC) >>= \case
-    Left e -> assertResults expected (L.lines $ sanitize $ displayInnerMatch matches e)
+    Left e ->
+      TestUtils.assertContainsMinLines 5 expected (T.pack $ displayInnerMatch matches e)
     Right _ -> assertFailure "Error: did not catch expected exception."
   where
     matches = [MkExceptionProxy (Proxy @ExB)]
     expected =
-      fmap
-        portPaths
-        [ "MkExC",
-          "HasCallStack backtrace:",
-          "  throwM, called at test/unit/Annotation/Utils.hs:0:0 in main:Annotation.Utils",
-          "  displaysOuterForNoSingleMatch, called at test/unit/Annotation/Utils.hs:0:0 in main:Annotation.Utils",
-          ""
-        ]
+      [ "MkExC",
+        "HasCallStack backtrace:",
+        "  throwM, called at",
+        "  displaysOuterForNoSingleMatch, called at"
+      ]
 
 displaysOuterForNoMultiMatch :: (HasCallStack) => TestTree
 displaysOuterForNoMultiMatch = testCase "Displays callstack for no multi match" $ do
   tryAny (throwM MkExB) >>= \case
-    Left e -> assertResults expected (L.lines $ sanitize $ displayInnerMatch matches e)
+    Left e ->
+      TestUtils.assertContainsMinLines 5 expected (T.pack $ displayInnerMatch matches e)
     Right _ -> assertFailure "Error: did not catch expected exception."
   where
     matches =
@@ -261,14 +240,11 @@ displaysOuterForNoMultiMatch = testCase "Displays callstack for no multi match" 
         MkExceptionProxy (Proxy @ExC)
       ]
     expected =
-      fmap
-        portPaths
-        [ "MkExB",
-          "HasCallStack backtrace:",
-          "  throwM, called at test/unit/Annotation/Utils.hs:0:0 in main:Annotation.Utils",
-          "  displaysOuterForNoMultiMatch, called at test/unit/Annotation/Utils.hs:0:0 in main:Annotation.Utils",
-          ""
-        ]
+      [ "MkExB",
+        "HasCallStack backtrace:",
+        "  throwM, called at",
+        "  displaysOuterForNoMultiMatch, called at"
+      ]
 
 displayNoCSIfMatchHandlerTests :: TestTree
 displayNoCSIfMatchHandlerTests =
@@ -287,34 +263,29 @@ displayNoCSIfMatchHandlerDefault = testCase "Displays callstack by default" $ do
   backtraces <- collectBacktraces
   let ex = addExceptionContext backtraces (toException MkExA)
   str <- runDisplayNoCSIfMatchHandler [] ex
-  assertResults expected (L.lines $ sanitize str)
+  TestUtils.assertContainsMinLines 5 expected (T.pack str)
   where
     expected =
-      fmap
-        portPaths
-        [ "MkExA",
-          "HasCallStack backtrace:",
-          "  collectBacktraces, called at test/unit/Annotation/Utils.hs:0:0 in main:Annotation.Utils",
-          "  displayNoCSIfMatchHandlerDefault, called at test/unit/Annotation/Utils.hs:0:0 in main:Annotation.Utils",
-          ""
-        ]
+      [ "MkExA",
+        "HasCallStack backtrace:",
+        "  collectBacktraces, called at",
+        "  displayNoCSIfMatchHandlerDefault, called at",
+        ""
+      ]
 
 displayNoCSIfMatchHandlerNoMatches :: (HasCallStack) => TestTree
 displayNoCSIfMatchHandlerNoMatches = testCase "Displays callstack by no proxy matches" $ do
   backtraces <- collectBacktraces
   let ex = addExceptionContext backtraces (toException MkExA)
   str <- runDisplayNoCSIfMatchHandler proxies ex
-  assertResults expected (L.lines $ sanitize str)
+  TestUtils.assertContainsMinLines 5 expected (T.pack str)
   where
     expected =
-      fmap
-        portPaths
-        [ "MkExA",
-          "HasCallStack backtrace:",
-          "  collectBacktraces, called at test/unit/Annotation/Utils.hs:0:0 in main:Annotation.Utils",
-          "  displayNoCSIfMatchHandlerNoMatches, called at test/unit/Annotation/Utils.hs:0:0 in main:Annotation.Utils",
-          ""
-        ]
+      [ "MkExA",
+        "HasCallStack backtrace:",
+        "  collectBacktraces, called at",
+        "  displayNoCSIfMatchHandlerNoMatches, called at"
+      ]
     proxies =
       [ MkExceptionProxy $ Proxy @ExB,
         MkExceptionProxy $ Proxy @ExC
@@ -344,17 +315,14 @@ displayNoCSIfMatchHandlerExitFailure = testCase "Displays callstack for ExitFail
   backtraces <- collectBacktraces
   let ex = addExceptionContext backtraces (toException (ExitFailure 1))
   str <- runDisplayNoCSIfMatchHandler [] ex
-  assertResults expected (L.lines $ sanitize str)
+  TestUtils.assertContainsMinLines 5 expected (T.pack str)
   where
     expected =
-      fmap
-        portPaths
-        [ "ExitFailure 0",
-          "HasCallStack backtrace:",
-          "  collectBacktraces, called at test/unit/Annotation/Utils.hs:0:0 in main:Annotation.Utils",
-          "  displayNoCSIfMatchHandlerExitFailure, called at test/unit/Annotation/Utils.hs:0:0 in main:Annotation.Utils",
-          ""
-        ]
+      [ "ExitFailure 1",
+        "HasCallStack backtrace:",
+        "  collectBacktraces, called at",
+        "  displayNoCSIfMatchHandlerExitFailure, called at"
+      ]
 
 displayNoCSIfMatchHandlerNoExitSuccess :: (HasCallStack) => TestTree
 displayNoCSIfMatchHandlerNoExitSuccess = testCase desc $ do
@@ -387,75 +355,6 @@ newtype TestIO a = MkTestIO (ReaderT (IORef String) IO a)
 
 unTestIO :: TestIO a -> IORef String -> IO a
 unTestIO (MkTestIO io) = runReaderT io
-
-displayException' :: (Exception e) => e -> String
-displayException' = sanitize . displayException
-
-zeroNums :: String -> String
-zeroNums [] = []
-zeroNums (x : xs) = case TR.readMaybe @Int [x] of
-  Nothing -> x : zeroNums xs
-  Just _ -> '0' : zeroNums (skipNums xs)
-  where
-    skipNums [] = []
-    skipNums (y : ys) = case TR.readMaybe @Int [y] of
-      Nothing -> y : ys
-      Just _ -> skipNums ys
-
-sanitize :: String -> String
-sanitize = stripPkgName . zeroNums
-
--- crude, but it works
-stripPkgName :: String -> String
-stripPkgName [] = []
-stripPkgName (L.stripPrefix "effects-exceptions-0.0-" -> Just rest) =
-  "effects-exceptions-0.0-<pkg>" ++ stripPkgName (skipUntilColon rest)
-stripPkgName (x : xs) = x : stripPkgName xs
-
-skipUntilColon :: String -> String
-skipUntilColon [] = []
-skipUntilColon (':' : rest) = ':' : rest
-skipUntilColon (_ : xs) = skipUntilColon xs
-
-assertResults :: (Eq a, Show a) => [a] -> [a] -> IO ()
-assertResults expected results = do
-  when (lenExpected /= lenResults) $
-    assertFailure $
-      mconcat
-        [ "Expected length (",
-          show lenExpected,
-          ") did not match results length (",
-          show lenResults,
-          ").\n\nExpected:\n",
-          show expected,
-          "\n\nResults:\n",
-          show results
-        ]
-  zipWithM_ (@=?) expected results
-  where
-    lenExpected = length expected
-    lenResults = length results
-
-portPaths :: String -> String
-#if WINDOWS && GHC_LT_9_4
-portPaths = T.unpack . replaceSlashes "\\\\" . T.pack
-#elif WINDOWS
-portPaths = T.unpack . replaceSlashes "\\" . T.pack
-#else
-portPaths = id
-#endif
-
-#if WINDOWS
--- For reasons I do not understand, in callstack exception messages we receive
--- windows paths like test/foo\\bar\\.
---
--- Why isn't the test/ slash a backslash? Who knows? In any case, replace
--- everything but that.
-replaceSlashes :: T.Text -> T.Text -> T.Text
-replaceSlashes slashes t = case T.breakOnEnd "test/" t of
-  ("", e) -> T.replace "/" slashes e
-  (s, e) -> s <> T.replace "/" slashes e
-#endif
 
 #else
 

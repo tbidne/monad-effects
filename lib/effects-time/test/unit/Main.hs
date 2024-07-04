@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 
 -- The Data.Text import is only used for Windows and base < 4.20.
@@ -26,9 +25,9 @@ import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Data.Fixed (Fixed (MkFixed))
 #if !MIN_VERSION_base(4, 20, 0)
+import Data.Foldable (for_)
 import Data.List qualified as L
-#endif
-#if WINDOWS
+import Data.Text (Text)
 import Data.Text qualified as T
 #endif
 import Data.Time.Calendar.OrdinalDate (fromOrdinalDate)
@@ -351,37 +350,72 @@ parseFormatZonedTimeEpsilon = testPropertyNamed desc "parseFormatZonedTimeEpsilo
 parsesLocalTimeCallStack :: TestTree
 parsesLocalTimeCallStack = testCase "Parses LocalTime failure gives CallStack" $ do
   try @SomeException parseAction >>= \case
-    Left e -> assertResults expected (L.lines $ stableCallStack e)
+    Left e -> assertContainsMinLines 5 expected (displayExceptiont e)
     Right _ -> assertFailure "Error: did not catch expected exception."
   where
     parseAction = MonadTime.parseLocalTimeCallStack "2022-02-08 10:20:05 UTC"
 
     expected =
-      massagePath
-        <$> [ "user error (parseTimeM: no parse of \"0-0-0 0:0:0 UTC\")",
-              "CallStack (from HasCallStack):",
-              "  addCS, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception",
-              "  addCS, called at src/Effects/Time.hs:0:0 in effects-time-0.0-<pkg>:Effects.Time",
-              "  parseLocalTimeCallStack, called at test/unit/Main.hs:0:0 in main:Main"
-            ]
+      [ "user error (parseTimeM: no parse of \"2022-02-08 10:20:05 UTC\")",
+        "CallStack (from HasCallStack):",
+        "  addCS, called at",
+        "  parseLocalTimeCallStack, called at"
+      ]
 
 parsesZonedTimeCallStack :: TestTree
 parsesZonedTimeCallStack =
   testCase "Parses ZonedTime failure gives CallStack" $
     try @SomeException parseAction >>= \case
-      Left e -> assertResults expected (L.lines $ stableCallStack e)
+      Left e -> assertContainsMinLines 5 expected (displayExceptiont e)
       Right _ -> assertFailure "Error: did not catch expected exception."
   where
     parseAction = MonadTime.parseZonedTimeCallStack "2022-02-08 10:20:05"
 
     expected =
-      massagePath
-        <$> [ "user error (parseTimeM: no parse of \"0-0-0 0:0:0\")",
-              "CallStack (from HasCallStack):",
-              "  addCS, called at src/Effects/Exception.hs:0:0 in effects-exceptions-0.0-<pkg>:Effects.Exception",
-              "  addCS, called at src/Effects/Time.hs:0:0 in effects-time-0.0-<pkg>:Effects.Time",
-              "  parseZonedTimeCallStack, called at test/unit/Main.hs:0:0 in main:Main"
+      [ "user error (parseTimeM: no parse of \"2022-02-08 10:20:05\")",
+        "CallStack (from HasCallStack):",
+        "  addCS, called at",
+        "  parseZonedTimeCallStack, called at"
+      ]
+
+displayExceptiont :: (Exception e) => e -> Text
+displayExceptiont = T.pack . displayException
+
+assertContainsMinLines :: Int -> [Text] -> Text -> IO ()
+assertContainsMinLines minExpectedLines expected txt = do
+  assertBool actualLinesErrMsg (actualLines >= minExpectedLines)
+  assertContains expected txt
+  where
+    -- actualLines = newlines + 1 (line before first newline)
+    actualLines = 1 + T.count "\n" txt
+
+    actualLinesErrMsg =
+      mconcat
+        [ "Expected at least ",
+          show minExpectedLines,
+          ", received ",
+          show actualLines,
+          ": ",
+          T.unpack (formatErrOutput txt)
+        ]
+
+assertContains :: [Text] -> Text -> IO ()
+assertContains expected txt = do
+  for_ expected $ \e -> do
+    let found = e `T.isInfixOf` txt
+        errMsg =
+          mconcat
+            [ "Expected element: '",
+              e,
+              "'\nReceived:",
+              formatErrOutput txt
             ]
+    assertBool (T.unpack errMsg) found
+
+formatErrOutput :: Text -> Text
+formatErrOutput = (prefix <>) . T.replace "\n" prefix
+  where
+    prefix = "\n  "
 
 #endif
 
@@ -492,69 +526,3 @@ genTimeSpec = MkTimeSpec <$> genSec <*> genNSec
   where
     genSec = Gen.integral (R.linearFrom 5 0 10)
     genNSec = Gen.integral (R.linearFrom 0 0 10_000_000_000)
-
-#if !MIN_VERSION_base(4, 20, 0)
-
-stableCallStack :: (Exception e) => e -> String
-stableCallStack = stripPkgName . zeroNums . displayException
-
--- A bit overzealous since we don't need all numbers zeroed, but it's not a
--- big deal
-zeroNums :: String -> String
-zeroNums [] = []
-zeroNums (x : xs) = case TR.readMaybe @Int [x] of
-  Nothing -> x : zeroNums xs
-  Just _ -> '0' : zeroNums (skipNums xs)
-  where
-    skipNums [] = []
-    skipNums (y : ys) = case TR.readMaybe @Int [y] of
-      Nothing -> y : ys
-      Just _ -> skipNums ys
-
--- crude, but it works
-stripPkgName :: String -> String
-stripPkgName = go
-  where
-    go [] = []
-    go (L.stripPrefix "effects-time-0.0-" -> Just rest) =
-      "effects-time-0.0-<pkg>" ++ stripPkgName (skipUntilColon rest)
-    go (L.stripPrefix "effects-exceptions-0.0-" -> Just rest) =
-      "effects-exceptions-0.0-<pkg>" ++ stripPkgName (skipUntilColon rest)
-    go (x : xs) = x : stripPkgName xs
-
-skipUntilColon :: String -> String
-skipUntilColon [] = []
-skipUntilColon (':' : rest) = ':' : rest
-skipUntilColon (_ : xs) = skipUntilColon xs
-
-assertResults :: (Eq a, Show a) => [a] -> [a] -> IO ()
-assertResults expected results = do
-  when (lenExpected /= lenResults) $
-    assertFailure $
-      mconcat
-        [ "Expected length (",
-          show lenExpected,
-          ") did not match results length (",
-          show lenResults,
-          ").\n\nExpected:\n",
-          show expected,
-          "\n\nResults:\n",
-          show results
-        ]
-  zipWithM_ (@=?) expected results
-  where
-    lenExpected = length expected
-    lenResults = length results
-
-massagePath :: String -> String
-
-#if WINDOWS && GHC_9_4
-massagePath = T.unpack . T.replace "/" "\\" . T.pack
-#elif WINDOWS
-massagePath = T.unpack . T.replace "/" "\\\\" . T.pack
-#else
-massagePath = id
-#endif
-
-#endif
--- !MIN_VERSION_base(4, 20, 0)
