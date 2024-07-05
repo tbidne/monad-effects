@@ -18,11 +18,11 @@ cradle:
     - path: "./lib/effects-fs/test/unit"
       component: "effects-fs:test:unit"
 
-    - path: "./lib/effects-fs/benchmarks/Main.hs"
+    - path: "./lib/effects-fs/bench/Main.hs"
       component: "effects-fs:bench:benchmarks"
 
-    - path: "./lib/effects-fs/benchmarks/Bench/Prelude.hs"
-      component: "effects-fs:bench:benchmarks"
+    - path: "./lib/effects-haskeline/src"
+      component: "lib:effects-haskeline"
 
     - path: "./lib/effects-ioref/src"
       component: "lib:effects-ioref"

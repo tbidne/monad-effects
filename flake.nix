@@ -61,6 +61,7 @@
                 effects-env = ./lib/effects-env;
                 effects-exceptions = ./lib/effects-exceptions;
                 effects-fs = ./lib/effects-fs;
+                effects-haskeline = ./lib/effects-haskeline;
                 effects-ioref = ./lib/effects-ioref;
                 effects-logger-ns = ./lib/effects-logger-ns;
                 effects-optparse = ./lib/effects-optparse;
@@ -78,6 +79,7 @@
             p.effects-env
             p.effects-exceptions
             p.effects-fs
+            p.effects-haskeline
             p.effects-ioref
             p.effects-logger-ns
             p.effects-optparse
@@ -114,6 +116,7 @@
               effects-unix-compat = ./lib/effects-unix-compat;
             };
           };
+          packages.effects-haskeline = mkPkg "effects-haskeline" ./lib/effects-haskeline { };
           packages.effects-ioref = mkPkgsException "effects-ioref" ./lib/effects-ioref;
           packages.effects-logger-ns = mkPkg "effects-logger-ns" ./lib/effects-logger-ns {
             effects-exceptions = ./lib/effects-exceptions;

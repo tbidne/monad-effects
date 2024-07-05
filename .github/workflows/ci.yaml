@@ -96,6 +96,7 @@ jobs:
             .#effects-env \
             .#effects-exceptions \
             .#effects-fs \
+            .#effects-haskeline \
             .#effects-ioref \
             .#effects-logger-ns \
             .#effects-optparse \

@@ -16,6 +16,7 @@
   - [effects-env](#effects-env)
   - [effects-exceptions](#effects-exceptions)
   - [effects-fs](#effects-fs)
+  - [effects-haskeline](#effects-haskeline)
   - [effects-ioref](#effects-ioref)
   - [effects-logger-ns](#effects-logger-ns)
   - [effects-optparse](#effects-optparse)
@@ -121,6 +122,17 @@ Filesystem effects. In particular:
 * The `File*` modules are for reading/writing to files, and include helper functions for (de/en)coding UTF-8.
 * The `Path*` modules implement the `directory` interface.
 * The `Handle*` modules implement `System.IO` handle operations.
+
+## effects-haskeline
+
+### Library: `haskeline`
+
+### Modules
+* `Effects.Haskeline`
+
+### Description
+
+Effects for the `haskeline` library.
 
 ## effects-ioref
 

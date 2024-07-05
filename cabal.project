@@ -3,6 +3,7 @@ packages:
   ./lib/effects-env
   ./lib/effects-exceptions
   ./lib/effects-fs
+  ./lib/effects-haskeline
   ./lib/effects-ioref
   ./lib/effects-logger-ns
   ./lib/effects-optparse
