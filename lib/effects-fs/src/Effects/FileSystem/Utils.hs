@@ -293,7 +293,7 @@ utfEncodingsLenient =
     --
     -- These should always succeed.
     UTF8.mkUTF8 TransliterateCodingFailure,
-    UTF16.mkUTF16 TransliterateCodingFailure,
+    UTF16.mkUTF16le TransliterateCodingFailure,
     elimEx
   )
   where
