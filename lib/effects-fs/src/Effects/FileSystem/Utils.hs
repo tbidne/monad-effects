@@ -16,29 +16,40 @@ module Effects.FileSystem.Utils
   ( -- * File paths
     OsPath,
 
-    -- ** To OsPath
+    -- ** Encoding
 
-    -- *** Encoding
+    -- *** Total
     encodeFpToOs,
+    encodeFpToOsLenient,
+
+    -- *** Partial
     encodeFpToOsThrowM,
     encodeFpToOsFail,
     unsafeEncodeFpToOs,
 
-    -- *** Encoding + Validation
+    -- ** Encoding + Validation
+
+    -- *** Total
     osp,
     encodeFpToValidOs,
+    encodeFpToValidOsLenient,
+
+    -- *** Partial
     encodeFpToValidOsThrowM,
     encodeFpToValidOsFail,
     unsafeEncodeFpToValidOs,
 
-    -- ** From OsPath
+    -- ** Decoding
 
-    -- *** Decoding
+    -- *** Total
     decodeOsToFp,
-    decodeOsToFpThrowM,
-    decodeOsToFpFail,
+    decodeOsToFpLenient,
     decodeOsToFpDisplayEx,
     decodeOsToFpShow,
+
+    -- *** Partial
+    decodeOsToFpThrowM,
+    decodeOsToFpFail,
     unsafeDecodeOsToFp,
 
     -- ** Functions
@@ -80,10 +91,13 @@ import Data.Text.Encoding.Error (UnicodeException)
 import Data.Text.Encoding.Error qualified as TEncError
 import Effects.Exception (MonadThrow, throwM)
 import Effects.System.PosixCompat qualified as PC
+import GHC.IO.Encoding.Failure (CodingFailureMode (TransliterateCodingFailure))
+import GHC.IO.Encoding.UTF16 qualified as UTF16
+import GHC.IO.Encoding.UTF8 qualified as UTF8
 import GHC.Stack (HasCallStack)
 import System.File.OsPath qualified as FileIO
 import System.FilePath qualified as FP
-import System.IO (Handle, IOMode)
+import System.IO (Handle, IOMode, TextEncoding)
 import System.IO qualified as IO
 import System.IO.Error (IOErrorType)
 import System.OsPath (OsPath, osp, (-<.>), (<.>), (</>))
@@ -100,7 +114,18 @@ import System.OsPath.Encoding (EncodingException (EncodingError))
 --
 -- @since 0.1
 encodeFpToOs :: FilePath -> Either EncodingException OsPath
-encodeFpToOs = OsPath.encodeWith IO.utf8 IO.utf16le
+encodeFpToOs = OsPath.encodeWith utf8Encoder utf16Encoder
+  where
+    (utf8Encoder, utf16Encoder) = utfEncodings
+
+-- | Total conversion from 'FilePath' to 'OsPath', replacing encode failures
+-- with the closest visual match.
+--
+-- @since 0.1
+encodeFpToOsLenient :: FilePath -> OsPath
+encodeFpToOsLenient = elimEx . OsPath.encodeWith uft8Encoding utf16Encoding
+  where
+    (uft8Encoding, utf16Encoding, elimEx) = utfEncodingsLenient
 
 -- | 'encodeFpToOs' that __also__ checks 'OsPath.isValid' i.e. 'encodeFpToOs'
 -- only succeeds if the 'FilePath' can be encoded /and/ passes expected
@@ -114,6 +139,13 @@ encodeFpToValidOs fp = case encodeFpToOs fp of
     if OsPath.isValid op
       then Right op
       else Left $ EncodingError (validErr "encodeFpToValidOs" fp op) Nothing
+
+-- | Total conversion from 'FilePath' to 'OsPath', replacing encode failures
+-- with the closest visual match. If the result is not valid, makes it valid.
+--
+-- @since 0.1
+encodeFpToValidOsLenient :: FilePath -> OsPath
+encodeFpToValidOsLenient = OsPath.makeValid . encodeFpToOsLenient
 
 -- | 'encodeFpToOs' that throws 'EncodingException'.
 --
@@ -175,7 +207,18 @@ unsafeEncodeFpToValidOs fp = case encodeFpToValidOs fp of
 --
 -- @since 0.1
 decodeOsToFp :: OsPath -> Either EncodingException FilePath
-decodeOsToFp = OsPath.decodeWith IO.utf8 IO.utf16le
+decodeOsToFp = OsPath.decodeWith utf8Encoder utf16Encoder
+  where
+    (utf8Encoder, utf16Encoder) = utfEncodings
+
+-- | Total conversion from 'OsPath' to 'FilePath', replacing decode failures
+-- with the closest visual match.
+--
+-- @since 0.1
+decodeOsToFpLenient :: OsPath -> FilePath
+decodeOsToFpLenient = elimEx . OsPath.decodeWith uft8Encoding utf16Encoding
+  where
+    (uft8Encoding, utf16Encoding, elimEx) = utfEncodingsLenient
 
 -- | 'decodeOsToFp' that throws 'EncodingException'.
 --
@@ -222,6 +265,39 @@ unsafeDecodeOsToFp :: (HasCallStack) => OsPath -> FilePath
 unsafeDecodeOsToFp p = case decodeOsToFp p of
   Left ex -> error $ decodeFailure "unsafeDecodeOsToFp" p (displayException ex)
   Right fp -> fp
+
+-- | (UTF8, UTF16LE) encoders.
+utfEncodings :: (TextEncoding, TextEncoding)
+-- NOTE: [Unix/Windows encodings]
+--
+-- utf8/utf16le encodings are taken from os-string's encodeUtf implementation.
+utfEncodings = (IO.utf8, IO.utf16le)
+
+-- | Like 'utfEncodings' except the encodings are total. We also provide an
+-- eliminator for @EncodingException -> a@ (lifted to Either for convenience),
+-- because such an @EncodingException@ should be impossible, but the general
+-- encode/decode framework returns Either, so we need to handle the impossible
+-- Left.
+utfEncodingsLenient ::
+  ( TextEncoding,
+    TextEncoding,
+    Either EncodingException a -> a
+  )
+utfEncodingsLenient =
+  ( -- see NOTE: [Unix/Windows encodings]
+    --
+    -- These encoders are like those defined in utfEncodings, except we use
+    -- TransliterateCodingFailure instead of ErrorOnCodingFailure i.e.
+    --
+    --     mkUTF8/mkUTF16 ErrorOnCodingFailure
+    --
+    -- These should always succeed.
+    UTF8.mkUTF8 TransliterateCodingFailure,
+    UTF16.mkUTF16 TransliterateCodingFailure,
+    elimEx
+  )
+  where
+    elimEx = either (error . show) id
 
 decodeFailure :: String -> OsPath -> String -> String
 decodeFailure fnName p msg =

@@ -18,6 +18,7 @@ import PathReader qualified
 import PathWriter qualified
 import System.Environment.Guard (ExpectEnv (ExpectEnvSet), guardOrElse')
 import Test.Tasty (defaultMain, testGroup, withResource)
+import Utils qualified
 
 main :: IO ()
 main =
@@ -27,7 +28,8 @@ main =
         "Unit Tests"
         [ Misc.tests args,
           PathReader.tests args,
-          PathWriter.tests args
+          PathWriter.tests args,
+          Utils.tests
         ]
 
 setup :: IO OsPath
