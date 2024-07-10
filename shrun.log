@@ -1,0 +1,1782 @@
+[2024-07-10 13:10:54][Command][haddock_push] Starting...
+[2024-07-10 13:10:54][Command][haddock_push] Your branch is up to date with 'origin/main'.
+[2024-07-10 13:10:54][Command][haddock_push] Already on 'main'
+[2024-07-10 13:10:54][Command][haddock_push] Deleted branch gh-pages (was 0688fc2).
+[2024-07-10 13:10:54][Command][haddock_push] Switched to a new branch 'gh-pages'
+[2024-07-10 13:10:55][Command][haddock_push] Build profile: -w ghc-9.8.2 -O1
+[2024-07-10 13:10:55][Command][haddock_push] In order, the following will be built (use -v for more details):
+[2024-07-10 13:10:55][Command][haddock_push]  - effects-exceptions-0.1 (lib) (configuration changed)
+[2024-07-10 13:10:55][Command][haddock_push]  - effects-haskeline-0.1 (lib) (configuration changed)
+[2024-07-10 13:10:55][Command][haddock_push]  - effects-unix-compat-0.1 (lib) (configuration changed)
+[2024-07-10 13:10:55][Command][haddock_push]  - effects-typed-process-0.1 (lib) (configuration changed)
+[2024-07-10 13:10:55][Command][haddock_push]  - effects-time-0.1 (lib) (configuration changed)
+[2024-07-10 13:10:55][Command][haddock_push]  - effects-thread-0.1 (lib) (configuration changed)
+[2024-07-10 13:10:55][Command][haddock_push]  - effects-terminal-0.1 (lib) (configuration changed)
+[2024-07-10 13:10:55][Command][haddock_push]  - effects-stm-0.1 (lib) (configuration changed)
+[2024-07-10 13:10:55][Command][haddock_push]  - effects-ioref-0.1 (lib) (configuration changed)
+[2024-07-10 13:10:55][Command][haddock_push]  - effects-env-0.1 (lib) (configuration changed)
+[2024-07-10 13:10:55][Command][haddock_push]  - effects-logger-ns-0.1 (lib) (configuration changed)
+[2024-07-10 13:10:55][Command][haddock_push]  - effects-async-0.1 (lib) (configuration changed)
+[2024-07-10 13:10:55][Command][haddock_push]  - effects-fs-0.1 (lib) (configuration changed)
+[2024-07-10 13:10:55][Command][haddock_push]  - effects-optparse-0.1 (lib) (configuration changed)
+[2024-07-10 13:10:55][Command][haddock_push] Configuring library for effects-exceptions-0.1..
+[2024-07-10 13:10:55][Command][haddock_push] Configuring library for effects-haskeline-0.1..
+[2024-07-10 13:11:00][Command][haddock_push] Preprocessing library for effects-exceptions-0.1..
+[2024-07-10 13:11:00][Command][haddock_push] Building library for effects-exceptions-0.1..
+[2024-07-10 13:11:00][Command][haddock_push] Preprocessing library for effects-haskeline-0.1..
+[2024-07-10 13:11:00][Command][haddock_push] Running Haddock on library for effects-haskeline-0.1..
+[2024-07-10 13:11:01][Command][haddock_push] Warning: --source-* options are ignored when --hyperlinked-source is enabled.
+[2024-07-10 13:11:01][Command][haddock_push] [1 of 1] Compiling Effects.Haskeline ( src/Effects/Haskeline.hs, nothing )
+[2024-07-10 13:11:04][Command][haddock_push] Preprocessing library for effects-exceptions-0.1..
+[2024-07-10 13:11:04][Command][haddock_push] Running Haddock on library for effects-exceptions-0.1..
+[2024-07-10 13:11:04][Command][haddock_push] Warning: --source-* options are ignored when --hyperlinked-source is enabled.
+[2024-07-10 13:11:05][Command][haddock_push] [1 of 4] Compiling Effects.Exception.Annotation.Common ( src/Effects/Exception/Annotation/Common.hs, nothing )
+[2024-07-10 13:11:05][Command][haddock_push] [2 of 4] Compiling Effects.Exception.Annotation.CallStack.Legacy ( src/Effects/Exception/Annotation/CallStack/Legacy.hs, nothing )
+[2024-07-10 13:11:06][Command][haddock_push] [3 of 4] Compiling Effects.Exception ( src/Effects/Exception.hs, nothing )
+[2024-07-10 13:11:07][Command][haddock_push] 
+[2024-07-10 13:11:07][Command][haddock_push] src/Effects/Exception.hs:171:1: warning: [GHC-15328] [-Wdeprecations]
+[2024-07-10 13:11:07][Command][haddock_push]     Module ‘Effects.Exception.Annotation.CallStack.Legacy’ is deprecated:
+[2024-07-10 13:11:07][Command][haddock_push]       "The legacy CallStack exception annotations are deprecated as"
+[2024-07-10 13:11:07][Command][haddock_push]       "the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:07][Command][haddock_push]     |
+[2024-07-10 13:11:07][Command][haddock_push] 171 | import Effects.Exception.Annotation.CallStack.Legacy qualified as CallStack.Legacy
+[2024-07-10 13:11:07][Command][haddock_push]     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[2024-07-10 13:11:07][Command][haddock_push] 
+[2024-07-10 13:11:07][Command][haddock_push] src/Effects/Exception.hs:337:11: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:07][Command][haddock_push]     In the use of ‘throwCS’
+[2024-07-10 13:11:07][Command][haddock_push]     (imported from Effects.Exception.Annotation.CallStack.Legacy):
+[2024-07-10 13:11:07][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:07][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:07][Command][haddock_push]     |
+[2024-07-10 13:11:07][Command][haddock_push] 337 | throwCS = CallStack.Legacy.throwCS
+[2024-07-10 13:11:07][Command][haddock_push]     |           ^^^^^^^^^^^^^^^^^^^^^^^^
+[2024-07-10 13:11:07][Command][haddock_push] 
+[2024-07-10 13:11:07][Command][haddock_push] src/Effects/Exception.hs:344:11: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:07][Command][haddock_push]     In the use of ‘catchCS’
+[2024-07-10 13:11:07][Command][haddock_push]     (imported from Effects.Exception.Annotation.CallStack.Legacy):
+[2024-07-10 13:11:07][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:07][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:07][Command][haddock_push]     |
+[2024-07-10 13:11:07][Command][haddock_push] 344 | catchCS = CallStack.Legacy.catchCS
+[2024-07-10 13:11:07][Command][haddock_push]     |           ^^^^^^^^^^^^^^^^^^^^^^^^
+[2024-07-10 13:11:07][Command][haddock_push] 
+[2024-07-10 13:11:07][Command][haddock_push] src/Effects/Exception.hs:351:14: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:07][Command][haddock_push]     In the use of ‘catchAnyCS’
+[2024-07-10 13:11:07][Command][haddock_push]     (imported from Effects.Exception.Annotation.CallStack.Legacy):
+[2024-07-10 13:11:07][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:07][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:07][Command][haddock_push]     |
+[2024-07-10 13:11:07][Command][haddock_push] 351 | catchAnyCS = CallStack.Legacy.catchAnyCS
+[2024-07-10 13:11:07][Command][haddock_push]     |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[2024-07-10 13:11:07][Command][haddock_push] 
+[2024-07-10 13:11:07][Command][haddock_push] src/Effects/Exception.hs:358:12: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:07][Command][haddock_push]     In the use of ‘handleCS’
+[2024-07-10 13:11:07][Command][haddock_push]     (imported from Effects.Exception.Annotation.CallStack.Legacy):
+[2024-07-10 13:11:07][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:07][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:07][Command][haddock_push]     |
+[2024-07-10 13:11:07][Command][haddock_push] 358 | handleCS = CallStack.Legacy.handleCS
+[2024-07-10 13:11:07][Command][haddock_push]     |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+[2024-07-10 13:11:07][Command][haddock_push] 
+[2024-07-10 13:11:07][Command][haddock_push] src/Effects/Exception.hs:365:15: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:07][Command][haddock_push]     In the use of ‘handleAnyCS’
+[2024-07-10 13:11:07][Command][haddock_push]     (imported from Effects.Exception.Annotation.CallStack.Legacy):
+[2024-07-10 13:11:07][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:07][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:07][Command][haddock_push]     |
+[2024-07-10 13:11:07][Command][haddock_push] 365 | handleAnyCS = CallStack.Legacy.handleAnyCS
+[2024-07-10 13:11:07][Command][haddock_push]     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[2024-07-10 13:11:07][Command][haddock_push] 
+[2024-07-10 13:11:07][Command][haddock_push] src/Effects/Exception.hs:372:9: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:07][Command][haddock_push]     In the use of ‘tryCS’
+[2024-07-10 13:11:07][Command][haddock_push]     (imported from Effects.Exception.Annotation.CallStack.Legacy):
+[2024-07-10 13:11:07][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:07][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:07][Command][haddock_push]     |
+[2024-07-10 13:11:07][Command][haddock_push] 372 | tryCS = CallStack.Legacy.tryCS
+[2024-07-10 13:11:07][Command][haddock_push]     |         ^^^^^^^^^^^^^^^^^^^^^^
+[2024-07-10 13:11:07][Command][haddock_push] 
+[2024-07-10 13:11:07][Command][haddock_push] src/Effects/Exception.hs:379:12: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:07][Command][haddock_push]     In the use of ‘tryAnyCS’
+[2024-07-10 13:11:07][Command][haddock_push]     (imported from Effects.Exception.Annotation.CallStack.Legacy):
+[2024-07-10 13:11:07][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:07][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:07][Command][haddock_push]     |
+[2024-07-10 13:11:07][Command][haddock_push] 379 | tryAnyCS = CallStack.Legacy.tryAnyCS
+[2024-07-10 13:11:07][Command][haddock_push]     |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+[2024-07-10 13:11:07][Command][haddock_push] 
+[2024-07-10 13:11:07][Command][haddock_push] src/Effects/Exception.hs:386:9: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:07][Command][haddock_push]     In the use of ‘addCS’
+[2024-07-10 13:11:07][Command][haddock_push]     (imported from Effects.Exception.Annotation.CallStack.Legacy):
+[2024-07-10 13:11:07][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:07][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:07][Command][haddock_push]     |
+[2024-07-10 13:11:07][Command][haddock_push] 386 | addCS = CallStack.Legacy.addCS
+[2024-07-10 13:11:07][Command][haddock_push]     |         ^^^^^^^^^^^^^^^^^^^^^^
+[2024-07-10 13:11:07][Command][haddock_push] [4 of 4] Compiling Effects.Exception.Annotation.Utils ( src/Effects/Exception/Annotation/Utils.hs, nothing )
+[2024-07-10 13:11:20][Command][haddock_push] Haddock coverage:
+[2024-07-10 13:11:20][Command][haddock_push]   81% (  9 / 11) in 'Effects.Haskeline'
+[2024-07-10 13:11:20][Command][haddock_push]   Missing documentation for:
+[2024-07-10 13:11:20][Command][haddock_push]     Module header
+[2024-07-10 13:11:20][Command][haddock_push]     MonadHaskeline (src/Effects/Haskeline.hs:56)
+[2024-07-10 13:11:21][Command][haddock_push] Documentation created:
+[2024-07-10 13:11:21][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.8.2/effects-haskeline-0.1/doc/html/effects-haskeline/
+[2024-07-10 13:11:23][Command][haddock_push] Haddock coverage:
+[2024-07-10 13:11:23][Command][haddock_push]  100% (  3 /  3) in 'Effects.Exception.Annotation.Common'
+[2024-07-10 13:11:23][Command][haddock_push] Warning: 'MonadMask' is out of scope.
+[2024-07-10 13:11:23][Command][haddock_push]     If you qualify the identifier, haddock can try to link it anyway.
+[2024-07-10 13:11:23][Command][haddock_push] Warning: 'throwM' is out of scope.
+[2024-07-10 13:11:23][Command][haddock_push]     If you qualify the identifier, haddock can try to link it anyway.
+[2024-07-10 13:11:23][Command][haddock_push] Warning: 'catch' is out of scope.
+[2024-07-10 13:11:23][Command][haddock_push]     If you qualify the identifier, haddock can try to link it anyway.
+[2024-07-10 13:11:23][Command][haddock_push] Warning: 'SomeException' is ambiguous. It is defined
+[2024-07-10 13:11:23][Command][haddock_push]     * in ‘GHC.Exception.Type’
+[2024-07-10 13:11:23][Command][haddock_push]     * in ‘GHC.Exception.Type’
+[2024-07-10 13:11:23][Command][haddock_push]     You may be able to disambiguate the identifier by qualifying it or
+[2024-07-10 13:11:23][Command][haddock_push]     by specifying the type/value namespace explicitly.
+[2024-07-10 13:11:23][Command][haddock_push]     Defaulting to the one defined in ‘GHC.Exception.Type’
+[2024-07-10 13:11:23][Command][haddock_push]  100% ( 21 / 21) in 'Effects.Exception.Annotation.CallStack.Legacy'
+[2024-07-10 13:11:23][Command][haddock_push] Warning: 'throwM' is out of scope.
+[2024-07-10 13:11:23][Command][haddock_push]     If you qualify the identifier, haddock can try to link it anyway.
+[2024-07-10 13:11:23][Command][haddock_push] Warning: 'catch' is out of scope.
+[2024-07-10 13:11:23][Command][haddock_push]     If you qualify the identifier, haddock can try to link it anyway.
+[2024-07-10 13:11:23][Command][haddock_push] Warning: 'catchAny' is out of scope.
+[2024-07-10 13:11:23][Command][haddock_push]     If you qualify the identifier, haddock can try to link it anyway.
+[2024-07-10 13:11:23][Command][haddock_push] Warning: 'ExceptionCS' is out of scope.
+[2024-07-10 13:11:23][Command][haddock_push]     If you qualify the identifier, haddock can try to link it anyway.
+[2024-07-10 13:11:23][Command][haddock_push]  100% ( 72 / 72) in 'Effects.Exception'
+[2024-07-10 13:11:23][Command][haddock_push]    0% (  0 /  1) in 'Effects.Exception.Annotation.Utils'
+[2024-07-10 13:11:23][Command][haddock_push]   Missing documentation for:
+[2024-07-10 13:11:23][Command][haddock_push]     Module header
+[2024-07-10 13:11:23][Command][haddock_push] Warning: Effects.Exception.Annotation.CallStack.Legacy: could not find link destinations for: 
+[2024-07-10 13:11:23][Command][haddock_push] - Effects.Exception.Annotation.CallStack.Legacy.Rep_ExceptionCS
+[2024-07-10 13:11:23][Command][haddock_push] Warning: Effects.Exception: could not find link destinations for: 
+[2024-07-10 13:11:23][Command][haddock_push] - GHC.IsList.D:R:ItemCallStack
+[2024-07-10 13:11:23][Command][haddock_push] - GHC.IO.Exception.Rep_ExitCode
+[2024-07-10 13:11:23][Command][haddock_push] - Effects.Exception.Annotation.CallStack.Legacy.Rep_ExceptionCS
+[2024-07-10 13:11:23][Command][haddock_push] - GHC.IOPort.IOPortException
+[2024-07-10 13:11:23][Command][haddock_push] Documentation created:
+[2024-07-10 13:11:23][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.8.2/effects-exceptions-0.1/doc/html/effects-exceptions/
+[2024-07-10 13:11:25][Command][haddock_push] Configuring library for effects-typed-process-0.1..
+[2024-07-10 13:11:25][Command][haddock_push] Configuring library for effects-env-0.1..
+[2024-07-10 13:11:25][Command][haddock_push] Configuring library for effects-thread-0.1..
+[2024-07-10 13:11:25][Command][haddock_push] Configuring library for effects-ioref-0.1..
+[2024-07-10 13:11:25][Command][haddock_push] Configuring library for effects-unix-compat-0.1..
+[2024-07-10 13:11:25][Command][haddock_push] Configuring library for effects-stm-0.1..
+[2024-07-10 13:11:25][Command][haddock_push] Configuring library for effects-terminal-0.1..
+[2024-07-10 13:11:25][Command][haddock_push] Configuring library for effects-time-0.1..
+[2024-07-10 13:11:34][Command][haddock_push] Preprocessing library for effects-ioref-0.1..
+[2024-07-10 13:11:34][Command][haddock_push] Building library for effects-ioref-0.1..
+[2024-07-10 13:11:34][Command][haddock_push] Preprocessing library for effects-unix-compat-0.1..
+[2024-07-10 13:11:34][Command][haddock_push] Building library for effects-unix-compat-0.1..
+[2024-07-10 13:11:34][Command][haddock_push] Preprocessing library for effects-thread-0.1..
+[2024-07-10 13:11:34][Command][haddock_push] Building library for effects-thread-0.1..
+[2024-07-10 13:11:35][Command][haddock_push] Preprocessing library for effects-typed-process-0.1..
+[2024-07-10 13:11:35][Command][haddock_push] Running Haddock on library for effects-typed-process-0.1..
+[2024-07-10 13:11:35][Command][haddock_push] Preprocessing library for effects-env-0.1..
+[2024-07-10 13:11:35][Command][haddock_push] Running Haddock on library for effects-env-0.1..
+[2024-07-10 13:11:35][Command][haddock_push] Preprocessing library for effects-time-0.1..
+[2024-07-10 13:11:35][Command][haddock_push] Building library for effects-time-0.1..
+[2024-07-10 13:11:35][Command][haddock_push] Preprocessing library for effects-terminal-0.1..
+[2024-07-10 13:11:35][Command][haddock_push] Running Haddock on library for effects-terminal-0.1..
+[2024-07-10 13:11:35][Command][haddock_push] Preprocessing library for effects-stm-0.1..
+[2024-07-10 13:11:35][Command][haddock_push] Running Haddock on library for effects-stm-0.1..
+[2024-07-10 13:11:35][Command][haddock_push] Warning: --source-* options are ignored when --hyperlinked-source is enabled.
+[2024-07-10 13:11:35][Command][haddock_push] Warning: --source-* options are ignored when --hyperlinked-source is enabled.
+[2024-07-10 13:11:35][Command][haddock_push] Warning: --source-* options are ignored when --hyperlinked-source is enabled.
+[2024-07-10 13:11:35][Command][haddock_push] [1 of 1] Compiling Effects.Time     ( src/Effects/Time.hs, /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.8.2/effects-time-0.1/build/Effects/Time.o, /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.8.2/effects-time-0.1/build/Effects/Time.dyn_o ) [Numeric.Algebra package changed]
+[2024-07-10 13:11:35][Command][haddock_push] Warning: --source-* options are ignored when --hyperlinked-source is enabled.
+[2024-07-10 13:11:36][Command][haddock_push] [1 of 1] Compiling Effects.System.Environment ( src/Effects/System/Environment.hs, nothing )
+[2024-07-10 13:11:36][Command][haddock_push] [1 of 1] Compiling Effects.Process.Typed ( src/Effects/Process/Typed.hs, nothing )
+[2024-07-10 13:11:36][Command][haddock_push] [1 of 1] Compiling Effects.System.Terminal ( src/Effects/System/Terminal.hs, nothing )
+[2024-07-10 13:11:36][Command][haddock_push] [1 of 1] Compiling Effects.Concurrent.STM ( src/Effects/Concurrent/STM.hs, nothing )
+[2024-07-10 13:11:36][Command][haddock_push] 
+[2024-07-10 13:11:36][Command][haddock_push] src/Effects/System/Environment.hs:75:13: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:36][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:36][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:36][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:36][Command][haddock_push]    |
+[2024-07-10 13:11:36][Command][haddock_push] 75 |   getArgs = addCS Env.getArgs
+[2024-07-10 13:11:36][Command][haddock_push]    |             ^^^^^
+[2024-07-10 13:11:36][Command][haddock_push] 
+[2024-07-10 13:11:36][Command][haddock_push] src/Effects/System/Environment.hs:77:17: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:36][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:36][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:36][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:36][Command][haddock_push]    |
+[2024-07-10 13:11:36][Command][haddock_push] 77 |   getProgName = addCS Env.getProgName
+[2024-07-10 13:11:36][Command][haddock_push]    |                 ^^^^^
+[2024-07-10 13:11:36][Command][haddock_push] 
+[2024-07-10 13:11:36][Command][haddock_push] src/Effects/System/Environment.hs:80:25: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:36][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:36][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:36][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:36][Command][haddock_push]    |
+[2024-07-10 13:11:36][Command][haddock_push] 80 |   executablePath = fmap addCS Env.executablePath
+[2024-07-10 13:11:36][Command][haddock_push]    |                         ^^^^^
+[2024-07-10 13:11:36][Command][haddock_push] 
+[2024-07-10 13:11:36][Command][haddock_push] src/Effects/System/Environment.hs:83:23: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:36][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:36][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:36][Command][haddock_push]                  t
+[2024-07-10 13:11:36][Command][haddock_push] he functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:36][Command][haddock_push]    |
+[2024-07-10 13:11:36][Command][haddock_push] 83 |   getExecutablePath = addCS Env.getExecutablePath
+[2024-07-10 13:11:36][Command][haddock_push]    |                       ^^^^^
+[2024-07-10 13:11:36][Command][haddock_push] 
+[2024-07-10 13:11:36][Command][haddock_push] src/Effects/System/Environment.hs:85:12: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:36][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:36][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:36][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:36][Command][haddock_push]    |
+[2024-07-10 13:11:36][Command][haddock_push] 85 |   getEnv = addCS . Env.getEnv
+[2024-07-10 13:11:36][Command][haddock_push]    |            ^^^^^
+[2024-07-10 13:11:36][Command][haddock_push] 
+[2024-07-10 13:11:36][Command][haddock_push] src/Effects/System/Environment.hs:87:15: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:36][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:36][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:36][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:36][Command][haddock_push]    |
+[2024-07-10 13:11:36][Command][haddock_push] 87 |   lookupEnv = addCS . Env.lookupEnv
+[2024-07-10 13:11:36][Command][haddock_push]    |               ^^^^^
+[2024-07-10 13:11:36][Command][haddock_push] 
+[2024-07-10 13:11:36][Command][haddock_push] src/Effects/System/Environment.hs:89:14: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:36][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:36][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:36][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:36][Command][haddock_push]    |
+[2024-07-10 13:11:36][Command][haddock_push] 89 |   setEnv x = addCS . Env.setEnv x
+[2024-07-10 13:11:36][Command][haddock_push]    |              ^^^^^
+[2024-07-10 13:11:36][Command][haddock_push] 
+[2024-07-10 13:11:36][Command][haddock_push] src/Effects/System/Environment.hs:91:14: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:36][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:36][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:36][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:36][Command][haddock_push]    |
+[2024-07-10 13:11:36][Command][haddock_push] 91 |   unsetEnv = addCS . Env.unsetEnv
+[2024-07-10 13:11:36][Command][haddock_push]    |              ^^^^^
+[2024-07-10 13:11:36][Command][haddock_push] 
+[2024-07-10 13:11:36][Command][haddock_push] src/Effects/System/Environment.hs:93:16: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:36][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:36][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:36][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:36][Command][haddock_push]    |
+[2024-07-10 13:11:36][Command][haddock_push] 93 |   withArgs x = addCS . Env.withArgs x
+[2024-07-10 13:11:36][Command][haddock_push]    |                ^^^^^
+[2024-07-10 13:11:36][Command][haddock_push] 
+[2024-07-10 13:11:36][Command][haddock_push] src/Effects/System/Environment.hs:95:20: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:36][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:36][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:36][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:36][Command][haddock_push]    |
+[2024-07-10 13:11:36][Command][haddock_push] 95 |   withProgName x = addCS . Env.withProgName x
+[2024-07-10 13:11:36][Command][haddock_push]    |                    ^^^^^
+[2024-07-10 13:11:36][Command][haddock_push] 
+[2024-07-10 13:11:36][Command][haddock_push] src/Effects/System/Environment.hs:97:20: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:36][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:36][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:36][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:36][Command][haddock_push]    |
+[2024-07-10 13:11:36][Command][haddock_push] 97 |   getEnvironment = addCS Env.getEnvironment
+[2024-07-10 13:11:36][Command][haddock_push]    |                    ^^^^^
+[2024-07-10 13:11:36][Command][haddock_push] 
+[2024-07-10 13:11:36][Command][haddock_push] src/Effects/Concurrent/STM.hs:55:16: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:36][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:36][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:36][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:36][Command][haddock_push]    |
+[2024-07-10 13:11:36][Command][haddock_push] 55 |   atomically = addCS . STM.atomically
+[2024-07-10 13:11:36][Command][haddock_push]    |                ^^^^^
+[2024-07-10 13:11:37][Command][haddock_push] 
+[2024-07-10 13:11:37][Command][haddock_push] src/Effects/Process/Typed.hs:306:16: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:37][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:37][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:37][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:37][Command][haddock_push]     |
+[2024-07-10 13:11:37][Command][haddock_push] 306 |   runProcess = addCS . P.runProcess
+[2024-07-10 13:11:37][Command][haddock_push]     |                ^^^^^
+[2024-07-10 13:11:37][Command][haddock_push] 
+[2024-07-10 13:11:37][Command][haddock_push] src/Effects/Process/Typed.hs:308:17: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:37][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:37][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:37][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:37][Command][haddock_push]     |
+[2024-07-10 13:11:37][Command][haddock_push] 308 |   readProcess = addCS . P.readProcess
+[2024-07-10 13:11:37][Command][haddock_push]     |                 ^^^^^
+[2024-07-10 13:11:37][Command][haddock_push] 
+[2024-07-10 13:11:37][Command][haddock_push] src/Effects/Process/Typed.hs:310:23: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:37][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:37][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:37][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:37][Command][haddock_push]     |
+[2024-07-10 13:11:37][Command][haddock_push] 310 |   readProcessStdout = addCS . P.readProcessStdout
+[2024-07-10 13:11:37][Command][haddock_push]     |                       ^^^^^
+[2024-07-10 13:11:37][Command][haddock_push] 
+[2024-07-10 13:11:37][Command][haddock_push] src/Effects/Process/Typed.hs:312:23: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:37][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:37][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:37][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:37][Command][haddock_push]     |
+[2024-07-10 13:11:37][Command][haddock_push] 312 |   readProcessStderr = addCS . P.readProcessStderr
+[2024-07-10 13:11:37][Command][haddock_push]     |                       ^^^^^
+[2024-07-10 13:11:37][Command][haddock_push] 
+[2024-07-10 13:11:37][Command][haddock_push] src/Effects/Process/Typed.hs:314:28: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:37][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:37][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:37][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:37][Command][haddock_push]     |
+[2024-07-10 13:11:37][Command][haddock_push] 314 |   readProcessInterleaved = addCS . P.readProcessInterleaved
+[2024-07-10 13:11:37][Command][haddock_push]     |                            ^^^^^
+[2024-07-10 13:11:37][Command][haddock_push] 
+[2024-07-10 13:11:37][Command][haddock_push] src/Effects/Process/Typed.hs:316:24: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:37][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:37][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:37][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:37][Command][haddock_push]     |
+[2024-07-10 13:11:37][Command][haddock_push] 316 |   withProcessWait pc = addCS . P.withProcessWait pc
+[2024-07-10 13:11:37][Command][haddock_push]     |                        ^^^^^
+[2024-07-10 13:11:37][Command][haddock_push] 
+[2024-07-10 13:11:37][Command][haddock_push] src/Effects/Process/Typed.hs:318:24: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:37][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:37][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:37][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:37][Command][haddock_push]     |
+[2024-07-10 13:11:37][Command][haddock_push] 318 |   withProcessTerm pc = addCS . P.withProcessTerm pc
+[2024-07-10 13:11:37][Command][haddock_push]     |                        ^^^^^
+[2024-07-10 13:11:37][Command][haddock_push] 
+[2024-07-10 13:11:37][Command][haddock_push] src/Effects/Process/Typed.hs:
+[2024-07-10 13:11:37][Command][haddock_push] 320:18: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:37][Command][haddock_push]     In the use of ‘addCS’ (imported from src/Effects/Time.hs:268:24: warningEff: [GHC-ec68441] [-Wts.Exceptdeprecations]
+[2024-07-10 13:11:37][Command][haddock_push] io    In the use ofn):
+[2024-07-10 13:11:37][Command][haddock_push]   ‘addCS’ (imported from   Effects.Exception):
+[2024-07-10 13:11:37][Command][haddock_push]  Deprecated:    Deprecated: "T "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:37][Command][haddock_push] he                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:37][Command][haddock_push] leg    |
+[2024-07-10 13:11:37][Command][haddock_push] acy268 |   getSystemZonedTime = addCS Local.getZonedTime
+[2024-07-10 13:11:37][Command][haddock_push]  Ca    |                        ^^^^^
+[2024-07-10 13:11:37][Command][haddock_push] llS
+[2024-07-10 13:11:37][Command][haddock_push] tack exception annotations are deprecated as
+[2024-07-10 13:11:37][Command][haddock_push]            src/Effects/Time.hs:270:22: warning   : [GHC-  68441] [-W thedeprecations]
+[2024-07-10 13:11:37][Command][haddock_push]  f    In the use ofuncti ‘addCS’ (imported fromon Effects.Exception):
+[2024-07-10 13:11:37][Command][haddock_push] al    Deprecated:ity "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:37][Command][haddock_push]  is                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:37][Command][haddock_push] su    |
+[2024-07-10 13:11:37][Command][haddock_push] bsu270 |   getMonotonicTime = addCS C.getMonotonicTime
+[2024-07-10 13:11:37][Command][haddock_push] med     |                      ^^^^^
+[2024-07-10 13:11:37][Command][haddock_push] in 
+[2024-07-10 13:11:37][Command][haddock_push] base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:37][Command][haddock_push]     |
+[2024-07-10 13:11:37][Command][haddock_push] 320 |   startProcess = addCS . P.ssrc/Effects/Time.hs:399:27: warningtar: [GHC-tPr68441] [-Wocesdeprecations]
+[2024-07-10 13:11:37][Command][haddock_push] s
+[2024-07-10 13:11:37][Command][haddock_push]     In the use of     ‘addCS’ (imported from|   Effects.Exception):
+[2024-07-10 13:11:37][Command][haddock_push]      Deprecated:     "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:37][Command][haddock_push]                     the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:37][Command][haddock_push]        |
+[2024-07-10 13:11:37][Command][haddock_push]    399 | parseLocalTimeCallStack = addCS . parseLocalTime
+[2024-07-10 13:11:37][Command][haddock_push]   ^    |                           ^^^^^
+[2024-07-10 13:11:37][Command][haddock_push] ^^^
+[2024-07-10 13:11:37][Command][haddock_push] ^
+[2024-07-10 13:11:37][Command][haddock_push] 
+[2024-07-10 13:11:37][Command][haddock_push] src/Effects/Time.hs:413:27: warningsrc: [GHC-/E68441] [-Wffects/Processdeprecations]
+[2024-07-10 13:11:37][Command][haddock_push] /Ty    In the use ofped.h ‘addCS’ (imported froms: Effects.Exception):
+[2024-07-10 13:11:37][Command][haddock_push] 3    Deprecated:22: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:37][Command][haddock_push] 17:                 the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:37][Command][haddock_push]  warning    |
+[2024-07-10 13:11:37][Command][haddock_push] : [413 | parseZonedTimeCallStack = addCS . parseZonedTime
+[2024-07-10 13:11:37][Command][haddock_push] GH    |                           ^^^^^
+[2024-07-10 13:11:37][Command][haddock_push] C-68441] [-Wdeprecations]
+[2024-07-10 13:11:37][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:37][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:37][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:37][Command][haddock_push]     |
+[2024-07-10 13:11:37][Command][haddock_push] 322 |   stopProcess = addCS . P.stopProcess
+[2024-07-10 13:11:37][Command][haddock_push]     |                 ^^^^^
+[2024-07-10 13:11:37][Command][haddock_push] 
+[2024-07-10 13:11:37][Command][haddock_push] src/Effects/Process/Typed.hs:324:17: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:37][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:37][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:37][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:37][Command][haddock_push]     |
+[2024-07-10 13:11:37][Command][haddock_push] 324 |   runProcess_ = addCS . P.runProcess_
+[2024-07-10 13:11:37][Command][haddock_push]     |                 ^^^^^
+[2024-07-10 13:11:37][Command][haddock_push] 
+[2024-07-10 13:11:37][Command][haddock_push] src/Effects/Process/Typed.hs:326:18: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:37][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:37][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:37][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:37][Command][haddock_push]     |
+[2024-07-10 13:11:37][Command][haddock_push] 326 |   readProcess_ = addCS . P.readProcess_
+[2024-07-10 13:11:37][Command][haddock_push]     |                  ^^^^^
+[2024-07-10 13:11:37][Command][haddock_push] 
+[2024-07-10 13:11:37][Command][haddock_push] src/Effects/Process/Typed.hs:328:24: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:37][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:37][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:37][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:37][Command][haddock_push]     |
+[2024-07-10 13:11:37][Command][haddock_push] 328 |   readProcessStdout_ = addCS . P.readProcessStdout_
+[2024-07-10 13:11:37][Command][haddock_push]     |                        ^^^^^
+[2024-07-10 13:11:37][Command][haddock_push] 
+[2024-07-10 13:11:37][Command][haddock_push] src/Effects/Process/Typed.hs:330:24: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:37][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:37][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:37][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:37][Command][haddock_push]     |
+[2024-07-10 13:11:37][Command][haddock_push] 330 |   readProcessStderr_ = addCS . P.readProcessStderr_
+[2024-07-10 13:11:37][Command][haddock_push]     |                        ^^^^^
+[2024-07-10 13:11:37][Command][haddock_push] 
+[2024-07-10 13:11:37][Command][haddock_push] src/Effects/Process/Typed.hs:332:29: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:37][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:37][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:37][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:37][Command][haddock_push]     |
+[2024-07-10 13:11:37][Command][haddock_push] 332 |   readProcessInterleaved_ = addCS . P.readProcessInterleaved_
+[2024-07-10 13:11:37][Command][haddock_push]     |                             ^^^^^
+[2024-07-10 13:11:37][Command][haddock_push] 
+[2024-07-10 13:11:37][Command][haddock_push] src/Effects/Process/Typed.hs:334:25: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:37][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:37][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:37][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:37][Command][haddock_push]     |
+[2024-07-10 13:11:37][Command][haddock_push] 334 |   withProcessWait_ pc = addCS . P.withProcessWait_ pc
+[2024-07-10 13:11:37][Command][haddock_push]     |                         ^^^^^
+[2024-07-10 13:11:37][Command][haddock_push] 
+[2024-07-10 13:11:37][Command][haddock_push] src/Effects/Process/Typed.hs:336:25: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:37][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:37][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:37][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:37][Command][haddock_push]     |
+[2024-07-10 13:11:37][Command][haddock_push] 336 |   withProcessTerm_ pc = addCS . P.withProcessTerm_ pc
+[2024-07-10 13:11:37][Command][haddock_push]     |                         ^^^^^
+[2024-07-10 13:11:37][Command][haddock_push] 
+[2024-07-10 13:11:37][Command][haddock_push] src/Effects/Process/Typed.hs:338:18: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:37][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:37][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:37][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:37][Command][haddock_push]     |
+[2024-07-10 13:11:37][Command][haddock_push] 338 |   waitExitCode = addCS . P.waitExitCode
+[2024-07-10 13:11:37][Command][haddock_push]     |                  ^^^^^
+[2024-07-10 13:11:37][Command][haddock_push] 
+[2024-07-10 13:11:37][Command][haddock_push] src/Effects/Process/Typed.hs:340:17: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:37][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:37][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:37][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:37][Command][haddock_push]     |
+[2024-07-10 13:11:37][Command][haddock_push] 340 |   getExitCode = addCS . P.getExitCode
+[2024-07-10 13:11:37][Command][haddock_push]     |                 ^^^^^
+[2024-07-10 13:11:37][Command][haddock_push] 
+[2024-07-10 13:11:37][Command][haddock_push] src/Effects/Process/Typed.hs:342:19: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:37][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:37][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:37][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:37][Command][haddock_push]     |
+[2024-07-10 13:11:37][Command][haddock_push] 342 |   checkExitCode = addCS . P.checkExitCode
+[2024-07-10 13:11:37][Command][haddock_push]     |                   ^^^^^
+[2024-07-10 13:11:38][Command][haddock_push] 
+[2024-07-10 13:11:38][Command][haddock_push] src/Effects/System/Terminal.hs:138:12: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:38][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:38][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:38][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:38][Command][haddock_push]     |
+[2024-07-10 13:11:38][Command][haddock_push] 138 |   putStr = addCS . IO.putStr
+[2024-07-10 13:11:38][Command][haddock_push]     |            ^^^^^
+[2024-07-10 13:11:38][Command][haddock_push] 
+[2024-07-10 13:11:38][Command][haddock_push] src/Effects/System/Terminal.hs:140:14: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:38][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:38][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:38][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:38][Command][haddock_push]     |
+[2024-07-10 13:11:38][Command][haddock_push] 140 |   putStrLn = addCS . IO.putStrLn
+[2024-07-10 13:11:38][Command][haddock_push]     |              ^^^^^
+[2024-07-10 13:11:38][Command][haddock_push] 
+[2024-07-10 13:11:38][Command][haddock_push] src/Effects/System/Terminal.hs:142:15: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:38][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:38][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:38][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:38][Command][haddock_push]     |
+[2024-07-10 13:11:38][Command][haddock_push] 142 |   putBinary = addCS . BS.putStr
+[2024-07-10 13:11:38][Command][haddock_push]     |               ^^^^^
+[2024-07-10 13:11:38][Command][haddock_push] 
+[2024-07-10 13:11:38][Command][haddock_push] src/Effects/System/Terminal.hs:144:13: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:38][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:38][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:38][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:38][Command][haddock_push]     |
+[2024-07-10 13:11:38][Command][haddock_push] 144 |   getChar = addCS IO.getChar
+[2024-07-10 13:11:38][Command][haddock_push]     |             ^^^^^
+[2024-07-10 13:11:38][Command][haddock_push] 
+[2024-07-10 13:11:38][Command][haddock_push] src/Effects/System/Terminal.hs:146:13: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:38][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:38][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:38][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:38][Command][haddock_push]     |
+[2024-07-10 13:11:38][Command][haddock_push] 146 |   getLine = addCS IO.getLine
+[2024-07-10 13:11:38][Command][haddock_push]     |             ^^^^^
+[2024-07-10 13:11:38][Command][haddock_push] 
+[2024-07-10 13:11:38][Command][haddock_push] src/Effects/System/Terminal.hs:149:18: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:38][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:38][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:38][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:38][Command][haddock_push]     |
+[2024-07-10 13:11:38][Command][haddock_push] 149 |   getContents' = addCS IO.getContents'
+[2024-07-10 13:11:38][Command][haddock_push]     |                  ^^^^^
+[2024-07-10 13:11:38][Command][haddock_push] 
+[2024-07-10 13:11:38][Command][haddock_push] src/Effects/System/Terminal.hs:155:18: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:38][Command][haddock_push]     In the use of ‘throwCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:38][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:38][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:38][Command][haddock_push]     |
+[2024-07-10 13:11:38][Command][haddock_push] 155 |       Nothing -> throwCS $
+[2024-07-10 13:11:38][Command][haddock_push]     |                  ^^^^^^^
+[2024-07-10 13:11:38][Command][haddock_push] Preprocessing library for effects-ioref-0.1..
+[2024-07-10 13:11:38][Command][haddock_push] Running Haddock on library for effects-ioref-0.1..
+[2024-07-10 13:11:39][Command][haddock_push] Warning: --source-* options are ignored when --hyperlinked-source is enabled.
+[2024-07-10 13:11:39][Command][haddock_push] Preprocessing library for effects-thread-0.1..
+[2024-07-10 13:11:39][Command][haddock_push] Running Haddock on library for effects-thread-0.1..
+[2024-07-10 13:11:40][Command][haddock_push] Warning: --source-* options are ignored when --hyperlinked-source is enabled.
+[2024-07-10 13:11:40][Command][haddock_push] [1 of 1] Compiling Effects.IORef    ( src/Effects/IORef.hs, nothing )
+[2024-07-10 13:11:40][Command][haddock_push] Preprocessing library for effects-unix-compat-0.1..
+[2024-07-10 13:11:40][Command][haddock_push] Running Haddock on library for effects-unix-compat-0.1..
+[2024-07-10 13:11:40][Command][haddock_push] 
+[2024-07-10 13:11:40][Command][haddock_push] src/Effects/IORef.hs:59:14: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:40][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:40][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:40][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:40][Command][haddock_push]    |
+[2024-07-10 13:11:40][Command][haddock_push] 59 |   newIORef = addCS . IORef.newIORef
+[2024-07-10 13:11:40][Command][haddock_push]    |              ^^^^^
+[2024-07-10 13:11:40][Command][haddock_push] 
+[2024-07-10 13:11:40][Command][haddock_push] src/Effects/IORef.hs:61:15: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:40][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:40][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:40][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:40][Command][haddock_push]    |
+[2024-07-10 13:11:40][Command][haddock_push] 61 |   readIORef = addCS . IORef.readIORef
+[2024-07-10 13:11:40][Command][haddock_push]    |               ^^^^^
+[2024-07-10 13:11:40][Command][haddock_push] 
+[2024-07-10 13:11:40][Command][haddock_push] src/Effects/IORef.hs:63:18: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:40][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:40][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:40][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:40][Command][haddock_push]    |
+[2024-07-10 13:11:40][Command][haddock_push] 63 |   writeIORef r = addCS . IORef.writeIORef r
+[2024-07-10 13:11:40][Command][haddock_push]    |                  ^^^^^
+[2024-07-10 13:11:40][Command][haddock_push] 
+[2024-07-10 13:11:40][Command][haddock_push] src/Effects/IORef.hs:65:24: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:40][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:40][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:40][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:40][Command][haddock_push]    |
+[2024-07-10 13:11:40][Command][haddock_push] 65 |   atomicWriteIORef r = addCS . IORef.atomicWriteIORef r
+[2024-07-10 13:11:40][Command][haddock_push]    |                        ^^^^^
+[2024-07-10 13:11:40][Command][haddock_push] 
+[2024-07-10 13:11:40][Command][haddock_push] src/Effects/IORef.hs:67:20: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:40][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:40][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:40][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:40][Command][haddock_push]    |
+[2024-07-10 13:11:40][Command][haddock_push] 67 |   modifyIORef' r = addCS . IORef.modifyIORef' r
+[2024-07-10 13:11:40][Command][haddock_push]    |                    ^^^^^
+[2024-07-10 13:11:40][Command][haddock_push] 
+[2024-07-10 13:11:40][Command][haddock_push] src/Effects/IORef.hs:69:26: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:40][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:40][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:40][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:40][Command][haddock_push]    |
+[2024-07-10 13:11:40][Command][haddock_push] 69 |   atomicModifyIORef' r = addCS . IORef.atomicModifyIORef' r
+[2024-07-10 13:11:40][Command][haddock_push]    |                          ^^^^^
+[2024-07-10 13:11:40][Command][haddock_push] Warning: --source-* options are ignored when --hyperlinked-source is enabled.
+[2024-07-10 13:11:40][Command][haddock_push] [1 of 1] Compiling Effects.Concurrent.Thread ( src/Effects/Concurrent/Thread.hs, nothing )
+[2024-07-10 13:11:41][Command][haddock_push] [1 of 1] Compiling Effects.System.PosixCompat ( src/Effects/System/PosixCompat.hs, nothing )
+[2024-07-10 13:11:41][Command][haddock_push] 
+[2024-07-10 13:11:41][Command][haddock_push] src/Effects/Concurrent/Thread.hs:93:17: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:41][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:41][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:41][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:41][Command][haddock_push]    |
+[2024-07-10 13:11:41][Command][haddock_push] 93 |   threadDelay = addCS . CC.threadDelay
+[2024-07-10 13:11:41][Command][haddock_push]    |                 ^^^^^
+[2024-07-10 13:11:41][Command][haddock_push] 
+[2024-07-10 13:11:41][Command][haddock_push] src/Effects/Concurrent/Thread.hs:95:17: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:41][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:41][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:41][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:41][Command][haddock_push]    |
+[2024-07-10 13:11:41][Command][haddock_push] 95 |   throwTo tid = addCS . CC.throwTo tid
+[2024-07-10 13:11:41][Command][haddock_push]    |                 ^^^^^
+[2024-07-10 13:11:41][Command][haddock_push] 
+[2024-07-10 13:11:41][Command][haddock_push] src/Effects/Concurrent/Thread.hs:97:24: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:41][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:41][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:41][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:41][Command][haddock_push]    |
+[2024-07-10 13:11:41][Command][haddock_push] 97 |   getNumCapabilities = addCS CC.getNumCapabilities
+[2024-07-10 13:11:41][Command][haddock_push]    |                        ^^^^^
+[2024-07-10 13:11:41][Command][haddock_push] 
+[2024-07-10 13:11:41][Command][haddock_push] src/Effects/Concurrent/Thread.hs:99:24: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:41][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:41][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:41][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:41][Command][haddock_push]    |
+[2024-07-10 13:11:41][Command][haddock_push] 99 |   setNumCapabilities = addCS . CC.setNumCapabilities
+[2024-07-10 13:11:41][Command][haddock_push]    |                        ^^^^^
+[2024-07-10 13:11:41][Command][haddock_push] 
+[2024-07-10 13:11:41][Command][haddock_push] src/Effects/Concurrent/Thread.hs:101:22: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:41][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:41][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:41][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:41][Command][haddock_push]     |
+[2024-07-10 13:11:41][Command][haddock_push] 101 |   threadCapability = addCS . CC.threadCapability
+[2024-07-10 13:11:41][Command][haddock_push]     |                      ^^^^^
+[2024-07-10 13:11:41][Command][haddock_push] 
+[2024-07-10 13:11:41][Command][haddock_push] src/Effects/Concurrent/Thread.hs:103:16: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:41][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:41][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:41][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:41][Command][haddock_push]     |
+[2024-07-10 13:11:41][Command][haddock_push] 103 |   myThreadId = addCS CC.myThreadId
+[2024-07-10 13:11:41][Command][haddock_push]     |                ^^^^^
+[2024-07-10 13:11:41][Command][haddock_push] 
+[2024-07-10 13:11:41][Command][haddock_push] src/Effects/Concurrent/Thread.hs:105:21: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:41][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:41][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:41][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:41][Command][haddock_push]     |
+[2024-07-10 13:11:41][Command][haddock_push] 105 |   labelThread tid = addCS . Sync.labelThread tid
+[2024-07-10 13:11:41][Command][haddock_push]     |                     ^^^^^
+[2024-07-10 13:11:41][Command][haddock_push] 
+[2024-07-10 13:11:41][Command][haddock_push] src/Effects/Concurrent/Thread.hs:108:17: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:41][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:41][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:41][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:41][Command][haddock_push]     |
+[2024-07-10 13:11:41][Command][haddock_push] 108 |   threadLabel = addCS . Sync.threadLabel
+[2024-07-10 13:11:41][Command][haddock_push]     |                 ^^^^^
+[2024-07-10 13:11:43][Command][haddock_push] 
+[2024-07-10 13:11:43][Command][haddock_push] src/Effects/System/PosixCompat.hs:412:3: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:43][Command][haddock_push]     In the use of ‘throwCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:43][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:43][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:43][Command][haddock_push]     |
+[2024-07-10 13:11:43][Command][haddock_push] 412 |   throwCS $
+[2024-07-10 13:11:43][Command][haddock_push]     |   ^^^^^^^
+[2024-07-10 13:11:44][Command][haddock_push] Preprocessing library for effects-time-0.1..
+[2024-07-10 13:11:44][Command][haddock_push] Running Haddock on library for effects-time-0.1..
+[2024-07-10 13:11:44][Command][haddock_push] Warning: --source-* options are ignored when --hyperlinked-source is enabled.
+[2024-07-10 13:11:45][Command][haddock_push] [1 of 1] Compiling Effects.Time     ( src/Effects/Time.hs, nothing )
+[2024-07-10 13:11:48][Command][haddock_push] 
+[2024-07-10 13:11:48][Command][haddock_push] src/Effects/Time.hs:268:24: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:48][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:48][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:48][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:48][Command][haddock_push]     |
+[2024-07-10 13:11:48][Command][haddock_push] 268 |   getSystemZonedTime = addCS Local.getZonedTime
+[2024-07-10 13:11:48][Command][haddock_push]     |                        ^^^^^
+[2024-07-10 13:11:48][Command][haddock_push] 
+[2024-07-10 13:11:48][Command][haddock_push] src/Effects/Time.hs:270:22: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:48][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:48][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:48][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:48][Command][haddock_push]     |
+[2024-07-10 13:11:48][Command][haddock_push] 270 |   getMonotonicTime = addCS C.getMonotonicTime
+[2024-07-10 13:11:48][Command][haddock_push]     |                      ^^^^^
+[2024-07-10 13:11:48][Command][haddock_push] 
+[2024-07-10 13:11:48][Command][haddock_push] src/Effects/Time.hs:399:27: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:48][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:48][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:48][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:48][Command][haddock_push]     |
+[2024-07-10 13:11:48][Command][haddock_push] 399 | parseLocalTimeCallStack = addCS . parseLocalTime
+[2024-07-10 13:11:48][Command][haddock_push]     |                           ^^^^^
+[2024-07-10 13:11:48][Command][haddock_push] 
+[2024-07-10 13:11:48][Command][haddock_push] src/Effects/Time.hs:413:27: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:11:48][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:11:48][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:11:48][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:11:48][Command][haddock_push]     |
+[2024-07-10 13:11:48][Command][haddock_push] 413 | parseZonedTimeCallStack = addCS . parseZonedTime
+[2024-07-10 13:11:48][Command][haddock_push]     |                           ^^^^^
+[2024-07-10 13:12:00][Command][haddock_push] Haddock coverage:
+[2024-07-10 13:12:00][Command][haddock_push]  100% (  3 /  3) in 'Effects.System.Environment'
+[2024-07-10 13:12:01][Command][haddock_push] Documentation created:
+[2024-07-10 13:12:01][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.8.2/effects-env-0.1/doc/html/effects-env/
+[2024-07-10 13:12:03][Command][haddock_push] Haddock coverage:
+[2024-07-10 13:12:03][Command][haddock_push]  100% ( 19 / 19) in 'Effects.Concurrent.STM'
+[2024-07-10 13:12:03][Command][haddock_push] Documentation created:
+[2024-07-10 13:12:03][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.8.2/effects-stm-0.1/doc/html/effects-stm/
+[2024-07-10 13:12:07][Command][haddock_push] Haddock coverage:
+[2024-07-10 13:12:07][Command][haddock_push]  100% (  7 /  7) in 'Effects.IORef'
+[2024-07-10 13:12:07][Command][haddock_push] Haddock coverage:
+[2024-07-10 13:12:07][Command][haddock_push]  100% ( 17 / 17) in 'Effects.System.Terminal'
+[2024-07-10 13:12:07][Command][haddock_push] Warning: Effects.System.Terminal: could not find link destinations for: 
+[2024-07-10 13:12:07][Command][haddock_push] - System.Console.Terminal.Common.Rep1_Window
+[2024-07-10 13:12:07][Command][haddock_push] - System.Console.Terminal.Common.Rep_Window
+[2024-07-10 13:12:08][Command][haddock_push] Documentation created:
+[2024-07-10 13:12:08][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.8.2/effects-ioref-0.1/doc/html/effects-ioref/
+[2024-07-10 13:12:08][Command][haddock_push] Haddock coverage:
+[2024-07-10 13:12:08][Command][haddock_push]  100% ( 14 / 14) in 'Effects.Concurrent.Thread'
+[2024-07-10 13:12:08][Command][haddock_push] Documentation created:
+[2024-07-10 13:12:08][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.8.2/effects-terminal-0.1/doc/html/effects-terminal/
+[2024-07-10 13:12:08][Command][haddock_push] Documentation created:
+[2024-07-10 13:12:08][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.8.2/effects-thread-0.1/doc/html/effects-thread/
+[2024-07-10 13:12:10][Command][haddock_push] Configuring library for effects-async-0.1..
+[2024-07-10 13:12:14][Command][haddock_push] Haddock coverage:
+[2024-07-10 13:12:14][Command][haddock_push]   98% ( 79 / 80) in 'Effects.Process.Typed'
+[2024-07-10 13:12:14][Command][haddock_push]   Missing documentation for:
+[2024-07-10 13:12:14][Command][haddock_push]     StdStream
+[2024-07-10 13:12:14][Command][haddock_push] Warning: Effects.Process.Typed: could not find link destinations for: 
+[2024-07-10 13:12:14][Command][haddock_push] - GHC.IO.Exception.Rep_ExitCode
+[2024-07-10 13:12:14][Command][haddock_push] Documentation created:
+[2024-07-10 13:12:14][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.8.2/effects-typed-process-0.1/doc/html/effects-typed-process/
+[2024-07-10 13:12:15][Command][haddock_push] Haddock coverage:
+[2024-07-10 13:12:15][Command][haddock_push]  100% ( 17 / 17) in 'Effects.System.PosixCompat'
+[2024-07-10 13:12:15][Command][haddock_push] Warning: Effects.System.PosixCompat: could not find link destinations for: 
+[2024-07-10 13:12:15][Command][haddock_push] - Effects.System.PosixCompat.Rep_PathType
+[2024-07-10 13:12:15][Command][haddock_push] Documentation created:
+[2024-07-10 13:12:15][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.8.2/effects-unix-compat-0.1/doc/html/effects-unix-compat/
+[2024-07-10 13:12:16][Command][haddock_push] Haddock coverage:
+[2024-07-10 13:12:16][Command][haddock_push] Warning: 'ZonedTime' is ambiguous. It is defined
+[2024-07-10 13:12:16][Command][haddock_push]     * in ‘Data.Time.LocalTime.Internal.ZonedTime’
+[2024-07-10 13:12:16][Command][haddock_push]     * in ‘Data.Time.LocalTime.Internal.ZonedTime’
+[2024-07-10 13:12:16][Command][haddock_push]     You may be able to disambiguate the identifier by qualifying it or
+[2024-07-10 13:12:16][Command][haddock_push]     by specifying the type/value namespace explicitly.
+[2024-07-10 13:12:16][Command][haddock_push]     Defaulting to the one defined in ‘Data.Time.LocalTime.Internal.ZonedTime’
+[2024-07-10 13:12:16][Command][haddock_push] Warning: 'LocalTime' is ambiguous. It is defined
+[2024-07-10 13:12:16][Command][haddock_push]     * in ‘Data.Time.LocalTime.Internal.LocalTime’
+[2024-07-10 13:12:16][Command][haddock_push]     * in ‘Data.Time.LocalTime.Internal.LocalTime’
+[2024-07-10 13:12:16][Command][haddock_push]     You may be able to disambiguate the identifier by qualifying it or
+[2024-07-10 13:12:16][Command][haddock_push]     by specifying the type/value namespace explicitly.
+[2024-07-10 13:12:16][Command][haddock_push]     Defaulting to the one defined in ‘Data.Time.LocalTime.Internal.LocalTime’
+[2024-07-10 13:12:16][Command][haddock_push]  100% ( 43 / 43) in 'Effects.Time'
+[2024-07-10 13:12:16][Command][haddock_push] Warning: Effects.Time: could not find link destinations for: 
+[2024-07-10 13:12:16][Command][haddock_push] - Effects.Time.Rep_TimeSpec
+[2024-07-10 13:12:17][Command][haddock_push] Configuring library for effects-fs-0.1..
+[2024-07-10 13:12:17][Command][haddock_push] Documentation created:
+[2024-07-10 13:12:17][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.8.2/effects-time-0.1/doc/html/effects-time/
+[2024-07-10 13:12:18][Command][haddock_push] Configuring library for effects-logger-ns-0.1..
+[2024-07-10 13:12:18][Command][haddock_push] Preprocessing library for effects-async-0.1..
+[2024-07-10 13:12:18][Command][haddock_push] Running Haddock on library for effects-async-0.1..
+[2024-07-10 13:12:18][Command][haddock_push] Warning: --source-* options are ignored when --hyperlinked-source is enabled.
+[2024-07-10 13:12:19][Command][haddock_push] [1 of 1] Compiling Effects.Concurrent.Async ( src/Effects/Concurrent/Async.hs, nothing )
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:401:17: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 401 |   withAsync m = addCS . Async.withAsync m
+[2024-07-10 13:12:21][Command][haddock_push]     |                 ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:403:22: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 403 |   withAsyncBound m = addCS . Async.withAsyncBound m
+[2024-07-10 13:12:21][Command][haddock_push]     |                      ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:405:21: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 405 |   withAsyncOn i m = addCS . Async.withAsyncOn i m
+[2024-07-10 13:12:21][Command][haddock_push]     |                     ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:407:27: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 407 |   withAsyncWithUnmask f = addCS . Async.withAsyncWithUnmask f
+[2024-07-10 13:12:21][Command][haddock_push]     |                           ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:409:31: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 409 |   withAsyncOnWithUnmask i f = addCS . Async.withAsyncOnWithUnmask i f
+[2024-07-10 13:12:21][Command][haddock_push]     |                               ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:411:10: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 411 |   wait = addCS . Async.wait
+[2024-07-10 13:12:21][Command][haddock_push]     |          ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:413:10: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 413 |   poll = addCS . Async.poll
+[2024-07-10 13:12:21][Command][haddock_push]     |          ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:415:15: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 415 |   waitCatch = addCS . Async.waitCatch
+[2024-07-10 13:12:21][Command][haddock_push]     |               ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:417:12: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 417 |   cancel = addCS . Async.cancel
+[2024-07-10 13:12:21][Command][haddock_push]     |            ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:419:27: warning: [G
+[2024-07-10 13:12:21][Command][haddock_push] HC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 419 |   uninterruptibleCancel = addCS . Async.uninterruptibleCancel
+[2024-07-10 13:12:21][Command][haddock_push]     |                           ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:421:18: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 421 |   cancelWith a = addCS . Async.cancelWith a
+[2024-07-10 13:12:21][Command][haddock_push]     |                  ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:423:12: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 423 |   race x = addCS . Async.race x
+[2024-07-10 13:12:21][Command][haddock_push]     |            ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:425:20: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 425 |   concurrently x = addCS . Async.concurrently x
+[2024-07-10 13:12:21][Command][haddock_push]     |                    ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:427:21: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 427 |   concurrently_ x = addCS . Async.concurrently_ x
+[2024-07-10 13:12:21][Command][haddock_push]     |                     ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:429:13: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 429 |   waitAny = addCS . Async.waitAny
+[2024-07-10 13:12:21][Command][haddock_push]     |             ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:431:18: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 431 |   waitAnyCatch = addCS . Async.waitAnyCatch
+[2024-07-10 13:12:21][Command][haddock_push]     |                  ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:433:19: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 433 |   waitAnyCancel = addCS . Async.waitAnyCancel
+[2024-07-10 13:12:21][Command][haddock_push]     |                   ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:435:24: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 435 |   waitAnyCatchCancel = addCS . Async.waitAnyCatchCancel
+[2024-07-10 13:12:21][Command][haddock_push]     |                        ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:437:18: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 437 |   waitEither x = addCS . Async.waitEither x
+[2024-07-10 13:12:21][Command][haddock_push]     |                  ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:439:23: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 439 |   waitEitherCatch x = addCS . Async.waitEitherCatch x
+[2024-07-10 13:12:21][Command][haddock_push]     |                       ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:441:24: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 441 |   waitEitherCancel x = addCS . Async.waitEitherCancel x
+[2024-07-10 13:12:21][Command][haddock_push]     |                        ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:443:29: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 443 |   waitEitherCatchCancel x = addCS . Async.waitEitherCatchCancel x
+[2024-07-10 13:12:21][Command][haddock_push]     |                             ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:445:19: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 445 |   waitEither_ x = addCS . Async.waitEither_ x
+[2024-07-10 13:12:21][Command][haddock_push]     |                   ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:447:16: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 447 |   waitBoth x = addCS . Async.waitBoth x
+[2024-07-10 13:12:21][Command][haddock_push]     |                ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:449:11: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 449 |   async = addCS . Async.async
+[2024-07-10 13:12:21][Command][haddock_push]     |           ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:451:16: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 451 |   asyncBound = addCS . Async.asyncBound
+[2024-07-10 13:12:21][Command][haddock_push]     |                ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:453:15: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 453 |   asyncOn i = addCS . Async.asyncOn i
+[2024-07-10 13:12:21][Command][haddock_push]     |               ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:455:23: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 455 |   asyncWithUnmask f = addCS $ Async.asyncWithUnmask f
+[2024-07-10 13:12:21][Command][haddock_push]     |                       ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:457:27: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 457 |   asyncOnWithUnmask i f = addCS $ Async.asyncOnWithUnmask i f
+[2024-07-10 13:12:21][Command][haddock_push]     |                           ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:459:10: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 459 |   link = addCS . Async.link
+[2024-07-10 13:12:21][Command][haddock_push]     |          ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:461:16: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 461 |   linkOnly f = addCS . Async.linkOnly f
+[2024-07-10 13:12:21][Command][haddock_push]     |                ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:463:13: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 463 |   link2 x = addCS . Async.link2 x
+[2024-07-10 13:12:21][Command][haddock_push]     |             ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:465:19: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 465 |   link2Only f x = addCS . Async.link2Only f x
+[2024-07-10 13:12:21][Command][haddock_push]     |                   ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:468:5: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 468 |     addCS . UAsync.pooledMapConcurrentlyN i f
+[2024-07-10 13:12:21][Command][haddock_push]     |     ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:470:29: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 470 |   pooledMapConcurrently f = addCS . UAsync.pooledMapConcurrently f
+[2024-07-10 13:12:21][Command][haddock_push]     |                             ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:473:5: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 473 |     addCS . UAsync.pooledMapConcurrentlyN_ i f
+[2024-07-10 13:12:21][Command][haddock_push]     |     ^^^^^
+[2024-07-10 13:12:21][Command][haddock_push] 
+[2024-07-10 13:12:21][Command][haddock_push] src/Effects/Concurrent/Async.hs:475:30: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:21][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:21][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:21][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:21][Command][haddock_push]     |
+[2024-07-10 13:12:21][Command][haddock_push] 475 |   pooledMapConcurrently_ f = addCS . UAsync.pooledMapConcurrently_ f
+[2024-07-10 13:12:21][Command][haddock_push]     |                              ^^^^^
+[2024-07-10 13:12:23][Command][haddock_push] Preprocessing library for effects-fs-0.1..
+[2024-07-10 13:12:23][Command][haddock_push] Building library for effects-fs-0.1..
+[2024-07-10 13:12:25][Command][haddock_push] Preprocessing library for effects-logger-ns-0.1..
+[2024-07-10 13:12:25][Command][haddock_push] Running Haddock on library for effects-logger-ns-0.1..
+[2024-07-10 13:12:25][Command][haddock_push] Warning: The documentation for the following packages are not installed. No
+[2024-07-10 13:12:25][Command][haddock_push] links will be generated to these packages: attoparsec-0.14.4,
+[2024-07-10 13:12:25][Command][haddock_push] attoparsec-0.14.4
+[2024-07-10 13:12:25][Command][haddock_push] Warning: --source-* options are ignored when --hyperlinked-source is enabled.
+[2024-07-10 13:12:26][Command][haddock_push] [1 of 1] Compiling Effects.LoggerNS ( src/Effects/LoggerNS.hs, nothing )
+[2024-07-10 13:12:27][Command][haddock_push] Preprocessing library for effects-fs-0.1..
+[2024-07-10 13:12:27][Command][haddock_push] Running Haddock on library for effects-fs-0.1..
+[2024-07-10 13:12:28][Command][haddock_push] Warning: --source-* options are ignored when --hyperlinked-source is enabled.
+[2024-07-10 13:12:28][Command][haddock_push] [1 of 7] Compiling Effects.FileSystem.Utils ( src/Effects/FileSystem/Utils.hs, nothing )
+[2024-07-10 13:12:29][Command][haddock_push] [2 of 7] Compiling Effects.FileSystem.PathReader ( src/Effects/FileSystem/PathReader.hs, nothing )
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:212:19: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 212 |   listDirectory = addCS . Dir.listDirectory
+[2024-07-10 13:12:30][Command][haddock_push]     |                   ^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:214:26: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 214 |   getDirectoryContents = addCS . Dir.getDirectoryContents
+[2024-07-10 13:12:30][Command][haddock_push]     |                          ^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:216:25: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 216 |   getCurrentDirectory = addCS Dir.getCurrentDirectory
+[2024-07-10 13:12:30][Command][haddock_push]     |                         ^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:218:22: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 218 |   getHomeDirectory = addCS Dir.getHomeDirectory
+[2024-07-10 13:12:30][Command][haddock_push]     |                      ^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:220:23: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 220 |   getXdgDirectory d = addCS . Dir.getXdgDirectory d
+[2024-07-10 13:12:30][Command][haddock_push]     |                       ^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:222:25: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 222 |   getXdgDirectoryList = addCS . Dir.getXdgDirectoryList
+[2024-07-10 13:12:30][Command][haddock_push]     |                         ^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:224:29: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 224 |   getAppUserDataDirectory = addCS . Dir.getAppUserDataDirectory
+[2024-07-10 13:12:30][Command][haddock_push]     |                             ^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:226:31: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 226 |   getUserDocumentsDirectory = addCS Dir.getUserDocumentsDirectory
+[2024-07-10 13:12:30][Command][haddock_push]     |                               ^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:228:27: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 228 |   getTemporaryDirectory = addCS Dir.getTemporaryDirectory
+[2024-07-10 13:12:30][Command][haddock_push]     |                           ^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:230:17: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 230 |   getFileSize = addCS . Dir.getFileSize
+[2024-07-10 13:12:30][Command][haddock_push]     |                 ^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:232:22: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 232 |   canonicalizePath = addCS . Dir.canonicalizePath
+[2024-07-10 13:12:30][Command][haddock_push]     |                      ^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:234:18: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 234 |   makeAbsolute = addCS . Dir.makeAbsolute
+[2024-07-10 13:12:30][Command][haddock_push]     |                  ^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:236:36: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 236 |   makeRelativeToCurrentDirectory = addCS . Dir.makeRelativeToCurrentDirectory
+[2024-07-10 13:12:30][Command][haddock_push]     |                                    ^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:238:19: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 238 |   doesPathExist = addCS . Dir.doesPathExist
+[2024-07-10 13:12:30][Command][haddock_push]     |                   ^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:240:19: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 240 |   doesFileExist = addCS . Dir.doesFileExist
+[2024-07-10 13:12:30][Command][haddock_push]     |                   ^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:242:24: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 242 |   doesDirectoryExist = addCS . Dir.doesDirectoryExist
+[2024-07-10 13:12:30][Command][haddock_push]     |                        ^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:244:20: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 244 |   findExecutable = addCS . Dir.findExecutable
+[2024-07-10 13:12:30][Command][haddock_push]     |                    ^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:246:21: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 246 |   findExecutables = addCS . Dir.findExecutables
+[2024-07-10 13:12:30][Command][haddock_push]     |                     ^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:248:37: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 248 |   findExecutablesInDirectories ps = addCS . Dir.findExecutablesInDirectories ps
+[2024-07-10 13:12:30][Command][haddock_push]     |                                     ^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:250:23: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 250 |   findFileWith f ps = addCS . Dir.findFileWith f ps
+[2024-07-10 13:12:30][Command][haddock_push]     |                       ^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:252:24: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 252 |   findFilesWith f ps = addCS . Dir.findFilesWith f ps
+[2024-07-10 13:12:30][Command][haddock_push]     |                        ^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:254:24: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 254 |   pathIsSymbolicLink = addCS . Dir.pathIsSymbolicLink
+[2024-07-10 13:12:30][Command][haddock_push]     |                        ^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:256:27: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 256 |   getSymbolicLinkTarget = addCS . Dir.getSymbolicLinkTarget
+[2024-07-10 13:12:30][Command][haddock_push]     |                           ^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:258:20: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 258 |   getPermissions = addCS . Dir.getPermissions
+[2024-07-10 13:12:30][Command][haddock_push]     |                    ^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:260:19: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 260 |   getAccessTime = addCS . Dir.getAccessTime
+[2024-07-10 13:12:30][Command][haddock_push]     |                   ^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:262:25: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 262 |   getModificationTime = addCS . Dir.getModificationTime
+[2024-07-10 13:12:30][Command][haddock_push]     |                         ^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] 
+[2024-07-10 13:12:30][Command][haddock_push] src/Effects/FileSystem/PathReader.hs:493:24: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:30][Command][haddock_push]     In the use of ‘catchCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:30][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:30][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:30][Command][haddock_push]     |
+[2024-07-10 13:12:30][Command][haddock_push] 493 |   pathIsSymbolicLink p `catchCS` \(_ :: IOException) -> pure False
+[2024-07-10 13:12:30][Command][haddock_push]     |                        ^^^^^^^^^
+[2024-07-10 13:12:30][Command][haddock_push] [3 of 7] Compiling Effects.FileSystem.PathWriter ( src/Effects/FileSystem/PathWriter.hs, nothing )
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/PathWriter.hs:239:21: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 239 |   createDirectory = addCS . Dir.createDirectory
+[2024-07-10 13:12:31][Command][haddock_push]     |                     ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/PathWriter.hs:241:32: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 241 |   createDirectoryIfMissing b = addCS . Dir.createDirectoryIfMissing b
+[2024-07-10 13:12:31][Command][haddock_push]     |                                ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/PathWriter.hs:243:21: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 243 |   removeDirectory = addCS . Dir.removeDirectory
+[2024-07-10 13:12:31][Command][haddock_push]     |                     ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/PathWriter.hs:245:30: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 245 |   removeDirectoryRecursive = addCS . Dir.removeDirectoryRecursive
+[2024-07-10 13:12:31][Command][haddock_push]     |                              ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/PathWriter.hs:247:24: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 247 |   removePathForcibly = addCS . Dir.removePathForcibly
+[2024-07-10 13:12:31][Command][haddock_push]     |                        ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/PathWriter.hs:249:23: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 249 |   renameDirectory p = addCS . Dir.renameDirectory p
+[2024-07-10 13:12:31][Command][haddock_push]     |                       ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/PathWriter.hs:251:25: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 251 |   setCurrentDirectory = addCS . Dir.setCurrentDirectory
+[2024-07-10 13:12:31][Command][haddock_push]     |                         ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/PathWriter.hs:253:28: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 253 |   withCurrentDirectory p = addCS . Dir.withCurrentDirectory p
+[2024-07-10 13:12:31][Command][haddock_push]     |                            ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/PathWriter.hs:255:16: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 255 |   removeFile = addCS . Dir.removeFile
+[2024-07-10 13:12:31][Command][haddock_push]     |                ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/PathWriter.hs:257:18: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 257 |   renameFile p = addCS . Dir.renameFile p
+[2024-07-10 13:12:31][Command][haddock_push]     |                  ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/PathWriter.hs:259:18: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 259 |   renamePath p = addCS . Dir.renamePath p
+[2024-07-10 13:12:31][Command][haddock_push]     |                  ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/PathWriter.hs:261:16: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 261 |   copyFile p = addCS . Dir.copyFile p
+[2024-07-10 13:12:31][Command][haddock_push]     |                ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/PathWriter.hs:263:28: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 263 |   copyFileWithMetadata p = addCS . Dir.copyFileWithMetadata p
+[2024-07-10 13:12:31][Command][haddock_push]     |                            ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/PathWriter.hs:265:22: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 265 |   createFileLink p = addCS . Dir.createFileLink p
+[2024-07-10 13:12:31][Command][haddock_push]     |                      ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/PathWriter.hs:267:27: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 267 |   createDirectoryLink p = addCS . Dir.createDirectoryLink p
+[2024-07-10 13:12:31][Command][haddock_push]     |                           ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/PathWriter.hs:269:25: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 269 |   removeDirectoryLink = addCS . Dir.removeDirectoryLink
+[2024-07-10 13:12:31][Command][haddock_push]     |                         ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/PathWriter.hs:271:22: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 271 |   setPermissions p = addCS . Dir.setPermissions p
+[2024-07-10 13:12:31][Command][haddock_push]     |                      ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/PathWriter.hs:273:23: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 273 |   copyPermissions p = addCS . Dir.copyPermissions p
+[2024-07-10 13:12:31][Command][haddock_push]     |                       ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/PathWriter.hs:275:21: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 275 |   setAccessTime p = addCS . Dir.setAccessTime p
+[2024-07-10 13:12:31][Command][haddock_push]     |                     ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/PathWriter.hs:277:27: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 277 |   setModificationTime p = addCS . Dir.setModificationTime p
+[2024-07-10 13:12:31][Command][haddock_push]     |                           ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] [4 of 7] Compiling Effects.FileSystem.HandleWriter ( src/Effects/FileSystem/HandleWriter.hs, nothing )
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleWriter.hs:105:22: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 105 |   openBinaryFile f = addCS . FsUtils.openBinaryFileIO f
+[2024-07-10 13:12:31][Command][haddock_push]     |                      ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleWriter.hs:107:24: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 107 |   withBinaryFile f m = addCS . FsUtils.withBinaryFileIO f m
+[2024-07-10 13:12:31][Command][haddock_push]     |                        ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleWriter.hs:109:12: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 109 |   hClose = addCS . IO.hClose
+[2024-07-10 13:12:31][Command][haddock_push]     |            ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleWriter.hs:111:12: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 111 |   hFlush = addCS . IO.hFlush
+[2024-07-10 13:12:31][Command][haddock_push]     |            ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleWriter.hs:113:20: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 113 |   hSetFileSize h = addCS . IO.hSetFileSize h
+[2024-07-10 13:12:31][Command][haddock_push]     |                    ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleWriter.hs:115:21: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 115 |   hSetBuffering h = addCS . IO.hSetBuffering h
+[2024-07-10 13:12:31][Command][haddock_push]     |                     ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleWriter.hs:117:15: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 117 |   hSeek h m = addCS . IO.hSeek h m
+[2024-07-10 13:12:31][Command][haddock_push]     |               ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleWriter.hs:119:11: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 119 |   hTell = addCS . IO.hTell
+[2024-07-10 13:12:31][Command][haddock_push]     |           ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleWriter.hs:121:16: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 121 |   hSetEcho h = addCS . IO.hSetEcho h
+[2024-07-10 13:12:31][Command][haddock_push]     |                ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleWriter.hs:123:12: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 123 |   hPut h = addCS . BS.hPut h
+[2024-07-10 13:12:31][Command][haddock_push]     |            ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] [5 of 7] Compiling Effects.FileSystem.HandleReader ( src/Effects/FileSystem/HandleReader.hs, nothing )
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleWriter.hs:125:23: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 125 |   hPutNonBlocking h = addCS . BS.hPutNonBlocking h
+[2024-07-10 13:12:31][Command][haddock_push]     |                       ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleReader.hs:147:12: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 147 |   hIsEOF = addCS . IO.hIsEOF
+[2024-07-10 13:12:31][Command][haddock_push]     |            ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleReader.hs:149:19: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 149 |   hGetBuffering = addCS . IO.hGetBuffering
+[2024-07-10 13:12:31][Command][haddock_push]     |                   ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleReader.hs:151:13: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 151 |   hIsOpen = addCS . IO.hIsOpen
+[2024-07-10 13:12:31][Command][haddock_push]     |             ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleReader.hs:153:15: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 153 |   hIsClosed = addCS . IO.hIsClosed
+[2024-07-10 13:12:31][Command][haddock_push]     |               ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleReader.hs:155:17: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 155 |   hIsReadable = addCS . IO.hIsReadable
+[2024-07-10 13:12:31][Command][haddock_push]     |                 ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleReader.hs:157:17: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 157 |   hIsWritable = addCS . IO.hIsWritable
+[2024-07-10 13:12:31][Command][haddock_push]     |                 ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleReader.hs:159:17: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 159 |   hIsSeekable = addCS . IO.hIsSeekable
+[2024-07-10 13:12:31][Command][haddock_push]     |                 ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleReader.hs:161:23: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 161 |   hIsTerminalDevice = addCS . IO.hIsTerminalDevice
+[2024-07-10 13:12:31][Command][haddock_push]     |                       ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleReader.hs:163:14: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 163 |   hGetEcho = addCS . IO.hGetEcho
+[2024-07-10 13:12:31][Command][haddock_push]     |              ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleReader.hs:165:21: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 165 |   hWaitForInput h = addCS . IO.hWaitForInput h
+[2024-07-10 13:12:31][Command][haddock_push]     |                     ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleReader.hs:167:12: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 167 |   hReady = addCS . IO.hReady
+[2024-07-10 13:12:31][Command][haddock_push]     |            ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleReader.hs:169:14: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 169 |   hGetChar = addCS . IO.hGetChar
+[2024-07-10 13:12:31][Command][haddock_push]     |              ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleReader.hs:171:14: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 171 |   hGetLine = addCS . C8.hGetLine
+[2024-07-10 13:12:31][Command][haddock_push]     |              ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleReader.hs:173:18: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 173 |   hGetContents = addCS . C8.hGetContents
+[2024-07-10 13:12:31][Command][haddock_push]     |                  ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleReader.hs:175:12: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 175 |   hGet h = addCS . C8.hGet h
+[2024-07-10 13:12:31][Command][haddock_push]     |            ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleReader.hs:177:16: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 177 |   hGetSome h = addCS . C8.hGetSome h
+[2024-07-10 13:12:31][Command][haddock_push]     |                ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] 
+[2024-07-10 13:12:31][Command][haddock_push] src/Effects/FileSystem/HandleReader.hs:179:23: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:31][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:31][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:31][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:31][Command][haddock_push]     |
+[2024-07-10 13:12:31][Command][haddock_push] 179 |   hGetNonBlocking h = addCS . C8.hGetNonBlocking h
+[2024-07-10 13:12:31][Command][haddock_push]     |                       ^^^^^
+[2024-07-10 13:12:31][Command][haddock_push] [6 of 7] Compiling Effects.FileSystem.FileWriter ( src/Effects/FileSystem/FileWriter.hs, nothing )
+[2024-07-10 13:12:32][Command][haddock_push] 
+[2024-07-10 13:12:32][Command][haddock_push] src/Effects/FileSystem/FileWriter.hs:45:23: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:32][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:32][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:32][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:32][Command][haddock_push]    |
+[2024-07-10 13:12:32][Command][haddock_push] 45 |   writeBinaryFile p = addCS . FsUtils.writeBinaryFileIO p
+[2024-07-10 13:12:32][Command][haddock_push]    |                       ^^^^^
+[2024-07-10 13:12:32][Command][haddock_push] 
+[2024-07-10 13:12:32][Command][haddock_push] src/Effects/FileSystem/FileWriter.hs:47:24: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:32][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:32][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:32][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:32][Command][haddock_push]    |
+[2024-07-10 13:12:32][Command][haddock_push] 47 |   appendBinaryFile p = addCS . FsUtils.appendBinaryFileIO p
+[2024-07-10 13:12:32][Command][haddock_push]    |                        ^^^^^
+[2024-07-10 13:12:32][Command][haddock_push] [7 of 7] Compiling Effects.FileSystem.FileReader ( src/Effects/FileSystem/FileReader.hs, nothing )
+[2024-07-10 13:12:32][Command][haddock_push] 
+[2024-07-10 13:12:32][Command][haddock_push] src/Effects/FileSystem/FileReader.hs:46:20: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:32][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:32][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:32][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:32][Command][haddock_push]    |
+[2024-07-10 13:12:32][Command][haddock_push] 46 |   readBinaryFile = addCS . FsUtils.readBinaryFileIO
+[2024-07-10 13:12:32][Command][haddock_push]    |                    ^^^^^
+[2024-07-10 13:12:45][Command][haddock_push] Haddock coverage:
+[2024-07-10 13:12:45][Command][haddock_push]   98% ( 94 / 95) in 'Effects.Concurrent.Async'
+[2024-07-10 13:12:45][Command][haddock_push]   Missing documentation for:
+[2024-07-10 13:12:45][Command][haddock_push]     ExceptionInLinkedThread
+[2024-07-10 13:12:45][Command][haddock_push] Warning: Effects.Concurrent.Async: could not find link destinations for: 
+[2024-07-10 13:12:45][Command][haddock_push] - Numeric.Data.Positive.Internal.Rep_Positive
+[2024-07-10 13:12:45][Command][haddock_push] Documentation created:
+[2024-07-10 13:12:45][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.8.2/effects-async-0.1/doc/html/effects-async/
+[2024-07-10 13:12:51][Command][haddock_push] Haddock coverage:
+[2024-07-10 13:12:51][Command][haddock_push]  100% ( 57 / 57) in 'Effects.FileSystem.Utils'
+[2024-07-10 13:12:51][Command][haddock_push]   97% ( 34 / 35) in 'Effects.FileSystem.PathReader'
+[2024-07-10 13:12:51][Command][haddock_push]   Missing documentation for:
+[2024-07-10 13:12:51][Command][haddock_push]     Permissions
+[2024-07-10 13:12:51][Command][haddock_push]   97% ( 33 / 34) in 'Effects.FileSystem.PathWriter'
+[2024-07-10 13:12:51][Command][haddock_push]   Missing documentation for:
+[2024-07-10 13:12:51][Command][haddock_push]     Permissions
+[2024-07-10 13:12:51][Command][haddock_push]  100% ( 16 / 16) in 'Effects.FileSystem.HandleWriter'
+[2024-07-10 13:12:51][Command][haddock_push]  100% ( 29 / 29) in 'Effects.FileSystem.HandleReader'
+[2024-07-10 13:12:51][Command][haddock_push]  100% ( 11 / 11) in 'Effects.FileSystem.FileWriter'
+[2024-07-10 13:12:51][Command][haddock_push]  100% ( 15 / 15) in 'Effects.FileSystem.FileReader'
+[2024-07-10 13:12:51][Command][haddock_push] Warning: Effects.FileSystem.PathReader: could not find link destinations for: 
+[2024-07-10 13:12:51][Command][haddock_push] - Effects.System.PosixCompat.Rep_PathType
+[2024-07-10 13:12:51][Command][haddock_push] Warning: Effects.FileSystem.PathWriter: could not find link destinations for: 
+[2024-07-10 13:12:51][Command][haddock_push] - Effects.FileSystem.PathWriter.Rep_CopyDirConfig
+[2024-07-10 13:12:51][Command][haddock_push] - Effects.FileSystem.PathWriter.Rep_TargetName
+[2024-07-10 13:12:51][Command][haddock_push] - Effects.FileSystem.PathWriter.Rep_Overwrite
+[2024-07-10 13:12:51][Command][haddock_push] Warning: Effects.FileSystem.HandleWriter: could not find link destinations for: 
+[2024-07-10 13:12:51][Command][haddock_push] - Data.ByteString.Internal.Type.D:R:ItemByteString
+[2024-07-10 13:12:51][Command][haddock_push] Warning: Effects.FileSystem.HandleReader: could not find link destinations for: 
+[2024-07-10 13:12:51][Command][haddock_push] - Data.ByteString.Internal.Type.D:R:ItemByteString
+[2024-07-10 13:12:51][Command][haddock_push] Warning: Effects.FileSystem.FileWriter: could not find link destinations for: 
+[2024-07-10 13:12:51][Command][haddock_push] - Data.ByteString.Internal.Type.D:R:ItemByteString
+[2024-07-10 13:12:51][Command][haddock_push] Warning: Effects.FileSystem.FileReader: could not find link destinations for: 
+[2024-07-10 13:12:51][Command][haddock_push] - Data.ByteString.Internal.Type.D:R:ItemByteString
+[2024-07-10 13:12:51][Command][haddock_push] Documentation created:
+[2024-07-10 13:12:51][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.8.2/effects-fs-0.1/doc/html/effects-fs/
+[2024-07-10 13:12:52][Command][haddock_push] Configuring library for effects-optparse-0.1..
+[2024-07-10 13:12:54][Command][haddock_push] Haddock coverage:
+[2024-07-10 13:12:54][Command][haddock_push]   95% ( 44 / 46) in 'Effects.LoggerNS'
+[2024-07-10 13:12:54][Command][haddock_push]   Missing documentation for:
+[2024-07-10 13:12:54][Command][haddock_push]     LogLevel
+[2024-07-10 13:12:54][Command][haddock_push]     Loc
+[2024-07-10 13:12:54][Command][haddock_push] Warning: Effects.LoggerNS: could not find link destinations for: 
+[2024-07-10 13:12:54][Command][haddock_push] - Language.Haskell.TH.Syntax.Rep_Loc
+[2024-07-10 13:12:54][Command][haddock_push] - Effects.LoggerNS.D:R:ItemNamespace
+[2024-07-10 13:12:54][Command][haddock_push] - Effects.LoggerNS.Rep_LogFormatter
+[2024-07-10 13:12:54][Command][haddock_push] - Effects.LoggerNS.Rep_LocStrategy
+[2024-07-10 13:12:54][Command][haddock_push] - Effects.LoggerNS.Rep_Namespace
+[2024-07-10 13:12:55][Command][haddock_push] Documentation created:
+[2024-07-10 13:12:55][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.8.2/effects-logger-ns-0.1/doc/html/effects-logger-ns/
+[2024-07-10 13:12:57][Command][haddock_push] Preprocessing library for effects-optparse-0.1..
+[2024-07-10 13:12:57][Command][haddock_push] Running Haddock on library for effects-optparse-0.1..
+[2024-07-10 13:12:57][Command][haddock_push] Warning: --source-* options are ignored when --hyperlinked-source is enabled.
+[2024-07-10 13:12:58][Command][haddock_push] [1 of 1] Compiling Effects.Optparse ( src/Effects/Optparse.hs, nothing )
+[2024-07-10 13:12:58][Command][haddock_push] 
+[2024-07-10 13:12:58][Command][haddock_push] src/Effects/Optparse.hs:49:16: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:58][Command][haddock_push]     In the use of ‘addCS’ (imported from Effe
+[2024-07-10 13:12:58][Command][haddock_push] cts.Exception):
+[2024-07-10 13:12:58][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:58][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:58][Command][haddock_push]    |
+[2024-07-10 13:12:58][Command][haddock_push] 49 |   execParser = addCS . OA.execParser
+[2024-07-10 13:12:58][Command][haddock_push]    |                ^^^^^
+[2024-07-10 13:12:58][Command][haddock_push] 
+[2024-07-10 13:12:58][Command][haddock_push] src/Effects/Optparse.hs:51:24: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:58][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:58][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:58][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:58][Command][haddock_push]    |
+[2024-07-10 13:12:58][Command][haddock_push] 51 |   customExecParser p = addCS . OA.customExecParser p
+[2024-07-10 13:12:58][Command][haddock_push]    |                        ^^^^^
+[2024-07-10 13:12:58][Command][haddock_push] 
+[2024-07-10 13:12:58][Command][haddock_push] src/Effects/Optparse.hs:53:23: warning: [GHC-68441] [-Wdeprecations]
+[2024-07-10 13:12:58][Command][haddock_push]     In the use of ‘addCS’ (imported from Effects.Exception):
+[2024-07-10 13:12:58][Command][haddock_push]     Deprecated: "The legacy CallStack exception annotations are deprecated as
+[2024-07-10 13:12:58][Command][haddock_push]                  the functionality is subsumed in base 4.20 (GHC 9.10)."
+[2024-07-10 13:12:58][Command][haddock_push]    |
+[2024-07-10 13:12:58][Command][haddock_push] 53 |   handleParseResult = addCS . OA.handleParseResult
+[2024-07-10 13:12:58][Command][haddock_push]    |                       ^^^^^
+[2024-07-10 13:13:20][Command][haddock_push] Haddock coverage:
+[2024-07-10 13:13:20][Command][haddock_push]  100% (  7 /  7) in 'Effects.Optparse'
+[2024-07-10 13:13:20][Command][haddock_push] Documentation created:
+[2024-07-10 13:13:20][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.8.2/effects-optparse-0.1/doc/html/effects-optparse/
