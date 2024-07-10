@@ -1,4 +1,19 @@
+{-# LANGUAGE CPP #-}
+
+{- ORMOLU_DISABLE -}
+
 module Effects.Haskeline
+
+#if MIN_VERSION_base(4,19,0)
+
+{-# WARNING in "x-experimental" "Effects.Haskeline is experimental and subject to change." #-}
+
+#else
+
+{-# WARNING "Effects.Haskeline is experimental (not deprecated) and subject to change." #-}
+
+#endif
+
   ( -- * Class
     MonadHaskeline (..),
 
@@ -13,6 +28,8 @@ module Effects.Haskeline
     H.defaultPrefs,
   )
 where
+
+{- ORMOLU_ENABLE -}
 
 import Control.Monad.Catch (MonadMask)
 import Control.Monad.IO.Class (MonadIO)
@@ -36,7 +53,6 @@ import System.Console.Haskeline.History (History)
 --
 -- One way we might implement functions like foo is to include an associated
 -- type 'type Base m' ana have 'foo :: m a -> Base m a'.
-
 class (Monad m) => MonadHaskeline m where
   -- | Lifted 'H.haveTerminalUI'.
   --
