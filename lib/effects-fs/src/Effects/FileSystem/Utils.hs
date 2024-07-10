@@ -374,7 +374,7 @@ decodeUtf8Lenient = TEnc.decodeUtf8With TEncError.lenientDecode
 --
 -- @since 0.1
 decodeUtf8ThrowM ::
-  (MonadThrow m) =>
+  (HasCallStack, MonadThrow m) =>
   ByteString ->
   m Text
 decodeUtf8ThrowM =
