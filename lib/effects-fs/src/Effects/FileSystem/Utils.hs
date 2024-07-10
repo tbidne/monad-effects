@@ -70,9 +70,15 @@ module Effects.FileSystem.Utils
     withBinaryFileIO,
 
     -- * Decoding UTF-8
+
+    -- ** Total
     decodeUtf8,
     decodeUtf8Lenient,
+
+    -- ** Partial
     decodeUtf8ThrowM,
+    decodeUtf8Fail,
+    unsafeDecodeUtf8,
 
     -- * Encoding UTF-8
     TEnc.encodeUtf8,
@@ -381,6 +387,32 @@ decodeUtf8ThrowM =
   decodeUtf8 >.> \case
     Right txt -> pure txt
     Left ex -> throwM ex
+
+-- | Decodes a 'ByteString' to UTF-8.
+--
+-- @since 0.1
+decodeUtf8Fail ::
+  (MonadFail m) =>
+  ByteString ->
+  m Text
+decodeUtf8Fail =
+  decodeUtf8 >.> \case
+    Right txt -> pure txt
+    Left ex -> fail $ displayException ex
+
+-- | Decodes a 'ByteString' to UTF-8.
+--
+-- __WARNING: Partial__
+--
+-- @since 0.1
+unsafeDecodeUtf8 ::
+  (HasCallStack) =>
+  ByteString ->
+  Text
+unsafeDecodeUtf8 =
+  decodeUtf8 >.> \case
+    Right txt -> txt
+    Left ex -> error $ displayException ex
 
 -- | Unsafely combines an 'OsPath' and a 'FilePath' via (</>) with
 -- 'unsafeEncodeFpToOs'.
