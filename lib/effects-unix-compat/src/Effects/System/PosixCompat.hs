@@ -385,7 +385,9 @@ getPathType ::
   ) =>
   FilePath ->
   m PathType
-getPathType path = do
+getPathType path =
+  -- NOTE: We use getSymbolicLinkStatus instead of getFileStatus because
+  -- the latter follows symlinks, which we do not want.
   getSymbolicLinkStatus path <&> \status ->
     if
       | PFiles.isSymbolicLink status -> PathTypeSymbolicLink
