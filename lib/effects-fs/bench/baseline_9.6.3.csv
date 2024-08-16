@@ -1,9 +1,0 @@
-Name,Mean (ps),2*Stdev (ps)
-All.getPathType.get file.PathReader: get file,1697051,149306
-All.getPathType.get file.PosixCompat: get file,733117,66692
-All.getPathType.get dir.PathReader: get dir,1288006,75488
-All.getPathType.get dir.PosixCompat: get dir,782251,54936
-All.getPathType.get file link.PathReader: get file link,574853,30852
-All.getPathType.get file link.PosixCompat: get file link,733898,62810
-All.getPathType.get dir link.PathReader: get dir link,569620,44496
-All.getPathType.get dir link.PosixCompat: get dir link,805330,42710

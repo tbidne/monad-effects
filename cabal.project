@@ -1,18 +1,40 @@
-packages:
-  ./lib/effects-async
-  ./lib/effects-env
-  ./lib/effects-exceptions
-  ./lib/effects-fs
-  ./lib/effects-haskeline
-  ./lib/effects-ioref
-  ./lib/effects-logger-ns
-  ./lib/effects-optparse
-  ./lib/effects-stm
-  ./lib/effects-terminal
-  ./lib/effects-thread
-  ./lib/effects-time
-  ./lib/effects-typed-process
-  ./lib/effects-unix-compat
+-- windows cannot build unix package
+if os(windows)
+  packages:
+    ./lib/effects-async
+    ./lib/effects-env
+    ./lib/effects-exceptions
+    ./lib/effects-fs
+    ./lib/effects-fs-utils
+    ./lib/effects-haskeline
+    ./lib/effects-ioref
+    ./lib/effects-logger-ns
+    ./lib/effects-optparse
+    ./lib/effects-stm
+    ./lib/effects-terminal
+    ./lib/effects-thread
+    ./lib/effects-time
+    ./lib/effects-typed-process
+    ./lib/effects-unix-compat
+else
+  packages:
+    ./bench/fs-unix
+    ./lib/effects-async
+    ./lib/effects-env
+    ./lib/effects-exceptions
+    ./lib/effects-fs
+    ./lib/effects-fs-utils
+    ./lib/effects-haskeline
+    ./lib/effects-ioref
+    ./lib/effects-logger-ns
+    ./lib/effects-optparse
+    ./lib/effects-stm
+    ./lib/effects-terminal
+    ./lib/effects-thread
+    ./lib/effects-time
+    ./lib/effects-typed-process
+    ./lib/effects-unix
+    ./lib/effects-unix-compat
 
 -- See: https://github.com/haskell/cabal/pull/7973
 program-options

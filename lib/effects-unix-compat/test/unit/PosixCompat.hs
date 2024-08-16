@@ -147,7 +147,7 @@ getPathTypeBad getTestDir = testCase desc $ do
 
 setupLinks :: IO FilePath -> FilePath -> IO FilePath
 setupLinks getTestDir suffix = do
-  testDir <- (\t -> t </> "path-reader" </> suffix) <$> getTestDir
+  testDir <- (\t -> t </> "posix-compat" </> suffix) <$> getTestDir
   let fileLink = testDir </> "file-link"
       dirLink = testDir </> "dir-link"
       file = testDir </> "file"

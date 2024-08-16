@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" height="667" width="960.0" font-size="16" font-family="sans-serif" stroke-width="2">
+<g transform="translate(10.0 0)">
+<g fill="hsl(0, 100%, 40%)">
+<text y="22">getPathType.get file.PathReader: get file</text>
+<text y="22" x="877.3253449304505" text-anchor="end">4.67 μs</text>
+</g>
+<g>
+<title>4.67 μs ± 334 ns</title>
+<rect y="28" rx="5" height="22" width="877.3253449304505" fill="hsl(0, 100%, 80%)" stroke="hsl(0, 100%, 55%)" />
+<g stroke="hsl(0, 100%, 40%)"><line x1="814.6506898609009" x2="940.0" y1="39" y2="39" />
+<line x1="814.6506898609009" x2="814.6506898609009" y1="33" y2="45" />
+<line x1="940.0" x2="940.0" y1="33" y2="45" />
+</g>
+</g>
+<text fill="hsl(30, 100%, 40%)" y="77">getPathType.get file.Posix: get file 1.50 μs</text>
+<g>
+<title>1.50 μs ± 126 ns</title>
+<rect y="83" rx="5" height="22" width="281.98242050525465" fill="hsl(30, 100%, 80%)" stroke="hsl(30, 100%, 55%)" />
+<g stroke="hsl(30, 100%, 40%)"><line x1="258.3905883048727" x2="305.5742527056366" y1="94" y2="94" />
+<line x1="258.3905883048727" x2="258.3905883048727" y1="88" y2="100" />
+<line x1="305.5742527056366" x2="305.5742527056366" y1="88" y2="100" />
+</g>
+</g>
+<text fill="hsl(60, 100%, 40%)" y="132">getPathType.get file.PosixCompat: get file 1.83 μs</text>
+<g>
+<title>1.83 μs ±  94 ns</title>
+<rect y="138" rx="5" height="22" width="343.1584987738071" fill="hsl(60, 100%, 80%)" stroke="hsl(60, 100%, 55%)" />
+<g stroke="hsl(60, 100%, 40%)"><line x1="325.5016242011364" x2="360.81537334647777" y1="149" y2="149" />
+<line x1="325.5016242011364" x2="325.5016242011364" y1="143" y2="155" />
+<line x1="360.81537334647777" x2="360.81537334647777" y1="143" y2="155" />
+</g>
+</g>
+<g fill="hsl(90, 100%, 40%)">
+<text y="187">getPathType.get dir.PathReader: get dir</text>
+<text y="187" x="581.8510378383519" text-anchor="end">3.10 μs</text>
+</g>
+<g>
+<title>3.10 μs ± 167 ns</title>
+<rect y="193" rx="5" height="22" width="581.8510378383519" fill="hsl(90, 100%, 80%)" stroke="hsl(90, 100%, 55%)" />
+<g stroke="hsl(90, 100%, 40%)"><line x1="550.4374573669679" x2="613.2646183097359" y1="204" y2="204" />
+<line x1="550.4374573669679" x2="550.4374573669679" y1="198" y2="210" />
+<line x1="613.2646183097359" x2="613.2646183097359" y1="198" y2="210" />
+</g>
+</g>
+<text fill="hsl(120, 100%, 40%)" y="242">getPathType.get dir.Posix: get dir 1.45 μs</text>
+<g>
+<title>1.45 μs ±  84 ns</title>
+<rect y="248" rx="5" height="22" width="271.6041328915815" fill="hsl(120, 100%, 80%)" stroke="hsl(120, 100%, 55%)" />
+<g stroke="hsl(120, 100%, 40%)"><line x1="255.78671955327175" x2="287.4215462298913" y1="259" y2="259" />
+<line x1="255.78671955327175" x2="255.78671955327175" y1="253" y2="265" />
+<line x1="287.4215462298913" x2="287.4215462298913" y1="253" y2="265" />
+</g>
+</g>
+<text fill="hsl(150, 100%, 40%)" y="297">getPathType.get dir.PosixCompat: get dir 1.80 μs</text>
+<g>
+<title>1.80 μs ± 174 ns</title>
+<rect y="303" rx="5" height="22" width="337.876386485144" fill="hsl(150, 100%, 80%)" stroke="hsl(150, 100%, 55%)" />
+<g stroke="hsl(150, 100%, 40%)"><line x1="305.27468759752895" x2="370.47808537275904" y1="314" y2="314" />
+<line x1="305.27468759752895" x2="305.27468759752895" y1="308" y2="320" />
+<line x1="370.47808537275904" x2="370.47808537275904" y1="308" y2="320" />
+</g>
+</g>
+<text fill="hsl(180, 100%, 40%)" y="352">getPathType.get file link.PathReader: get file link 1.53 μs</text>
+<g>
+<title>1.53 μs ±  88 ns</title>
+<rect y="358" rx="5" height="22" width="288.2821150859094" fill="hsl(180, 100%, 80%)" stroke="hsl(180, 100%, 55%)" />
+<g stroke="hsl(180, 100%, 40%)"><line x1="271.83401859209795" x2="304.7302115797209" y1="369" y2="369" />
+<line x1="271.83401859209795" x2="271.83401859209795" y1="363" y2="375" />
+<line x1="304.7302115797209" x2="304.7302115797209" y1="363" y2="375" />
+</g>
+</g>
+<text fill="hsl(210, 100%, 40%)" y="407">getPathType.get file link.Posix: get file link 1.45 μs</text>
+<g>
+<title>1.45 μs ± 105 ns</title>
+<rect y="413" rx="5" height="22" width="272.39164166794205" fill="hsl(210, 100%, 80%)" stroke="hsl(210, 100%, 55%)" />
+<g stroke="hsl(210, 100%, 40%)"><line x1="252.69471931830304" x2="292.08856401758106" y1="424" y2="424" />
+<line x1="252.69471931830304" x2="252.69471931830304" y1="418" y2="430" />
+<line x1="292.08856401758106" x2="292.08856401758106" y1="418" y2="430" />
+</g>
+</g>
+<text fill="hsl(240, 100%, 40%)" y="462">getPathType.get file link.PosixCompat: get file link 1.83 μs</text>
+<g>
+<title>1.83 μs ± 170 ns</title>
+<rect y="468" rx="5" height="22" width="344.31450080540714" fill="hsl(240, 100%, 80%)" stroke="hsl(240, 100%, 55%)" />
+<g stroke="hsl(240, 100%, 40%)"><line x1="312.42649935403585" x2="376.2025022567784" y1="479" y2="479" />
+<line x1="312.42649935403585" x2="312.42649935403585" y1="473" y2="485" />
+<line x1="376.2025022567784" x2="376.2025022567784" y1="473" y2="485" />
+</g>
+</g>
+<text fill="hsl(270, 100%, 40%)" y="517">getPathType.get dir link.PathReader: get dir link 1.54 μs</text>
+<g>
+<title>1.54 μs ±  86 ns</title>
+<rect y="523" rx="5" height="22" width="289.06924823204037" fill="hsl(270, 100%, 80%)" stroke="hsl(270, 100%, 55%)" />
+<g stroke="hsl(270, 100%, 40%)"><line x1="272.99527944691243" x2="305.1432170171683" y1="534" y2="534" />
+<line x1="272.99527944691243" x2="272.99527944691243" y1="528" y2="540" />
+<line x1="305.1432170171683" x2="305.1432170171683" y1="528" y2="540" />
+</g>
+</g>
+<text fill="hsl(300, 100%, 40%)" y="572">getPathType.get dir link.Posix: get dir link 1.44 μs</text>
+<g>
+<title>1.44 μs ±  88 ns</title>
+<rect y="578" rx="5" height="22" width="271.34194299131934" fill="hsl(300, 100%, 80%)" stroke="hsl(300, 100%, 55%)" />
+<g stroke="hsl(300, 100%, 40%)"><line x1="254.78566499138248" x2="287.8982209912562" y1="589" y2="589" />
+<line x1="254.78566499138248" x2="254.78566499138248" y1="583" y2="595" />
+<line x1="287.8982209912562" x2="287.8982209912562" y1="583" y2="595" />
+</g>
+</g>
+<text fill="hsl(330, 100%, 40%)" y="627">getPathType.get dir link.PosixCompat: get dir link 1.82 μs</text>
+<g>
+<title>1.82 μs ± 168 ns</title>
+<rect y="633" rx="5" height="22" width="341.431538793212" fill="hsl(330, 100%, 80%)" stroke="hsl(330, 100%, 55%)" />
+<g stroke="hsl(330, 100%, 40%)"><line x1="309.8868633716969" x2="372.97621421472707" y1="644" y2="644" />
+<line x1="309.8868633716969" x2="309.8868633716969" y1="638" y2="650" />
+<line x1="372.97621421472707" x2="372.97621421472707" y1="638" y2="650" />
+</g>
+</g>
+</g>
+</svg>

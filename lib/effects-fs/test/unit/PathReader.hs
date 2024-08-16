@@ -6,6 +6,7 @@ module PathReader (tests) where
 import Data.List qualified as L
 import Effects.Exception (tryAny)
 import Effects.FileSystem.FileWriter qualified as FW
+import Effects.FileSystem.OsPath (OsPath, osp, (</>))
 import Effects.FileSystem.PathReader
   ( PathType
       ( PathTypeDirectory,
@@ -16,7 +17,6 @@ import Effects.FileSystem.PathReader
 import Effects.FileSystem.PathReader qualified as PR
 import Effects.FileSystem.PathReader qualified as PathReader
 import Effects.FileSystem.PathWriter qualified as PW
-import Effects.FileSystem.Utils (OsPath, osp, (</>))
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (assertBool, assertFailure, testCase, (@=?))
 
@@ -51,8 +51,7 @@ testListDirectoryRecursive = testCase "Recursively lists sub-files/dirs" $ do
         prefix </> [osp|HandleReader.hs|],
         prefix </> [osp|HandleWriter.hs|],
         prefix </> [osp|PathReader.hs|],
-        prefix </> [osp|PathWriter.hs|],
-        prefix </> [osp|Utils.hs|]
+        prefix </> [osp|PathWriter.hs|]
       ]
     expectedDirs =
       [ [osp|Effects|],

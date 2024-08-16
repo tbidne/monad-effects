@@ -9,7 +9,7 @@ module Effects.FileSystem.FileWriter
     -- * UTF-8 Utils
     writeFileUtf8,
     appendFileUtf8,
-    FsUtils.encodeUtf8,
+    FS.UTF8.encodeUtf8,
 
     -- * Reexports
     ByteString,
@@ -22,8 +22,9 @@ import Control.Monad.Trans.Reader (ReaderT)
 import Data.ByteString (ByteString)
 import Data.Text (Text)
 import Effects.Exception (addCS)
-import Effects.FileSystem.Utils (OsPath)
-import Effects.FileSystem.Utils qualified as FsUtils
+import Effects.FileSystem.IO qualified as FS.IO
+import Effects.FileSystem.OsPath (OsPath)
+import Effects.FileSystem.UTF8 qualified as FS.UTF8
 import GHC.Stack (HasCallStack)
 
 -- | Represents file-system writer effects.
@@ -42,9 +43,9 @@ class (Monad m) => MonadFileWriter m where
 
 -- | @since 0.1
 instance MonadFileWriter IO where
-  writeBinaryFile p = addCS . FsUtils.writeBinaryFileIO p
+  writeBinaryFile p = addCS . FS.IO.writeBinaryFileIO p
   {-# INLINEABLE writeBinaryFile #-}
-  appendBinaryFile p = addCS . FsUtils.appendBinaryFileIO p
+  appendBinaryFile p = addCS . FS.IO.appendBinaryFileIO p
   {-# INLINEABLE appendBinaryFile #-}
 
 -- | @since 0.1
@@ -58,12 +59,12 @@ instance (MonadFileWriter m) => MonadFileWriter (ReaderT env m) where
 --
 -- @since 0.1
 writeFileUtf8 :: (HasCallStack, MonadFileWriter m) => OsPath -> Text -> m ()
-writeFileUtf8 p = writeBinaryFile p . FsUtils.encodeUtf8
+writeFileUtf8 p = writeBinaryFile p . FS.UTF8.encodeUtf8
 {-# INLINEABLE writeFileUtf8 #-}
 
 -- | Appends to a file as UTF-8.
 --
 -- @since 0.1
 appendFileUtf8 :: (HasCallStack, MonadFileWriter m) => OsPath -> Text -> m ()
-appendFileUtf8 p = appendBinaryFile p . FsUtils.encodeUtf8
+appendFileUtf8 p = appendBinaryFile p . FS.UTF8.encodeUtf8
 {-# INLINEABLE appendFileUtf8 #-}

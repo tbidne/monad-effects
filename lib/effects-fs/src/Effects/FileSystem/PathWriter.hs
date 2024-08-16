@@ -61,6 +61,8 @@ import Effects.Exception
     mask_,
     onException,
   )
+import Effects.FileSystem.IO qualified as FS.IO
+import Effects.FileSystem.OsPath (OsPath, (</>))
 import Effects.FileSystem.PathReader
   ( MonadPathReader
       ( doesDirectoryExist,
@@ -74,8 +76,6 @@ import Effects.FileSystem.PathReader
     pathIsSymbolicDirectoryLink,
   )
 import Effects.FileSystem.PathReader qualified as PR
-import Effects.FileSystem.Utils (OsPath, (</>))
-import Effects.FileSystem.Utils qualified as FsUtils
 import Effects.IORef
   ( MonadIORef (modifyIORef', newIORef, readIORef),
   )
@@ -645,7 +645,7 @@ copyDirectoryOverwrite overwriteFiles src dest = do
           then \f -> do
             exists <- doesFileExist f
             when exists $
-              FsUtils.throwPathIOError
+              FS.IO.throwPathIOError
                 f
                 "copyDirectoryOverwrite"
                 Error.alreadyExistsErrorType
@@ -657,7 +657,7 @@ copyDirectoryOverwrite overwriteFiles src dest = do
           then \f -> do
             exists <- doesSymbolicLinkExist f
             when exists $
-              FsUtils.throwPathIOError
+              FS.IO.throwPathIOError
                 f
                 "copyDirectoryOverwrite"
                 Error.alreadyExistsErrorType
@@ -721,7 +721,7 @@ copyDirectoryNoOverwrite ::
 copyDirectoryNoOverwrite src dest = do
   destExists <- doesDirectoryExist dest
   when destExists $
-    FsUtils.throwPathIOError
+    FS.IO.throwPathIOError
       dest
       "copyDirectoryNoOverwrite"
       Error.alreadyExistsErrorType

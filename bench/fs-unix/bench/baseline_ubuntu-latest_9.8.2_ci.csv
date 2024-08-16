@@ -1,0 +1,13 @@
+Name,Mean (ps),2*Stdev (ps),Allocated,Copied,Peak Memory
+All.getPathType.get file.PathReader: get file,4798309,345266,2743,0,7340032
+All.getPathType.get file.Posix: get file,1500700,110408,429,0,8388608
+All.getPathType.get file.PosixCompat: get file,1861647,168000,1269,0,8388608
+All.getPathType.get dir.PathReader: get dir,3161844,172208,2029,0,8388608
+All.getPathType.get dir.Posix: get dir,1452702,108476,431,0,8388608
+All.getPathType.get dir.PosixCompat: get dir,1829371,178584,1120,0,8388608
+All.getPathType.get file link.PathReader: get file link,1602537,84966,1194,0,8388608
+All.getPathType.get file link.Posix: get file link,1440218,84720,427,0,8388608
+All.getPathType.get file link.PosixCompat: get file link,1842109,93268,1187,0,8388608
+All.getPathType.get dir link.PathReader: get dir link,1609908,106226,1194,0,8388608
+All.getPathType.get dir link.Posix: get dir link,1448995,101586,427,0,8388608
+All.getPathType.get dir link.PosixCompat: get dir link,1856880,175934,1111,0,8388608

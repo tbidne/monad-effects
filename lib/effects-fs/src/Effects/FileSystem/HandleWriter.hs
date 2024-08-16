@@ -30,8 +30,9 @@ import Data.ByteString qualified as BS
 import Data.ByteString.Char8 qualified as Char8
 import Data.Text (Text)
 import Effects.Exception (MonadThrow, addCS, exitFailure)
-import Effects.FileSystem.Utils (OsPath)
-import Effects.FileSystem.Utils qualified as FsUtils
+import Effects.FileSystem.IO qualified as FS.IO
+import Effects.FileSystem.OsPath (OsPath)
+import Effects.FileSystem.UTF8 qualified as FS.UTF8
 import GHC.Stack (HasCallStack)
 import System.IO
   ( BufferMode (BlockBuffering, LineBuffering, NoBuffering),
@@ -102,9 +103,9 @@ class (Monad m) => MonadHandleWriter m where
 
 -- | @since 0.1
 instance MonadHandleWriter IO where
-  openBinaryFile f = addCS . FsUtils.openBinaryFileIO f
+  openBinaryFile f = addCS . FS.IO.openBinaryFileIO f
   {-# INLINEABLE openBinaryFile #-}
-  withBinaryFile f m = addCS . FsUtils.withBinaryFileIO f m
+  withBinaryFile f m = addCS . FS.IO.withBinaryFileIO f m
   {-# INLINEABLE withBinaryFile #-}
   hClose = addCS . IO.hClose
   {-# INLINEABLE hClose #-}
@@ -155,7 +156,7 @@ instance (MonadHandleWriter m) => MonadHandleWriter (ReaderT env m) where
 --
 -- @since 0.1
 hPutUtf8 :: (HasCallStack, MonadHandleWriter m) => Handle -> Text -> m ()
-hPutUtf8 h = hPut h . FsUtils.encodeUtf8
+hPutUtf8 h = hPut h . FS.UTF8.encodeUtf8
 {-# INLINEABLE hPutUtf8 #-}
 
 -- | Writes UTF-8 text to handle, returning leftover bytes.
@@ -168,7 +169,7 @@ hPutNonBlockingUtf8 ::
   Handle ->
   Text ->
   m ByteString
-hPutNonBlockingUtf8 h = hPutNonBlocking h . FsUtils.encodeUtf8
+hPutNonBlockingUtf8 h = hPutNonBlocking h . FS.UTF8.encodeUtf8
 {-# INLINEABLE hPutNonBlockingUtf8 #-}
 
 -- | Write given error message to 'IO.stderr' and terminate with `exitFailure`.

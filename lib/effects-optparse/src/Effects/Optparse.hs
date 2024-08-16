@@ -15,8 +15,8 @@ where
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Effects.Exception (addCS)
-import Effects.FileSystem.Utils (OsPath)
-import Effects.FileSystem.Utils qualified as FsUtils
+import Effects.FileSystem.OsPath (OsPath)
+import Effects.FileSystem.OsPath qualified as FS.OsPath
 import GHC.Stack (HasCallStack)
 import Options.Applicative (ParserInfo, ParserPrefs, ParserResult, ReadM)
 import Options.Applicative qualified as OA
@@ -66,11 +66,11 @@ instance (MonadOptparse m) => MonadOptparse (ReaderT env m) where
 --
 -- @since 0.1
 osPath :: ReadM OsPath
-osPath = OA.str >>= FsUtils.encodeFpToOsFail
+osPath = OA.str >>= FS.OsPath.encodeFail
 
 -- | 'OsPath' 'OA.Option' reader. This includes validation i.e. fails if the
 -- path is considered invalid on the given platform.
 --
 -- @since 0.1
 validOsPath :: ReadM OsPath
-validOsPath = OA.str >>= FsUtils.encodeFpToValidOsFail
+validOsPath = OA.str >>= FS.OsPath.encodeValidFail
