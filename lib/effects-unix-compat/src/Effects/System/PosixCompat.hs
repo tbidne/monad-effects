@@ -7,46 +7,32 @@ module Effects.System.PosixCompat
 
     -- * PathType
     PathType (..),
-    displayPathType,
 
     -- ** Functions
+    displayPathType,
     throwIfWrongPathType,
     isPathType,
     getPathType,
-
-    -- ** Optics
-    _PathTypeFile,
-    _PathTypeDirectory,
-    _PathTypeSymbolicLink,
-    _PathTypeOther,
-
-    -- * Utils
-    throwPathIOError,
   )
 where
 
-import Control.DeepSeq (NFData)
 import Control.Monad (unless)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.Functor ((<&>))
-import Data.String (IsString)
-import Effects.Exception (MonadCatch, MonadThrow, throwCS)
-import GHC.Generics (Generic)
-import GHC.IO.Exception
-  ( IOErrorType (InappropriateType),
-    IOException
-      ( IOError,
-        ioe_description,
-        ioe_errno,
-        ioe_filename,
-        ioe_handle,
-        ioe_location,
-        ioe_type
+import Effects.Exception (MonadCatch)
+import Effects.FileSystem.IO qualified as FS.IO
+import Effects.FileSystem.PathType
+  ( PathType
+      ( PathTypeDirectory,
+        PathTypeFile,
+        PathTypeOther,
+        PathTypeSymbolicLink
       ),
+    displayPathType,
   )
+import GHC.IO.Exception (IOErrorType (InappropriateType))
 import GHC.Stack (HasCallStack)
-import Optics.Core (Prism', prism)
 import System.PosixCompat.Files (FileStatus, PathVar)
 import System.PosixCompat.Files qualified as PFiles
 import System.PosixCompat.Types
@@ -242,90 +228,6 @@ instance (MonadPosixCompat m) => MonadPosixCompat (ReaderT e m) where
   getFdPathVar fd = lift . getFdPathVar fd
   {-# INLINEABLE getFdPathVar #-}
 
--- | Path type.
---
--- @since 0.1
-data PathType
-  = -- | @since 0.1
-    PathTypeFile
-  | -- | @since 0.1
-    PathTypeDirectory
-  | -- | @since 0.1
-    PathTypeSymbolicLink
-  | -- | @since 0.1
-    PathTypeOther
-  deriving stock
-    ( -- | @since 0.1
-      Bounded,
-      -- | @since 0.1
-      Enum,
-      -- | @since 0.1
-      Eq,
-      -- | @since 0.1
-      Generic,
-      -- | @since 0.1
-      Ord,
-      -- | @since 0.1
-      Show
-    )
-  deriving anyclass
-    ( -- | @since 0.1
-      NFData
-    )
-
--- | @since 0.1
-_PathTypeFile :: Prism' PathType ()
-_PathTypeFile =
-  prism
-    (const PathTypeFile)
-    ( \case
-        PathTypeFile -> Right ()
-        x -> Left x
-    )
-{-# INLINE _PathTypeFile #-}
-
--- | @since 0.1
-_PathTypeDirectory :: Prism' PathType ()
-_PathTypeDirectory =
-  prism
-    (const PathTypeDirectory)
-    ( \case
-        PathTypeDirectory -> Right ()
-        x -> Left x
-    )
-{-# INLINE _PathTypeDirectory #-}
-
--- | @since 0.1
-_PathTypeSymbolicLink :: Prism' PathType ()
-_PathTypeSymbolicLink =
-  prism
-    (const PathTypeSymbolicLink)
-    ( \case
-        PathTypeSymbolicLink -> Right ()
-        x -> Left x
-    )
-{-# INLINE _PathTypeSymbolicLink #-}
-
--- | @since 0.1
-_PathTypeOther :: Prism' PathType ()
-_PathTypeOther =
-  prism
-    (const PathTypeOther)
-    ( \case
-        PathTypeOther -> Right ()
-        x -> Left x
-    )
-{-# INLINE _PathTypeOther #-}
-
--- | String representation of 'PathType'.
---
--- @since 0.1
-displayPathType :: (IsString a) => PathType -> a
-displayPathType PathTypeFile = "file"
-displayPathType PathTypeDirectory = "directory"
-displayPathType PathTypeSymbolicLink = "symlink"
-displayPathType PathTypeOther = "other"
-
 -- | Throws 'IOException' if the path does not exist or the expected path type
 -- does not match actual.
 --
@@ -344,16 +246,14 @@ throwIfWrongPathType location expected path = do
 
   let err =
         mconcat
-          [ "Expected path '",
-            path,
-            "' to have type ",
+          [ "Expected path to have type ",
             displayPathType expected,
             ", but detected ",
             displayPathType actual
           ]
 
   unless (expected == actual) $
-    throwPathIOError
+    FS.IO.throwPathIOErrorFilePath
       path
       location
       InappropriateType
@@ -395,29 +295,3 @@ getPathType path =
       | PFiles.isRegularFile status -> PathTypeFile
       | otherwise -> PathTypeOther
 {-# INLINEABLE getPathType #-}
-
--- | Helper for throwing 'IOException'.
---
--- @since 0.1
-throwPathIOError ::
-  (HasCallStack, MonadThrow m) =>
-  -- | Path upon which the IO operation failed.
-  FilePath ->
-  -- | String location (e.g. function name).
-  String ->
-  -- | Type of exception.
-  IOErrorType ->
-  -- | Description.
-  String ->
-  m a
-throwPathIOError path loc ty desc =
-  throwCS $
-    IOError
-      { ioe_handle = Nothing,
-        ioe_type = ty,
-        ioe_location = loc,
-        ioe_description = desc,
-        ioe_errno = Nothing,
-        ioe_filename = Just path
-      }
-{-# INLINEABLE throwPathIOError #-}

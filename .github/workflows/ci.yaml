@@ -37,29 +37,92 @@ jobs:
       - name: Configure
         run: cabal configure --enable-tests --ghc-options='-Wno-deprecations -Werror'
 
-      - name: Compile
-        run: cabal build all
+      # In general, list libs in alphabetical order though we break this rule
+      # when a later dep (name) l is a dependency of an earlier one e, since we
+      # want build errors to be as specific as possible i.e. a build error for
+      # l should be reported in its step, not as part of e's.
+
+      - name: Build effects-async
+        run: cabal build effects-async
+
+      - name: Build effects-env
+        run: cabal build effects-env
+
+      - name: Build effects-exceptions
+        run: cabal build effects-exceptions
 
       - name: Test effects-exceptions
         run: cabal test effects-exceptions
 
+      # effects-fs-utils before effects-fs since the former is a dep of the
+      # latter.
+
+      - name: Build effects-fs-utils
+        run: cabal build effects-fs-utils
+
+      - name: Test effects-fs-utils
+        run: cabal test effects-fs-utils --test-options '--hedgehog-tests 100000'
+
+      - name: Build effects-fs
+        run: cabal build effects-fs
+
       - name: Test effects-fs
-        run: cabal test effects-fs --test-options '--hedgehog-tests 100000'
+        run: cabal test effects-fs
+
+      - name: Build effects-haskeline
+        run: cabal build effects-haskeline
+
+      - name: Build effects-ioref
+        run: cabal build effects-ioref
+
+      - name: Build effects-logger-ns
+        run: cabal build effects-logger-ns
 
       - name: Test effects-logger-ns
         run: cabal test effects-logger-ns --test-options '--hedgehog-tests 100000'
 
+      - name: Build effects-optparse
+        run: cabal build effects-optparse
+
+      - name: Build effects-stm
+        run: cabal build effects-stm
+
+      - name: Build effects-terminal
+        run: cabal build effects-terminal
+
+      - name: Build effects-thread
+        run: cabal build effects-thread
+
+      - name: Build effects-time
+        run: cabal build effects-time
+
       - name: Test effects-time
         run: cabal test effects-time --test-options '--hedgehog-tests 100000'
+
+      - name: Build effects-typed-process
+        run: cabal build effects-typed-process
+
+      - name: Build effects-unix
+        if: ${{ matrix.os != 'windows-latest' }}
+        run: cabal build effects-unix
+
+      - name: Test effects-unix
+        if: ${{ matrix.os != 'windows-latest' }}
+        run: cabal test effects-unix
+
+      - name: Build effects-unix-compat
+        run: cabal build effects-unix-compat
 
       - name: Test effects-unix-compat
         run: cabal test effects-unix-compat
 
-      - name: Benchmark effects-fs/unix-compat
+      - name: Benchmark effects-fs/unix
         if: ${{ matrix.os == 'ubuntu-latest' }}
         id: bench
         run: |
-          cabal bench effects-fs:benchmark:benchmarks --benchmark-options '
+          cabal bench fs-unix:benchmark:benchmarks --benchmark-options '
+            +RTS -T -RTS -t100
+            --baseline bench/baseline_${{ matrix.os }}_${{ matrix.ghc }}_ci.csv
             --csv bench/bench_${{ matrix.os }}_${{ matrix.ghc }}_ci.csv
             --svg bench/bench_${{ matrix.os }}_${{ matrix.ghc }}_ci.svg
             --fail-if-slower 30
@@ -70,8 +133,8 @@ jobs:
         with:
           name: build-artifacts
           path: |
-            lib/effects-fs/bench/bench_${{ matrix.os }}_${{ matrix.ghc }}_ci.csv
-            lib/effects-fs/bench/bench_${{ matrix.os }}_${{ matrix.ghc }}_ci.svg
+            bench/fs-unix/bench/bench_${{ matrix.os }}_${{ matrix.ghc }}_ci.csv
+            bench/fs-unix/bench/bench_${{ matrix.os }}_${{ matrix.ghc }}_ci.svg
   nix:
     strategy:
       fail-fast: false
@@ -89,24 +152,53 @@ jobs:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           nix_path: nixpkgs=channel:nixos-unstable
 
-      - name: Build & Test
-        run: |
-          nix build \
-            .#effects-async \
-            .#effects-env \
-            .#effects-exceptions \
-            .#effects-fs \
-            .#effects-haskeline \
-            .#effects-ioref \
-            .#effects-logger-ns \
-            .#effects-optparse \
-            .#effects-stm \
-            .#effects-terminal \
-            .#effects-thread \
-            .#effects-time \
-            .#effects-typed-process \
-            .#effects-unix-compat
+      - name: Build effects-async
+        run: nix build -Lv .#effects-async
 
+      - name: Build effects-env
+        run: nix build -Lv .#effects-env
+
+      - name: Build effects-exceptions
+        run: nix build -Lv .#effects-exceptions
+
+      - name: Build effects-fs-utils
+        run: nix build -Lv .#effects-fs-utils
+
+      - name: Build effects-fs
+        run: nix build -Lv .#effects-fs
+
+      - name: Build effects-haskeline
+        run: nix build -Lv .#effects-haskeline
+
+      - name: Build effects-ioref
+        run: nix build -Lv .#effects-ioref
+
+      - name: Build effects-logger-ns
+        run: nix build -Lv .#effects-logger-ns
+
+      - name: Build effects-optparse
+        run: nix build -Lv .#effects-optparse
+
+      - name: Build effects-stm
+        run: nix build -Lv .#effects-stm
+
+      - name: Build effects-terminal
+        run: nix build -Lv .#effects-terminal
+
+      - name: Build effects-thread
+        run: nix build -Lv .#effects-thread
+
+      - name: Build effects-time
+        run: nix build -Lv .#effects-time
+
+      - name: Build effects-typed-process
+        run: nix build -Lv .#effects-typed-process
+
+      - name: Build effects-unix
+        run: nix build -Lv .#effects-unix
+
+      - name: Build effects-unix-compat
+        run: nix build -Lv .#effects-unix-compat
   lint:
     runs-on: "ubuntu-latest"
     steps:

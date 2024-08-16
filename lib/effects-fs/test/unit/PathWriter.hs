@@ -29,6 +29,8 @@ import Effects.FileSystem.FileWriter
     OsPath,
   )
 import Effects.FileSystem.FileWriter qualified as FW
+import Effects.FileSystem.OsPath (osp, (</>))
+import Effects.FileSystem.OsPath qualified as FS.OsPath
 import Effects.FileSystem.PathReader
   ( MonadPathReader,
     doesDirectoryExist,
@@ -51,8 +53,6 @@ import Effects.FileSystem.PathWriter
   )
 import Effects.FileSystem.PathWriter qualified as PW
 import Effects.FileSystem.PathWriter qualified as PathWriter
-import Effects.FileSystem.Utils (osp, (</>))
-import Effects.FileSystem.Utils qualified as Utils
 import Effects.IORef (MonadIORef (modifyIORef', newIORef, readIORef))
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (assertBool, assertFailure, testCase, (@=?))
@@ -338,7 +338,7 @@ cdrnOverwriteFails getTmpDir = testCase desc $ do
   where
     desc = "Copy to extant dest/<target> fails"
     suffix =
-      Utils.decodeOsToFpDisplayEx ([osp|dest|] </> [osp|src|])
+      FS.OsPath.decodeDisplayEx ([osp|dest|] </> [osp|src|])
         <> ": copyDirectoryNoOverwrite: already exists (Attempted directory overwrite when CopyDirConfig.overwrite is OverwriteNone)"
 
 cdrnPartialFails :: IO OsPath -> TestTree
@@ -610,7 +610,7 @@ cdrtOverwriteTargetMergeFails getTmpDir = testCase desc $ do
     desc = "copy to extant dest/<target> merge fails"
     config = MkCopyDirConfig OverwriteDirectories TargetNameDest
     suffix =
-      Utils.decodeOsToFpDisplayEx ([osp|dest|] </> [osp|two|] </> [osp|f3|])
+      FS.OsPath.decodeDisplayEx ([osp|dest|] </> [osp|two|] </> [osp|f3|])
         <> ": copyDirectoryOverwrite: already exists (Attempted file overwrite when CopyDirConfig.overwriteFiles is false)"
 
 cdrtOverwriteFileFails :: IO OsPath -> TestTree
@@ -646,7 +646,7 @@ cdrtOverwriteFileFails getTmpDir = testCase desc $ do
     desc = "copy to extant dest/<target>/file fails"
     pathEnd = [osp|src|] </> [osp|a|] </> [osp|b|] </> [osp|c|] </> [osp|f1|]
     suffix =
-      Utils.decodeOsToFpDisplayEx ([osp|dest|] </> pathEnd)
+      FS.OsPath.decodeDisplayEx ([osp|dest|] </> pathEnd)
         <> ": copyDirectoryOverwrite: already exists (Attempted file overwrite when CopyDirConfig.overwriteFiles is false)"
 
 cdrtPartialFails :: IO OsPath -> TestTree
@@ -1181,12 +1181,12 @@ assertDestExists baseDir = do
 assertFilesExist :: (HasCallStack) => [OsPath] -> IO ()
 assertFilesExist = traverse_ $ \p -> do
   exists <- doesFileExist p
-  assertBool ("Expected file to exist: " <> Utils.decodeOsToFpShow p) exists
+  assertBool ("Expected file to exist: " <> FS.OsPath.decodeLenient p) exists
 
 assertFilesDoNotExist :: (HasCallStack) => [OsPath] -> IO ()
 assertFilesDoNotExist = traverse_ $ \p -> do
   exists <- doesFileExist p
-  assertBool ("Expected file not to exist: " <> Utils.decodeOsToFpShow p) (not exists)
+  assertBool ("Expected file not to exist: " <> FS.OsPath.decodeLenient p) (not exists)
 
 assertSymlinksExist :: (HasCallStack) => [OsPath] -> IO ()
 assertSymlinksExist = assertSymlinksExist' . fmap (,Nothing)
@@ -1197,7 +1197,7 @@ assertSymlinksExistTarget = assertSymlinksExist' . (fmap . fmap) Just
 assertSymlinksExist' :: (HasCallStack) => [(OsPath, Maybe OsPath)] -> IO ()
 assertSymlinksExist' = traverse_ $ \(l, t) -> do
   exists <- doesSymbolicLinkExist l
-  assertBool ("Expected symlink to exist: " <> Utils.decodeOsToFpShow l) exists
+  assertBool ("Expected symlink to exist: " <> FS.OsPath.decodeLenient l) exists
 
   case t of
     Nothing -> pure ()
@@ -1208,24 +1208,24 @@ assertSymlinksExist' = traverse_ $ \(l, t) -> do
 assertSymlinksDoNotExist :: (HasCallStack) => [OsPath] -> IO ()
 assertSymlinksDoNotExist = traverse_ $ \l -> do
   exists <- doesSymbolicLinkExist l
-  assertBool ("Expected symlink not to exist: " <> Utils.decodeOsToFpShow l) (not exists)
+  assertBool ("Expected symlink not to exist: " <> FS.OsPath.decodeLenient l) (not exists)
 
 assertFileContents :: (HasCallStack) => [(OsPath, ByteString)] -> IO ()
 assertFileContents = traverse_ $ \(p, expected) -> do
   exists <- doesFileExist p
-  assertBool ("Expected file to exist: " <> Utils.decodeOsToFpShow p) exists
+  assertBool ("Expected file to exist: " <> FS.OsPath.decodeLenient p) exists
   actual <- readBinaryFile p
   expected @=? actual
 
 assertDirsExist :: (HasCallStack) => [OsPath] -> IO ()
 assertDirsExist = traverse_ $ \p -> do
   exists <- doesDirectoryExist p
-  assertBool ("Expected directory to exist: " <> Utils.decodeOsToFpShow p) exists
+  assertBool ("Expected directory to exist: " <> FS.OsPath.decodeLenient p) exists
 
 assertDirsDoNotExist :: (HasCallStack) => [OsPath] -> IO ()
 assertDirsDoNotExist = traverse_ $ \p -> do
   exists <- doesDirectoryExist p
-  assertBool ("Expected directory not to exist: " <> Utils.decodeOsToFpShow p) (not exists)
+  assertBool ("Expected directory not to exist: " <> FS.OsPath.decodeLenient p) (not exists)
 
 mkTestPath :: IO OsPath -> OsPath -> IO OsPath
 mkTestPath getPath s = do

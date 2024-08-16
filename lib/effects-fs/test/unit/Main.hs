@@ -4,6 +4,8 @@ module Main (main) where
 
 import Data.Foldable (for_)
 import Effects.FileSystem.FileWriter qualified as FW
+import Effects.FileSystem.OsPath (OsPath, osp, (</>))
+import Effects.FileSystem.OsPath qualified as FS.OsPath
 import Effects.FileSystem.PathReader (getTemporaryDirectory)
 import Effects.FileSystem.PathWriter
   ( createDirectoryIfMissing,
@@ -11,14 +13,10 @@ import Effects.FileSystem.PathWriter
     removePathForcibly,
   )
 import Effects.FileSystem.PathWriter qualified as PW
-import Effects.FileSystem.Utils (OsPath, osp, (</>))
-import Effects.FileSystem.Utils qualified as Utils
-import Misc qualified
 import PathReader qualified
 import PathWriter qualified
 import System.Environment.Guard (ExpectEnv (ExpectEnvSet), guardOrElse')
 import Test.Tasty (defaultMain, testGroup, withResource)
-import Utils qualified
 
 main :: IO ()
 main =
@@ -26,10 +24,8 @@ main =
     withResource setup teardown $ \args ->
       testGroup
         "Unit Tests"
-        [ Misc.tests args,
-          PathReader.tests args,
-          PathWriter.tests args,
-          Utils.tests
+        [ PathReader.tests args,
+          PathWriter.tests args
         ]
 
 setup :: IO OsPath
@@ -48,7 +44,7 @@ teardown :: OsPath -> IO ()
 teardown fp = guardOrElse' "NO_CLEANUP" ExpectEnvSet doNothing cleanup
   where
     cleanup = removePathForcibly fp
-    doNothing = putStrLn $ "*** Not cleaning up tmp dir: " <> Utils.decodeOsToFpShow fp
+    doNothing = putStrLn $ "*** Not cleaning up tmp dir: " <> FS.OsPath.decodeLenient fp
 
 -- | This is what we want to create:
 --

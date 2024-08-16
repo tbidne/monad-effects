@@ -1,5 +1,8 @@
 cradle:
   cabal:
+    - path: "./bench/fs-unix/bench/Main.hs"
+      component: "fs-unix:bench:benchmarks"
+
     - path: "./lib/effects-async/src"
       component: "lib:effects-async"
 
@@ -18,8 +21,11 @@ cradle:
     - path: "./lib/effects-fs/test/unit"
       component: "effects-fs:test:unit"
 
-    - path: "./lib/effects-fs/bench/Main.hs"
-      component: "effects-fs:bench:benchmarks"
+    - path: "./lib/effects-fs-utils/src"
+      component: "lib:effects-fs-utils"
+
+    - path: "./lib/effects-fs-utils/test/unit"
+      component: "effects-fs-utils:test:unit"
 
     - path: "./lib/effects-haskeline/src"
       component: "lib:effects-haskeline"
@@ -53,6 +59,12 @@ cradle:
 
     - path: "./lib/effects-typed-process/src"
       component: "lib:effects-typed-process"
+
+    - path: "./lib/effects-unix/src"
+      component: "lib:effects-unix"
+
+    - path: "./lib/effects-unix/test/unit"
+      component: "effects-unix:test:unit"
 
     - path: "./lib/effects-unix-compat/src"
       component: "lib:effects-unix-compat"

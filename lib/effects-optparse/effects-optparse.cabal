@@ -53,7 +53,7 @@ library
   build-depends:
     , base                  >=4.16.0.0 && <4.21
     , effects-exceptions    ^>=0.1
-    , effects-fs            ^>=0.1
+    , effects-fs-utils      ^>=0.1
     , optparse-applicative  >=0.16.1.0 && <0.19
     , transformers          >=0.5.6.2  && <0.7
 

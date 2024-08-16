@@ -123,6 +123,21 @@ Filesystem effects. In particular:
 * The `Path*` modules implement the `directory` interface.
 * The `Handle*` modules implement `System.IO` handle operations.
 
+## effects-fs-utils
+
+### Library: `file-io`, `file-path`, `os-string`
+
+### Modules
+
+* `Effects.FileSystem.IO`
+* `Effects.FileSystem.OsPath`
+* `Effects.FileSystem.PathType`
+* `Effects.FileSystem.UTF8`
+
+### Description
+
+This package does not include any typeclass effects itself. It merely provides some common functionality required in other packages (e.g. `effects-fs`, `effects-unix`). The primary idea is implementing various utilities for `OsPath`, though we also include a type for distinguishing path types.
+
 ## effects-haskeline
 
 ### Library: `haskeline`
@@ -221,6 +236,18 @@ Provides functions for retrieving the current system time and monotonic time.
 ### Description
 
 Effect for the `typed-process` library.
+
+## effects-unix
+
+### Library: `unix`
+
+### Modules
+
+* `Effects.System.Posix (System.Posix)`
+
+### Description
+
+Effect for the `unix` library.
 
 ## effects-unix-compat
 

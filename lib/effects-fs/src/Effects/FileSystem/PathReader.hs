@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
 -- | Provides the MonadPathReader effect.
@@ -22,16 +23,10 @@ module Effects.FileSystem.PathReader
     PathType (..),
 
     -- ** Functions
-    PC.displayPathType,
+    displayPathType,
     getPathType,
     isPathType,
     throwIfWrongPathType,
-
-    -- ** Optics
-    PC._PathTypeFile,
-    PC._PathTypeDirectory,
-    PC._PathTypeSymbolicLink,
-    PC._PathTypeOther,
 
     -- * Misc
     listDirectoryRecursive,
@@ -52,18 +47,19 @@ import Control.Monad (unless, (>=>))
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Data.Time (UTCTime (UTCTime, utctDay, utctDayTime))
-import Effects.Exception (IOException, MonadCatch, addCS, catchCS)
-import Effects.FileSystem.Utils (OsPath, (</>))
-import Effects.FileSystem.Utils qualified as Utils
-import Effects.System.PosixCompat
+import Effects.Exception (MonadCatch, addCS)
+import Effects.Exception qualified as Ex
+import Effects.FileSystem.IO qualified as FS.IO
+import Effects.FileSystem.OsPath (OsPath, (</>))
+import Effects.FileSystem.PathType
   ( PathType
       ( PathTypeDirectory,
         PathTypeFile,
         PathTypeOther,
         PathTypeSymbolicLink
       ),
+    displayPathType,
   )
-import Effects.System.PosixCompat qualified as PC
 import GHC.IO.Exception (IOErrorType (InappropriateType))
 import GHC.Stack (HasCallStack)
 import System.Directory
@@ -471,6 +467,8 @@ splitPathsSymboliclink root d = go
             else go (dirEntry : files) dirs symlinks ps
 {-# INLINEABLE splitPathsSymboliclink #-}
 
+{- ORMOLU_DISABLE -}
+
 -- | Returns true if the path is a symbolic link. Does not traverse the link.
 --
 -- @since 0.1
@@ -486,12 +484,14 @@ doesSymbolicLinkExist p =
   -- so we need to handle this. Note that the obvious alternative, prefacing
   -- the call with doesPathExist does not work, as that operates on the link
   -- target. doesFileExist also behaves this way.
-  --
-  -- TODO: We should probably use catchIOError here. Alas, we currently wrap
-  -- exceptions in a ExceptionCS, so we need to account for that.
-  -- Once the ExceptionCS machinery is removed, replace this with catchIOError.
-  pathIsSymbolicLink p `catchCS` \(_ :: IOException) -> pure False
+#if MIN_VERSION_base(4,20,0)
+  pathIsSymbolicLink p `Ex.catchIOError` \_ -> pure False
+#else
+  pathIsSymbolicLink p `Ex.catchCS` \(_ :: Ex.IOException) -> pure False
+#endif
 {-# INLINEABLE doesSymbolicLinkExist #-}
+
+{- ORMOLU_ENABLE -}
 
 -- | Like 'pathIsSymbolicDirectoryLink' but for files.
 --
@@ -542,7 +542,7 @@ pathIsSymbolicDirectoryLink = getSymbolicLinkTarget >=> doesDirectoryExist
 -- | Throws 'IOException' if the path does not exist or the expected path type
 -- does not match actual.
 --
--- For a faster version in terms of PosixCompat, see effects-unix-compat.
+-- For a faster version in terms of Posix(Compat), see effects-unix(-compat).
 --
 -- @since 0.1
 throwIfWrongPathType ::
@@ -562,16 +562,14 @@ throwIfWrongPathType location expected path = do
 
   let err =
         mconcat
-          [ "Expected path '",
-            Utils.decodeOsToFpShow path,
-            "' to have type ",
-            PC.displayPathType expected,
+          [ "Expected path to have type ",
+            displayPathType expected,
             ", but detected ",
-            PC.displayPathType actual
+            displayPathType actual
           ]
 
   unless (expected == actual) $
-    Utils.throwPathIOError
+    FS.IO.throwPathIOError
       path
       location
       InappropriateType
@@ -581,7 +579,7 @@ throwIfWrongPathType location expected path = do
 -- | Checks that the path type matches the expectation. Throws
 -- 'IOException' if the path does not exist or the type cannot be detected.
 --
--- For a faster version in terms of PosixCompat, see effects-unix-compat.
+-- For a faster version in terms of Posix(Compat), see effects-unix(-compat).
 --
 -- @since 0.1
 isPathType ::
@@ -629,7 +627,7 @@ getPathType path = do
               if pathExists
                 then pure PathTypeOther
                 else
-                  Utils.throwPathIOError
+                  FS.IO.throwPathIOError
                     path
                     "getPathType"
                     IO.Error.doesNotExistErrorType

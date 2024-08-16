@@ -21,7 +21,7 @@ main =
 setup :: IO FilePath
 setup = do
   tmpDir <-
-    (\s -> s </> "effects-fs" </> "unit")
+    (\s -> s </> "effects-unix-compat" </> "unit")
       <$> Dir.getTemporaryDirectory
 
   exists <- Dir.doesDirectoryExist tmpDir

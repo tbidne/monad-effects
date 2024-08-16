@@ -61,6 +61,7 @@
                 effects-env = ./lib/effects-env;
                 effects-exceptions = ./lib/effects-exceptions;
                 effects-fs = ./lib/effects-fs;
+                effects-fs-utils = ./lib/effects-fs-utils;
                 effects-haskeline = ./lib/effects-haskeline;
                 effects-ioref = ./lib/effects-ioref;
                 effects-logger-ns = ./lib/effects-logger-ns;
@@ -70,6 +71,7 @@
                 effects-thread = ./lib/effects-thread;
                 effects-time = ./lib/effects-time;
                 effects-typed-process = ./lib/effects-typed-process;
+                effects-unix = ./lib/effects-unix;
                 effects-unix-compat = ./lib/effects-unix-compat;
               }
             )
@@ -79,6 +81,7 @@
             p.effects-env
             p.effects-exceptions
             p.effects-fs
+            p.effects-fs-utils
             p.effects-haskeline
             p.effects-ioref
             p.effects-logger-ns
@@ -88,6 +91,7 @@
             p.effects-thread
             p.effects-time
             p.effects-typed-process
+            p.effects-unix
             p.effects-unix-compat
           ];
 
@@ -106,16 +110,12 @@
           };
           packages.effects-env = mkPkgsException "effects-env" ./lib/effects-env;
           packages.effects-exceptions = mkPkg "effects-exceptions" ./lib/effects-exceptions { };
-          packages.effects-fs = compiler.developPackage {
-            name = "effects-fs";
-            root = ./lib/effects-fs;
-            returnShellEnv = false;
-            source-overrides = {
-              effects-exceptions = ./lib/effects-exceptions;
-              effects-ioref = ./lib/effects-ioref;
-              effects-unix-compat = ./lib/effects-unix-compat;
-            };
+          packages.effects-fs = mkPkg "effects-fs" ./lib/effects-fs {
+            effects-exceptions = ./lib/effects-exceptions;
+            effects-fs-utils = ./lib/effects-fs-utils;
+            effects-ioref = ./lib/effects-ioref;
           };
+          packages.effects-fs-utils = mkPkgsException "effects-fs-utils" ./lib/effects-fs-utils;
           packages.effects-haskeline = mkPkg "effects-haskeline" ./lib/effects-haskeline { };
           packages.effects-ioref = mkPkgsException "effects-ioref" ./lib/effects-ioref;
           packages.effects-logger-ns = mkPkg "effects-logger-ns" ./lib/effects-logger-ns {
@@ -125,16 +125,21 @@
           };
           packages.effects-optparse = mkPkg "effects-optparse" ./lib/effects-optparse {
             effects-exceptions = ./lib/effects-exceptions;
-            effects-fs = ./lib/effects-fs;
-            effects-ioref = ./lib/effects-ioref;
-            effects-unix-compat = ./lib/effects-unix-compat;
+            effects-fs-utils = ./lib/effects-fs-utils;
           };
           packages.effects-stm = mkPkgsException "effects-stm" ./lib/effects-stm;
           packages.effects-terminal = mkPkgsException "effects-terminal" ./lib/effects-terminal;
           packages.effects-time = mkPkgsException "effects-time" ./lib/effects-time;
           packages.effects-thread = mkPkgsException "effects-thread" ./lib/effects-thread;
           packages.effects-typed-process = mkPkgsException "effects-typed-process" ./lib/effects-typed-process;
-          packages.effects-unix-compat = mkPkgsException "effects-unix-compat" ./lib/effects-unix-compat;
+          packages.effects-unix = mkPkg "effects-unix" ./lib/effects-unix {
+            effects-exceptions = ./lib/effects-exceptions;
+            effects-fs-utils = ./lib/effects-fs-utils;
+          };
+          packages.effects-unix-compat = mkPkg "effects-unix-compat" ./lib/effects-unix-compat {
+            effects-exceptions = ./lib/effects-exceptions;
+            effects-fs-utils = ./lib/effects-fs-utils;
+          };
 
           devShells.default = hsOverlay.shellFor {
             inherit packages;

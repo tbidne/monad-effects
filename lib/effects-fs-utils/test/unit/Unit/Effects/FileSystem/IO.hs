@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE QuasiQuotes #-}
 
-module Misc (tests) where
+module Unit.Effects.FileSystem.IO (tests) where
 
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Data.ByteString (ByteString)
@@ -10,13 +10,14 @@ import Data.Char qualified as Ch
 import Data.HashSet (HashSet)
 import Data.HashSet qualified as Set
 import Effects.Exception (MonadCatch, catchAny, displayException, tryAny)
-import Effects.FileSystem.PathWriter qualified as WDir
-import Effects.FileSystem.Utils (OsPath, osp, (</>))
-import Effects.FileSystem.Utils qualified as Utils
+import Effects.FileSystem.IO qualified as FS.IO
+import Effects.FileSystem.OsPath (OsPath, osp, (</>))
+import Effects.FileSystem.OsPath qualified as FS.OsPath
 import Hedgehog (MonadGen, MonadTest, (===))
 import Hedgehog qualified as H
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
+import System.Directory.OsPath qualified as Dir
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 
@@ -33,21 +34,21 @@ readWriteRoundtrip :: IO OsPath -> TestTree
 readWriteRoundtrip getTmpDir = testPropertyNamed desc "readWriteRoundtrip" $ do
   H.property $ do
     tmpDir <- (</> [osp|readWriteRoundtrip|]) <$> liftIO getTmpDir
-    liftIO $ WDir.createDirectoryIfMissing True tmpDir
+    liftIO $ Dir.createDirectoryIfMissing True tmpDir
     H.annotateShow tmpDir
 
     fp <- H.forAll genGoodFilePath
     contents <- H.forAll genFileContents
 
-    os <- hcatch (Utils.encodeFpToValidOsThrowM fp)
+    os <- hcatch (FS.OsPath.encodeValidThrowM fp)
 
     let osPath = tmpDir </> os
 
     H.annotateShow osPath
     H.annotateShow contents
 
-    hcatch (Utils.writeBinaryFileIO osPath contents)
-    resultContents <- hcatch (Utils.readBinaryFileIO osPath)
+    hcatch (FS.IO.writeBinaryFileIO osPath contents)
+    resultContents <- hcatch (FS.IO.readBinaryFileIO osPath)
 
     contents === resultContents
   where
@@ -60,17 +61,17 @@ matchesBytestring :: IO OsPath -> TestTree
 matchesBytestring getTmpDir = testPropertyNamed desc "matchesBytestring" $ do
   H.property $ do
     tmpDir <- (</> [osp|matchesBytestring|]) <$> liftIO getTmpDir
-    liftIO $ WDir.createDirectoryIfMissing True tmpDir
+    liftIO $ Dir.createDirectoryIfMissing True tmpDir
     H.annotateShow tmpDir
 
     fp <- H.forAll genAnyFilePath
     contents <- H.forAll genFileContents
 
-    case Utils.encodeFpToValidOs fp of
+    case FS.OsPath.encodeValid fp of
       Left _ -> H.label "Encoding FilePath failed"
       Right os -> do
-        tmpDir' <- Utils.decodeOsToFpThrowM tmpDir
-        let filePath = tmpDir' `Utils.combineFilePaths` fp
+        tmpDir' <- FS.OsPath.decodeThrowM tmpDir
+        let filePath = tmpDir' `FS.OsPath.combineFilePaths` fp
             osPath = tmpDir </> os
 
         H.annotateShow osPath
@@ -89,8 +90,8 @@ matchesBytestring getTmpDir = testPropertyNamed desc "matchesBytestring" $ do
           Left _ -> H.label "ByteString write failed"
           Right bsResultContents -> do
             H.label "ByteString write succeeded"
-            hcatch (Utils.writeBinaryFileIO osPath contents)
-            resultContents <- hcatch (Utils.readBinaryFileIO osPath)
+            hcatch (FS.IO.writeBinaryFileIO osPath contents)
+            resultContents <- hcatch (FS.IO.readBinaryFileIO osPath)
 
             bsResultContents === resultContents
             contents === resultContents
