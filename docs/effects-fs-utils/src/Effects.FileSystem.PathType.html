@@ -1,0 +1,180 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span id="local-6989586621679066313"><span id="local-6989586621679066314"></span></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Effects.FileSystem.PathType</span><span>
+</span><span id="line-2"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Effects.FileSystem.PathType.html#PathType"><span class="hs-identifier">PathType</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-3"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.PathType.html#displayPathType"><span class="hs-identifier">displayPathType</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-4"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-5"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-6"></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.DeepSeq</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">NFData</span></span><span class="hs-special">)</span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.String</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">IsString</span></span><span class="hs-special">)</span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Generics</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Generic</span></span><span class="hs-special">)</span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- | Path type.</span><span>
+</span><span id="line-12"></span><span class="hs-comment">--</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-14"></span><span class="hs-keyword">data</span><span> </span><span id="PathType"><span class="annot"><a href="Effects.FileSystem.PathType.html#PathType"><span class="hs-identifier hs-var">PathType</span></a></span></span><span>
+</span><span id="line-15"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-16"></span><span>    </span><span id="PathTypeFile"><span class="annot"><a href="Effects.FileSystem.PathType.html#PathTypeFile"><span class="hs-identifier hs-var">PathTypeFile</span></a></span></span><span>
+</span><span id="line-17"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-18"></span><span>    </span><span id="PathTypeDirectory"><span class="annot"><a href="Effects.FileSystem.PathType.html#PathTypeDirectory"><span class="hs-identifier hs-var">PathTypeDirectory</span></a></span></span><span>
+</span><span id="line-19"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-20"></span><span>    </span><span id="PathTypeSymbolicLink"><span class="annot"><a href="Effects.FileSystem.PathType.html#PathTypeSymbolicLink"><span class="hs-identifier hs-var">PathTypeSymbolicLink</span></a></span></span><span>
+</span><span id="line-21"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-22"></span><span>    </span><span id="PathTypeOther"><span class="annot"><a href="Effects.FileSystem.PathType.html#PathTypeOther"><span class="hs-identifier hs-var">PathTypeOther</span></a></span></span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-24"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-25"></span><span>      </span><span id="local-6989586621679066321"><span id="local-6989586621679066323"><span class="annot"><span class="annottext">PathType
+PathType -&gt; PathType -&gt; Bounded PathType
+forall a. a -&gt; a -&gt; Bounded a
+$cminBound :: PathType
+minBound :: PathType
+$cmaxBound :: PathType
+maxBound :: PathType
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Bounded</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-26"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-27"></span><span>      </span><span id="local-6989586621679066327"><span id="local-6989586621679066335"><span id="local-6989586621679066341"><span id="local-6989586621679066355"><span id="local-6989586621679066357"><span id="local-6989586621679066361"><span id="local-6989586621679066365"><span id="local-6989586621679066369"><span class="annot"><span class="annottext">Int -&gt; PathType
+PathType -&gt; Int
+PathType -&gt; [PathType]
+PathType -&gt; PathType
+PathType -&gt; PathType -&gt; [PathType]
+PathType -&gt; PathType -&gt; PathType -&gt; [PathType]
+(PathType -&gt; PathType)
+-&gt; (PathType -&gt; PathType)
+-&gt; (Int -&gt; PathType)
+-&gt; (PathType -&gt; Int)
+-&gt; (PathType -&gt; [PathType])
+-&gt; (PathType -&gt; PathType -&gt; [PathType])
+-&gt; (PathType -&gt; PathType -&gt; [PathType])
+-&gt; (PathType -&gt; PathType -&gt; PathType -&gt; [PathType])
+-&gt; Enum PathType
+forall a.
+(a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Int -&gt; a)
+-&gt; (a -&gt; Int)
+-&gt; (a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; a -&gt; [a])
+-&gt; Enum a
+$csucc :: PathType -&gt; PathType
+succ :: PathType -&gt; PathType
+$cpred :: PathType -&gt; PathType
+pred :: PathType -&gt; PathType
+$ctoEnum :: Int -&gt; PathType
+toEnum :: Int -&gt; PathType
+$cfromEnum :: PathType -&gt; Int
+fromEnum :: PathType -&gt; Int
+$cenumFrom :: PathType -&gt; [PathType]
+enumFrom :: PathType -&gt; [PathType]
+$cenumFromThen :: PathType -&gt; PathType -&gt; [PathType]
+enumFromThen :: PathType -&gt; PathType -&gt; [PathType]
+$cenumFromTo :: PathType -&gt; PathType -&gt; [PathType]
+enumFromTo :: PathType -&gt; PathType -&gt; [PathType]
+$cenumFromThenTo :: PathType -&gt; PathType -&gt; PathType -&gt; [PathType]
+enumFromThenTo :: PathType -&gt; PathType -&gt; PathType -&gt; [PathType]
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Enum</span></span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-28"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-29"></span><span>      </span><span id="local-6989586621679066373"><span id="local-6989586621679066375"><span class="annot"><span class="annottext">PathType -&gt; PathType -&gt; Bool
+(PathType -&gt; PathType -&gt; Bool)
+-&gt; (PathType -&gt; PathType -&gt; Bool) -&gt; Eq PathType
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: PathType -&gt; PathType -&gt; Bool
+== :: PathType -&gt; PathType -&gt; Bool
+$c/= :: PathType -&gt; PathType -&gt; Bool
+/= :: PathType -&gt; PathType -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-30"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-31"></span><span>      </span><span id="local-6989586621679066380"><span id="local-6989586621679066382"><span class="annot"><span class="annottext">(forall x. PathType -&gt; Rep PathType x)
+-&gt; (forall x. Rep PathType x -&gt; PathType) -&gt; Generic PathType
+forall x. Rep PathType x -&gt; PathType
+forall x. PathType -&gt; Rep PathType x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. PathType -&gt; Rep PathType x
+from :: forall x. PathType -&gt; Rep PathType x
+$cto :: forall x. Rep PathType x -&gt; PathType
+to :: forall x. Rep PathType x -&gt; PathType
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-32"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-33"></span><span>      </span><span id="local-6989586621679066388"><span id="local-6989586621679066390"><span id="local-6989586621679066392"><span id="local-6989586621679066396"><span id="local-6989586621679066399"><span id="local-6989586621679066402"><span id="local-6989586621679066405"><span class="annot"><span class="annottext">Eq PathType
+Eq PathType =&gt;
+(PathType -&gt; PathType -&gt; Ordering)
+-&gt; (PathType -&gt; PathType -&gt; Bool)
+-&gt; (PathType -&gt; PathType -&gt; Bool)
+-&gt; (PathType -&gt; PathType -&gt; Bool)
+-&gt; (PathType -&gt; PathType -&gt; Bool)
+-&gt; (PathType -&gt; PathType -&gt; PathType)
+-&gt; (PathType -&gt; PathType -&gt; PathType)
+-&gt; Ord PathType
+PathType -&gt; PathType -&gt; Bool
+PathType -&gt; PathType -&gt; Ordering
+PathType -&gt; PathType -&gt; PathType
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: PathType -&gt; PathType -&gt; Ordering
+compare :: PathType -&gt; PathType -&gt; Ordering
+$c&lt; :: PathType -&gt; PathType -&gt; Bool
+&lt; :: PathType -&gt; PathType -&gt; Bool
+$c&lt;= :: PathType -&gt; PathType -&gt; Bool
+&lt;= :: PathType -&gt; PathType -&gt; Bool
+$c&gt; :: PathType -&gt; PathType -&gt; Bool
+&gt; :: PathType -&gt; PathType -&gt; Bool
+$c&gt;= :: PathType -&gt; PathType -&gt; Bool
+&gt;= :: PathType -&gt; PathType -&gt; Bool
+$cmax :: PathType -&gt; PathType -&gt; PathType
+max :: PathType -&gt; PathType -&gt; PathType
+$cmin :: PathType -&gt; PathType -&gt; PathType
+min :: PathType -&gt; PathType -&gt; PathType
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-34"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-35"></span><span>      </span><span id="local-6989586621679066409"><span id="local-6989586621679066411"><span id="local-6989586621679066415"><span class="annot"><span class="annottext">Int -&gt; PathType -&gt; ShowS
+[PathType] -&gt; ShowS
+PathType -&gt; [Char]
+(Int -&gt; PathType -&gt; ShowS)
+-&gt; (PathType -&gt; [Char]) -&gt; ([PathType] -&gt; ShowS) -&gt; Show PathType
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; [Char]) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; PathType -&gt; ShowS
+showsPrec :: Int -&gt; PathType -&gt; ShowS
+$cshow :: PathType -&gt; [Char]
+show :: PathType -&gt; [Char]
+$cshowList :: [PathType] -&gt; ShowS
+showList :: [PathType] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span>
+</span><span id="line-36"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-37"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span>
+</span><span id="line-38"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-39"></span><span>      </span><span id="local-6989586621679066419"><span class="annot"><span class="annottext">PathType -&gt; ()
+(PathType -&gt; ()) -&gt; NFData PathType
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: PathType -&gt; ()
+rnf :: PathType -&gt; ()
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></span></span><span>
+</span><span id="line-40"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-41"></span><span>
+</span><span id="line-42"></span><span class="hs-comment">-- | String representation of 'PathType'.</span><span>
+</span><span id="line-43"></span><span class="hs-comment">--</span><span>
+</span><span id="line-44"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-45"></span><span id="local-6989586621679066311"><span class="annot"><a href="Effects.FileSystem.PathType.html#displayPathType"><span class="hs-identifier hs-type">displayPathType</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">IsString</span></span><span> </span><span class="annot"><a href="#local-6989586621679066311"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Effects.FileSystem.PathType.html#PathType"><span class="hs-identifier hs-type">PathType</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679066311"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-46"></span><span id="displayPathType"><span class="annot"><span class="annottext">displayPathType :: forall a. IsString a =&gt; PathType -&gt; a
+</span><a href="Effects.FileSystem.PathType.html#displayPathType"><span class="hs-identifier hs-var hs-var">displayPathType</span></a></span></span><span> </span><span class="annot"><span class="annottext">PathType
+</span><a href="Effects.FileSystem.PathType.html#PathTypeFile"><span class="hs-identifier hs-var">PathTypeFile</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a
+</span><span class="hs-string">&quot;file&quot;</span></span><span>
+</span><span id="line-47"></span><span class="annot"><a href="Effects.FileSystem.PathType.html#displayPathType"><span class="hs-identifier hs-var">displayPathType</span></a></span><span> </span><span class="annot"><span class="annottext">PathType
+</span><a href="Effects.FileSystem.PathType.html#PathTypeDirectory"><span class="hs-identifier hs-var">PathTypeDirectory</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a
+</span><span class="hs-string">&quot;directory&quot;</span></span><span>
+</span><span id="line-48"></span><span class="annot"><a href="Effects.FileSystem.PathType.html#displayPathType"><span class="hs-identifier hs-var">displayPathType</span></a></span><span> </span><span class="annot"><span class="annottext">PathType
+</span><a href="Effects.FileSystem.PathType.html#PathTypeSymbolicLink"><span class="hs-identifier hs-var">PathTypeSymbolicLink</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a
+</span><span class="hs-string">&quot;symlink&quot;</span></span><span>
+</span><span id="line-49"></span><span class="annot"><a href="Effects.FileSystem.PathType.html#displayPathType"><span class="hs-identifier hs-var">displayPathType</span></a></span><span> </span><span class="annot"><span class="annottext">PathType
+</span><a href="Effects.FileSystem.PathType.html#PathTypeOther"><span class="hs-identifier hs-var">PathTypeOther</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a
+</span><span class="hs-string">&quot;other&quot;</span></span><span>
+</span><span id="line-50"></span></pre></body></html>

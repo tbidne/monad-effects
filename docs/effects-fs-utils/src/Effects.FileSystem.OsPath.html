@@ -1,0 +1,795 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# OPTIONS_GHC -Wno-redundant-constraints #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Effects.FileSystem.OsPath</span><span>
+</span><span id="line-5"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Types</span></span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><span class="hs-identifier">OsPath</span></span><span class="hs-special">,</span><span>
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Encoding</span></span><span>
+</span><span id="line-9"></span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Total</span></span><span>
+</span><span id="line-11"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.OsPath.html#encode"><span class="hs-identifier">encode</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.OsPath.html#encodeLenient"><span class="hs-identifier">encodeLenient</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Partial</span></span><span>
+</span><span id="line-15"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.OsPath.html#encodeThrowM"><span class="hs-identifier">encodeThrowM</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-16"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.OsPath.html#encodeFail"><span class="hs-identifier">encodeFail</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-17"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.OsPath.html#unsafeEncode"><span class="hs-identifier">unsafeEncode</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Encoding + Validation</span></span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Total</span></span><span>
+</span><span id="line-22"></span><span>    </span><span class="annot"><span class="hs-identifier">osp</span></span><span class="hs-special">,</span><span>
+</span><span id="line-23"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.OsPath.html#ospPathSep"><span class="hs-identifier">ospPathSep</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-24"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.OsPath.html#encodeValid"><span class="hs-identifier">encodeValid</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-25"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.OsPath.html#encodeValidLenient"><span class="hs-identifier">encodeValidLenient</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Partial</span></span><span>
+</span><span id="line-28"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.OsPath.html#encodeValidThrowM"><span class="hs-identifier">encodeValidThrowM</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-29"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.OsPath.html#encodeValidFail"><span class="hs-identifier">encodeValidFail</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-30"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.OsPath.html#unsafeEncodeValid"><span class="hs-identifier">unsafeEncodeValid</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-31"></span><span>
+</span><span id="line-32"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Decoding</span></span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Total</span></span><span>
+</span><span id="line-35"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.OsPath.html#decode"><span class="hs-identifier">decode</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-36"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.OsPath.html#decodeLenient"><span class="hs-identifier">decodeLenient</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-37"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.OsPath.html#decodeDisplayEx"><span class="hs-identifier">decodeDisplayEx</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-38"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.OsPath.html#decodeShow"><span class="hs-identifier">decodeShow</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-39"></span><span>
+</span><span id="line-40"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Partial</span></span><span>
+</span><span id="line-41"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.OsPath.html#decodeThrowM"><span class="hs-identifier">decodeThrowM</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-42"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.OsPath.html#decodeFail"><span class="hs-identifier">decodeFail</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-43"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.OsPath.html#unsafeDecode"><span class="hs-identifier">unsafeDecode</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-44"></span><span>
+</span><span id="line-45"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Functions</span></span><span>
+</span><span id="line-46"></span><span>    </span><span class="annot"><span class="hs-operator">(&lt;/&gt;)</span></span><span class="hs-special">,</span><span>
+</span><span id="line-47"></span><span>    </span><span class="annot"><span class="hs-operator">(&lt;.&gt;)</span></span><span class="hs-special">,</span><span>
+</span><span id="line-48"></span><span>    </span><span class="annot"><span class="hs-operator">(-&lt;.&gt;)</span></span><span class="hs-special">,</span><span>
+</span><span id="line-49"></span><span>
+</span><span id="line-50"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Legacy</span></span><span>
+</span><span id="line-51"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.OsPath.html#%3C%2F%3E%21"><span class="hs-operator">(&lt;/&gt;!)</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-52"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.OsPath.html#%21%3C%2F%3E"><span class="hs-operator">(!&lt;/&gt;)</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-53"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.OsPath.html#combineFilePaths"><span class="hs-identifier">combineFilePaths</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-54"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-55"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-56"></span><span>
+</span><span id="line-57"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Exception</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Exception</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">displayException</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-58"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.8.2/effects-exceptions-0.1/doc/html/effects-exceptions/src/Effects.Exception.html"><span class="hs-identifier">Effects.Exception</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadThrow</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///nix/store/l0072641y03v7wfrca9v1lv596fpxxa7-safe-exceptions-0.1.7.4-doc/share/doc/safe-exceptions-0.1.7.4/html/src/Control.Exception.Safe.html#throwM"><span class="hs-identifier">throwM</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-59"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.IO.Encoding.Failure</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">CodingFailureMode</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">TransliterateCodingFailure</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-60"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.IO.Encoding.UTF16</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">UTF16</span></span><span>
+</span><span id="line-61"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.IO.Encoding.UTF8</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">UTF8</span></span><span>
+</span><span id="line-62"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Stack</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">HasCallStack</span></span><span class="hs-special">)</span><span>
+</span><span id="line-63"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Language.Haskell.TH.Quote</span></span><span>
+</span><span id="line-64"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">QuasiQuoter</span></span><span>
+</span><span id="line-65"></span><span>      </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">QuasiQuoter</span></span><span class="hs-special">,</span><span>
+</span><span id="line-66"></span><span>        </span><span class="annot"><span class="hs-identifier">quoteDec</span></span><span class="hs-special">,</span><span>
+</span><span id="line-67"></span><span>        </span><span class="annot"><span class="hs-identifier">quoteExp</span></span><span class="hs-special">,</span><span>
+</span><span id="line-68"></span><span>        </span><span class="annot"><span class="hs-identifier">quotePat</span></span><span class="hs-special">,</span><span>
+</span><span id="line-69"></span><span>        </span><span class="annot"><span class="hs-identifier">quoteType</span></span><span>
+</span><span id="line-70"></span><span>      </span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-71"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-72"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.FilePath</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">FP</span></span><span>
+</span><span id="line-73"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.IO</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">TextEncoding</span></span><span class="hs-special">)</span><span>
+</span><span id="line-74"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.IO</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">IO</span></span><span>
+</span><span id="line-75"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.OsPath</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">OsPath</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">osp</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-operator">(-&lt;.&gt;)</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-operator">(&lt;.&gt;)</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-operator">(&lt;/&gt;)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-76"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.OsPath</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">OsPath</span></span><span>
+</span><span id="line-77"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.OsPath.Encoding</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">EncodingException</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">EncodingError</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-78"></span><span>
+</span><span id="line-79"></span><span class="hs-comment">-- NOTE: -Wno-redundant-constraints is because the HasCallStack is redundant</span><span>
+</span><span id="line-80"></span><span class="hs-comment">-- on some of these functions when the exceptions library is too old.</span><span>
+</span><span id="line-81"></span><span class="hs-comment">-- Disabling the warning is easier than trying to get it right with cpp.</span><span>
+</span><span id="line-82"></span><span>
+</span><span id="line-83"></span><span class="hs-comment">{- ORMOLU_DISABLE -}</span><span>
+</span><span id="line-84"></span><span>
+</span><span id="line-85"></span><span class="hs-comment">-- | Like 'osp', except it runs paths through a &quot;replace function&quot; first.</span><span>
+</span><span id="line-86"></span><span class="hs-comment">-- On unix, replaces @\\@ with @/@. On windows, does the opposite.</span><span>
+</span><span id="line-87"></span><span class="hs-comment">--</span><span>
+</span><span id="line-88"></span><span class="hs-comment">-- This is convenient for writing paths in a platform-agnostic way i.e. we</span><span>
+</span><span id="line-89"></span><span class="hs-comment">-- are expecting a path</span><span>
+</span><span id="line-90"></span><span class="hs-comment">--</span><span>
+</span><span id="line-91"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-92"></span><span class="hs-comment">--   &quot;path\/to\/foo&quot; -- unix</span><span>
+</span><span id="line-93"></span><span class="hs-comment">--   &quot;path\\to\\foo&quot; -- windows</span><span>
+</span><span id="line-94"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-95"></span><span class="hs-comment">--</span><span>
+</span><span id="line-96"></span><span class="hs-comment">-- The normal way to handle this would be to use the combine function '(&lt;/&gt;)'</span><span>
+</span><span id="line-97"></span><span class="hs-comment">-- i.e.</span><span>
+</span><span id="line-98"></span><span class="hs-comment">--</span><span>
+</span><span id="line-99"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-100"></span><span class="hs-comment">--   [osp|path|] '&lt;/&gt;' [osp|to|] '&lt;/&gt;' [osp|foo|]</span><span>
+</span><span id="line-101"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-102"></span><span class="hs-comment">--</span><span>
+</span><span id="line-103"></span><span class="hs-comment">-- This can be quite cumbersome for long paths, so we provide this alternative,</span><span>
+</span><span id="line-104"></span><span class="hs-comment">-- allowing:</span><span>
+</span><span id="line-105"></span><span class="hs-comment">--</span><span>
+</span><span id="line-106"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-107"></span><span class="hs-comment">--   [ospPathSep|path\/to\/foo]</span><span>
+</span><span id="line-108"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-109"></span><span class="hs-comment">--</span><span>
+</span><span id="line-110"></span><span class="hs-comment">-- Which will automatically convert slashes.</span><span>
+</span><span id="line-111"></span><span class="annot"><a href="Effects.FileSystem.OsPath.html#ospPathSep"><span class="hs-identifier hs-type">ospPathSep</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">QuasiQuoter</span></span><span>
+</span><span id="line-112"></span><span id="ospPathSep"><span class="annot"><span class="annottext">ospPathSep :: QuasiQuoter
+</span><a href="Effects.FileSystem.OsPath.html#ospPathSep"><span class="hs-identifier hs-var hs-var">ospPathSep</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-113"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">QuasiQuoter</span></span><span>
+</span><span id="line-114"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">quoteExp :: String -&gt; Q Exp
+</span><span class="hs-identifier hs-var">quoteExp</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">QuasiQuoter
+</span><span class="hs-identifier hs-var">osp</span></span><span class="hs-operator">.</span><span class="hs-identifier">quoteExp</span><span> </span><span class="annot"><span class="annottext">(String -&gt; Q Exp) -&gt; (String -&gt; String) -&gt; String -&gt; Q Exp
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679066057"><span class="hs-identifier hs-var">replaceSlashes</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-115"></span><span>      </span><span class="annot"><span class="annottext">quotePat :: String -&gt; Q Pat
+</span><span class="hs-identifier hs-var">quotePat</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">QuasiQuoter
+</span><span class="hs-identifier hs-var">osp</span></span><span class="hs-operator">.</span><span class="hs-identifier">quotePat</span><span> </span><span class="annot"><span class="annottext">(String -&gt; Q Pat) -&gt; (String -&gt; String) -&gt; String -&gt; Q Pat
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679066057"><span class="hs-identifier hs-var">replaceSlashes</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-116"></span><span>      </span><span class="annot"><span class="annottext">quoteType :: String -&gt; Q Type
+</span><span class="hs-identifier hs-var">quoteType</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">QuasiQuoter
+</span><span class="hs-identifier hs-var">osp</span></span><span class="hs-operator">.</span><span class="hs-identifier">quoteType</span><span> </span><span class="annot"><span class="annottext">(String -&gt; Q Type) -&gt; (String -&gt; String) -&gt; String -&gt; Q Type
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679066057"><span class="hs-identifier hs-var">replaceSlashes</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-117"></span><span>      </span><span class="annot"><span class="annottext">quoteDec :: String -&gt; Q [Dec]
+</span><span class="hs-identifier hs-var">quoteDec</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">QuasiQuoter
+</span><span class="hs-identifier hs-var">osp</span></span><span class="hs-operator">.</span><span class="hs-identifier">quoteDec</span><span> </span><span class="annot"><span class="annottext">(String -&gt; Q [Dec]) -&gt; (String -&gt; String) -&gt; String -&gt; Q [Dec]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679066057"><span class="hs-identifier hs-var">replaceSlashes</span></a></span><span>
+</span><span id="line-118"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-119"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-120"></span><span>    </span><span class="annot"><a href="#local-6989586621679066057"><span class="hs-identifier hs-type">replaceSlashes</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span>
+</span><span id="line-121"></span><span>    </span><span id="local-6989586621679066057"><span class="annot"><span class="annottext">replaceSlashes :: String -&gt; String
+</span><a href="#local-6989586621679066057"><span class="hs-identifier hs-var hs-var">replaceSlashes</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; String -&gt; String) -&gt; String -&gt; String -&gt; String
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; [a] -&gt; b
+forall (t :: * -&gt; *) a b.
+Foldable t =&gt;
+(a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span><span class="hs-identifier hs-var">foldr</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; String -&gt; String
+</span><a href="#local-6989586621679066060"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-122"></span><span>      </span><span class="hs-keyword">where</span><span class="hs-cpp">
+#if WINDOWS
+</span><span>        </span><span class="hs-identifier">go</span><span> </span><span class="hs-char">'/'</span><span> </span><span class="hs-identifier">acc</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-char">'\\'</span><span> </span><span class="hs-glyph">:</span><span> </span><span class="hs-identifier">acc</span><span class="hs-cpp">
+#else
+</span><span>        </span><span id="local-6989586621679066060"><span class="annot"><span class="annottext">go :: Char -&gt; String -&gt; String
+</span><a href="#local-6989586621679066060"><span class="hs-identifier hs-var hs-var">go</span></a></span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\\'</span></span><span> </span><span id="local-6989586621679066061"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066061"><span class="hs-identifier hs-var">acc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'/'</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; String -&gt; String
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066061"><span class="hs-identifier hs-var">acc</span></a></span><span class="hs-cpp">
+#endif
+</span><span>        </span><span class="annot"><a href="#local-6989586621679066060"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span id="local-6989586621679066062"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679066062"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span id="local-6989586621679066063"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066063"><span class="hs-identifier hs-var">acc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679066062"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; String -&gt; String
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066063"><span class="hs-identifier hs-var">acc</span></a></span><span>
+</span><span id="line-129"></span><span>
+</span><span id="line-130"></span><span class="hs-comment">{- ORMOLU_ENABLE -}</span><span>
+</span><span id="line-131"></span><span>
+</span><span id="line-132"></span><span class="hs-comment">-- | Encodes a 'FilePath' to an 'OsPath'. This is a pure version of filepath's</span><span>
+</span><span id="line-133"></span><span class="hs-comment">-- 'OsPath.encodeUtf' that returns the 'EncodingException' in the event of an</span><span>
+</span><span id="line-134"></span><span class="hs-comment">-- error.</span><span>
+</span><span id="line-135"></span><span class="hs-comment">--</span><span>
+</span><span id="line-136"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-137"></span><span class="annot"><a href="Effects.FileSystem.OsPath.html#encode"><span class="hs-identifier hs-type">encode</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">EncodingException</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span>
+</span><span id="line-138"></span><span id="encode"><span class="annot"><span class="annottext">encode :: String -&gt; Either EncodingException OsPath
+</span><a href="Effects.FileSystem.OsPath.html#encode"><span class="hs-identifier hs-var hs-var">encode</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">TextEncoding
+-&gt; TextEncoding -&gt; String -&gt; Either EncodingException OsPath
+</span><span class="hs-identifier hs-var">OsPath.encodeWith</span></span><span> </span><span class="annot"><span class="annottext">TextEncoding
+</span><a href="#local-6989586621679066066"><span class="hs-identifier hs-var">utf8Encoder</span></a></span><span> </span><span class="annot"><span class="annottext">TextEncoding
+</span><a href="#local-6989586621679066067"><span class="hs-identifier hs-var">utf16Encoder</span></a></span><span>
+</span><span id="line-139"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-140"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679066066"><span class="annot"><span class="annottext">TextEncoding
+</span><a href="#local-6989586621679066066"><span class="hs-identifier hs-var">utf8Encoder</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679066067"><span class="annot"><span class="annottext">TextEncoding
+</span><a href="#local-6989586621679066067"><span class="hs-identifier hs-var">utf16Encoder</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(TextEncoding, TextEncoding)
+</span><a href="Effects.FileSystem.OsPath.html#utfEncodings"><span class="hs-identifier hs-var">utfEncodings</span></a></span><span>
+</span><span id="line-141"></span><span>
+</span><span id="line-142"></span><span class="hs-comment">-- | Total conversion from 'FilePath' to 'OsPath', replacing encode failures</span><span>
+</span><span id="line-143"></span><span class="hs-comment">-- with the closest visual match.</span><span>
+</span><span id="line-144"></span><span class="hs-comment">--</span><span>
+</span><span id="line-145"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-146"></span><span class="annot"><a href="Effects.FileSystem.OsPath.html#encodeLenient"><span class="hs-identifier hs-type">encodeLenient</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span>
+</span><span id="line-147"></span><span id="encodeLenient"><span class="annot"><span class="annottext">encodeLenient :: String -&gt; OsPath
+</span><a href="Effects.FileSystem.OsPath.html#encodeLenient"><span class="hs-identifier hs-var hs-var">encodeLenient</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Either EncodingException OsPath -&gt; OsPath
+forall {a}. Either EncodingException a -&gt; a
+</span><a href="#local-6989586621679066069"><span class="hs-identifier hs-var">elimEx</span></a></span><span> </span><span class="annot"><span class="annottext">(Either EncodingException OsPath -&gt; OsPath)
+-&gt; (String -&gt; Either EncodingException OsPath) -&gt; String -&gt; OsPath
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">TextEncoding
+-&gt; TextEncoding -&gt; String -&gt; Either EncodingException OsPath
+</span><span class="hs-identifier hs-var">OsPath.encodeWith</span></span><span> </span><span class="annot"><span class="annottext">TextEncoding
+</span><a href="#local-6989586621679066070"><span class="hs-identifier hs-var">uft8Encoding</span></a></span><span> </span><span class="annot"><span class="annottext">TextEncoding
+</span><a href="#local-6989586621679066071"><span class="hs-identifier hs-var">utf16Encoding</span></a></span><span>
+</span><span id="line-148"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-149"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679066070"><span class="annot"><span class="annottext">TextEncoding
+</span><a href="#local-6989586621679066070"><span class="hs-identifier hs-var">uft8Encoding</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679066071"><span class="annot"><span class="annottext">TextEncoding
+</span><a href="#local-6989586621679066071"><span class="hs-identifier hs-var">utf16Encoding</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679066069"><span class="annot"><span class="annottext">Either EncodingException a -&gt; a
+</span><a href="#local-6989586621679066069"><span class="hs-identifier hs-var">elimEx</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(TextEncoding, TextEncoding, Either EncodingException a -&gt; a)
+forall a.
+(TextEncoding, TextEncoding, Either EncodingException a -&gt; a)
+</span><a href="Effects.FileSystem.OsPath.html#utfEncodingsLenient"><span class="hs-identifier hs-var">utfEncodingsLenient</span></a></span><span>
+</span><span id="line-150"></span><span>
+</span><span id="line-151"></span><span class="hs-comment">-- | 'encode' that __also__ checks 'OsPath.isValid' i.e. 'encode'</span><span>
+</span><span id="line-152"></span><span class="hs-comment">-- only succeeds if the 'FilePath' can be encoded /and/ passes expected</span><span>
+</span><span id="line-153"></span><span class="hs-comment">-- invariants.</span><span>
+</span><span id="line-154"></span><span class="hs-comment">--</span><span>
+</span><span id="line-155"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-156"></span><span class="annot"><a href="Effects.FileSystem.OsPath.html#encodeValid"><span class="hs-identifier hs-type">encodeValid</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">EncodingException</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span>
+</span><span id="line-157"></span><span id="encodeValid"><span class="annot"><span class="annottext">encodeValid :: String -&gt; Either EncodingException OsPath
+</span><a href="Effects.FileSystem.OsPath.html#encodeValid"><span class="hs-identifier hs-var hs-var">encodeValid</span></a></span></span><span> </span><span id="local-6989586621679066074"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066074"><span class="hs-identifier hs-var">fp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either EncodingException OsPath
+</span><a href="Effects.FileSystem.OsPath.html#encode"><span class="hs-identifier hs-var">encode</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066074"><span class="hs-identifier hs-var">fp</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-158"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679066075"><span class="annot"><span class="annottext">EncodingException
+</span><a href="#local-6989586621679066075"><span class="hs-identifier hs-var">ex</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">EncodingException -&gt; Either EncodingException OsPath
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">EncodingException
+</span><a href="#local-6989586621679066075"><span class="hs-identifier hs-var">ex</span></a></span><span>
+</span><span id="line-159"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679066076"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066076"><span class="hs-identifier hs-var">op</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-160"></span><span>    </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; Bool
+</span><span class="hs-identifier hs-var">OsPath.isValid</span></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066076"><span class="hs-identifier hs-var">op</span></a></span><span>
+</span><span id="line-161"></span><span>      </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; Either EncodingException OsPath
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066076"><span class="hs-identifier hs-var">op</span></a></span><span>
+</span><span id="line-162"></span><span>      </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">EncodingException -&gt; Either EncodingException OsPath
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">(EncodingException -&gt; Either EncodingException OsPath)
+-&gt; EncodingException -&gt; Either EncodingException OsPath
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Maybe Word8 -&gt; EncodingException
+</span><span class="hs-identifier hs-var">EncodingError</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; String -&gt; OsPath -&gt; String
+</span><a href="Effects.FileSystem.OsPath.html#validErr"><span class="hs-identifier hs-var">validErr</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;encodeValid&quot;</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066074"><span class="hs-identifier hs-var">fp</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066076"><span class="hs-identifier hs-var">op</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Maybe Word8
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-163"></span><span>
+</span><span id="line-164"></span><span class="hs-comment">-- | Total conversion from 'FilePath' to 'OsPath', replacing encode failures</span><span>
+</span><span id="line-165"></span><span class="hs-comment">-- with the closest visual match. If the result is not valid, makes it valid.</span><span>
+</span><span id="line-166"></span><span class="hs-comment">--</span><span>
+</span><span id="line-167"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-168"></span><span class="annot"><a href="Effects.FileSystem.OsPath.html#encodeValidLenient"><span class="hs-identifier hs-type">encodeValidLenient</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span>
+</span><span id="line-169"></span><span id="encodeValidLenient"><span class="annot"><span class="annottext">encodeValidLenient :: String -&gt; OsPath
+</span><a href="Effects.FileSystem.OsPath.html#encodeValidLenient"><span class="hs-identifier hs-var hs-var">encodeValidLenient</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; OsPath
+</span><span class="hs-identifier hs-var">OsPath.makeValid</span></span><span> </span><span class="annot"><span class="annottext">(OsPath -&gt; OsPath) -&gt; (String -&gt; OsPath) -&gt; String -&gt; OsPath
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; OsPath
+</span><a href="Effects.FileSystem.OsPath.html#encodeLenient"><span class="hs-identifier hs-var">encodeLenient</span></a></span><span>
+</span><span id="line-170"></span><span>
+</span><span id="line-171"></span><span class="hs-comment">-- | 'encode' that throws 'EncodingException'.</span><span>
+</span><span id="line-172"></span><span class="hs-comment">--</span><span>
+</span><span id="line-173"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-174"></span><span id="local-6989586621679065955"><span class="annot"><a href="Effects.FileSystem.OsPath.html#encodeThrowM"><span class="hs-identifier hs-type">encodeThrowM</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadThrow</span></span><span> </span><span class="annot"><a href="#local-6989586621679065955"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679065955"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span></span><span>
+</span><span id="line-175"></span><span id="encodeThrowM"><span class="annot"><span class="annottext">encodeThrowM :: forall (m :: * -&gt; *).
+(HasCallStack, MonadThrow m) =&gt;
+String -&gt; m OsPath
+</span><a href="Effects.FileSystem.OsPath.html#encodeThrowM"><span class="hs-identifier hs-var hs-var">encodeThrowM</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-176"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Either EncodingException OsPath
+</span><a href="Effects.FileSystem.OsPath.html#encode"><span class="hs-identifier hs-var">encode</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Either EncodingException OsPath)
+-&gt; (Either EncodingException OsPath -&gt; m OsPath)
+-&gt; String
+-&gt; m OsPath
+forall a b c. (a -&gt; b) -&gt; (b -&gt; c) -&gt; a -&gt; c
+</span><a href="Effects.FileSystem.OsPath.html#%3E.%3E"><span class="hs-operator hs-var">&gt;.&gt;</span></a></span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-177"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679066091"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066091"><span class="hs-identifier hs-var">txt</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; m OsPath
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066091"><span class="hs-identifier hs-var">txt</span></a></span><span>
+</span><span id="line-178"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679066092"><span class="annot"><span class="annottext">EncodingException
+</span><a href="#local-6989586621679066092"><span class="hs-identifier hs-var">ex</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">EncodingException -&gt; m OsPath
+forall (m :: * -&gt; *) e a.
+(HasCallStack, MonadThrow m, Exception e) =&gt;
+e -&gt; m a
+</span><a href="file:///nix/store/l0072641y03v7wfrca9v1lv596fpxxa7-safe-exceptions-0.1.7.4-doc/share/doc/safe-exceptions-0.1.7.4/html/src/Control.Exception.Safe.html#throwM"><span class="hs-identifier hs-var">throwM</span></a></span><span> </span><span class="annot"><span class="annottext">EncodingException
+</span><a href="#local-6989586621679066092"><span class="hs-identifier hs-var">ex</span></a></span><span>
+</span><span id="line-179"></span><span>
+</span><span id="line-180"></span><span class="hs-comment">-- | 'encodeValid' that throws 'EncodingException'.</span><span>
+</span><span id="line-181"></span><span class="hs-comment">--</span><span>
+</span><span id="line-182"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-183"></span><span id="local-6989586621679066093"><span class="annot"><a href="Effects.FileSystem.OsPath.html#encodeValidThrowM"><span class="hs-identifier hs-type">encodeValidThrowM</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadThrow</span></span><span> </span><span class="annot"><a href="#local-6989586621679066093"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679066093"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span></span><span>
+</span><span id="line-184"></span><span id="encodeValidThrowM"><span class="annot"><span class="annottext">encodeValidThrowM :: forall (m :: * -&gt; *).
+(HasCallStack, MonadThrow m) =&gt;
+String -&gt; m OsPath
+</span><a href="Effects.FileSystem.OsPath.html#encodeValidThrowM"><span class="hs-identifier hs-var hs-var">encodeValidThrowM</span></a></span></span><span> </span><span id="local-6989586621679066103"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066103"><span class="hs-identifier hs-var">fp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either EncodingException OsPath
+</span><a href="Effects.FileSystem.OsPath.html#encodeValid"><span class="hs-identifier hs-var">encodeValid</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066103"><span class="hs-identifier hs-var">fp</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-185"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679066104"><span class="annot"><span class="annottext">EncodingException
+</span><a href="#local-6989586621679066104"><span class="hs-identifier hs-var">ex</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">EncodingException -&gt; m OsPath
+forall (m :: * -&gt; *) e a.
+(HasCallStack, MonadThrow m, Exception e) =&gt;
+e -&gt; m a
+</span><a href="file:///nix/store/l0072641y03v7wfrca9v1lv596fpxxa7-safe-exceptions-0.1.7.4-doc/share/doc/safe-exceptions-0.1.7.4/html/src/Control.Exception.Safe.html#throwM"><span class="hs-identifier hs-var">throwM</span></a></span><span> </span><span class="annot"><span class="annottext">EncodingException
+</span><a href="#local-6989586621679066104"><span class="hs-identifier hs-var">ex</span></a></span><span>
+</span><span id="line-186"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679066105"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066105"><span class="hs-identifier hs-var">op</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; m OsPath
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066105"><span class="hs-identifier hs-var">op</span></a></span><span>
+</span><span id="line-187"></span><span>
+</span><span id="line-188"></span><span class="hs-comment">-- | 'encodeThrowM' with 'MonadFail'.</span><span>
+</span><span id="line-189"></span><span class="hs-comment">--</span><span>
+</span><span id="line-190"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-191"></span><span id="local-6989586621679065969"><span class="annot"><a href="Effects.FileSystem.OsPath.html#encodeFail"><span class="hs-identifier hs-type">encodeFail</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadFail</span></span><span> </span><span class="annot"><a href="#local-6989586621679065969"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679065969"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span></span><span>
+</span><span id="line-192"></span><span id="encodeFail"><span class="annot"><span class="annottext">encodeFail :: forall (m :: * -&gt; *). MonadFail m =&gt; String -&gt; m OsPath
+</span><a href="Effects.FileSystem.OsPath.html#encodeFail"><span class="hs-identifier hs-var hs-var">encodeFail</span></a></span></span><span> </span><span id="local-6989586621679066113"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066113"><span class="hs-identifier hs-var">fp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either EncodingException OsPath
+</span><a href="Effects.FileSystem.OsPath.html#encode"><span class="hs-identifier hs-var">encode</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066113"><span class="hs-identifier hs-var">fp</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-193"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679066114"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066114"><span class="hs-identifier hs-var">txt</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; m OsPath
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066114"><span class="hs-identifier hs-var">txt</span></a></span><span>
+</span><span id="line-194"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679066115"><span class="annot"><span class="annottext">EncodingException
+</span><a href="#local-6989586621679066115"><span class="hs-identifier hs-var">ex</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; m OsPath
+forall a. String -&gt; m a
+forall (m :: * -&gt; *) a. MonadFail m =&gt; String -&gt; m a
+</span><span class="hs-identifier hs-var">fail</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; m OsPath) -&gt; String -&gt; m OsPath
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String -&gt; String
+</span><a href="Effects.FileSystem.OsPath.html#encodeFailure"><span class="hs-identifier hs-var">encodeFailure</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;encodeFail&quot;</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066113"><span class="hs-identifier hs-var">fp</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">EncodingException -&gt; String
+forall e. Exception e =&gt; e -&gt; String
+</span><span class="hs-identifier hs-var">displayException</span></span><span> </span><span class="annot"><span class="annottext">EncodingException
+</span><a href="#local-6989586621679066115"><span class="hs-identifier hs-var">ex</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-195"></span><span>
+</span><span id="line-196"></span><span class="hs-comment">-- | 'encodeValid' with 'MonadFail'.</span><span>
+</span><span id="line-197"></span><span class="hs-comment">--</span><span>
+</span><span id="line-198"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-199"></span><span id="local-6989586621679066117"><span class="annot"><a href="Effects.FileSystem.OsPath.html#encodeValidFail"><span class="hs-identifier hs-type">encodeValidFail</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadFail</span></span><span> </span><span class="annot"><a href="#local-6989586621679066117"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679066117"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span></span><span>
+</span><span id="line-200"></span><span id="encodeValidFail"><span class="annot"><span class="annottext">encodeValidFail :: forall (m :: * -&gt; *). MonadFail m =&gt; String -&gt; m OsPath
+</span><a href="Effects.FileSystem.OsPath.html#encodeValidFail"><span class="hs-identifier hs-var hs-var">encodeValidFail</span></a></span></span><span> </span><span id="local-6989586621679066124"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066124"><span class="hs-identifier hs-var">fp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either EncodingException OsPath
+</span><a href="Effects.FileSystem.OsPath.html#encodeValid"><span class="hs-identifier hs-var">encodeValid</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066124"><span class="hs-identifier hs-var">fp</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-201"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679066125"><span class="annot"><span class="annottext">EncodingException
+</span><a href="#local-6989586621679066125"><span class="hs-identifier hs-var">ex</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; m OsPath
+forall a. String -&gt; m a
+forall (m :: * -&gt; *) a. MonadFail m =&gt; String -&gt; m a
+</span><span class="hs-identifier hs-var">fail</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; m OsPath) -&gt; String -&gt; m OsPath
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String -&gt; String
+</span><a href="Effects.FileSystem.OsPath.html#encodeFailure"><span class="hs-identifier hs-var">encodeFailure</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;encodeValidFail&quot;</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066124"><span class="hs-identifier hs-var">fp</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">EncodingException -&gt; String
+forall e. Exception e =&gt; e -&gt; String
+</span><span class="hs-identifier hs-var">displayException</span></span><span> </span><span class="annot"><span class="annottext">EncodingException
+</span><a href="#local-6989586621679066125"><span class="hs-identifier hs-var">ex</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-202"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679066126"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066126"><span class="hs-identifier hs-var">op</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; m OsPath
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066126"><span class="hs-identifier hs-var">op</span></a></span><span>
+</span><span id="line-203"></span><span>
+</span><span id="line-204"></span><span class="hs-comment">-- | Unsafely converts a 'FilePath' to 'OsPath' falling back to 'error'.</span><span>
+</span><span id="line-205"></span><span class="hs-comment">--</span><span>
+</span><span id="line-206"></span><span class="hs-comment">-- __WARNING: Partial__</span><span>
+</span><span id="line-207"></span><span class="hs-comment">--</span><span>
+</span><span id="line-208"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-209"></span><span class="annot"><a href="Effects.FileSystem.OsPath.html#unsafeEncode"><span class="hs-identifier hs-type">unsafeEncode</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span>
+</span><span id="line-210"></span><span id="unsafeEncode"><span class="annot"><span class="annottext">unsafeEncode :: HasCallStack =&gt; String -&gt; OsPath
+</span><a href="Effects.FileSystem.OsPath.html#unsafeEncode"><span class="hs-identifier hs-var hs-var">unsafeEncode</span></a></span></span><span> </span><span id="local-6989586621679066132"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066132"><span class="hs-identifier hs-var">fp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either EncodingException OsPath
+</span><a href="Effects.FileSystem.OsPath.html#encode"><span class="hs-identifier hs-var">encode</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066132"><span class="hs-identifier hs-var">fp</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-211"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679066133"><span class="annot"><span class="annottext">EncodingException
+</span><a href="#local-6989586621679066133"><span class="hs-identifier hs-var">ex</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-212"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; OsPath
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; OsPath) -&gt; String -&gt; OsPath
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String -&gt; String
+</span><a href="Effects.FileSystem.OsPath.html#encodeFailure"><span class="hs-identifier hs-var">encodeFailure</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;unsafeEncode&quot;</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066132"><span class="hs-identifier hs-var">fp</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">EncodingException -&gt; String
+forall e. Exception e =&gt; e -&gt; String
+</span><span class="hs-identifier hs-var">displayException</span></span><span> </span><span class="annot"><span class="annottext">EncodingException
+</span><a href="#local-6989586621679066133"><span class="hs-identifier hs-var">ex</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-213"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679066134"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066134"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066134"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-214"></span><span>
+</span><span id="line-215"></span><span class="hs-comment">-- | Unsafely converts a 'FilePath' to 'OsPath' falling back to 'error'.</span><span>
+</span><span id="line-216"></span><span class="hs-comment">--</span><span>
+</span><span id="line-217"></span><span class="hs-comment">-- __WARNING: Partial__</span><span>
+</span><span id="line-218"></span><span class="hs-comment">--</span><span>
+</span><span id="line-219"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-220"></span><span class="annot"><a href="Effects.FileSystem.OsPath.html#unsafeEncodeValid"><span class="hs-identifier hs-type">unsafeEncodeValid</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span>
+</span><span id="line-221"></span><span id="unsafeEncodeValid"><span class="annot"><span class="annottext">unsafeEncodeValid :: HasCallStack =&gt; String -&gt; OsPath
+</span><a href="Effects.FileSystem.OsPath.html#unsafeEncodeValid"><span class="hs-identifier hs-var hs-var">unsafeEncodeValid</span></a></span></span><span> </span><span id="local-6989586621679066139"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066139"><span class="hs-identifier hs-var">fp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either EncodingException OsPath
+</span><a href="Effects.FileSystem.OsPath.html#encodeValid"><span class="hs-identifier hs-var">encodeValid</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066139"><span class="hs-identifier hs-var">fp</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-222"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679066140"><span class="annot"><span class="annottext">EncodingException
+</span><a href="#local-6989586621679066140"><span class="hs-identifier hs-var">ex</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-223"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; OsPath
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; OsPath) -&gt; String -&gt; OsPath
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String -&gt; String
+</span><a href="Effects.FileSystem.OsPath.html#encodeFailure"><span class="hs-identifier hs-var">encodeFailure</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;unsafeEncodeValid&quot;</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066139"><span class="hs-identifier hs-var">fp</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">EncodingException -&gt; String
+forall e. Exception e =&gt; e -&gt; String
+</span><span class="hs-identifier hs-var">displayException</span></span><span> </span><span class="annot"><span class="annottext">EncodingException
+</span><a href="#local-6989586621679066140"><span class="hs-identifier hs-var">ex</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-224"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679066141"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066141"><span class="hs-identifier hs-var">op</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066141"><span class="hs-identifier hs-var">op</span></a></span><span>
+</span><span id="line-225"></span><span>
+</span><span id="line-226"></span><span class="hs-comment">-- | Decodes an 'OsPath' to a 'FilePath'. This is a pure version of filepath's</span><span>
+</span><span id="line-227"></span><span class="hs-comment">-- 'OsPath.decodeUtf'.</span><span>
+</span><span id="line-228"></span><span class="hs-comment">--</span><span>
+</span><span id="line-229"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-230"></span><span class="annot"><a href="Effects.FileSystem.OsPath.html#decode"><span class="hs-identifier hs-type">decode</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">EncodingException</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span>
+</span><span id="line-231"></span><span id="decode"><span class="annot"><span class="annottext">decode :: OsPath -&gt; Either EncodingException String
+</span><a href="Effects.FileSystem.OsPath.html#decode"><span class="hs-identifier hs-var hs-var">decode</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">TextEncoding
+-&gt; TextEncoding -&gt; OsPath -&gt; Either EncodingException String
+</span><span class="hs-identifier hs-var">OsPath.decodeWith</span></span><span> </span><span class="annot"><span class="annottext">TextEncoding
+</span><a href="#local-6989586621679066144"><span class="hs-identifier hs-var">utf8Encoder</span></a></span><span> </span><span class="annot"><span class="annottext">TextEncoding
+</span><a href="#local-6989586621679066145"><span class="hs-identifier hs-var">utf16Encoder</span></a></span><span>
+</span><span id="line-232"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-233"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679066144"><span class="annot"><span class="annottext">TextEncoding
+</span><a href="#local-6989586621679066144"><span class="hs-identifier hs-var">utf8Encoder</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679066145"><span class="annot"><span class="annottext">TextEncoding
+</span><a href="#local-6989586621679066145"><span class="hs-identifier hs-var">utf16Encoder</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(TextEncoding, TextEncoding)
+</span><a href="Effects.FileSystem.OsPath.html#utfEncodings"><span class="hs-identifier hs-var">utfEncodings</span></a></span><span>
+</span><span id="line-234"></span><span>
+</span><span id="line-235"></span><span class="hs-comment">-- | Total conversion from 'OsPath' to 'FilePath', replacing decode failures</span><span>
+</span><span id="line-236"></span><span class="hs-comment">-- with the closest visual match.</span><span>
+</span><span id="line-237"></span><span class="hs-comment">--</span><span>
+</span><span id="line-238"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-239"></span><span class="annot"><a href="Effects.FileSystem.OsPath.html#decodeLenient"><span class="hs-identifier hs-type">decodeLenient</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span>
+</span><span id="line-240"></span><span id="decodeLenient"><span class="annot"><span class="annottext">decodeLenient :: OsPath -&gt; String
+</span><a href="Effects.FileSystem.OsPath.html#decodeLenient"><span class="hs-identifier hs-var hs-var">decodeLenient</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Either EncodingException String -&gt; String
+forall {a}. Either EncodingException a -&gt; a
+</span><a href="#local-6989586621679066146"><span class="hs-identifier hs-var">elimEx</span></a></span><span> </span><span class="annot"><span class="annottext">(Either EncodingException String -&gt; String)
+-&gt; (OsPath -&gt; Either EncodingException String) -&gt; OsPath -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">TextEncoding
+-&gt; TextEncoding -&gt; OsPath -&gt; Either EncodingException String
+</span><span class="hs-identifier hs-var">OsPath.decodeWith</span></span><span> </span><span class="annot"><span class="annottext">TextEncoding
+</span><a href="#local-6989586621679066147"><span class="hs-identifier hs-var">uft8Encoding</span></a></span><span> </span><span class="annot"><span class="annottext">TextEncoding
+</span><a href="#local-6989586621679066148"><span class="hs-identifier hs-var">utf16Encoding</span></a></span><span>
+</span><span id="line-241"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-242"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679066147"><span class="annot"><span class="annottext">TextEncoding
+</span><a href="#local-6989586621679066147"><span class="hs-identifier hs-var">uft8Encoding</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679066148"><span class="annot"><span class="annottext">TextEncoding
+</span><a href="#local-6989586621679066148"><span class="hs-identifier hs-var">utf16Encoding</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679066146"><span class="annot"><span class="annottext">Either EncodingException a -&gt; a
+</span><a href="#local-6989586621679066146"><span class="hs-identifier hs-var">elimEx</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(TextEncoding, TextEncoding, Either EncodingException a -&gt; a)
+forall a.
+(TextEncoding, TextEncoding, Either EncodingException a -&gt; a)
+</span><a href="Effects.FileSystem.OsPath.html#utfEncodingsLenient"><span class="hs-identifier hs-var">utfEncodingsLenient</span></a></span><span>
+</span><span id="line-243"></span><span>
+</span><span id="line-244"></span><span class="hs-comment">-- | 'decode' that throws 'EncodingException'.</span><span>
+</span><span id="line-245"></span><span class="hs-comment">--</span><span>
+</span><span id="line-246"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-247"></span><span id="local-6989586621679065978"><span class="annot"><a href="Effects.FileSystem.OsPath.html#decodeThrowM"><span class="hs-identifier hs-type">decodeThrowM</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadThrow</span></span><span> </span><span class="annot"><a href="#local-6989586621679065978"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679065978"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span></span><span>
+</span><span id="line-248"></span><span id="decodeThrowM"><span class="annot"><span class="annottext">decodeThrowM :: forall (m :: * -&gt; *).
+(HasCallStack, MonadThrow m) =&gt;
+OsPath -&gt; m String
+</span><a href="Effects.FileSystem.OsPath.html#decodeThrowM"><span class="hs-identifier hs-var hs-var">decodeThrowM</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-249"></span><span>  </span><span class="annot"><span class="annottext">OsPath -&gt; Either EncodingException String
+</span><a href="Effects.FileSystem.OsPath.html#decode"><span class="hs-identifier hs-var">decode</span></a></span><span> </span><span class="annot"><span class="annottext">(OsPath -&gt; Either EncodingException String)
+-&gt; (Either EncodingException String -&gt; m String)
+-&gt; OsPath
+-&gt; m String
+forall a b c. (a -&gt; b) -&gt; (b -&gt; c) -&gt; a -&gt; c
+</span><a href="Effects.FileSystem.OsPath.html#%3E.%3E"><span class="hs-operator hs-var">&gt;.&gt;</span></a></span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-250"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679066158"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066158"><span class="hs-identifier hs-var">txt</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; m String
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066158"><span class="hs-identifier hs-var">txt</span></a></span><span>
+</span><span id="line-251"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679066159"><span class="annot"><span class="annottext">EncodingException
+</span><a href="#local-6989586621679066159"><span class="hs-identifier hs-var">ex</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">EncodingException -&gt; m String
+forall (m :: * -&gt; *) e a.
+(HasCallStack, MonadThrow m, Exception e) =&gt;
+e -&gt; m a
+</span><a href="file:///nix/store/l0072641y03v7wfrca9v1lv596fpxxa7-safe-exceptions-0.1.7.4-doc/share/doc/safe-exceptions-0.1.7.4/html/src/Control.Exception.Safe.html#throwM"><span class="hs-identifier hs-var">throwM</span></a></span><span> </span><span class="annot"><span class="annottext">EncodingException
+</span><a href="#local-6989586621679066159"><span class="hs-identifier hs-var">ex</span></a></span><span>
+</span><span id="line-252"></span><span>
+</span><span id="line-253"></span><span class="hs-comment">-- | 'decode' with 'MonadFail'.</span><span>
+</span><span id="line-254"></span><span class="hs-comment">--</span><span>
+</span><span id="line-255"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-256"></span><span id="local-6989586621679065980"><span class="annot"><a href="Effects.FileSystem.OsPath.html#decodeFail"><span class="hs-identifier hs-type">decodeFail</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadFail</span></span><span> </span><span class="annot"><a href="#local-6989586621679065980"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679065980"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span></span><span>
+</span><span id="line-257"></span><span id="decodeFail"><span class="annot"><span class="annottext">decodeFail :: forall (m :: * -&gt; *). MonadFail m =&gt; OsPath -&gt; m String
+</span><a href="Effects.FileSystem.OsPath.html#decodeFail"><span class="hs-identifier hs-var hs-var">decodeFail</span></a></span></span><span> </span><span id="local-6989586621679066166"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066166"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; Either EncodingException String
+</span><a href="Effects.FileSystem.OsPath.html#decode"><span class="hs-identifier hs-var">decode</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066166"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-258"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679066167"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066167"><span class="hs-identifier hs-var">txt</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; m String
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066167"><span class="hs-identifier hs-var">txt</span></a></span><span>
+</span><span id="line-259"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679066168"><span class="annot"><span class="annottext">EncodingException
+</span><a href="#local-6989586621679066168"><span class="hs-identifier hs-var">ex</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-260"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; m String
+forall a. String -&gt; m a
+forall (m :: * -&gt; *) a. MonadFail m =&gt; String -&gt; m a
+</span><span class="hs-identifier hs-var">fail</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; m String) -&gt; String -&gt; m String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; OsPath -&gt; String -&gt; String
+</span><a href="Effects.FileSystem.OsPath.html#decodeFailure"><span class="hs-identifier hs-var">decodeFailure</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;decodeFail&quot;</span></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066166"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">EncodingException -&gt; String
+forall e. Exception e =&gt; e -&gt; String
+</span><span class="hs-identifier hs-var">displayException</span></span><span> </span><span class="annot"><span class="annottext">EncodingException
+</span><a href="#local-6989586621679066168"><span class="hs-identifier hs-var">ex</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-261"></span><span>
+</span><span id="line-262"></span><span class="hs-comment">-- | Total conversion from 'OsPath' to 'String'. If decoding fails, displays</span><span>
+</span><span id="line-263"></span><span class="hs-comment">-- the exception.</span><span>
+</span><span id="line-264"></span><span class="hs-comment">--</span><span>
+</span><span id="line-265"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-266"></span><span class="annot"><a href="Effects.FileSystem.OsPath.html#decodeDisplayEx"><span class="hs-identifier hs-type">decodeDisplayEx</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-267"></span><span id="decodeDisplayEx"><span class="annot"><span class="annottext">decodeDisplayEx :: OsPath -&gt; String
+</span><a href="Effects.FileSystem.OsPath.html#decodeDisplayEx"><span class="hs-identifier hs-var hs-var">decodeDisplayEx</span></a></span></span><span> </span><span id="local-6989586621679066170"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066170"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; Either EncodingException String
+</span><a href="Effects.FileSystem.OsPath.html#decode"><span class="hs-identifier hs-var">decode</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066170"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-268"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679066171"><span class="annot"><span class="annottext">EncodingException
+</span><a href="#local-6989586621679066171"><span class="hs-identifier hs-var">ex</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; OsPath -&gt; String -&gt; String
+</span><a href="Effects.FileSystem.OsPath.html#decodeFailure"><span class="hs-identifier hs-var">decodeFailure</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;decodeDisplayEx&quot;</span></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066170"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">EncodingException -&gt; String
+forall e. Exception e =&gt; e -&gt; String
+</span><span class="hs-identifier hs-var">displayException</span></span><span> </span><span class="annot"><span class="annottext">EncodingException
+</span><a href="#local-6989586621679066171"><span class="hs-identifier hs-var">ex</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-269"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679066172"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066172"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066172"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-270"></span><span>
+</span><span id="line-271"></span><span class="hs-comment">-- | Total conversion from 'OsPath' to 'String'. If decoding fails, falls back</span><span>
+</span><span id="line-272"></span><span class="hs-comment">-- to its 'Show' instance.</span><span>
+</span><span id="line-273"></span><span class="hs-comment">--</span><span>
+</span><span id="line-274"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-275"></span><span class="annot"><a href="Effects.FileSystem.OsPath.html#decodeShow"><span class="hs-identifier hs-type">decodeShow</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-276"></span><span id="decodeShow"><span class="annot"><span class="annottext">decodeShow :: OsPath -&gt; String
+</span><a href="Effects.FileSystem.OsPath.html#decodeShow"><span class="hs-identifier hs-var hs-var">decodeShow</span></a></span></span><span> </span><span id="local-6989586621679066173"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066173"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; Either EncodingException String
+</span><a href="Effects.FileSystem.OsPath.html#decode"><span class="hs-identifier hs-var">decode</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066173"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-277"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span class="annot"><span class="annottext">EncodingException
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066173"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-278"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679066175"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066175"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066175"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-279"></span><span>
+</span><span id="line-280"></span><span class="hs-comment">-- | Unsafely converts an 'OsPath' to a 'FilePath' falling back to 'error'.</span><span>
+</span><span id="line-281"></span><span class="hs-comment">--</span><span>
+</span><span id="line-282"></span><span class="hs-comment">-- __WARNING: Partial__</span><span>
+</span><span id="line-283"></span><span class="hs-comment">--</span><span>
+</span><span id="line-284"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-285"></span><span class="annot"><a href="Effects.FileSystem.OsPath.html#unsafeDecode"><span class="hs-identifier hs-type">unsafeDecode</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span>
+</span><span id="line-286"></span><span id="unsafeDecode"><span class="annot"><span class="annottext">unsafeDecode :: HasCallStack =&gt; OsPath -&gt; String
+</span><a href="Effects.FileSystem.OsPath.html#unsafeDecode"><span class="hs-identifier hs-var hs-var">unsafeDecode</span></a></span></span><span> </span><span id="local-6989586621679066180"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066180"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; Either EncodingException String
+</span><a href="Effects.FileSystem.OsPath.html#decode"><span class="hs-identifier hs-var">decode</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066180"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-287"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679066181"><span class="annot"><span class="annottext">EncodingException
+</span><a href="#local-6989586621679066181"><span class="hs-identifier hs-var">ex</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; String) -&gt; String -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; OsPath -&gt; String -&gt; String
+</span><a href="Effects.FileSystem.OsPath.html#decodeFailure"><span class="hs-identifier hs-var">decodeFailure</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;unsafeDecode&quot;</span></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066180"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">EncodingException -&gt; String
+forall e. Exception e =&gt; e -&gt; String
+</span><span class="hs-identifier hs-var">displayException</span></span><span> </span><span class="annot"><span class="annottext">EncodingException
+</span><a href="#local-6989586621679066181"><span class="hs-identifier hs-var">ex</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-288"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679066182"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066182"><span class="hs-identifier hs-var">fp</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066182"><span class="hs-identifier hs-var">fp</span></a></span><span>
+</span><span id="line-289"></span><span>
+</span><span id="line-290"></span><span class="annot"><span class="hs-comment">-- | (UTF8, UTF16LE) encoders.</span></span><span>
+</span><span id="line-291"></span><span class="annot"><a href="Effects.FileSystem.OsPath.html#utfEncodings"><span class="hs-identifier hs-type">utfEncodings</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">TextEncoding</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TextEncoding</span></span><span class="hs-special">)</span><span>
+</span><span id="line-292"></span><span class="hs-comment">-- NOTE: [Unix/Windows encodings]</span><span>
+</span><span id="line-293"></span><span class="hs-comment">--</span><span>
+</span><span id="line-294"></span><span class="hs-comment">-- utf8/utf16le encodings are taken from os-string's encodeUtf implementation.</span><span>
+</span><span id="line-295"></span><span id="utfEncodings"><span class="annot"><span class="annottext">utfEncodings :: (TextEncoding, TextEncoding)
+</span><a href="Effects.FileSystem.OsPath.html#utfEncodings"><span class="hs-identifier hs-var hs-var">utfEncodings</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">TextEncoding
+</span><span class="hs-identifier hs-var">IO.utf8</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">TextEncoding
+</span><span class="hs-identifier hs-var">IO.utf16le</span></span><span class="hs-special">)</span><span>
+</span><span id="line-296"></span><span>
+</span><span id="line-297"></span><span class="hs-comment">-- | Like 'utfEncodings' except the encodings are total. We also provide an</span><span>
+</span><span id="line-298"></span><span class="hs-comment">-- eliminator for @EncodingException -&gt; a@ (lifted to Either for convenience),</span><span>
+</span><span id="line-299"></span><span class="hs-comment">-- because such an @EncodingException@ should be impossible, but the general</span><span>
+</span><span id="line-300"></span><span class="hs-comment">-- encode/decode framework returns Either, so we need to handle the impossible</span><span>
+</span><span id="line-301"></span><span class="hs-comment">-- Left.</span><span>
+</span><span id="line-302"></span><span id="local-6989586621679065947"><span class="annot"><a href="Effects.FileSystem.OsPath.html#utfEncodingsLenient"><span class="hs-identifier hs-type">utfEncodingsLenient</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-303"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TextEncoding</span></span><span class="hs-special">,</span><span>
+</span><span id="line-304"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">TextEncoding</span></span><span class="hs-special">,</span><span>
+</span><span id="line-305"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">EncodingException</span></span><span> </span><span class="annot"><a href="#local-6989586621679065947"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679065947"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-306"></span><span>  </span><span class="hs-special">)</span></span><span>
+</span><span id="line-307"></span><span id="utfEncodingsLenient"><span class="annot"><span class="annottext">utfEncodingsLenient :: forall a.
+(TextEncoding, TextEncoding, Either EncodingException a -&gt; a)
+</span><a href="Effects.FileSystem.OsPath.html#utfEncodingsLenient"><span class="hs-identifier hs-var hs-var">utfEncodingsLenient</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-308"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- see NOTE: [Unix/Windows encodings]</span><span>
+</span><span id="line-309"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-310"></span><span>    </span><span class="hs-comment">-- These encoders are like those defined in utfEncodings, except we use</span><span>
+</span><span id="line-311"></span><span>    </span><span class="hs-comment">-- TransliterateCodingFailure instead of ErrorOnCodingFailure i.e.</span><span>
+</span><span id="line-312"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-313"></span><span>    </span><span class="hs-comment">--     mkUTF8/mkUTF16 ErrorOnCodingFailure</span><span>
+</span><span id="line-314"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-315"></span><span>    </span><span class="hs-comment">-- These should always succeed.</span><span>
+</span><span id="line-316"></span><span>    </span><span class="annot"><span class="annottext">CodingFailureMode -&gt; TextEncoding
+</span><span class="hs-identifier hs-var">UTF8.mkUTF8</span></span><span> </span><span class="annot"><span class="annottext">CodingFailureMode
+</span><span class="hs-identifier hs-var">TransliterateCodingFailure</span></span><span class="hs-special">,</span><span>
+</span><span id="line-317"></span><span>    </span><span class="annot"><span class="annottext">CodingFailureMode -&gt; TextEncoding
+</span><span class="hs-identifier hs-var">UTF16.mkUTF16le</span></span><span> </span><span class="annot"><span class="annottext">CodingFailureMode
+</span><span class="hs-identifier hs-var">TransliterateCodingFailure</span></span><span class="hs-special">,</span><span>
+</span><span id="line-318"></span><span>    </span><span class="annot"><span class="annottext">Either EncodingException a -&gt; a
+forall {a}. Either EncodingException a -&gt; a
+</span><a href="#local-6989586621679066187"><span class="hs-identifier hs-var">elimEx</span></a></span><span>
+</span><span id="line-319"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-320"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-321"></span><span>    </span><span id="local-6989586621679066187"><span class="annot"><span class="annottext">elimEx :: Either EncodingException c -&gt; c
+</span><a href="#local-6989586621679066187"><span class="hs-identifier hs-var hs-var">elimEx</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(EncodingException -&gt; c)
+-&gt; (c -&gt; c) -&gt; Either EncodingException c -&gt; c
+forall a c b. (a -&gt; c) -&gt; (b -&gt; c) -&gt; Either a b -&gt; c
+</span><span class="hs-identifier hs-var">either</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; c
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; c)
+-&gt; (EncodingException -&gt; String) -&gt; EncodingException -&gt; c
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">EncodingException -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">c -&gt; c
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span>
+</span><span id="line-322"></span><span>
+</span><span id="line-323"></span><span class="annot"><a href="Effects.FileSystem.OsPath.html#decodeFailure"><span class="hs-identifier hs-type">decodeFailure</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-324"></span><span id="decodeFailure"><span class="annot"><span class="annottext">decodeFailure :: String -&gt; OsPath -&gt; String -&gt; String
+</span><a href="Effects.FileSystem.OsPath.html#decodeFailure"><span class="hs-identifier hs-var hs-var">decodeFailure</span></a></span></span><span> </span><span id="local-6989586621679066194"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066194"><span class="hs-identifier hs-var">fnName</span></a></span></span><span> </span><span id="local-6989586621679066195"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066195"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679066196"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066196"><span class="hs-identifier hs-var">msg</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-325"></span><span>  </span><span class="annot"><span class="annottext">[String] -&gt; String
+forall a. Monoid a =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">mconcat</span></span><span>
+</span><span id="line-326"></span><span>    </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;[Effects.FileSystem.OsPath.&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-327"></span><span>      </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066194"><span class="hs-identifier hs-var">fnName</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-328"></span><span>      </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;]: Could not decode ospath '&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-329"></span><span>      </span><span class="annot"><span class="annottext">OsPath -&gt; String
+</span><a href="Effects.FileSystem.OsPath.html#decodeShow"><span class="hs-identifier hs-var">decodeShow</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066195"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-330"></span><span>      </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;' to filepath: '&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-331"></span><span>      </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066196"><span class="hs-identifier hs-var">msg</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-332"></span><span>      </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;'&quot;</span></span><span>
+</span><span id="line-333"></span><span>    </span><span class="hs-special">]</span><span>
+</span><span id="line-334"></span><span>
+</span><span id="line-335"></span><span class="annot"><a href="Effects.FileSystem.OsPath.html#encodeFailure"><span class="hs-identifier hs-type">encodeFailure</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-336"></span><span id="encodeFailure"><span class="annot"><span class="annottext">encodeFailure :: String -&gt; String -&gt; String -&gt; String
+</span><a href="Effects.FileSystem.OsPath.html#encodeFailure"><span class="hs-identifier hs-var hs-var">encodeFailure</span></a></span></span><span> </span><span id="local-6989586621679066197"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066197"><span class="hs-identifier hs-var">fnName</span></a></span></span><span> </span><span id="local-6989586621679066198"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066198"><span class="hs-identifier hs-var">fp</span></a></span></span><span> </span><span id="local-6989586621679066199"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066199"><span class="hs-identifier hs-var">msg</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-337"></span><span>  </span><span class="annot"><span class="annottext">[String] -&gt; String
+forall a. Monoid a =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">mconcat</span></span><span>
+</span><span id="line-338"></span><span>    </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;[Effects.FileSystem.OsPath.&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-339"></span><span>      </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066197"><span class="hs-identifier hs-var">fnName</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-340"></span><span>      </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;]: Could not encode filepath '&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-341"></span><span>      </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066198"><span class="hs-identifier hs-var">fp</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-342"></span><span>      </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;' to ospath: '&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-343"></span><span>      </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066199"><span class="hs-identifier hs-var">msg</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-344"></span><span>      </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;'&quot;</span></span><span>
+</span><span id="line-345"></span><span>    </span><span class="hs-special">]</span><span>
+</span><span id="line-346"></span><span>
+</span><span id="line-347"></span><span class="annot"><a href="Effects.FileSystem.OsPath.html#validErr"><span class="hs-identifier hs-type">validErr</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-348"></span><span id="validErr"><span class="annot"><span class="annottext">validErr :: String -&gt; String -&gt; OsPath -&gt; String
+</span><a href="Effects.FileSystem.OsPath.html#validErr"><span class="hs-identifier hs-var hs-var">validErr</span></a></span></span><span> </span><span id="local-6989586621679066200"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066200"><span class="hs-identifier hs-var">fnName</span></a></span></span><span> </span><span id="local-6989586621679066201"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066201"><span class="hs-identifier hs-var">fp</span></a></span></span><span> </span><span id="local-6989586621679066202"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066202"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-349"></span><span>  </span><span class="annot"><span class="annottext">[String] -&gt; String
+forall a. Monoid a =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">mconcat</span></span><span>
+</span><span id="line-350"></span><span>    </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;[Effects.FileSystem.OsPath.&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-351"></span><span>      </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066200"><span class="hs-identifier hs-var">fnName</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-352"></span><span>      </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;]: Original path '&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-353"></span><span>      </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066201"><span class="hs-identifier hs-var">fp</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-354"></span><span>      </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;' encoded as '&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-355"></span><span>      </span><span class="annot"><span class="annottext">OsPath -&gt; String
+</span><a href="Effects.FileSystem.OsPath.html#decodeShow"><span class="hs-identifier hs-var">decodeShow</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066202"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-356"></span><span>      </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;' failed isValid&quot;</span></span><span>
+</span><span id="line-357"></span><span>    </span><span class="hs-special">]</span><span>
+</span><span id="line-358"></span><span>
+</span><span id="line-359"></span><span class="hs-comment">-- | Unsafely combines an 'OsPath' and a 'FilePath' via (&lt;/&gt;) with</span><span>
+</span><span id="line-360"></span><span class="hs-comment">-- 'unsafeEncode'.</span><span>
+</span><span id="line-361"></span><span class="hs-comment">--</span><span>
+</span><span id="line-362"></span><span class="hs-comment">-- __WARNING: Partial__</span><span>
+</span><span id="line-363"></span><span class="hs-comment">--</span><span>
+</span><span id="line-364"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-365"></span><span class="annot"><a href="Effects.FileSystem.OsPath.html#%3C%2F%3E%21"><span class="hs-operator hs-type">(&lt;/&gt;!)</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span>
+</span><span id="line-366"></span><span id="local-6989586621679066206"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066206"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="%3C%2F%3E%21"><span class="annot"><span class="annottext">&lt;/&gt;! :: HasCallStack =&gt; OsPath -&gt; String -&gt; OsPath
+</span><a href="Effects.FileSystem.OsPath.html#%3C%2F%3E%21"><span class="hs-operator hs-var hs-var">&lt;/&gt;!</span></a></span></span><span> </span><span id="local-6989586621679066207"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066207"><span class="hs-identifier hs-var">fp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679066206"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; OsPath -&gt; OsPath
+</span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">HasCallStack =&gt; String -&gt; OsPath
+String -&gt; OsPath
+</span><a href="Effects.FileSystem.OsPath.html#unsafeEncode"><span class="hs-identifier hs-var">unsafeEncode</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066207"><span class="hs-identifier hs-var">fp</span></a></span><span>
+</span><span id="line-367"></span><span>
+</span><span id="line-368"></span><span class="hs-keyword">infixl</span><span> </span><span class="hs-number">9</span><span> </span><span class="annot"><a href="Effects.FileSystem.OsPath.html#%3C%2F%3E%21"><span class="hs-operator hs-type">&lt;/&gt;!</span></a></span><span>
+</span><span id="line-369"></span><span>
+</span><span id="line-370"></span><span class="hs-comment">-- | Unsafely combines a 'FilePath' and an 'OsPath' via (&lt;/&gt;) with</span><span>
+</span><span id="line-371"></span><span class="hs-comment">-- 'unsafeEncode'.</span><span>
+</span><span id="line-372"></span><span class="hs-comment">--</span><span>
+</span><span id="line-373"></span><span class="hs-comment">-- __WARNING: Partial__</span><span>
+</span><span id="line-374"></span><span class="hs-comment">--</span><span>
+</span><span id="line-375"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-376"></span><span class="annot"><a href="Effects.FileSystem.OsPath.html#%21%3C%2F%3E"><span class="hs-operator hs-type">(!&lt;/&gt;)</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span>
+</span><span id="line-377"></span><span id="%21%3C%2F%3E"><span class="annot"><span class="annottext">!&lt;/&gt; :: HasCallStack =&gt; String -&gt; OsPath -&gt; OsPath
+</span><a href="Effects.FileSystem.OsPath.html#%21%3C%2F%3E"><span class="hs-operator hs-var hs-var">(!&lt;/&gt;)</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(OsPath -&gt; String -&gt; OsPath) -&gt; String -&gt; OsPath -&gt; OsPath
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span><span class="hs-identifier hs-var">flip</span></span><span> </span><span class="annot"><span class="annottext">HasCallStack =&gt; OsPath -&gt; String -&gt; OsPath
+OsPath -&gt; String -&gt; OsPath
+</span><a href="Effects.FileSystem.OsPath.html#%3C%2F%3E%21"><span class="hs-operator hs-var">(&lt;/&gt;!)</span></a></span><span>
+</span><span id="line-378"></span><span>
+</span><span id="line-379"></span><span class="hs-keyword">infixl</span><span> </span><span class="hs-number">9</span><span> </span><span class="annot"><a href="Effects.FileSystem.OsPath.html#%21%3C%2F%3E"><span class="hs-operator hs-type">!&lt;/&gt;</span></a></span><span>
+</span><span id="line-380"></span><span>
+</span><span id="line-381"></span><span class="hs-comment">-- | Legacy alias for FilePaths' &lt;/&gt; operator. Exists because the &lt;/&gt; exported</span><span>
+</span><span id="line-382"></span><span class="hs-comment">-- here is @'(&lt;/&gt;)' :: 'OsPath' -&gt; 'OsPath' -&gt; 'OsPath'@.</span><span>
+</span><span id="line-383"></span><span class="hs-comment">--</span><span>
+</span><span id="line-384"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-385"></span><span class="annot"><a href="Effects.FileSystem.OsPath.html#combineFilePaths"><span class="hs-identifier hs-type">combineFilePaths</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span>
+</span><span id="line-386"></span><span id="combineFilePaths"><span class="annot"><span class="annottext">combineFilePaths :: String -&gt; String -&gt; String
+</span><a href="Effects.FileSystem.OsPath.html#combineFilePaths"><span class="hs-identifier hs-var hs-var">combineFilePaths</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><span class="hs-operator hs-var">(FP.&lt;/&gt;)</span></span><span>
+</span><span id="line-387"></span><span>
+</span><span id="line-388"></span><span class="hs-comment">-- | Flipped '(.)'.</span><span>
+</span><span id="line-389"></span><span class="hs-comment">--</span><span>
+</span><span id="line-390"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-391"></span><span id="local-6989586621679065960"><span id="local-6989586621679065961"><span id="local-6989586621679065962"><span class="annot"><a href="Effects.FileSystem.OsPath.html#%3E.%3E"><span class="hs-operator hs-type">(&gt;.&gt;)</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679065960"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679065961"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679065961"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679065962"><span class="hs-identifier hs-type">c</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679065960"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679065962"><span class="hs-identifier hs-type">c</span></a></span></span></span></span><span>
+</span><span id="line-392"></span><span id="%3E.%3E"><span class="annot"><span class="annottext">&gt;.&gt; :: forall a b c. (a -&gt; b) -&gt; (b -&gt; c) -&gt; a -&gt; c
+</span><a href="Effects.FileSystem.OsPath.html#%3E.%3E"><span class="hs-operator hs-var hs-var">(&gt;.&gt;)</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">((b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c) -&gt; (a -&gt; b) -&gt; (b -&gt; c) -&gt; a -&gt; c
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span><span class="hs-identifier hs-var">flip</span></span><span> </span><span class="annot"><span class="annottext">(b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">(.)</span></span><span>
+</span><span id="line-393"></span><span>
+</span><span id="line-394"></span><span class="hs-keyword">infixl</span><span> </span><span class="hs-number">9</span><span> </span><span class="annot"><a href="Effects.FileSystem.OsPath.html#%3E.%3E"><span class="hs-operator hs-type">&gt;.&gt;</span></a></span><span>
+</span><span id="line-395"></span></pre></body></html>

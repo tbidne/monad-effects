@@ -1,0 +1,154 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# OPTIONS_GHC -Wno-redundant-constraints #-}</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Effects.FileSystem.IO</span><span>
+</span><span id="line-4"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * File handling</span></span><span>
+</span><span id="line-5"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.IO.html#readBinaryFileIO"><span class="hs-identifier">readBinaryFileIO</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.IO.html#writeBinaryFileIO"><span class="hs-identifier">writeBinaryFileIO</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-7"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.IO.html#appendBinaryFileIO"><span class="hs-identifier">appendBinaryFileIO</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.IO.html#openBinaryFileIO"><span class="hs-identifier">openBinaryFileIO</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.IO.html#withBinaryFileIO"><span class="hs-identifier">withBinaryFileIO</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Errors</span></span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.IO.html#throwPathIOError"><span class="hs-identifier">throwPathIOError</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.IO.html#throwPathIOErrorFilePath"><span class="hs-identifier">throwPathIOErrorFilePath</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-14"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-15"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ByteString</span></span><span class="hs-special">)</span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.8.2/effects-exceptions-0.1/doc/html/effects-exceptions/src/Effects.Exception.html"><span class="hs-identifier">Effects.Exception</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadThrow</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///nix/store/l0072641y03v7wfrca9v1lv596fpxxa7-safe-exceptions-0.1.7.4-doc/share/doc/safe-exceptions-0.1.7.4/html/src/Control.Exception.Safe.html#throwM"><span class="hs-identifier">throwM</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Effects.FileSystem.OsPath.html"><span class="hs-identifier">Effects.FileSystem.OsPath</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">FS.OsPath</span></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.IO.Exception</span></span><span>
+</span><span id="line-21"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">IOException</span></span><span>
+</span><span id="line-22"></span><span>      </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">IOError</span></span><span class="hs-special">,</span><span>
+</span><span id="line-23"></span><span>        </span><span class="annot"><span class="hs-identifier">ioe_description</span></span><span class="hs-special">,</span><span>
+</span><span id="line-24"></span><span>        </span><span class="annot"><span class="hs-identifier">ioe_errno</span></span><span class="hs-special">,</span><span>
+</span><span id="line-25"></span><span>        </span><span class="annot"><span class="hs-identifier">ioe_filename</span></span><span class="hs-special">,</span><span>
+</span><span id="line-26"></span><span>        </span><span class="annot"><span class="hs-identifier">ioe_handle</span></span><span class="hs-special">,</span><span>
+</span><span id="line-27"></span><span>        </span><span class="annot"><span class="hs-identifier">ioe_location</span></span><span class="hs-special">,</span><span>
+</span><span id="line-28"></span><span>        </span><span class="annot"><span class="hs-identifier">ioe_type</span></span><span>
+</span><span id="line-29"></span><span>      </span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-30"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Stack.Types</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">HasCallStack</span></span><span class="hs-special">)</span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///nix/store/bpm6sl0rwxiy341m68qvj0yx1j43nnaa-file-io-0.1.1-doc/share/doc/file-io-0.1.1/html/src/System.File.OsPath.html"><span class="hs-identifier">System.File.OsPath</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">FileIO</span></span><span>
+</span><span id="line-33"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.IO</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Handle</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">IOMode</span></span><span class="hs-special">)</span><span>
+</span><span id="line-34"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.IO.Error</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">IOErrorType</span></span><span class="hs-special">)</span><span>
+</span><span id="line-35"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.OsPath</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">OsPath</span></span><span class="hs-special">)</span><span>
+</span><span id="line-36"></span><span>
+</span><span id="line-37"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-38"></span><span class="annot"><a href="Effects.FileSystem.IO.html#readBinaryFileIO"><span class="hs-identifier hs-type">readBinaryFileIO</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">ByteString</span></span><span>
+</span><span id="line-39"></span><span id="readBinaryFileIO"><span class="annot"><span class="annottext">readBinaryFileIO :: OsPath -&gt; IO ByteString
+</span><a href="Effects.FileSystem.IO.html#readBinaryFileIO"><span class="hs-identifier hs-var hs-var">readBinaryFileIO</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; IO ByteString
+</span><a href="file:///nix/store/bpm6sl0rwxiy341m68qvj0yx1j43nnaa-file-io-0.1.1-doc/share/doc/file-io-0.1.1/html/src/System.File.OsPath.html#readFile%27"><span class="hs-identifier hs-var">FileIO.readFile'</span></a></span><span>
+</span><span id="line-40"></span><span>
+</span><span id="line-41"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-42"></span><span class="annot"><a href="Effects.FileSystem.IO.html#writeBinaryFileIO"><span class="hs-identifier hs-type">writeBinaryFileIO</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ByteString</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-43"></span><span id="writeBinaryFileIO"><span class="annot"><span class="annottext">writeBinaryFileIO :: OsPath -&gt; ByteString -&gt; IO ()
+</span><a href="Effects.FileSystem.IO.html#writeBinaryFileIO"><span class="hs-identifier hs-var hs-var">writeBinaryFileIO</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; ByteString -&gt; IO ()
+</span><a href="file:///nix/store/bpm6sl0rwxiy341m68qvj0yx1j43nnaa-file-io-0.1.1-doc/share/doc/file-io-0.1.1/html/src/System.File.OsPath.html#writeFile%27"><span class="hs-identifier hs-var">FileIO.writeFile'</span></a></span><span>
+</span><span id="line-44"></span><span>
+</span><span id="line-45"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-46"></span><span class="annot"><a href="Effects.FileSystem.IO.html#appendBinaryFileIO"><span class="hs-identifier hs-type">appendBinaryFileIO</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ByteString</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-47"></span><span id="appendBinaryFileIO"><span class="annot"><span class="annottext">appendBinaryFileIO :: OsPath -&gt; ByteString -&gt; IO ()
+</span><a href="Effects.FileSystem.IO.html#appendBinaryFileIO"><span class="hs-identifier hs-var hs-var">appendBinaryFileIO</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; ByteString -&gt; IO ()
+</span><a href="file:///nix/store/bpm6sl0rwxiy341m68qvj0yx1j43nnaa-file-io-0.1.1-doc/share/doc/file-io-0.1.1/html/src/System.File.OsPath.html#appendFile%27"><span class="hs-identifier hs-var">FileIO.appendFile'</span></a></span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-50"></span><span class="annot"><a href="Effects.FileSystem.IO.html#openBinaryFileIO"><span class="hs-identifier hs-type">openBinaryFileIO</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IOMode</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span>
+</span><span id="line-51"></span><span id="openBinaryFileIO"><span class="annot"><span class="annottext">openBinaryFileIO :: OsPath -&gt; IOMode -&gt; IO Handle
+</span><a href="Effects.FileSystem.IO.html#openBinaryFileIO"><span class="hs-identifier hs-var hs-var">openBinaryFileIO</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; IOMode -&gt; IO Handle
+</span><a href="file:///nix/store/bpm6sl0rwxiy341m68qvj0yx1j43nnaa-file-io-0.1.1-doc/share/doc/file-io-0.1.1/html/src/System.File.OsPath.html#openBinaryFile"><span class="hs-identifier hs-var">FileIO.openBinaryFile</span></a></span><span>
+</span><span id="line-52"></span><span>
+</span><span id="line-53"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-54"></span><span id="local-6989586621679066217"><span class="annot"><a href="Effects.FileSystem.IO.html#withBinaryFileIO"><span class="hs-identifier hs-type">withBinaryFileIO</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IOMode</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679066217"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679066217"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-55"></span><span id="withBinaryFileIO"><span class="annot"><span class="annottext">withBinaryFileIO :: forall a. OsPath -&gt; IOMode -&gt; (Handle -&gt; IO a) -&gt; IO a
+</span><a href="Effects.FileSystem.IO.html#withBinaryFileIO"><span class="hs-identifier hs-var hs-var">withBinaryFileIO</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; IOMode -&gt; (Handle -&gt; IO a) -&gt; IO a
+forall a. OsPath -&gt; IOMode -&gt; (Handle -&gt; IO a) -&gt; IO a
+</span><a href="file:///nix/store/bpm6sl0rwxiy341m68qvj0yx1j43nnaa-file-io-0.1.1-doc/share/doc/file-io-0.1.1/html/src/System.File.OsPath.html#withBinaryFile"><span class="hs-identifier hs-var">FileIO.withBinaryFile</span></a></span><span>
+</span><span id="line-56"></span><span>
+</span><span id="line-57"></span><span class="hs-comment">-- | Helper for throwing 'IOException'.</span><span>
+</span><span id="line-58"></span><span class="hs-comment">--</span><span>
+</span><span id="line-59"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-60"></span><span id="local-6989586621679066220"><span id="local-6989586621679066223"><span class="annot"><a href="Effects.FileSystem.IO.html#throwPathIOError"><span class="hs-identifier hs-type">throwPathIOError</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-61"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadThrow</span></span><span> </span><span class="annot"><a href="#local-6989586621679066220"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-62"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Path upon which the IO operation failed.</span></span><span>
+</span><span id="line-63"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-64"></span><span>  </span><span class="annot"><span class="hs-comment">-- | String location (e.g. function name).</span></span><span>
+</span><span id="line-65"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-66"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Type of exception.</span></span><span>
+</span><span id="line-67"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">IOErrorType</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-68"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Description.</span></span><span>
+</span><span id="line-69"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-70"></span><span>  </span><span class="annot"><a href="#local-6989586621679066220"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679066223"><span class="hs-identifier hs-type">a</span></a></span></span></span><span>
+</span><span id="line-71"></span><span id="throwPathIOError"><span class="annot"><span class="annottext">throwPathIOError :: forall (m :: * -&gt; *) a.
+(HasCallStack, MonadThrow m) =&gt;
+OsPath -&gt; String -&gt; IOErrorType -&gt; String -&gt; m a
+</span><a href="Effects.FileSystem.IO.html#throwPathIOError"><span class="hs-identifier hs-var hs-var">throwPathIOError</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; IOErrorType -&gt; String -&gt; m a
+forall (m :: * -&gt; *) a.
+(HasCallStack, MonadThrow m) =&gt;
+String -&gt; String -&gt; IOErrorType -&gt; String -&gt; m a
+</span><a href="Effects.FileSystem.IO.html#throwPathIOErrorFilePath"><span class="hs-identifier hs-var">throwPathIOErrorFilePath</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; String -&gt; IOErrorType -&gt; String -&gt; m a)
+-&gt; (OsPath -&gt; String)
+-&gt; OsPath
+-&gt; String
+-&gt; IOErrorType
+-&gt; String
+-&gt; m a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; String
+</span><a href="Effects.FileSystem.OsPath.html#decodeLenient"><span class="hs-identifier hs-var">FS.OsPath.decodeLenient</span></a></span><span>
+</span><span id="line-72"></span><span>
+</span><span id="line-73"></span><span class="hs-comment">-- | Helper for throwing 'IOException' with legacy FilePath.</span><span>
+</span><span id="line-74"></span><span class="hs-comment">--</span><span>
+</span><span id="line-75"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-76"></span><span id="local-6989586621679066226"><span id="local-6989586621679066227"><span class="annot"><a href="Effects.FileSystem.IO.html#throwPathIOErrorFilePath"><span class="hs-identifier hs-type">throwPathIOErrorFilePath</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-77"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadThrow</span></span><span> </span><span class="annot"><a href="#local-6989586621679066226"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-78"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Path upon which the IO operation failed.</span></span><span>
+</span><span id="line-79"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-80"></span><span>  </span><span class="annot"><span class="hs-comment">-- | String location (e.g. function name).</span></span><span>
+</span><span id="line-81"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-82"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Type of exception.</span></span><span>
+</span><span id="line-83"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">IOErrorType</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-84"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Description.</span></span><span>
+</span><span id="line-85"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-86"></span><span>  </span><span class="annot"><a href="#local-6989586621679066226"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679066227"><span class="hs-identifier hs-type">a</span></a></span></span></span><span>
+</span><span id="line-87"></span><span id="throwPathIOErrorFilePath"><span class="annot"><span class="annottext">throwPathIOErrorFilePath :: forall (m :: * -&gt; *) a.
+(HasCallStack, MonadThrow m) =&gt;
+String -&gt; String -&gt; IOErrorType -&gt; String -&gt; m a
+</span><a href="Effects.FileSystem.IO.html#throwPathIOErrorFilePath"><span class="hs-identifier hs-var hs-var">throwPathIOErrorFilePath</span></a></span></span><span> </span><span id="local-6989586621679066279"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066279"><span class="hs-identifier hs-var">path</span></a></span></span><span> </span><span id="local-6989586621679066280"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066280"><span class="hs-identifier hs-var">loc</span></a></span></span><span> </span><span id="local-6989586621679066281"><span class="annot"><span class="annottext">IOErrorType
+</span><a href="#local-6989586621679066281"><span class="hs-identifier hs-var">ty</span></a></span></span><span> </span><span id="local-6989586621679066282"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066282"><span class="hs-identifier hs-var">desc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-88"></span><span>  </span><span class="annot"><span class="annottext">IOException -&gt; m a
+forall (m :: * -&gt; *) e a.
+(HasCallStack, MonadThrow m, Exception e) =&gt;
+e -&gt; m a
+</span><a href="file:///nix/store/l0072641y03v7wfrca9v1lv596fpxxa7-safe-exceptions-0.1.7.4-doc/share/doc/safe-exceptions-0.1.7.4/html/src/Control.Exception.Safe.html#throwM"><span class="hs-identifier hs-var">throwM</span></a></span><span> </span><span class="annot"><span class="annottext">(IOException -&gt; m a) -&gt; IOException -&gt; m a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span id="line-89"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">IOError</span></span><span>
+</span><span id="line-90"></span><span>      </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">ioe_handle :: Maybe Handle
+</span><span class="hs-identifier hs-var">ioe_handle</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Handle
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">,</span><span>
+</span><span id="line-91"></span><span>        </span><span class="annot"><span class="annottext">ioe_type :: IOErrorType
+</span><span class="hs-identifier hs-var">ioe_type</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IOErrorType
+</span><a href="#local-6989586621679066281"><span class="hs-identifier hs-var">ty</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-92"></span><span>        </span><span class="annot"><span class="annottext">ioe_location :: String
+</span><span class="hs-identifier hs-var">ioe_location</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066280"><span class="hs-identifier hs-var">loc</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-93"></span><span>        </span><span class="annot"><span class="annottext">ioe_description :: String
+</span><span class="hs-identifier hs-var">ioe_description</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066282"><span class="hs-identifier hs-var">desc</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-94"></span><span>        </span><span class="annot"><span class="annottext">ioe_errno :: Maybe CInt
+</span><span class="hs-identifier hs-var">ioe_errno</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe CInt
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">,</span><span>
+</span><span id="line-95"></span><span>        </span><span class="annot"><span class="annottext">ioe_filename :: Maybe String
+</span><span class="hs-identifier hs-var">ioe_filename</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Maybe String
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679066279"><span class="hs-identifier hs-var">path</span></a></span><span>
+</span><span id="line-96"></span><span>      </span><span class="hs-special">}</span><span>
+</span><span id="line-97"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.IO.html#throwPathIOErrorFilePath"><span class="hs-pragma hs-type">throwPathIOErrorFilePath</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-98"></span></pre></body></html>
