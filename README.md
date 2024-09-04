@@ -16,6 +16,7 @@
   - [effects-env](#effects-env)
   - [effects-exceptions](#effects-exceptions)
   - [effects-fs](#effects-fs)
+  - [effects-fs-utils](#effects-fs-utils)
   - [effects-haskeline](#effects-haskeline)
   - [effects-ioref](#effects-ioref)
   - [effects-logger-ns](#effects-logger-ns)
@@ -25,6 +26,7 @@
   - [effects-thread](#effects-thread)
   - [effects-time](#effects-time)
   - [effects-typed-process](#effects-typed-process)
+  - [effects-unix](#effects-unix)
   - [effects-unix-compat](#effects-unix-compat)
 
 # Introduction
