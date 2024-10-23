@@ -29,8 +29,6 @@ import Effects.FileSystem.FileWriter
     OsPath,
   )
 import Effects.FileSystem.FileWriter qualified as FW
-import Effects.FileSystem.OsPath (osp, (</>))
-import Effects.FileSystem.OsPath qualified as FS.OsPath
 import Effects.FileSystem.PathReader
   ( MonadPathReader,
     doesDirectoryExist,
@@ -54,6 +52,8 @@ import Effects.FileSystem.PathWriter
 import Effects.FileSystem.PathWriter qualified as PW
 import Effects.FileSystem.PathWriter qualified as PathWriter
 import Effects.IORef (MonadIORef (modifyIORef', newIORef, readIORef))
+import FileSystem.OsPath (osp, (</>))
+import FileSystem.OsPath qualified as FS.OsPath
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (assertBool, assertFailure, testCase, (@=?))
 

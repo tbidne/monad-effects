@@ -21,8 +21,8 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.Functor ((<&>))
 import Effects.Exception (MonadCatch)
-import Effects.FileSystem.IO qualified as FS.IO
-import Effects.FileSystem.PathType
+import FileSystem.IO qualified as FS.IO
+import FileSystem.PathType
   ( PathType
       ( PathTypeDirectory,
         PathTypeFile,

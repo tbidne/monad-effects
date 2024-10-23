@@ -5,8 +5,6 @@ module Posix (tests) where
 
 import Data.ByteString qualified as BS
 import Effects.Exception (tryAny)
-import Effects.FileSystem.OsPath (OsPath, osp, (</>))
-import Effects.FileSystem.OsPath qualified as FS.OsPath
 import Effects.System.Posix
   ( PathType
       ( PathTypeDirectory,
@@ -15,6 +13,8 @@ import Effects.System.Posix
       ),
   )
 import Effects.System.Posix qualified as P
+import FileSystem.OsPath (OsPath, osp, (</>))
+import FileSystem.OsPath qualified as FS.OsPath
 import System.Directory.OsPath qualified as Dir
 import System.OsString.Internal.Types (OsString (getOsString))
 import Test.Tasty (TestTree, testGroup)

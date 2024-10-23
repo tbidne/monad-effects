@@ -63,9 +63,9 @@ benchmark benchmarks
   build-depends:
     , base
     , effects-fs           ^>=0.1
-    , effects-fs-utils     ^>=0.1
     , effects-unix         ^>=0.1
     , effects-unix-compat  ^>=0.1
+    , fs-utils             ^>=0.1
     , tasty-bench          ^>=0.3
 
   if flag(os-string)

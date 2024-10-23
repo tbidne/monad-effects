@@ -30,9 +30,9 @@ import Data.ByteString qualified as BS
 import Data.ByteString.Char8 qualified as Char8
 import Data.Text (Text)
 import Effects.Exception (MonadThrow, addCS, exitFailure)
-import Effects.FileSystem.IO qualified as FS.IO
-import Effects.FileSystem.OsPath (OsPath)
-import Effects.FileSystem.UTF8 qualified as FS.UTF8
+import FileSystem.IO qualified as FS.IO
+import FileSystem.OsPath (OsPath)
+import FileSystem.UTF8 qualified as FS.UTF8
 import GHC.Stack (HasCallStack)
 import System.IO
   ( BufferMode (BlockBuffering, LineBuffering, NoBuffering),

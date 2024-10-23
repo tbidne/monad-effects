@@ -21,12 +21,6 @@ cradle:
     - path: "./lib/effects-fs/test/unit"
       component: "effects-fs:test:unit"
 
-    - path: "./lib/effects-fs-utils/src"
-      component: "lib:effects-fs-utils"
-
-    - path: "./lib/effects-fs-utils/test/unit"
-      component: "effects-fs-utils:test:unit"
-
     - path: "./lib/effects-haskeline/src"
       component: "lib:effects-haskeline"
 

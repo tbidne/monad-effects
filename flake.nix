@@ -19,6 +19,12 @@
     inputs.nix-hs-utils.follows = "nix-hs-utils";
     inputs.nixpkgs.follows = "nixpkgs";
   };
+  inputs.fs-utils = {
+    url = "github:tbidne/fs-utils";
+    inputs.flake-parts.follows = "flake-parts";
+    inputs.nix-hs-utils.follows = "nix-hs-utils";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
   inputs.smart-math = {
     url = "github:tbidne/smart-math";
     inputs.flake-parts.follows = "flake-parts";
@@ -48,6 +54,7 @@
               // nix-hs-utils.mkLibs inputs final [
                 "algebra-simple"
                 "bounds"
+                "fs-utils"
                 "smart-math"
               ];
           };
@@ -61,7 +68,6 @@
                 effects-env = ./lib/effects-env;
                 effects-exceptions = ./lib/effects-exceptions;
                 effects-fs = ./lib/effects-fs;
-                effects-fs-utils = ./lib/effects-fs-utils;
                 effects-haskeline = ./lib/effects-haskeline;
                 effects-ioref = ./lib/effects-ioref;
                 effects-logger-ns = ./lib/effects-logger-ns;
@@ -81,7 +87,6 @@
             p.effects-env
             p.effects-exceptions
             p.effects-fs
-            p.effects-fs-utils
             p.effects-haskeline
             p.effects-ioref
             p.effects-logger-ns
@@ -112,10 +117,8 @@
           packages.effects-exceptions = mkPkg "effects-exceptions" ./lib/effects-exceptions { };
           packages.effects-fs = mkPkg "effects-fs" ./lib/effects-fs {
             effects-exceptions = ./lib/effects-exceptions;
-            effects-fs-utils = ./lib/effects-fs-utils;
             effects-ioref = ./lib/effects-ioref;
           };
-          packages.effects-fs-utils = mkPkgsException "effects-fs-utils" ./lib/effects-fs-utils;
           packages.effects-haskeline = mkPkg "effects-haskeline" ./lib/effects-haskeline { };
           packages.effects-ioref = mkPkgsException "effects-ioref" ./lib/effects-ioref;
           packages.effects-logger-ns = mkPkg "effects-logger-ns" ./lib/effects-logger-ns {
@@ -123,23 +126,14 @@
             effects-thread = ./lib/effects-thread;
             effects-time = ./lib/effects-time;
           };
-          packages.effects-optparse = mkPkg "effects-optparse" ./lib/effects-optparse {
-            effects-exceptions = ./lib/effects-exceptions;
-            effects-fs-utils = ./lib/effects-fs-utils;
-          };
+          packages.effects-optparse = mkPkgsException "effects-optparse" ./lib/effects-optparse;
           packages.effects-stm = mkPkgsException "effects-stm" ./lib/effects-stm;
           packages.effects-terminal = mkPkgsException "effects-terminal" ./lib/effects-terminal;
           packages.effects-time = mkPkgsException "effects-time" ./lib/effects-time;
           packages.effects-thread = mkPkgsException "effects-thread" ./lib/effects-thread;
           packages.effects-typed-process = mkPkgsException "effects-typed-process" ./lib/effects-typed-process;
-          packages.effects-unix = mkPkg "effects-unix" ./lib/effects-unix {
-            effects-exceptions = ./lib/effects-exceptions;
-            effects-fs-utils = ./lib/effects-fs-utils;
-          };
-          packages.effects-unix-compat = mkPkg "effects-unix-compat" ./lib/effects-unix-compat {
-            effects-exceptions = ./lib/effects-exceptions;
-            effects-fs-utils = ./lib/effects-fs-utils;
-          };
+          packages.effects-unix = mkPkgsException "effects-unix" ./lib/effects-unix;
+          packages.effects-unix-compat = mkPkgsException "effects-unix-compat" ./lib/effects-unix-compat;
 
           devShells.default = hsOverlay.shellFor {
             inherit packages;

@@ -3,7 +3,7 @@
 module Main (main) where
 
 import Control.Monad (when)
-import Effects.FileSystem.OsPath (OsPath, osp, (</>))
+import FileSystem.OsPath (OsPath, osp, (</>))
 import Posix qualified
 import System.Directory.OsPath qualified as Dir
 import System.Environment.Guard (ExpectEnv (ExpectEnvSet), guardOrElse')

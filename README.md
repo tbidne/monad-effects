@@ -16,7 +16,6 @@
   - [effects-env](#effects-env)
   - [effects-exceptions](#effects-exceptions)
   - [effects-fs](#effects-fs)
-  - [effects-fs-utils](#effects-fs-utils)
   - [effects-haskeline](#effects-haskeline)
   - [effects-ioref](#effects-ioref)
   - [effects-logger-ns](#effects-logger-ns)
@@ -124,21 +123,6 @@ Filesystem effects. In particular:
 * The `File*` modules are for reading/writing to files, and include helper functions for (de/en)coding UTF-8.
 * The `Path*` modules implement the `directory` interface.
 * The `Handle*` modules implement `System.IO` handle operations.
-
-## effects-fs-utils
-
-### Library: `file-io`, `file-path`, `os-string`
-
-### Modules
-
-* `Effects.FileSystem.IO`
-* `Effects.FileSystem.OsPath`
-* `Effects.FileSystem.PathType`
-* `Effects.FileSystem.UTF8`
-
-### Description
-
-This package does not include any typeclass effects itself. It merely provides some common functionality required in other packages (e.g. `effects-fs`, `effects-unix`). The primary idea is implementing various utilities for `OsPath`, though we also include a type for distinguishing path types.
 
 ## effects-haskeline
 

@@ -28,9 +28,9 @@ import Data.ByteString (ByteString)
 import Data.Text (Text)
 import Data.Text.Encoding.Error (UnicodeException)
 import Effects.Exception (MonadThrow, addCS)
-import Effects.FileSystem.IO qualified as FS.IO
-import Effects.FileSystem.OsPath (OsPath)
-import Effects.FileSystem.UTF8 qualified as FS.UTF8
+import FileSystem.IO qualified as FS.IO
+import FileSystem.OsPath (OsPath)
+import FileSystem.UTF8 qualified as FS.UTF8
 import GHC.Stack (HasCallStack)
 
 -- | Represents file-system reader effects.

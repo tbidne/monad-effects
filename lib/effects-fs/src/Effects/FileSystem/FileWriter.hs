@@ -22,9 +22,9 @@ import Control.Monad.Trans.Reader (ReaderT)
 import Data.ByteString (ByteString)
 import Data.Text (Text)
 import Effects.Exception (addCS)
-import Effects.FileSystem.IO qualified as FS.IO
-import Effects.FileSystem.OsPath (OsPath)
-import Effects.FileSystem.UTF8 qualified as FS.UTF8
+import FileSystem.IO qualified as FS.IO
+import FileSystem.OsPath (OsPath)
+import FileSystem.UTF8 qualified as FS.UTF8
 import GHC.Stack (HasCallStack)
 
 -- | Represents file-system writer effects.

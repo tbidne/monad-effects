@@ -70,6 +70,32 @@
         "type": "github"
       }
     },
+    "fs-utils": {
+      "inputs": {
+        "flake-parts": [
+          "flake-parts"
+        ],
+        "nix-hs-utils": [
+          "nix-hs-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1729646958,
+        "narHash": "sha256-EKOH76S2fgHge+GVkecIQcvabv+OSYGgfrgVNfb6CXg=",
+        "owner": "tbidne",
+        "repo": "fs-utils",
+        "rev": "5d891a45fa37e9b1365dbf46494dd75311da8af0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tbidne",
+        "repo": "fs-utils",
+        "type": "github"
+      }
+    },
     "nix-hs-utils": {
       "locked": {
         "lastModified": 1713310032,
@@ -118,6 +144,7 @@
         "algebra-simple": "algebra-simple",
         "bounds": "bounds",
         "flake-parts": "flake-parts",
+        "fs-utils": "fs-utils",
         "nix-hs-utils": "nix-hs-utils",
         "nixpkgs": "nixpkgs",
         "smart-math": "smart-math"

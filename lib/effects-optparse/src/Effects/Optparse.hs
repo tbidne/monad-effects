@@ -15,8 +15,8 @@ where
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Effects.Exception (addCS)
-import Effects.FileSystem.OsPath (OsPath)
-import Effects.FileSystem.OsPath qualified as FS.OsPath
+import FileSystem.OsPath (OsPath)
+import FileSystem.OsPath qualified as FS.OsPath
 import GHC.Stack (HasCallStack)
 import Options.Applicative (ParserInfo, ParserPrefs, ParserResult, ReadM)
 import Options.Applicative qualified as OA

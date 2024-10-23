@@ -49,9 +49,9 @@ import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Data.Time (UTCTime (UTCTime, utctDay, utctDayTime))
 import Effects.Exception (MonadCatch, addCS)
 import Effects.Exception qualified as Ex
-import Effects.FileSystem.IO qualified as FS.IO
-import Effects.FileSystem.OsPath (OsPath, (</>))
-import Effects.FileSystem.PathType
+import FileSystem.IO qualified as FS.IO
+import FileSystem.OsPath (OsPath, (</>))
+import FileSystem.PathType
   ( PathType
       ( PathTypeDirectory,
         PathTypeFile,

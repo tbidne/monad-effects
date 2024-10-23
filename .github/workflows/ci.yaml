@@ -54,15 +54,6 @@ jobs:
       - name: Test effects-exceptions
         run: cabal test effects-exceptions
 
-      # effects-fs-utils before effects-fs since the former is a dep of the
-      # latter.
-
-      - name: Build effects-fs-utils
-        run: cabal build effects-fs-utils
-
-      - name: Test effects-fs-utils
-        run: cabal test effects-fs-utils --test-options '--hedgehog-tests 100000'
-
       - name: Build effects-fs
         run: cabal build effects-fs
 
@@ -160,9 +151,6 @@ jobs:
 
       - name: Build effects-exceptions
         run: nix build -Lv .#effects-exceptions
-
-      - name: Build effects-fs-utils
-        run: nix build -Lv .#effects-fs-utils
 
       - name: Build effects-fs
         run: nix build -Lv .#effects-fs

@@ -54,7 +54,7 @@ library
   build-depends:
     , base                >=4.16.0.0 && <4.21
     , effects-exceptions  ^>=0.1
-    , effects-fs-utils    ^>=0.1
+    , fs-utils            ^>=0.1
     , transformers        >=0.5.6.2  && <0.7
     , unix-compat         >=0.6      && <0.8
 

@@ -61,8 +61,6 @@ import Effects.Exception
     mask_,
     onException,
   )
-import Effects.FileSystem.IO qualified as FS.IO
-import Effects.FileSystem.OsPath (OsPath, (</>))
 import Effects.FileSystem.PathReader
   ( MonadPathReader
       ( doesDirectoryExist,
@@ -79,6 +77,8 @@ import Effects.FileSystem.PathReader qualified as PR
 import Effects.IORef
   ( MonadIORef (modifyIORef', newIORef, readIORef),
   )
+import FileSystem.IO qualified as FS.IO
+import FileSystem.OsPath (OsPath, (</>))
 import GHC.Generics (Generic)
 import GHC.Stack (HasCallStack)
 import Optics.Core

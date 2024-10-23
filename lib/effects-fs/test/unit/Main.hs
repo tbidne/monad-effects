@@ -4,8 +4,6 @@ module Main (main) where
 
 import Data.Foldable (for_)
 import Effects.FileSystem.FileWriter qualified as FW
-import Effects.FileSystem.OsPath (OsPath, osp, (</>))
-import Effects.FileSystem.OsPath qualified as FS.OsPath
 import Effects.FileSystem.PathReader (getTemporaryDirectory)
 import Effects.FileSystem.PathWriter
   ( createDirectoryIfMissing,
@@ -13,6 +11,8 @@ import Effects.FileSystem.PathWriter
     removePathForcibly,
   )
 import Effects.FileSystem.PathWriter qualified as PW
+import FileSystem.OsPath (OsPath, osp, (</>))
+import FileSystem.OsPath qualified as FS.OsPath
 import PathReader qualified
 import PathWriter qualified
 import System.Environment.Guard (ExpectEnv (ExpectEnvSet), guardOrElse')

@@ -48,7 +48,7 @@ import Data.ByteString.Char8 qualified as C8
 import Data.Text (Text)
 import Data.Text.Encoding.Error (UnicodeException)
 import Effects.Exception (MonadThrow, addCS)
-import Effects.FileSystem.UTF8 qualified as FS.UTF8
+import FileSystem.UTF8 qualified as FS.UTF8
 import GHC.Stack (HasCallStack)
 import System.IO (BufferMode, Handle)
 import System.IO qualified as IO

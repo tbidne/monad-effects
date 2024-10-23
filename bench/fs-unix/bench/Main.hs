@@ -8,10 +8,10 @@
 
 module Main (main) where
 
-import Effects.FileSystem.OsPath (OsPath, combineFilePaths, osp, (</>))
 import Effects.FileSystem.PathReader qualified as PR
 import Effects.System.Posix qualified as P
 import Effects.System.PosixCompat qualified as PC
+import FileSystem.OsPath (OsPath, combineFilePaths, osp, (</>))
 import System.FilePath qualified
 import System.OsString.Internal.Types (OsString (getOsString), PosixString)
 import Test.Tasty.Bench
