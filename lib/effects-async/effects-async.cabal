@@ -52,13 +52,12 @@ library
   import:          common-lang
   exposed-modules: Effects.Concurrent.Async
   build-depends:
-    , async               ^>=2.2.2
-    , base                >=4.16.0.0 && <4.21
-    , effects-exceptions  ^>=0.1
-    , effects-thread      ^>=0.1
-    , exceptions          ^>=0.10.4
-    , smart-math          ^>=0.1
-    , transformers        >=0.5.6.2  && <0.7
-    , unliftio            ^>=0.2.1.0
+    , async           ^>=2.2.2
+    , base            >=4.16.0.0 && <4.21
+    , effects-thread  ^>=0.1
+    , exceptions      ^>=0.10.4
+    , smart-math      ^>=0.1
+    , transformers    >=0.5.6.2  && <0.7
+    , unliftio        ^>=0.2.1.0
 
   hs-source-dirs:  src

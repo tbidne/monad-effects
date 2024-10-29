@@ -1,7 +1,7 @@
 module PosixCompat (tests) where
 
+import Control.Exception.Utils (trySync)
 import Data.ByteString qualified as BS
-import Effects.Exception (tryAny)
 import Effects.System.PosixCompat
   ( PathType
       ( PathTypeDirectory,
@@ -137,7 +137,7 @@ getPathTypeBad :: IO FilePath -> TestTree
 getPathTypeBad getTestDir = testCase desc $ do
   testDir <- setupLinks getTestDir "getPathTypeBad"
 
-  eResult <- tryAny $ PC.getPathType (testDir </> "bad file")
+  eResult <- trySync $ PC.getPathType (testDir </> "bad file")
 
   case eResult of
     Left _ -> pure ()
@@ -162,6 +162,6 @@ setupLinks getTestDir suffix = do
 
 throwIfNoEx :: IO a -> IO ()
 throwIfNoEx m = do
-  tryAny m >>= \case
+  trySync m >>= \case
     Left _ -> pure ()
     Right _ -> assertFailure "Expected exception, received none"

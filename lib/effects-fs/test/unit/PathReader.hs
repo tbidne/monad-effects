@@ -3,8 +3,8 @@
 
 module PathReader (tests) where
 
+import Control.Exception.Utils (trySync)
 import Data.List qualified as L
-import Effects.Exception (tryAny)
 import Effects.FileSystem.FileWriter qualified as FW
 import Effects.FileSystem.PathReader
   ( PathType
@@ -375,7 +375,7 @@ getPathTypeBad :: IO OsPath -> TestTree
 getPathTypeBad getTestDir = testCase desc $ do
   testDir <- setupLinks getTestDir [osp|getPathTypeBad|]
 
-  eResult <- tryAny $ PR.getPathType (testDir </> [osp|bad file|])
+  eResult <- trySync $ PR.getPathType (testDir </> [osp|bad file|])
 
   case eResult of
     Left _ -> pure ()
@@ -400,6 +400,6 @@ setupLinks getTestDir suffix = do
 
 throwIfNoEx :: IO a -> IO ()
 throwIfNoEx m = do
-  tryAny m >>= \case
+  trySync m >>= \case
     Left _ -> pure ()
     Right _ -> assertFailure "Expected exception, received none"

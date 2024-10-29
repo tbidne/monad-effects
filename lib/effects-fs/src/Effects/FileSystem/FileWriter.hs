@@ -21,7 +21,6 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.ByteString (ByteString)
 import Data.Text (Text)
-import Effects.Exception (addCS)
 import FileSystem.IO qualified as FS.IO
 import FileSystem.OsPath (OsPath)
 import FileSystem.UTF8 qualified as FS.UTF8
@@ -43,9 +42,9 @@ class (Monad m) => MonadFileWriter m where
 
 -- | @since 0.1
 instance MonadFileWriter IO where
-  writeBinaryFile p = addCS . FS.IO.writeBinaryFileIO p
+  writeBinaryFile = FS.IO.writeBinaryFileIO
   {-# INLINEABLE writeBinaryFile #-}
-  appendBinaryFile p = addCS . FS.IO.appendBinaryFileIO p
+  appendBinaryFile = FS.IO.appendBinaryFileIO
   {-# INLINEABLE appendBinaryFile #-}
 
 -- | @since 0.1

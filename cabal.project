@@ -3,7 +3,6 @@ if os(windows)
   packages:
     ./lib/effects-async
     ./lib/effects-env
-    ./lib/effects-exceptions
     ./lib/effects-fs
     ./lib/effects-haskeline
     ./lib/effects-ioref
@@ -20,7 +19,6 @@ else
     ./bench/fs-unix
     ./lib/effects-async
     ./lib/effects-env
-    ./lib/effects-exceptions
     ./lib/effects-fs
     ./lib/effects-haskeline
     ./lib/effects-ioref
@@ -63,6 +61,11 @@ source-repository-package
     type: git
     location: https://github.com/tbidne/bounds.git
     tag: f93b202c9d154b25b42b048570cf6648451aa577
+
+source-repository-package
+    type: git
+    location: https://github.com/tbidne/exception-utils.git
+    tag: e797ee05dee5097d45e9f316d68e231f32e5d7b7
 
 source-repository-package
     type: git

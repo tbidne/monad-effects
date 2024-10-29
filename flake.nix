@@ -19,6 +19,12 @@
     inputs.nix-hs-utils.follows = "nix-hs-utils";
     inputs.nixpkgs.follows = "nixpkgs";
   };
+  inputs.exception-utils = {
+    url = "github:tbidne/exception-utils";
+    inputs.flake-parts.follows = "flake-parts";
+    inputs.nix-hs-utils.follows = "nix-hs-utils";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
   inputs.fs-utils = {
     url = "github:tbidne/fs-utils";
     inputs.flake-parts.follows = "flake-parts";
@@ -54,6 +60,7 @@
               // nix-hs-utils.mkLibs inputs final [
                 "algebra-simple"
                 "bounds"
+                "exception-utils"
                 "fs-utils"
                 "smart-math"
               ];
@@ -66,7 +73,6 @@
               hlib.compose.packageSourceOverrides {
                 effects-async = ./lib/effects-async;
                 effects-env = ./lib/effects-env;
-                effects-exceptions = ./lib/effects-exceptions;
                 effects-fs = ./lib/effects-fs;
                 effects-haskeline = ./lib/effects-haskeline;
                 effects-ioref = ./lib/effects-ioref;
@@ -85,7 +91,6 @@
           packages = p: [
             p.effects-async
             p.effects-env
-            p.effects-exceptions
             p.effects-fs
             p.effects-haskeline
             p.effects-ioref
@@ -106,34 +111,27 @@
               inherit name root source-overrides;
               returnShellEnv = false;
             };
-          mkPkgsException = name: root: mkPkg name root { effects-exceptions = ./lib/effects-exceptions; };
         in
         {
           packages.effects-async = mkPkg "effects-async" ./lib/effects-async {
-            effects-exceptions = ./lib/effects-exceptions;
             effects-thread = ./lib/effects-thread;
           };
-          packages.effects-env = mkPkgsException "effects-env" ./lib/effects-env;
-          packages.effects-exceptions = mkPkg "effects-exceptions" ./lib/effects-exceptions { };
-          packages.effects-fs = mkPkg "effects-fs" ./lib/effects-fs {
-            effects-exceptions = ./lib/effects-exceptions;
-            effects-ioref = ./lib/effects-ioref;
-          };
+          packages.effects-env = mkPkg "effects-env" ./lib/effects-env { };
+          packages.effects-fs = mkPkg "effects-fs" ./lib/effects-fs { effects-ioref = ./lib/effects-ioref; };
           packages.effects-haskeline = mkPkg "effects-haskeline" ./lib/effects-haskeline { };
-          packages.effects-ioref = mkPkgsException "effects-ioref" ./lib/effects-ioref;
+          packages.effects-ioref = mkPkg "effects-ioref" ./lib/effects-ioref { };
           packages.effects-logger-ns = mkPkg "effects-logger-ns" ./lib/effects-logger-ns {
-            effects-exceptions = ./lib/effects-exceptions;
             effects-thread = ./lib/effects-thread;
             effects-time = ./lib/effects-time;
           };
-          packages.effects-optparse = mkPkgsException "effects-optparse" ./lib/effects-optparse;
-          packages.effects-stm = mkPkgsException "effects-stm" ./lib/effects-stm;
-          packages.effects-terminal = mkPkgsException "effects-terminal" ./lib/effects-terminal;
-          packages.effects-time = mkPkgsException "effects-time" ./lib/effects-time;
-          packages.effects-thread = mkPkgsException "effects-thread" ./lib/effects-thread;
-          packages.effects-typed-process = mkPkgsException "effects-typed-process" ./lib/effects-typed-process;
-          packages.effects-unix = mkPkgsException "effects-unix" ./lib/effects-unix;
-          packages.effects-unix-compat = mkPkgsException "effects-unix-compat" ./lib/effects-unix-compat;
+          packages.effects-optparse = mkPkg "effects-optparse" ./lib/effects-optparse { };
+          packages.effects-stm = mkPkg "effects-stm" ./lib/effects-stm { };
+          packages.effects-terminal = mkPkg "effects-terminal" ./lib/effects-terminal { };
+          packages.effects-time = mkPkg "effects-time" ./lib/effects-time { };
+          packages.effects-thread = mkPkg "effects-thread" ./lib/effects-thread { };
+          packages.effects-typed-process = mkPkg "effects-typed-process" ./lib/effects-typed-process { };
+          packages.effects-unix = mkPkg "effects-unix" ./lib/effects-unix { };
+          packages.effects-unix-compat = mkPkg "effects-unix-compat" ./lib/effects-unix-compat { };
 
           devShells.default = hsOverlay.shellFor {
             inherit packages;

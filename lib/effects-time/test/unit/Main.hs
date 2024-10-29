@@ -1,35 +1,12 @@
 {-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 
--- The Data.Text import is only used for Windows and base < 4.20.
--- We could conditionally import it here, but then -Wunused-packages would
--- complain about:
---
---     if os(windows)
---       build-depends: text >=1.2.4.0 && <2.2
---
--- Sadly we cannot include a condition on the base version.
--- The easiest thing to do is to just include it here with only the
--- Windows condition and a note that we can remove it once we require
--- base >= 4.20
-
 module Main (main) where
 
 import Control.Concurrent (threadDelay)
-#if !MIN_VERSION_base(4, 20, 0)
-import Control.Exception (Exception, SomeException, displayException, try)
-import Control.Monad (void, when, zipWithM_)
-#else
 import Control.Monad (void)
-#endif
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Data.Fixed (Fixed (MkFixed))
-#if !MIN_VERSION_base(4, 20, 0)
-import Data.Foldable (for_)
-import Data.List qualified as L
-import Data.Text (Text)
-import Data.Text qualified as T
-#endif
 import Data.Time.Calendar.OrdinalDate (fromOrdinalDate)
 import Data.Time.LocalTime (TimeOfDay (TimeOfDay), utc)
 import Effects.Time
@@ -44,15 +21,8 @@ import Hedgehog.Range qualified as R
 import Numeric.Natural (Natural)
 import Optics.Core (view)
 import Test.Tasty (TestTree, defaultMain, testGroup)
-#if !MIN_VERSION_base(4, 20, 0)
-import Test.Tasty.HUnit (assertBool, assertFailure, testCase, (@=?))
-#else
 import Test.Tasty.HUnit (assertBool, testCase, (@=?))
-#endif
 import Test.Tasty.Hedgehog (testPropertyNamed)
-#if !MIN_VERSION_base(4, 20, 0)
-import Text.Read qualified as TR
-#endif
 
 main :: IO ()
 main =
@@ -249,27 +219,21 @@ localTimeTests :: TestTree
 localTimeTests =
   testGroup
     "LocalTime"
-    $ [ formatsLocalTime,
-        parsesLocalTime,
-        formatParseLocalTimeRoundTrip,
-        parseFormatLocalTimeEpsilon
-      ]
-#if !MIN_VERSION_base(4, 20, 0)
-    ++ [parsesLocalTimeCallStack]
-#endif
+    [ formatsLocalTime,
+      parsesLocalTime,
+      formatParseLocalTimeRoundTrip,
+      parseFormatLocalTimeEpsilon
+    ]
 
 zonedTimeTests :: TestTree
 zonedTimeTests =
   testGroup
     "ZonedTime"
-    $ [ formatsZonedTime,
-        parsesZonedTime,
-        formatParseZonedTimeRoundTrip,
-        parseFormatZonedTimeEpsilon
-      ]
-#if !MIN_VERSION_base(4, 20, 0)
-    ++ [parsesZonedTimeCallStack]
-#endif
+    [ formatsZonedTime,
+      parsesZonedTime,
+      formatParseZonedTimeRoundTrip,
+      parseFormatZonedTimeEpsilon
+    ]
 
 formatsLocalTime :: TestTree
 formatsLocalTime =
@@ -344,80 +308,6 @@ parseFormatZonedTimeEpsilon = testPropertyNamed desc "parseFormatZonedTimeEpsilo
     diff zt eqZonedTimeEpsilon zt'
   where
     desc = "(parseZonedTime . formatZonedTime) x ~= x (up to < 1 second)"
-
-#if !MIN_VERSION_base(4, 20, 0)
-
-parsesLocalTimeCallStack :: TestTree
-parsesLocalTimeCallStack = testCase "Parses LocalTime failure gives CallStack" $ do
-  try @SomeException parseAction >>= \case
-    Left e -> assertContainsMinLines 5 expected (displayExceptiont e)
-    Right _ -> assertFailure "Error: did not catch expected exception."
-  where
-    parseAction = MonadTime.parseLocalTimeCallStack "2022-02-08 10:20:05 UTC"
-
-    expected =
-      [ "user error (parseTimeM: no parse of \"2022-02-08 10:20:05 UTC\")",
-        "CallStack (from HasCallStack):",
-        "  addCS, called at",
-        "  parseLocalTimeCallStack, called at"
-      ]
-
-parsesZonedTimeCallStack :: TestTree
-parsesZonedTimeCallStack =
-  testCase "Parses ZonedTime failure gives CallStack" $
-    try @SomeException parseAction >>= \case
-      Left e -> assertContainsMinLines 5 expected (displayExceptiont e)
-      Right _ -> assertFailure "Error: did not catch expected exception."
-  where
-    parseAction = MonadTime.parseZonedTimeCallStack "2022-02-08 10:20:05"
-
-    expected =
-      [ "user error (parseTimeM: no parse of \"2022-02-08 10:20:05\")",
-        "CallStack (from HasCallStack):",
-        "  addCS, called at",
-        "  parseZonedTimeCallStack, called at"
-      ]
-
-displayExceptiont :: (Exception e) => e -> Text
-displayExceptiont = T.pack . displayException
-
-assertContainsMinLines :: Int -> [Text] -> Text -> IO ()
-assertContainsMinLines minExpectedLines expected txt = do
-  assertBool actualLinesErrMsg (actualLines >= minExpectedLines)
-  assertContains expected txt
-  where
-    -- actualLines = newlines + 1 (line before first newline)
-    actualLines = 1 + T.count "\n" txt
-
-    actualLinesErrMsg =
-      mconcat
-        [ "Expected at least ",
-          show minExpectedLines,
-          ", received ",
-          show actualLines,
-          ": ",
-          T.unpack (formatErrOutput txt)
-        ]
-
-assertContains :: [Text] -> Text -> IO ()
-assertContains expected txt = do
-  for_ expected $ \e -> do
-    let found = e `T.isInfixOf` txt
-        errMsg =
-          mconcat
-            [ "Expected element: '",
-              e,
-              "'\nReceived:",
-              formatErrOutput txt
-            ]
-    assertBool (T.unpack errMsg) found
-
-formatErrOutput :: Text -> Text
-formatErrOutput = (prefix <>) . T.replace "\n" prefix
-  where
-    prefix = "\n  "
-
-#endif
 
 localTime :: LocalTime
 localTime = LocalTime day tod

@@ -48,12 +48,6 @@ jobs:
       - name: Build effects-env
         run: cabal build effects-env
 
-      - name: Build effects-exceptions
-        run: cabal build effects-exceptions
-
-      - name: Test effects-exceptions
-        run: cabal test effects-exceptions
-
       - name: Build effects-fs
         run: cabal build effects-fs
 
@@ -148,9 +142,6 @@ jobs:
 
       - name: Build effects-env
         run: nix build -Lv .#effects-env
-
-      - name: Build effects-exceptions
-        run: nix build -Lv .#effects-exceptions
 
       - name: Build effects-fs
         run: nix build -Lv .#effects-fs

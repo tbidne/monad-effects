@@ -17,10 +17,10 @@ module Effects.System.PosixCompat
 where
 
 import Control.Monad (unless)
+import Control.Monad.Catch (MonadCatch)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.Functor ((<&>))
-import Effects.Exception (MonadCatch)
 import FileSystem.IO qualified as FS.IO
 import FileSystem.PathType
   ( PathType

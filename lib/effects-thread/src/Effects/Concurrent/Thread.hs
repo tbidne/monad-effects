@@ -33,7 +33,6 @@ import Control.Exception (Exception)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.Foldable (for_)
-import Effects.Exception (addCS)
 import GHC.Conc.Sync qualified as Sync
 import GHC.Natural (Natural)
 import GHC.Stack (HasCallStack)
@@ -90,22 +89,22 @@ class (Monad m) => MonadThread m where
 
 -- | @since 0.1
 instance MonadThread IO where
-  threadDelay = addCS . CC.threadDelay
+  threadDelay = CC.threadDelay
   {-# INLINEABLE threadDelay #-}
-  throwTo tid = addCS . CC.throwTo tid
+  throwTo = CC.throwTo
   {-# INLINEABLE throwTo #-}
-  getNumCapabilities = addCS CC.getNumCapabilities
+  getNumCapabilities = CC.getNumCapabilities
   {-# INLINEABLE getNumCapabilities #-}
-  setNumCapabilities = addCS . CC.setNumCapabilities
+  setNumCapabilities = CC.setNumCapabilities
   {-# INLINEABLE setNumCapabilities #-}
-  threadCapability = addCS . CC.threadCapability
+  threadCapability = CC.threadCapability
   {-# INLINEABLE threadCapability #-}
-  myThreadId = addCS CC.myThreadId
+  myThreadId = CC.myThreadId
   {-# INLINEABLE myThreadId #-}
-  labelThread tid = addCS . Sync.labelThread tid
+  labelThread = Sync.labelThread
   {-# INLINEABLE labelThread #-}
 #if MIN_VERSION_base(4, 18, 0)
-  threadLabel = addCS . Sync.threadLabel
+  threadLabel = Sync.threadLabel
   {-# INLINEABLE threadLabel #-}
 #endif
 

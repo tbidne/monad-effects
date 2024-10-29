@@ -23,13 +23,14 @@ module Effects.FileSystem.HandleWriter
   )
 where
 
+import Control.Exception.Utils (exitFailure)
+import Control.Monad.Catch (MonadThrow)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Char8 qualified as Char8
 import Data.Text (Text)
-import Effects.Exception (MonadThrow, addCS, exitFailure)
 import FileSystem.IO qualified as FS.IO
 import FileSystem.OsPath (OsPath)
 import FileSystem.UTF8 qualified as FS.UTF8
@@ -103,27 +104,27 @@ class (Monad m) => MonadHandleWriter m where
 
 -- | @since 0.1
 instance MonadHandleWriter IO where
-  openBinaryFile f = addCS . FS.IO.openBinaryFileIO f
+  openBinaryFile = FS.IO.openBinaryFileIO
   {-# INLINEABLE openBinaryFile #-}
-  withBinaryFile f m = addCS . FS.IO.withBinaryFileIO f m
+  withBinaryFile = FS.IO.withBinaryFileIO
   {-# INLINEABLE withBinaryFile #-}
-  hClose = addCS . IO.hClose
+  hClose = IO.hClose
   {-# INLINEABLE hClose #-}
-  hFlush = addCS . IO.hFlush
+  hFlush = IO.hFlush
   {-# INLINEABLE hFlush #-}
-  hSetFileSize h = addCS . IO.hSetFileSize h
+  hSetFileSize = IO.hSetFileSize
   {-# INLINEABLE hSetFileSize #-}
-  hSetBuffering h = addCS . IO.hSetBuffering h
+  hSetBuffering = IO.hSetBuffering
   {-# INLINEABLE hSetBuffering #-}
-  hSeek h m = addCS . IO.hSeek h m
+  hSeek = IO.hSeek
   {-# INLINEABLE hSeek #-}
-  hTell = addCS . IO.hTell
+  hTell = IO.hTell
   {-# INLINEABLE hTell #-}
-  hSetEcho h = addCS . IO.hSetEcho h
+  hSetEcho = IO.hSetEcho
   {-# INLINEABLE hSetEcho #-}
-  hPut h = addCS . BS.hPut h
+  hPut = BS.hPut
   {-# INLINEABLE hPut #-}
-  hPutNonBlocking h = addCS . BS.hPutNonBlocking h
+  hPutNonBlocking = BS.hPutNonBlocking
   {-# INLINEABLE hPutNonBlocking #-}
 
 -- | @since 0.1

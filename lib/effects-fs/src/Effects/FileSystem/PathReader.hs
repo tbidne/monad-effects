@@ -44,11 +44,11 @@ module Effects.FileSystem.PathReader
 where
 
 import Control.Monad (unless, (>=>))
+import Control.Monad.Catch (MonadCatch)
+import Control.Monad.Catch qualified as Ex
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Data.Time (UTCTime (UTCTime, utctDay, utctDayTime))
-import Effects.Exception (MonadCatch, addCS)
-import Effects.Exception qualified as Ex
 import FileSystem.IO qualified as FS.IO
 import FileSystem.OsPath (OsPath, (</>))
 import FileSystem.PathType
@@ -205,57 +205,57 @@ class (Monad m) => MonadPathReader m where
   getModificationTime :: (HasCallStack) => OsPath -> m UTCTime
 
 instance MonadPathReader IO where
-  listDirectory = addCS . Dir.listDirectory
+  listDirectory = Dir.listDirectory
   {-# INLINEABLE listDirectory #-}
-  getDirectoryContents = addCS . Dir.getDirectoryContents
+  getDirectoryContents = Dir.getDirectoryContents
   {-# INLINEABLE getDirectoryContents #-}
-  getCurrentDirectory = addCS Dir.getCurrentDirectory
+  getCurrentDirectory = Dir.getCurrentDirectory
   {-# INLINEABLE getCurrentDirectory #-}
-  getHomeDirectory = addCS Dir.getHomeDirectory
+  getHomeDirectory = Dir.getHomeDirectory
   {-# INLINEABLE getHomeDirectory #-}
-  getXdgDirectory d = addCS . Dir.getXdgDirectory d
+  getXdgDirectory = Dir.getXdgDirectory
   {-# INLINEABLE getXdgDirectory #-}
-  getXdgDirectoryList = addCS . Dir.getXdgDirectoryList
+  getXdgDirectoryList = Dir.getXdgDirectoryList
   {-# INLINEABLE getXdgDirectoryList #-}
-  getAppUserDataDirectory = addCS . Dir.getAppUserDataDirectory
+  getAppUserDataDirectory = Dir.getAppUserDataDirectory
   {-# INLINEABLE getAppUserDataDirectory #-}
-  getUserDocumentsDirectory = addCS Dir.getUserDocumentsDirectory
+  getUserDocumentsDirectory = Dir.getUserDocumentsDirectory
   {-# INLINEABLE getUserDocumentsDirectory #-}
-  getTemporaryDirectory = addCS Dir.getTemporaryDirectory
+  getTemporaryDirectory = Dir.getTemporaryDirectory
   {-# INLINEABLE getTemporaryDirectory #-}
-  getFileSize = addCS . Dir.getFileSize
+  getFileSize = Dir.getFileSize
   {-# INLINEABLE getFileSize #-}
-  canonicalizePath = addCS . Dir.canonicalizePath
+  canonicalizePath = Dir.canonicalizePath
   {-# INLINEABLE canonicalizePath #-}
-  makeAbsolute = addCS . Dir.makeAbsolute
+  makeAbsolute = Dir.makeAbsolute
   {-# INLINEABLE makeAbsolute #-}
-  makeRelativeToCurrentDirectory = addCS . Dir.makeRelativeToCurrentDirectory
+  makeRelativeToCurrentDirectory = Dir.makeRelativeToCurrentDirectory
   {-# INLINEABLE makeRelativeToCurrentDirectory #-}
-  doesPathExist = addCS . Dir.doesPathExist
+  doesPathExist = Dir.doesPathExist
   {-# INLINEABLE doesPathExist #-}
-  doesFileExist = addCS . Dir.doesFileExist
+  doesFileExist = Dir.doesFileExist
   {-# INLINEABLE doesFileExist #-}
-  doesDirectoryExist = addCS . Dir.doesDirectoryExist
+  doesDirectoryExist = Dir.doesDirectoryExist
   {-# INLINEABLE doesDirectoryExist #-}
-  findExecutable = addCS . Dir.findExecutable
+  findExecutable = Dir.findExecutable
   {-# INLINEABLE findExecutable #-}
-  findExecutables = addCS . Dir.findExecutables
+  findExecutables = Dir.findExecutables
   {-# INLINEABLE findExecutables #-}
-  findExecutablesInDirectories ps = addCS . Dir.findExecutablesInDirectories ps
+  findExecutablesInDirectories = Dir.findExecutablesInDirectories
   {-# INLINEABLE findExecutablesInDirectories #-}
-  findFileWith f ps = addCS . Dir.findFileWith f ps
+  findFileWith = Dir.findFileWith
   {-# INLINEABLE findFileWith #-}
-  findFilesWith f ps = addCS . Dir.findFilesWith f ps
+  findFilesWith = Dir.findFilesWith
   {-# INLINEABLE findFilesWith #-}
-  pathIsSymbolicLink = addCS . Dir.pathIsSymbolicLink
+  pathIsSymbolicLink = Dir.pathIsSymbolicLink
   {-# INLINEABLE pathIsSymbolicLink #-}
-  getSymbolicLinkTarget = addCS . Dir.getSymbolicLinkTarget
+  getSymbolicLinkTarget = Dir.getSymbolicLinkTarget
   {-# INLINEABLE getSymbolicLinkTarget #-}
-  getPermissions = addCS . Dir.getPermissions
+  getPermissions = Dir.getPermissions
   {-# INLINEABLE getPermissions #-}
-  getAccessTime = addCS . Dir.getAccessTime
+  getAccessTime = Dir.getAccessTime
   {-# INLINEABLE getAccessTime #-}
-  getModificationTime = addCS . Dir.getModificationTime
+  getModificationTime = Dir.getModificationTime
   {-# INLINEABLE getModificationTime #-}
 
 instance (MonadPathReader m) => MonadPathReader (ReaderT env m) where
@@ -484,11 +484,7 @@ doesSymbolicLinkExist p =
   -- so we need to handle this. Note that the obvious alternative, prefacing
   -- the call with doesPathExist does not work, as that operates on the link
   -- target. doesFileExist also behaves this way.
-#if MIN_VERSION_base(4,20,0)
   pathIsSymbolicLink p `Ex.catchIOError` \_ -> pure False
-#else
-  pathIsSymbolicLink p `Ex.catchCS` \(_ :: Ex.IOException) -> pure False
-#endif
 {-# INLINEABLE doesSymbolicLinkExist #-}
 
 {- ORMOLU_ENABLE -}

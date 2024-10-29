@@ -133,7 +133,6 @@ import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask, mapReaderT)
 import Data.Foldable (Foldable (fold))
 import Data.Functor (void)
 import Effects.Concurrent.Thread (MonadThread (threadDelay))
-import Effects.Exception (addCS)
 import GHC.Conc (STM)
 import GHC.Stack (HasCallStack)
 import Numeric.Data.Positive (Positive (MkPositive), (+!))
@@ -398,81 +397,81 @@ class (Monad m) => MonadAsync m where
 
 -- | @since 0.1
 instance MonadAsync IO where
-  withAsync m = addCS . Async.withAsync m
+  withAsync = Async.withAsync
   {-# INLINEABLE withAsync #-}
-  withAsyncBound m = addCS . Async.withAsyncBound m
+  withAsyncBound = Async.withAsyncBound
   {-# INLINEABLE withAsyncBound #-}
-  withAsyncOn i m = addCS . Async.withAsyncOn i m
+  withAsyncOn = Async.withAsyncOn
   {-# INLINEABLE withAsyncOn #-}
-  withAsyncWithUnmask f = addCS . Async.withAsyncWithUnmask f
+  withAsyncWithUnmask = Async.withAsyncWithUnmask
   {-# INLINEABLE withAsyncWithUnmask #-}
-  withAsyncOnWithUnmask i f = addCS . Async.withAsyncOnWithUnmask i f
+  withAsyncOnWithUnmask = Async.withAsyncOnWithUnmask
   {-# INLINEABLE withAsyncOnWithUnmask #-}
-  wait = addCS . Async.wait
+  wait = Async.wait
   {-# INLINEABLE wait #-}
-  poll = addCS . Async.poll
+  poll = Async.poll
   {-# INLINEABLE poll #-}
-  waitCatch = addCS . Async.waitCatch
+  waitCatch = Async.waitCatch
   {-# INLINEABLE waitCatch #-}
-  cancel = addCS . Async.cancel
+  cancel = Async.cancel
   {-# INLINEABLE cancel #-}
-  uninterruptibleCancel = addCS . Async.uninterruptibleCancel
+  uninterruptibleCancel = Async.uninterruptibleCancel
   {-# INLINEABLE uninterruptibleCancel #-}
-  cancelWith a = addCS . Async.cancelWith a
+  cancelWith = Async.cancelWith
   {-# INLINEABLE cancelWith #-}
-  race x = addCS . Async.race x
+  race = Async.race
   {-# INLINEABLE race #-}
-  concurrently x = addCS . Async.concurrently x
+  concurrently = Async.concurrently
   {-# INLINEABLE concurrently #-}
-  concurrently_ x = addCS . Async.concurrently_ x
+  concurrently_ = Async.concurrently_
   {-# INLINEABLE concurrently_ #-}
-  waitAny = addCS . Async.waitAny
+  waitAny = Async.waitAny
   {-# INLINEABLE waitAny #-}
-  waitAnyCatch = addCS . Async.waitAnyCatch
+  waitAnyCatch = Async.waitAnyCatch
   {-# INLINEABLE waitAnyCatch #-}
-  waitAnyCancel = addCS . Async.waitAnyCancel
+  waitAnyCancel = Async.waitAnyCancel
   {-# INLINEABLE waitAnyCancel #-}
-  waitAnyCatchCancel = addCS . Async.waitAnyCatchCancel
+  waitAnyCatchCancel = Async.waitAnyCatchCancel
   {-# INLINEABLE waitAnyCatchCancel #-}
-  waitEither x = addCS . Async.waitEither x
+  waitEither = Async.waitEither
   {-# INLINEABLE waitEither #-}
-  waitEitherCatch x = addCS . Async.waitEitherCatch x
+  waitEitherCatch = Async.waitEitherCatch
   {-# INLINEABLE waitEitherCatch #-}
-  waitEitherCancel x = addCS . Async.waitEitherCancel x
+  waitEitherCancel = Async.waitEitherCancel
   {-# INLINEABLE waitEitherCancel #-}
-  waitEitherCatchCancel x = addCS . Async.waitEitherCatchCancel x
+  waitEitherCatchCancel = Async.waitEitherCatchCancel
   {-# INLINEABLE waitEitherCatchCancel #-}
-  waitEither_ x = addCS . Async.waitEither_ x
+  waitEither_ = Async.waitEither_
   {-# INLINEABLE waitEither_ #-}
-  waitBoth x = addCS . Async.waitBoth x
+  waitBoth = Async.waitBoth
   {-# INLINEABLE waitBoth #-}
-  async = addCS . Async.async
+  async = Async.async
   {-# INLINEABLE async #-}
-  asyncBound = addCS . Async.asyncBound
+  asyncBound = Async.asyncBound
   {-# INLINEABLE asyncBound #-}
-  asyncOn i = addCS . Async.asyncOn i
+  asyncOn = Async.asyncOn
   {-# INLINEABLE asyncOn #-}
-  asyncWithUnmask f = addCS $ Async.asyncWithUnmask f
+  asyncWithUnmask = Async.asyncWithUnmask
   {-# INLINEABLE asyncWithUnmask #-}
-  asyncOnWithUnmask i f = addCS $ Async.asyncOnWithUnmask i f
+  asyncOnWithUnmask = Async.asyncOnWithUnmask
   {-# INLINEABLE asyncOnWithUnmask #-}
-  link = addCS . Async.link
+  link = Async.link
   {-# INLINEABLE link #-}
-  linkOnly f = addCS . Async.linkOnly f
+  linkOnly = Async.linkOnly
   {-# INLINEABLE linkOnly #-}
-  link2 x = addCS . Async.link2 x
+  link2 = Async.link2
   {-# INLINEABLE link2 #-}
-  link2Only f x = addCS . Async.link2Only f x
+  link2Only = Async.link2Only
   {-# INLINEABLE link2Only #-}
-  pooledMapConcurrentlyN (MkPositive i) f =
-    addCS . UAsync.pooledMapConcurrentlyN i f
+  pooledMapConcurrentlyN (MkPositive i) =
+    UAsync.pooledMapConcurrentlyN i
   {-# INLINEABLE pooledMapConcurrentlyN #-}
-  pooledMapConcurrently f = addCS . UAsync.pooledMapConcurrently f
+  pooledMapConcurrently = UAsync.pooledMapConcurrently
   {-# INLINEABLE pooledMapConcurrently #-}
-  pooledMapConcurrentlyN_ (MkPositive i) f =
-    addCS . UAsync.pooledMapConcurrentlyN_ i f
+  pooledMapConcurrentlyN_ (MkPositive i) =
+    UAsync.pooledMapConcurrentlyN_ i
   {-# INLINEABLE pooledMapConcurrentlyN_ #-}
-  pooledMapConcurrently_ f = addCS . UAsync.pooledMapConcurrently_ f
+  pooledMapConcurrently_ = UAsync.pooledMapConcurrently_
   {-# INLINEABLE pooledMapConcurrently_ #-}
 
 -- | @since 0.1

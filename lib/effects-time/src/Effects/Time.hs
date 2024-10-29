@@ -1,8 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-{- ORMOLU_DISABLE -}
-
 -- | Provides the 'MonadTime' class.
 --
 -- @since 0.1
@@ -38,11 +36,6 @@ module Effects.Time
     parseLocalTime,
     parseZonedTime,
 
-#if !MIN_VERSION_base(4, 20, 0)
-    parseLocalTimeCallStack,
-    parseZonedTimeCallStack,
-#endif
-
     -- * Misc
     getSystemTimeString,
     getSystemZonedTimeString,
@@ -66,8 +59,6 @@ module Effects.Time
   )
 where
 
-{- ORMOLU_ENABLE -}
-
 import Control.DeepSeq (NFData)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
@@ -78,11 +69,6 @@ import Data.Time.LocalTime
     ZonedTime (ZonedTime, zonedTimeToLocalTime, zonedTimeZone),
   )
 import Data.Time.LocalTime qualified as Local
-#if !MIN_VERSION_base(4,20,0)
-import Effects.Exception (MonadCatch, addCS)
-#else
-import Effects.Exception (addCS)
-#endif
 import GHC.Clock qualified as C
 #if MIN_VERSION_base(4,17,0)
 import GHC.Float (properFractionDouble)
@@ -265,9 +251,9 @@ class (Monad m) => MonadTime m where
 
 -- | @since 0.1
 instance MonadTime IO where
-  getSystemZonedTime = addCS Local.getZonedTime
+  getSystemZonedTime = Local.getZonedTime
   {-# INLINEABLE getSystemZonedTime #-}
-  getMonotonicTime = addCS C.getMonotonicTime
+  getMonotonicTime = C.getMonotonicTime
   {-# INLINEABLE getMonotonicTime #-}
 
 -- | @since 0.1
@@ -382,38 +368,6 @@ parseZonedTime =
     Format.defaultTimeLocale
     zonedTimeFormat
 {-# INLINEABLE parseZonedTime #-}
-
-#if !MIN_VERSION_base(4, 20, 0)
-
--- | Variant of 'parseLocalTime' that includes CallStack for thrown
--- exceptions.
---
--- @since 0.1
-parseLocalTimeCallStack ::
-  ( HasCallStack,
-    MonadCatch m,
-    MonadFail m
-  ) =>
-  String ->
-  m LocalTime
-parseLocalTimeCallStack = addCS . parseLocalTime
-{-# INLINEABLE parseLocalTimeCallStack #-}
-
--- | Variant of 'parseZonedTime' that includes CallStack for thrown
--- exceptions.
---
--- @since 0.1
-parseZonedTimeCallStack ::
-  ( HasCallStack,
-    MonadCatch m,
-    MonadFail m
-  ) =>
-  String ->
-  m ZonedTime
-parseZonedTimeCallStack = addCS . parseZonedTime
-{-# INLINEABLE parseZonedTimeCallStack #-}
-
-#endif
 
 localTimeFormat :: String
 localTimeFormat = "%0Y-%m-%d %H:%M:%S"

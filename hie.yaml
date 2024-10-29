@@ -9,12 +9,6 @@ cradle:
     - path: "./lib/effects-env/src"
       component: "lib:effects-env"
 
-    - path: "./lib/effects-exceptions/src"
-      component: "lib:effects-exceptions"
-
-    - path: "./lib/effects-exceptions/test/unit"
-      component: "effects-exceptions:test:unit"
-
     - path: "./lib/effects-fs/src"
       component: "lib:effects-fs"
 

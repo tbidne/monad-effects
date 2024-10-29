@@ -35,13 +35,13 @@ where
 
 {- ORMOLU_ENABLE -}
 
+import Control.Monad.Catch (MonadThrow (throwM))
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.Text (Text)
 import Data.Text qualified as T
-import Effects.Exception (addCS, throwCS)
 import GHC.IO.Exception
   ( IOErrorType (SystemError),
     IOException
@@ -135,24 +135,24 @@ class Monad m => MonadTerminal m where
 
 -- | @since 0.1
 instance MonadTerminal IO where
-  putStr = addCS . IO.putStr
+  putStr = IO.putStr
   {-# INLINEABLE putStr #-}
-  putStrLn = addCS . IO.putStrLn
+  putStrLn = IO.putStrLn
   {-# INLINEABLE putStrLn #-}
-  putBinary = addCS . BS.putStr
+  putBinary = BS.putStr
   {-# INLINEABLE putBinary #-}
-  getChar = addCS IO.getChar
+  getChar = IO.getChar
   {-# INLINEABLE getChar #-}
-  getLine = addCS IO.getLine
+  getLine = IO.getLine
   {-# INLINEABLE getLine #-}
 #if MIN_VERSION_base(4,15,0)
-  getContents' = addCS IO.getContents'
+  getContents' = IO.getContents'
   {-# INLINEABLE getContents' #-}
 #endif
   getTerminalSize =
     size >>= \case
       Just h -> pure h
-      Nothing -> throwCS $
+      Nothing -> throwM $
         IOError
           { ioe_handle = Nothing,
             ioe_type = SystemError,

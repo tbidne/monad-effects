@@ -41,13 +41,13 @@ module Effects.FileSystem.HandleReader
 where
 
 import Control.Monad ((>=>))
+import Control.Monad.Catch (MonadThrow)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.ByteString (ByteString)
 import Data.ByteString.Char8 qualified as C8
 import Data.Text (Text)
 import Data.Text.Encoding.Error (UnicodeException)
-import Effects.Exception (MonadThrow, addCS)
 import FileSystem.UTF8 qualified as FS.UTF8
 import GHC.Stack (HasCallStack)
 import System.IO (BufferMode, Handle)
@@ -144,39 +144,39 @@ class (Monad m) => MonadHandleReader m where
 
 -- | @since 0.1
 instance MonadHandleReader IO where
-  hIsEOF = addCS . IO.hIsEOF
+  hIsEOF = IO.hIsEOF
   {-# INLINEABLE hIsEOF #-}
-  hGetBuffering = addCS . IO.hGetBuffering
+  hGetBuffering = IO.hGetBuffering
   {-# INLINEABLE hGetBuffering #-}
-  hIsOpen = addCS . IO.hIsOpen
+  hIsOpen = IO.hIsOpen
   {-# INLINEABLE hIsOpen #-}
-  hIsClosed = addCS . IO.hIsClosed
+  hIsClosed = IO.hIsClosed
   {-# INLINEABLE hIsClosed #-}
-  hIsReadable = addCS . IO.hIsReadable
+  hIsReadable = IO.hIsReadable
   {-# INLINEABLE hIsReadable #-}
-  hIsWritable = addCS . IO.hIsWritable
+  hIsWritable = IO.hIsWritable
   {-# INLINEABLE hIsWritable #-}
-  hIsSeekable = addCS . IO.hIsSeekable
+  hIsSeekable = IO.hIsSeekable
   {-# INLINEABLE hIsSeekable #-}
-  hIsTerminalDevice = addCS . IO.hIsTerminalDevice
+  hIsTerminalDevice = IO.hIsTerminalDevice
   {-# INLINEABLE hIsTerminalDevice #-}
-  hGetEcho = addCS . IO.hGetEcho
+  hGetEcho = IO.hGetEcho
   {-# INLINEABLE hGetEcho #-}
-  hWaitForInput h = addCS . IO.hWaitForInput h
+  hWaitForInput = IO.hWaitForInput
   {-# INLINEABLE hWaitForInput #-}
-  hReady = addCS . IO.hReady
+  hReady = IO.hReady
   {-# INLINEABLE hReady #-}
-  hGetChar = addCS . IO.hGetChar
+  hGetChar = IO.hGetChar
   {-# INLINEABLE hGetChar #-}
-  hGetLine = addCS . C8.hGetLine
+  hGetLine = C8.hGetLine
   {-# INLINEABLE hGetLine #-}
-  hGetContents = addCS . C8.hGetContents
+  hGetContents = C8.hGetContents
   {-# INLINEABLE hGetContents #-}
-  hGet h = addCS . C8.hGet h
+  hGet = C8.hGet
   {-# INLINEABLE hGet #-}
-  hGetSome h = addCS . C8.hGetSome h
+  hGetSome = C8.hGetSome
   {-# INLINEABLE hGetSome #-}
-  hGetNonBlocking h = addCS . C8.hGetNonBlocking h
+  hGetNonBlocking = C8.hGetNonBlocking
   {-# INLINEABLE hGetNonBlocking #-}
 
 -- | @since 0.1

@@ -14,7 +14,6 @@ where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
-import Effects.Exception (addCS)
 import FileSystem.OsPath (OsPath)
 import FileSystem.OsPath qualified as FS.OsPath
 import GHC.Stack (HasCallStack)
@@ -46,11 +45,11 @@ class (Monad m) => MonadOptparse m where
 
 -- | @since 0.1
 instance MonadOptparse IO where
-  execParser = addCS . OA.execParser
+  execParser = OA.execParser
   {-# INLINEABLE execParser #-}
-  customExecParser p = addCS . OA.customExecParser p
+  customExecParser = OA.customExecParser
   {-# INLINEABLE customExecParser #-}
-  handleParseResult = addCS . OA.handleParseResult
+  handleParseResult = OA.handleParseResult
   {-# INLINEABLE handleParseResult #-}
 
 -- | @since 0.1

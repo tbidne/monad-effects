@@ -14,7 +14,6 @@
 - [Effects](#effects)
   - [effects-async](#effects-async)
   - [effects-env](#effects-env)
-  - [effects-exceptions](#effects-exceptions)
   - [effects-fs](#effects-fs)
   - [effects-haskeline](#effects-haskeline)
   - [effects-ioref](#effects-ioref)
@@ -84,25 +83,6 @@ Effect for the `async` library. The implementation is nearly identical to `async
 ### Description
 
 Effect for `System.Environment`.
-
-## effects-exceptions
-
-### Library: `exceptions`, `safe-exceptions`
-
-### Modules
-* `Effects.Exception`
-
-### Description
-
-Provides:
-
-* Functions for throwing/catching exceptions with callstacks.
-* `MonadThrow/MonadCatch/MonadMask` typeclasses (`exceptions`).
-* General throw/catch, disallowing catching async exceptions (`safe-exceptions`).
-* Brackets _without_ `uninterruptibleMask` (`exceptions`).
-
-The `CallStack` machinery may be removed once GHC natively supports adding `CallStack` to exceptions (GHC 9.8?). See
-https://github.com/ghc-proposals/ghc-proposals/pull/330.
 
 ## effects-fs
 

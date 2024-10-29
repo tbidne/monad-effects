@@ -48,19 +48,14 @@ module Effects.FileSystem.PathWriter
 where
 
 import Control.DeepSeq (NFData)
+import Control.Exception (IOException)
+import Control.Exception.Utils (onSyncException)
 import Control.Monad (unless, when)
+import Control.Monad.Catch (MonadCatch, MonadMask, mask_)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Data.Foldable (for_, traverse_)
 import Data.Time (UTCTime (UTCTime, utctDay, utctDayTime))
-import Effects.Exception
-  ( IOException,
-    MonadCatch,
-    MonadMask,
-    addCS,
-    mask_,
-    onException,
-  )
 import Effects.FileSystem.PathReader
   ( MonadPathReader
       ( doesDirectoryExist,
@@ -236,45 +231,45 @@ class (Monad m) => MonadPathWriter m where
 
 -- | @since 0.1
 instance MonadPathWriter IO where
-  createDirectory = addCS . Dir.createDirectory
+  createDirectory = Dir.createDirectory
   {-# INLINEABLE createDirectory #-}
-  createDirectoryIfMissing b = addCS . Dir.createDirectoryIfMissing b
+  createDirectoryIfMissing = Dir.createDirectoryIfMissing
   {-# INLINEABLE createDirectoryIfMissing #-}
-  removeDirectory = addCS . Dir.removeDirectory
+  removeDirectory = Dir.removeDirectory
   {-# INLINEABLE removeDirectory #-}
-  removeDirectoryRecursive = addCS . Dir.removeDirectoryRecursive
+  removeDirectoryRecursive = Dir.removeDirectoryRecursive
   {-# INLINEABLE removeDirectoryRecursive #-}
-  removePathForcibly = addCS . Dir.removePathForcibly
+  removePathForcibly = Dir.removePathForcibly
   {-# INLINEABLE removePathForcibly #-}
-  renameDirectory p = addCS . Dir.renameDirectory p
+  renameDirectory = Dir.renameDirectory
   {-# INLINEABLE renameDirectory #-}
-  setCurrentDirectory = addCS . Dir.setCurrentDirectory
+  setCurrentDirectory = Dir.setCurrentDirectory
   {-# INLINEABLE setCurrentDirectory #-}
-  withCurrentDirectory p = addCS . Dir.withCurrentDirectory p
+  withCurrentDirectory = Dir.withCurrentDirectory
   {-# INLINEABLE withCurrentDirectory #-}
-  removeFile = addCS . Dir.removeFile
+  removeFile = Dir.removeFile
   {-# INLINEABLE removeFile #-}
-  renameFile p = addCS . Dir.renameFile p
+  renameFile = Dir.renameFile
   {-# INLINEABLE renameFile #-}
-  renamePath p = addCS . Dir.renamePath p
+  renamePath = Dir.renamePath
   {-# INLINEABLE renamePath #-}
-  copyFile p = addCS . Dir.copyFile p
+  copyFile = Dir.copyFile
   {-# INLINEABLE copyFile #-}
-  copyFileWithMetadata p = addCS . Dir.copyFileWithMetadata p
+  copyFileWithMetadata = Dir.copyFileWithMetadata
   {-# INLINEABLE copyFileWithMetadata #-}
-  createFileLink p = addCS . Dir.createFileLink p
+  createFileLink = Dir.createFileLink
   {-# INLINEABLE createFileLink #-}
-  createDirectoryLink p = addCS . Dir.createDirectoryLink p
+  createDirectoryLink = Dir.createDirectoryLink
   {-# INLINEABLE createDirectoryLink #-}
-  removeDirectoryLink = addCS . Dir.removeDirectoryLink
+  removeDirectoryLink = Dir.removeDirectoryLink
   {-# INLINEABLE removeDirectoryLink #-}
-  setPermissions p = addCS . Dir.setPermissions p
+  setPermissions = Dir.setPermissions
   {-# INLINEABLE setPermissions #-}
-  copyPermissions p = addCS . Dir.copyPermissions p
+  copyPermissions = Dir.copyPermissions
   {-# INLINEABLE copyPermissions #-}
-  setAccessTime p = addCS . Dir.setAccessTime p
+  setAccessTime = Dir.setAccessTime
   {-# INLINEABLE setAccessTime #-}
-  setModificationTime p = addCS . Dir.setModificationTime p
+  setModificationTime = Dir.setModificationTime
   {-# INLINEABLE setModificationTime #-}
 
 -- | @since 0.1
@@ -703,7 +698,7 @@ copyDirectoryOverwrite overwriteFiles src dest = do
             readIORef copiedSymlinksRef >>= traverse_ removeSymbolicLink
           else removeDirectoryRecursive dest
 
-  copyFiles `onException` mask_ cleanup
+  copyFiles `onSyncException` mask_ cleanup
 
 copyDirectoryNoOverwrite ::
   forall m.
@@ -743,7 +738,7 @@ copyDirectoryNoOverwrite src dest = do
       -- delete directory
       cleanup = removeDirectoryRecursive dest
 
-  copyFiles `onException` mask_ cleanup
+  copyFiles `onSyncException` mask_ cleanup
 
 -- | Calls 'removeFile' if 'doesFileExist' is 'True'.
 --

@@ -22,12 +22,12 @@ module Effects.FileSystem.FileReader
 where
 
 import Control.Monad ((>=>))
+import Control.Monad.Catch (MonadThrow)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.ByteString (ByteString)
 import Data.Text (Text)
 import Data.Text.Encoding.Error (UnicodeException)
-import Effects.Exception (MonadThrow, addCS)
 import FileSystem.IO qualified as FS.IO
 import FileSystem.OsPath (OsPath)
 import FileSystem.UTF8 qualified as FS.UTF8
@@ -44,7 +44,7 @@ class (Monad m) => MonadFileReader m where
 
 -- | @since 0.1
 instance MonadFileReader IO where
-  readBinaryFile = addCS . FS.IO.readBinaryFileIO
+  readBinaryFile = FS.IO.readBinaryFileIO
   {-# INLINEABLE readBinaryFile #-}
 
 -- | @since 0.1
