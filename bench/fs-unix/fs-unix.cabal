@@ -29,32 +29,8 @@ flag os-string
   manual:      False
 
 common common-lang
-  default-extensions:
-    DataKinds
-    DeriveAnyClass
-    DeriveFunctor
-    DeriveGeneric
-    DerivingStrategies
-    DerivingVia
-    FlexibleInstances
-    GADTs
-    GeneralizedNewtypeDeriving
-    ImportQualifiedPost
-    LambdaCase
-    MultiParamTypeClasses
-    NumericUnderscores
-    OverloadedLabels
-    OverloadedRecordDot
-    OverloadedStrings
-    RankNTypes
-    ScopedTypeVariables
-    StandaloneDeriving
-    TupleSections
-    TypeApplications
-    TypeFamilies
-    TypeOperators
-
-  default-language:   Haskell2010
+  default-extensions: OverloadedRecordDot
+  default-language:   GHC2021
 
 benchmark benchmarks
   import:         common-lang
