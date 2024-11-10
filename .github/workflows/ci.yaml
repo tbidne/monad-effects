@@ -1,6 +1,7 @@
+---
 name: ci
 
-on:
+on: # yamllint disable-line rule:truthy rule:comments
   push:
     branches:
       - main
@@ -35,7 +36,10 @@ jobs:
           ghc-version: ${{ matrix.ghc }}
 
       - name: Configure
-        run: cabal configure --enable-tests --ghc-options='-Wno-deprecations -Werror'
+        run: |
+          cabal configure \
+            --enable-tests \
+            --ghc-options='-Wno-deprecations -Werror'
 
       # In general, list libs in alphabetical order though we break this rule
       # when a later dep (name) l is a dependency of an earlier one e, since we
@@ -64,7 +68,9 @@ jobs:
         run: cabal build effects-logger-ns
 
       - name: Test effects-logger-ns
-        run: cabal test effects-logger-ns --test-options '--hedgehog-tests 100000'
+        run: |
+          cabal test effects-logger-ns \
+            --test-options '--hedgehog-tests 100000'
 
       - name: Build effects-optparse
         run: cabal build effects-optparse
