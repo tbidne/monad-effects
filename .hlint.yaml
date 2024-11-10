@@ -20,3 +20,6 @@
       # Tests
       - "Main"
       - "PathWriter"
+
+- ignore:
+    name: "Avoid lambda using `infix`"

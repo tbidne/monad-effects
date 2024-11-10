@@ -349,10 +349,10 @@ data Overwrite
 _OverwriteNone :: Prism' Overwrite ()
 _OverwriteNone =
   prism
-    (\() -> OverwriteNone)
-    ( \x -> case x of
+    (const OverwriteNone)
+    ( \case
         OverwriteNone -> Right ()
-        _ -> Left x
+        x -> Left x
     )
 {-# INLINE _OverwriteNone #-}
 
@@ -360,10 +360,10 @@ _OverwriteNone =
 _OverwriteDirectories :: Prism' Overwrite ()
 _OverwriteDirectories =
   prism
-    (\() -> OverwriteDirectories)
-    ( \x -> case x of
+    (const OverwriteDirectories)
+    ( \case
         OverwriteDirectories -> Right ()
-        _ -> Left x
+        x -> Left x
     )
 {-# INLINE _OverwriteDirectories #-}
 
@@ -371,10 +371,10 @@ _OverwriteDirectories =
 _OverwriteAll :: Prism' Overwrite ()
 _OverwriteAll =
   prism
-    (\() -> OverwriteAll)
-    ( \x -> case x of
+    (const OverwriteAll)
+    ( \case
         OverwriteAll -> Right ()
-        _ -> Left x
+        x -> Left x
     )
 {-# INLINE _OverwriteAll #-}
 
@@ -411,10 +411,10 @@ data TargetName
 _TargetNameSrc :: Prism' TargetName ()
 _TargetNameSrc =
   prism
-    (\() -> TargetNameSrc)
-    ( \x -> case x of
+    (const TargetNameSrc)
+    ( \case
         TargetNameSrc -> Right ()
-        _ -> Left x
+        x -> Left x
     )
 {-# INLINE _TargetNameSrc #-}
 
@@ -423,9 +423,9 @@ _TargetNameLiteral :: Prism' TargetName OsPath
 _TargetNameLiteral =
   prism
     TargetNameLiteral
-    ( \x -> case x of
+    ( \case
         TargetNameLiteral p -> Right p
-        _ -> Left x
+        x -> Left x
     )
 {-# INLINE _TargetNameLiteral #-}
 
@@ -433,10 +433,10 @@ _TargetNameLiteral =
 _TargetNameDest :: Prism' TargetName ()
 _TargetNameDest =
   prism
-    (\() -> TargetNameDest)
-    ( \x -> case x of
+    (const TargetNameDest)
+    ( \case
         TargetNameDest -> Right ()
-        _ -> Left x
+        x -> Left x
     )
 {-# INLINE _TargetNameDest #-}
 
@@ -471,8 +471,8 @@ instance
   (k ~ A_Lens, a ~ Overwrite, b ~ Overwrite) =>
   LabelOptic "overwrite" k CopyDirConfig CopyDirConfig a b
   where
-  labelOptic = lensVL $ \f (MkCopyDirConfig _overwrite _targetName) ->
-    fmap (`MkCopyDirConfig` _targetName) (f _overwrite)
+  labelOptic = lensVL $ \f (MkCopyDirConfig a1 a2) ->
+    fmap (\b -> MkCopyDirConfig b a2) (f a1)
   {-# INLINE labelOptic #-}
 
 -- | @since 0.1
@@ -480,8 +480,8 @@ instance
   (k ~ A_Lens, a ~ TargetName, b ~ TargetName) =>
   LabelOptic "targetName" k CopyDirConfig CopyDirConfig a b
   where
-  labelOptic = lensVL $ \f (MkCopyDirConfig _overwrite _targetName) ->
-    fmap (MkCopyDirConfig _overwrite) (f _targetName)
+  labelOptic = lensVL $ \f (MkCopyDirConfig a1 a2) ->
+    fmap (MkCopyDirConfig a1) (f a2)
   {-# INLINE labelOptic #-}
 
 -- | Default config for copying directories.
