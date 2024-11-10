@@ -510,6 +510,7 @@ copyDirectoryRecursive ::
   OsPath ->
   m ()
 copyDirectoryRecursive = copyDirectoryRecursiveConfig defaultCopyDirConfig
+{-# INLINABLE copyDirectoryRecursive #-}
 
 -- | @copyDirectoryRecursiveConfig cfg src dest@ copies the @src@ and its
 -- contents into @dest@ e.g.
@@ -589,6 +590,7 @@ copyDirectoryRecursiveConfig config src destRoot = do
     OverwriteNone -> copyDirectoryNoOverwrite src dest
     OverwriteDirectories -> copyDirectoryOverwrite False src dest
     OverwriteAll -> copyDirectoryOverwrite True src dest
+{-# INLINABLE copyDirectoryRecursiveConfig #-}
 
 copyDirectoryOverwrite ::
   forall m.
@@ -699,6 +701,7 @@ copyDirectoryOverwrite overwriteFiles src dest = do
           else removeDirectoryRecursive dest
 
   copyFiles `onSyncException` mask_ cleanup
+{-# INLINABLE copyDirectoryOverwrite #-}
 
 copyDirectoryNoOverwrite ::
   forall m.
@@ -739,6 +742,7 @@ copyDirectoryNoOverwrite src dest = do
       cleanup = removeDirectoryRecursive dest
 
   copyFiles `onSyncException` mask_ cleanup
+{-# INLINABLE copyDirectoryNoOverwrite #-}
 
 -- | Calls 'removeFile' if 'doesFileExist' is 'True'.
 --
@@ -807,6 +811,7 @@ removeSymbolicLinkIfExists ::
   m ()
 removeSymbolicLinkIfExists =
   removeIfExists doesSymbolicLinkExist removeSymbolicLink
+{-# INLINABLE removeSymbolicLinkIfExists #-}
 
 removeIfExists :: (Monad m) => (t -> m Bool) -> (t -> m ()) -> t -> m ()
 removeIfExists existsFn deleteFn f =
