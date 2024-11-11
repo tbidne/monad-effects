@@ -7,7 +7,7 @@ import Effects.FileSystem.FileWriter qualified as FW
 import Effects.FileSystem.PathReader (getTemporaryDirectory)
 import Effects.FileSystem.PathWriter
   ( createDirectoryIfMissing,
-    removeDirectoryRecursiveIfExists,
+    removeDirectoryRecursiveIfExists_,
     removePathForcibly,
   )
 import Effects.FileSystem.PathWriter qualified as PW
@@ -33,7 +33,7 @@ setup = do
   tmpDir <-
     (\s -> s </> [osp|effects-fs|] </> [osp|unit|])
       <$> getTemporaryDirectory
-  removeDirectoryRecursiveIfExists tmpDir
+  removeDirectoryRecursiveIfExists_ tmpDir
   createDirectoryIfMissing True tmpDir
 
   createDataDir tmpDir
@@ -77,7 +77,7 @@ teardown fp = guardOrElse' "NO_CLEANUP" ExpectEnvSet doNothing cleanup
 -- needed directory during the test itself.
 createDataDir :: OsPath -> IO ()
 createDataDir tmpDir = do
-  PW.removeDirectoryIfExists dataDir
+  PW.removeDirectoryIfExists_ dataDir
   PW.createDirectoryIfMissing True dataDir
 
   createDirs

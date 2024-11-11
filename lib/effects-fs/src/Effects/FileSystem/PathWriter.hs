@@ -32,13 +32,18 @@ module Effects.FileSystem.PathWriter
     -- * Removing
     -- $if-exists
     removeFileIfExists,
+    removeFileIfExists_,
     removeDirectoryIfExists,
+    removeDirectoryIfExists_,
     removeDirectoryRecursiveIfExists,
+    removeDirectoryRecursiveIfExists_,
     removePathForciblyIfExists,
+    removePathForciblyIfExists_,
 
     -- ** Symbolic Links
     removeSymbolicLink,
     removeSymbolicLinkIfExists,
+    removeSymbolicLinkIfExists_,
 
     -- * Reexports
     IOException,
@@ -50,11 +55,12 @@ where
 import Control.DeepSeq (NFData)
 import Control.Exception (IOException)
 import Control.Exception.Utils (onSyncException)
-import Control.Monad (unless, when)
+import Control.Monad (unless, void, when)
 import Control.Monad.Catch (MonadCatch, MonadMask, mask_)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Data.Foldable (for_, traverse_)
+import Data.Functor (($>))
 import Data.Time (UTCTime (UTCTime, utctDay, utctDayTime))
 import Effects.FileSystem.PathReader
   ( MonadPathReader
@@ -510,7 +516,7 @@ copyDirectoryRecursive ::
   OsPath ->
   m ()
 copyDirectoryRecursive = copyDirectoryRecursiveConfig defaultCopyDirConfig
-{-# INLINABLE copyDirectoryRecursive #-}
+{-# INLINEABLE copyDirectoryRecursive #-}
 
 -- | @copyDirectoryRecursiveConfig cfg src dest@ copies the @src@ and its
 -- contents into @dest@ e.g.
@@ -590,7 +596,7 @@ copyDirectoryRecursiveConfig config src destRoot = do
     OverwriteNone -> copyDirectoryNoOverwrite src dest
     OverwriteDirectories -> copyDirectoryOverwrite False src dest
     OverwriteAll -> copyDirectoryOverwrite True src dest
-{-# INLINABLE copyDirectoryRecursiveConfig #-}
+{-# INLINEABLE copyDirectoryRecursiveConfig #-}
 
 copyDirectoryOverwrite ::
   forall m.
@@ -701,7 +707,7 @@ copyDirectoryOverwrite overwriteFiles src dest = do
           else removeDirectoryRecursive dest
 
   copyFiles `onSyncException` mask_ cleanup
-{-# INLINABLE copyDirectoryOverwrite #-}
+{-# INLINEABLE copyDirectoryOverwrite #-}
 
 copyDirectoryNoOverwrite ::
   forall m.
@@ -742,9 +748,24 @@ copyDirectoryNoOverwrite src dest = do
       cleanup = removeDirectoryRecursive dest
 
   copyFiles `onSyncException` mask_ cleanup
-{-# INLINABLE copyDirectoryNoOverwrite #-}
+{-# INLINEABLE copyDirectoryNoOverwrite #-}
+
+-- | Variant of 'removeFileIfExists' that ignores the return value.
+--
+-- @since 0.1
+removeFileIfExists_ ::
+  ( HasCallStack,
+    MonadPathReader m,
+    MonadPathWriter m
+  ) =>
+  -- | .
+  OsPath ->
+  m ()
+removeFileIfExists_ = void . removeFileIfExists
+{-# INLINEABLE removeFileIfExists_ #-}
 
 -- | Calls 'removeFile' if 'doesFileExist' is 'True'.
+-- Returns true iff the path is deleted.
 --
 -- @since 0.1
 removeFileIfExists ::
@@ -752,12 +773,28 @@ removeFileIfExists ::
     MonadPathReader m,
     MonadPathWriter m
   ) =>
+  -- | .
   OsPath ->
-  m ()
+  m Bool
 removeFileIfExists = removeIfExists doesFileExist removeFile
 {-# INLINEABLE removeFileIfExists #-}
 
+-- | Variant of 'removeDirectoryIfExists' that ignores the return value.
+--
+-- @since 0.1
+removeDirectoryIfExists_ ::
+  ( HasCallStack,
+    MonadPathReader m,
+    MonadPathWriter m
+  ) =>
+  -- | .
+  OsPath ->
+  m ()
+removeDirectoryIfExists_ = void . removeDirectoryIfExists
+{-# INLINEABLE removeDirectoryIfExists_ #-}
+
 -- | Calls 'removeDirectory' if 'doesDirectoryExist' is 'True'.
+-- Returns true iff the path is deleted.
 --
 -- @since 0.1
 removeDirectoryIfExists ::
@@ -765,12 +802,28 @@ removeDirectoryIfExists ::
     MonadPathReader m,
     MonadPathWriter m
   ) =>
+  -- | .
   OsPath ->
-  m ()
+  m Bool
 removeDirectoryIfExists = removeIfExists doesDirectoryExist removeDirectory
 {-# INLINEABLE removeDirectoryIfExists #-}
 
+-- | Variant of 'removeDirectoryRecursiveIfExists' that ignores the return value.
+--
+-- @since 0.1
+removeDirectoryRecursiveIfExists_ ::
+  ( HasCallStack,
+    MonadPathReader m,
+    MonadPathWriter m
+  ) =>
+  -- | .
+  OsPath ->
+  m ()
+removeDirectoryRecursiveIfExists_ = void . removeDirectoryRecursiveIfExists
+{-# INLINEABLE removeDirectoryRecursiveIfExists_ #-}
+
 -- | Calls 'removeDirectoryRecursive' if 'doesDirectoryExist' is 'True'.
+-- Returns true iff the path is deleted.
 --
 -- @since 0.1
 removeDirectoryRecursiveIfExists ::
@@ -778,13 +831,29 @@ removeDirectoryRecursiveIfExists ::
     MonadPathReader m,
     MonadPathWriter m
   ) =>
+  -- | .
   OsPath ->
-  m ()
+  m Bool
 removeDirectoryRecursiveIfExists =
   removeIfExists doesDirectoryExist removeDirectoryRecursive
 {-# INLINEABLE removeDirectoryRecursiveIfExists #-}
 
+-- | Variant of 'removePathForciblyIfExists' that ignores the return value.
+--
+-- @since 0.1
+removePathForciblyIfExists_ ::
+  ( HasCallStack,
+    MonadPathReader m,
+    MonadPathWriter m
+  ) =>
+  -- | .
+  OsPath ->
+  m ()
+removePathForciblyIfExists_ = void . removePathForciblyIfExists
+{-# INLINEABLE removePathForciblyIfExists_ #-}
+
 -- | Calls 'removePathForcibly' if 'doesPathExist' is 'True'.
+-- Returns true iff the path is deleted.
 --
 -- @since 0.1
 removePathForciblyIfExists ::
@@ -792,13 +861,30 @@ removePathForciblyIfExists ::
     MonadPathReader m,
     MonadPathWriter m
   ) =>
+  -- | .
   OsPath ->
-  m ()
+  m Bool
 removePathForciblyIfExists =
   removeIfExists doesPathExist removePathForcibly
 {-# INLINEABLE removePathForciblyIfExists #-}
 
+-- | Variant of 'removeSymbolicLinkIfExists' that ignores the return value.
+--
+-- @since 0.1
+removeSymbolicLinkIfExists_ ::
+  ( HasCallStack,
+    MonadCatch m,
+    MonadPathReader m,
+    MonadPathWriter m
+  ) =>
+  -- | .
+  OsPath ->
+  m ()
+removeSymbolicLinkIfExists_ = void . removeSymbolicLinkIfExists
+{-# INLINEABLE removeSymbolicLinkIfExists_ #-}
+
 -- | Calls 'removeSymbolicLink' if 'doesSymbolicLinkExist' is 'True'.
+-- Returns true iff the path is deleted.
 --
 -- @since 0.1
 removeSymbolicLinkIfExists ::
@@ -807,15 +893,19 @@ removeSymbolicLinkIfExists ::
     MonadPathReader m,
     MonadPathWriter m
   ) =>
+  -- | .
   OsPath ->
-  m ()
+  m Bool
 removeSymbolicLinkIfExists =
   removeIfExists doesSymbolicLinkExist removeSymbolicLink
-{-# INLINABLE removeSymbolicLinkIfExists #-}
+{-# INLINEABLE removeSymbolicLinkIfExists #-}
 
-removeIfExists :: (Monad m) => (t -> m Bool) -> (t -> m ()) -> t -> m ()
-removeIfExists existsFn deleteFn f =
-  existsFn f >>= \b -> when b (deleteFn f)
+removeIfExists :: (Monad m) => (t -> m Bool) -> (t -> m ()) -> t -> m Bool
+removeIfExists existsFn deleteFn f = do
+  exists <- existsFn f
+  if exists
+    then deleteFn f $> True
+    else pure False
 {-# INLINEABLE removeIfExists #-}
 
 -- | Removes a symbolic link. On Windows, attempts to distinguish
@@ -828,6 +918,7 @@ removeSymbolicLink ::
     MonadPathReader m,
     MonadPathWriter m
   ) =>
+  -- | .
   OsPath ->
   m ()
 removeSymbolicLink p = do
