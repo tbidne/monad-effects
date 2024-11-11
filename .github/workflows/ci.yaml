@@ -36,10 +36,9 @@ jobs:
           ghc-version: ${{ matrix.ghc }}
 
       - name: Configure
-        run: |
-          cabal configure \
-            --enable-tests \
-            --ghc-options='-Wno-deprecations -Werror'
+        # yamllint disable rule:line-length
+        run: cabal configure --enable-tests --ghc-options='-Wno-deprecations -Werror'
+        # yamllint enable
 
       # In general, list libs in alphabetical order though we break this rule
       # when a later dep (name) l is a dependency of an earlier one e, since we
@@ -69,8 +68,7 @@ jobs:
 
       - name: Test effects-logger-ns
         run: |
-          cabal test effects-logger-ns \
-            --test-options '--hedgehog-tests 100000'
+          cabal test effects-logger-ns --test-options '--hedgehog-tests 100000'
 
       - name: Build effects-optparse
         run: cabal build effects-optparse
