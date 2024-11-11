@@ -1,6 +1,14 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+-- NOTE: [Equality Constraints]
+--
+-- Evidently, GHC 9.2 requires GADTs or TypeFamilies to use equality
+-- constraints e.g. @k ~ A_Lens@.
+#if __GLASGOW_HASKELL__ >= 902 && __GLASGOW_HASKELL__ < 904
+{-# LANGUAGE TypeFamilies #-}
+#endif
+
 -- | Provides the 'MonadTime' class.
 --
 -- @since 0.1
