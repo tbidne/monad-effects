@@ -289,10 +289,10 @@ instance
   LabelOptic "locStrategy" k LogFormatter LogFormatter a b
   where
   labelOptic =
-    lensVL $ \f (MkLogFormatter _locStrategy _newline _threadLabel _timezone) ->
+    lensVL $ \f (MkLogFormatter a1 a2 a3 a4) ->
       fmap
-        (\locStrategy' -> MkLogFormatter locStrategy' _newline _threadLabel _timezone)
-        (f _locStrategy)
+        (\b -> MkLogFormatter b a2 a3 a4)
+        (f a1)
   {-# INLINE labelOptic #-}
 
 -- | @since 0.1
@@ -301,10 +301,10 @@ instance
   LabelOptic "newline" k LogFormatter LogFormatter a b
   where
   labelOptic =
-    lensVL $ \f (MkLogFormatter _locStrategy _newline _threadLabel _timezone) ->
+    lensVL $ \f (MkLogFormatter a1 a2 a3 a4) ->
       fmap
-        (\newline' -> MkLogFormatter _locStrategy newline' _threadLabel _timezone)
-        (f _newline)
+        (\b -> MkLogFormatter a1 b a3 a4)
+        (f a2)
   {-# INLINE labelOptic #-}
 
 -- | @since 0.1
@@ -313,10 +313,10 @@ instance
   LabelOptic "threadLabel" k LogFormatter LogFormatter a b
   where
   labelOptic =
-    lensVL $ \f (MkLogFormatter _locStrategy _newline _threadLabel _timezone) ->
+    lensVL $ \f (MkLogFormatter a1 a2 a3 a4) ->
       fmap
-        (\threadLabel' -> MkLogFormatter _locStrategy _newline threadLabel' _timezone)
-        (f _threadLabel)
+        (\b -> MkLogFormatter a1 a2 b a4)
+        (f a3)
   {-# INLINE labelOptic #-}
 
 -- | @since 0.1
@@ -325,10 +325,10 @@ instance
   LabelOptic "timezone" k LogFormatter LogFormatter a b
   where
   labelOptic =
-    lensVL $ \f (MkLogFormatter _locStrategy _newline _threadLabel _timezone) ->
+    lensVL $ \f (MkLogFormatter a1 a2 a3 a4) ->
       fmap
-        (MkLogFormatter _locStrategy _newline _threadLabel)
-        (f _timezone)
+        (\b -> MkLogFormatter a1 a2 a3 b)
+        (f a4)
   {-# INLINE labelOptic #-}
 
 -- | 'LogFormatter' with:

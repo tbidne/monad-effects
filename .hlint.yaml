@@ -22,4 +22,10 @@
       - "PathWriter"
 
 - ignore:
+    name: "Avoid lambda"
+    within:
+      - "Effects.LoggerNS"
+      - "Effects.Time"
+
+- ignore:
     name: "Avoid lambda using `infix`"

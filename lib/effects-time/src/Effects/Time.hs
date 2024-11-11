@@ -129,8 +129,8 @@ instance
   (k ~ A_Lens, a ~ Natural, b ~ Natural) =>
   LabelOptic "sec" k TimeSpec TimeSpec a b
   where
-  labelOptic = lensVL $ \f (MkTimeSpec _sec _nsec) ->
-    fmap (`MkTimeSpec` _nsec) (f _sec)
+  labelOptic = lensVL $ \f (MkTimeSpec a1 a2) ->
+    fmap (\b -> MkTimeSpec b a2) (f a1)
   {-# INLINE labelOptic #-}
 
 -- | @since 0.1
@@ -138,8 +138,8 @@ instance
   (k ~ A_Lens, a ~ Natural, b ~ Natural) =>
   LabelOptic "nsec" k TimeSpec TimeSpec a b
   where
-  labelOptic = lensVL $ \f (MkTimeSpec _sec _nsec) ->
-    fmap (MkTimeSpec _sec) (f _nsec)
+  labelOptic = lensVL $ \f (MkTimeSpec a1 a2) ->
+    fmap (\b -> MkTimeSpec a1 b) (f a2)
   {-# INLINE labelOptic #-}
 
 -- | @since 0.1
@@ -339,6 +339,13 @@ getSystemZonedTimeString = fmap formatZonedTime getSystemZonedTime
 -- add backtrace information.
 --
 -- Keeping this note in case this changes.
+--
+-- Update: There is now an issue for this:
+--
+--     https://github.com/haskell/core-libraries-committee/issues/301
+--
+-- If this is merged, add HasCallStack to most (all?) functions in this
+-- repo w/ MonadFail.
 
 -- | Parses the 'LocalTime' from @YYYY-MM-DD HH:MM:SS@.
 --

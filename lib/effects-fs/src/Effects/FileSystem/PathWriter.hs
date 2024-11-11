@@ -1,4 +1,10 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE UndecidableInstances #-}
+
+-- See NOTE: [Equality Constraints]
+#if __GLASGOW_HASKELL__ >= 902 && __GLASGOW_HASKELL__ < 904
+{-# LANGUAGE TypeFamilies #-}
+#endif
 
 -- | Provides the MonadPathWriter effect.
 --
