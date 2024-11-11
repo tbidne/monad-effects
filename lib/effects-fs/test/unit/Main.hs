@@ -75,6 +75,16 @@ teardown fp = guardOrElse' "NO_CLEANUP" ExpectEnvSet doNothing cleanup
 -- unfortunately the bad sym link (l3 -> bad, which we want!) caused stack
 -- to die when checking out this repo during a build. Thus we build the
 -- needed directory during the test itself.
+--
+-- NOTE: This is not the only data we create for our unit tests e.g. we also
+-- create directories for testing directory copy, and symlinks for testing
+-- symlink operations. But the latter are created in the tests themselves,
+-- rather than setup here. Why? Because some of those tests are destructive
+-- i.e. they delete data. Hence we want that data created relative to each
+-- test.
+--
+-- On the other hand, this directory is only ever read, so we can create a
+-- it once at startup and use it where needed.
 createDataDir :: OsPath -> IO ()
 createDataDir tmpDir = do
   PW.removeDirectoryIfExists_ dataDir

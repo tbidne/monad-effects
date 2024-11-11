@@ -93,6 +93,9 @@ test-suite unit
   other-modules:
     PathReader
     PathWriter
+    PathWriter.CopyDir
+    PathWriter.Symlink
+    TestUtils
 
   build-depends:
     , base
