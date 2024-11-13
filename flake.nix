@@ -65,8 +65,8 @@
                 "smart-math"
               ];
           };
-          pkgsCompiler = pkgsMkDrv // {
-            inherit compiler;
+          pkgsCompiler = {
+            inherit pkgs compiler;
           };
           pkgsMkDrv = {
             inherit pkgs;
