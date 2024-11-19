@@ -353,6 +353,13 @@ defaultLogFormatter loc =
 
 -- | Produces a formatted 'LogStr'.
 --
+-- __Example__
+--
+-- @
+-- -- [timestamp][thread_label][namespace][code_loc][level] msg
+-- [2022-02-08 10:20:05][thread-label][one.two][filename:1:2][Warn] msg
+-- @
+--
 -- @since 0.1
 formatLog ::
   ( HasCallStack,
@@ -391,8 +398,8 @@ formatLog formatter lvl msg = do
           [ brackets timestampTxt,
             threadLabel,
             brackets namespaceTxt,
-            brackets lvlTxt,
             locTxt,
+            brackets lvlTxt,
             " ",
             msgTxt,
             newline'
