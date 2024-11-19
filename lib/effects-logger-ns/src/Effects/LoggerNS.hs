@@ -186,7 +186,8 @@ class (MonadLogger m) => MonadLoggerNS m where
 --
 -- @since 0.1
 addNamespace ::
-  ( MonadLoggerNS m
+  ( HasCallStack,
+    MonadLoggerNS m
   ) =>
   Text ->
   m a ->
