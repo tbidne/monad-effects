@@ -13,7 +13,7 @@ module Effects.Process.Typed
     -- * Types
     ProcessConfig,
     StreamSpec,
-    StreamType,
+    StreamType (..),
     Process,
 
     -- * ProcessConfig
@@ -116,7 +116,7 @@ import System.Process.Typed
   ( Process,
     ProcessConfig,
     StreamSpec,
-    StreamType,
+    StreamType (STInput, STOutput),
   )
 import System.Process.Typed qualified as P
 
