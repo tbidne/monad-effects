@@ -6,7 +6,7 @@ license-file:       LICENSE
 tested-with:
   GHC ==9.2.8 || ==9.4.8 || ==9.6.5 || ==9.8.3 || ==9.10.1
 
-copyright:          2022-2024 Thomas Bidne
+copyright:          2022-2025 Thomas Bidne
 author:             Thomas Bidne
 maintainer:         tbidne@protonmail.com
 homepage:           https://github.com/tbidne/monad-effects/
