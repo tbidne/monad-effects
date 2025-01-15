@@ -117,7 +117,7 @@ jobs:
             --fail-if-slower 30
             --fail-if-faster 30'
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: ${{ failure() && steps.bench.conclusion == 'failure' }}
         with:
           name: build-artifacts
@@ -136,7 +136,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup nix
-        uses: cachix/install-nix-action@v25
+        uses: cachix/install-nix-action@v30
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           nix_path: nixpkgs=channel:nixos-unstable
@@ -188,7 +188,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup nix
-        uses: cachix/install-nix-action@v25
+        uses: cachix/install-nix-action@v30
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           nix_path: nixpkgs=channel:nixos-unstable
