@@ -3,7 +3,14 @@ name:            fs-unix
 version:         0.1
 license:         MIT
 license-file:    LICENSE
-tested-with:     GHC ==9.2.8 || ==9.4.8 || ==9.6.5 || ==9.8.3 || ==9.10.1
+tested-with:
+  GHC ==9.2.8
+   || ==9.4.8
+   || ==9.6.5
+   || ==9.8.3
+   || ==9.10.1
+   || ==9.12.1
+
 copyright:       2022-2025 Thomas Bidne
 author:          Thomas Bidne
 maintainer:      tbidne@protonmail.com
@@ -18,14 +25,6 @@ source-repository head
   type:     git
   location: https://github.com/tbidne/monad-effects
 
--- Remove once we are on GHC 9.10+ for nix.
---
--- See TODO: [FilePath vs. OsString upgrade]
-flag os-string
-  description: Use the new os-string package
-  default:     False
-  manual:      False
-
 common common-lang
   default-extensions: OverloadedRecordDot
   default-language:   GHC2021
@@ -39,15 +38,9 @@ benchmark benchmarks
     , effects-fs           ^>=0.1
     , effects-unix         ^>=0.1
     , effects-unix-compat  ^>=0.1
+    , filepath             >=1.5.0.0 && <1.6
     , fs-utils             ^>=0.1
+    , os-string            ^>=2.0.0
     , tasty-bench          ^>=0.3
-
-  if flag(os-string)
-    build-depends:
-      , filepath   >=1.5.0.0 && <1.6
-      , os-string  ^>=2.0.0
-
-  else
-    build-depends: filepath >=1.4.100.1 && <1.5
 
   hs-source-dirs: bench

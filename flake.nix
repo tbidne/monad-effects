@@ -51,12 +51,14 @@
       perSystem =
         { pkgs, ... }:
         let
-          ghc-version = "ghc982";
+          ghc-version = "ghc9101";
           hlib = pkgs.haskell.lib;
           compiler = pkgs.haskell.packages."${ghc-version}".override {
             overrides =
               final: prev:
-              { }
+              {
+                path = hlib.dontCheck prev.path_0_9_6;
+              }
               // nix-hs-utils.mkLibs inputs final [
                 "algebra-simple"
                 "bounds"
@@ -153,12 +155,16 @@
 
             lint = nix-hs-utils.mergeApps {
               apps = [
-                (nix-hs-utils.lint (pkgsCompiler // pkgsMkDrv))
+                # TODO: We require GHC 9.10+ since we need filepath >= 1.5,
+                # but hlint is sadly not compatible yet. Hence it is disabled
+                # for now.
+                #
+                #(nix-hs-utils.lint (compilerPkgs // pkgsMkDrv))
                 (nix-hs-utils.lint-yaml pkgsMkDrv)
               ];
             };
 
-            lint-refactor = nix-hs-utils.lint-refactor pkgsCompiler;
+            #lint-refactor = nix-hs-utils.lint-refactor compilerPkgs;
           };
         };
       systems = [

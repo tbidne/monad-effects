@@ -89,7 +89,7 @@ import Numeric.Algebra
     ASemigroup ((.+.)),
     MSemiSpace ((.*)),
     MSpace ((.%)),
-    Normed (norm),
+    Normed (norm, sgn),
     Semimodule,
     SemivectorSpace,
   )
@@ -190,6 +190,9 @@ instance SemivectorSpace TimeSpec Natural
 instance Normed TimeSpec where
   norm = id
   {-# INLINEABLE norm #-}
+
+  sgn _ = MkTimeSpec 1 0
+  {-# INLINEABLE sgn #-}
 
 -- | Converts 'Double' seconds to a 'TimeSpec'.
 --

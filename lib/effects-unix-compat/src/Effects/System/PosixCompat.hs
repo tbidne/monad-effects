@@ -253,7 +253,7 @@ throwIfWrongPathType location expected path = do
           ]
 
   unless (expected == actual) $
-    FS.IO.throwPathIOErrorFilePath
+    FS.IO.throwFilePathIOError
       path
       location
       InappropriateType

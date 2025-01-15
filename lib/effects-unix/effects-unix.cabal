@@ -3,7 +3,14 @@ name:            effects-unix
 version:         0.1
 license:         MIT
 license-file:    LICENSE
-tested-with:     GHC ==9.2.8 || ==9.4.8 || ==9.6.5 || ==9.8.3 || ==9.10.1
+tested-with:
+  GHC ==9.2.8
+   || ==9.4.8
+   || ==9.6.5
+   || ==9.8.3
+   || ==9.10.1
+   || ==9.12.1
+
 copyright:       2022-2025 Thomas Bidne
 author:          Thomas Bidne
 maintainer:      tbidne@protonmail.com
@@ -18,16 +25,6 @@ source-repository head
   type:     git
   location: https://github.com/tbidne/monad-effects
 
--- Remove once we are on GHC 9.10+ for nix. Builds that require
--- filepath >= 1.5 need to enable this flag. In the future, we can provide
--- a project file for this.
---
--- See TODO: [FilePath vs. OsString upgrade]
-flag os-string
-  description: Use the new os-string package
-  default:     False
-  manual:      False
-
 common common-lang
   default-extensions:
     LambdaCase
@@ -40,19 +37,12 @@ library
   import:          common-lang
   exposed-modules: Effects.System.Posix
   build-depends:
-    , base          >=4.16.0.0 && <4.21
+    , base          >=4.16.0.0 && <4.22
     , exceptions    ^>=0.10.4
     , fs-utils      ^>=0.1
+    , os-string     ^>=2.0.0
     , transformers  >=0.5.6.2  && <0.7
     , unix          >=2.7.2.2  && <2.9
-
-  if flag(os-string)
-    build-depends:
-      , filepath   >=1.5.0.0 && <1.6
-      , os-string  ^>=2.0.0
-
-  else
-    build-depends: filepath >=1.4.100.1 && <1.5
 
   hs-source-dirs:  src
 
@@ -69,13 +59,8 @@ test-suite unit
     , env-guard        ^>=0.2
     , exception-utils  ^>=0.1
     , fs-utils
+    , os-string
     , tasty            >=1.1.0.3   && <1.6
     , tasty-hunit      >=0.9       && <0.11
-
-  if flag(os-string)
-    build-depends: os-string
-
-  else
-    build-depends: filepath
 
   hs-source-dirs: test/unit

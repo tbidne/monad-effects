@@ -1,24 +1,3 @@
-{-# OPTIONS_GHC -Wno-unused-imports #-}
-
--- NOTE: [Unused FilePath]
---
--- -Wno-unused-imports due to the "unused" System.FilePath import
--- below. We import it because in case we are using the new os-string
--- package, we need to ensure we are using filepath >= 1.5, as lower
--- versions provide their own incompatible os-string. But filepath is
--- a transitive dep, so the only way to do this is add an "unused" dependency
--- in the cabal file.
---
--- We attempted to disable the warning more appropriately with
---
---   ghc-options: -Wno-unused-packages
---
--- in the cabal file, but this didn't work for some reason. Hence this
--- workaround here. We should be able to remove all of this once nix can
--- use GHC 9.10.
---
--- See TODO: [FilePath vs. OsString upgrade].
-
 -- | Provides the 'MonadPosix' typeclass.
 --
 -- @since 0.1
@@ -54,7 +33,6 @@ import FileSystem.PathType
   )
 import GHC.IO.Exception (IOErrorType (InappropriateType))
 import GHC.Stack (HasCallStack)
-import System.FilePath qualified
 import System.OsString.Internal.Types (OsString (OsString))
 import System.Posix.Files.PosixString (FileStatus, PathVar)
 import System.Posix.Files.PosixString qualified as PFiles

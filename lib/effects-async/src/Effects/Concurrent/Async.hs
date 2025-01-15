@@ -135,8 +135,8 @@ import Data.Functor (void)
 import Effects.Concurrent.Thread (MonadThread (threadDelay))
 import GHC.Conc (STM)
 import GHC.Stack (HasCallStack)
-import Numeric.Data.Positive (Positive (MkPositive), (+!))
-import Numeric.Data.Positive qualified as Positive
+import Numeric.Data.Positive.Algebra (Positive (MkPositive), (+!))
+import Numeric.Data.Positive.Algebra qualified as Positive
 import UnliftIO.Async qualified as UAsync
 
 -- | Represents async effects. API largely follows
@@ -268,8 +268,7 @@ class (Monad m) => MonadAsync m where
     Async a ->
     Async b ->
     m
-      ( Either (Either SomeException a) (Either SomeException b)
-      )
+      (Either (Either SomeException a) (Either SomeException b))
 
   -- | Lifted 'Async.waitEitherCancel'.
   --

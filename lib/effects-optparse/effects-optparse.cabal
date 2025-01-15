@@ -3,7 +3,14 @@ name:            effects-optparse
 version:         0.1
 license:         MIT
 license-file:    LICENSE
-tested-with:     GHC ==9.2.8 || ==9.4.8 || ==9.6.5 || ==9.8.3 || ==9.10.1
+tested-with:
+  GHC ==9.2.8
+   || ==9.4.8
+   || ==9.6.5
+   || ==9.8.3
+   || ==9.10.1
+   || ==9.12.1
+
 copyright:       2022-2025 Thomas Bidne
 author:          Thomas Bidne
 maintainer:      tbidne@protonmail.com
@@ -25,7 +32,7 @@ library
   import:          common-lang
   exposed-modules: Effects.Optparse
   build-depends:
-    , base                  >=4.16.0.0 && <4.21
+    , base                  >=4.16.0.0 && <4.22
     , fs-utils              ^>=0.1
     , optparse-applicative  >=0.16.1.0 && <0.19
     , transformers          >=0.5.6.2  && <0.7
