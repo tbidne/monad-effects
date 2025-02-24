@@ -56,6 +56,7 @@ library
   reexported-modules:
     , fs-utils:FileSystem.IO as FileSystem.IO
     , fs-utils:FileSystem.OsPath as FileSystem.OsPath
+    , fs-utils:FileSystem.Path as FileSystem.Path
     , fs-utils:FileSystem.PathType as FileSystem.PathType
     , fs-utils:FileSystem.UTF8 as FileSystem.UTF8
 
