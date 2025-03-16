@@ -52,7 +52,12 @@ module Effects.Time
 
     -- ** Time
     LocalTime (..),
+    TimeZone,
+    UTCTime,
     ZonedTime (..),
+
+    -- ** TZ
+    TZ,
 
     -- ** Algebra
     ASemigroup (..),
@@ -71,12 +76,16 @@ import Control.DeepSeq (NFData)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.Bounds (LowerBounded (lowerBound), UpperBoundless)
+import Data.Time.Clock (UTCTime)
 import Data.Time.Format qualified as Format
 import Data.Time.LocalTime
   ( LocalTime (LocalTime, localDay, localTimeOfDay),
+    TimeZone,
     ZonedTime (ZonedTime, zonedTimeToLocalTime, zonedTimeZone),
   )
 import Data.Time.LocalTime qualified as Local
+import Data.Time.Zones (TZ)
+import Data.Time.Zones qualified as TZ
 import GHC.Clock qualified as C
 #if MIN_VERSION_base(4,17,0)
 import GHC.Float (properFractionDouble)
@@ -254,6 +263,21 @@ class (Monad m) => MonadTime m where
   -- @since 0.1
   getSystemZonedTime :: (HasCallStack) => m ZonedTime
 
+  -- | Lifted 'Local.getTimeZone'.
+  --
+  -- @since 0.1
+  getTimeZone :: (HasCallStack) => UTCTime -> m TimeZone
+
+  -- | Lifted 'Local.utcToLocalZonedTime'.
+  --
+  -- @since 0.1
+  utcToLocalZonedTime :: (HasCallStack) => UTCTime -> m ZonedTime
+
+  -- | Lifted 'TZ.loadLocalTZ'.
+  --
+  -- @since 0.1
+  loadLocalTZ :: (HasCallStack) => m TZ
+
   -- | Return monotonic time in seconds, since some unspecified starting
   -- point.
   --
@@ -264,6 +288,12 @@ class (Monad m) => MonadTime m where
 instance MonadTime IO where
   getSystemZonedTime = Local.getZonedTime
   {-# INLINEABLE getSystemZonedTime #-}
+  getTimeZone = Local.getTimeZone
+  {-# INLINEABLE getTimeZone #-}
+  utcToLocalZonedTime = Local.utcToLocalZonedTime
+  {-# INLINEABLE utcToLocalZonedTime #-}
+  loadLocalTZ = TZ.loadLocalTZ
+  {-# INLINEABLE loadLocalTZ #-}
   getMonotonicTime = C.getMonotonicTime
   {-# INLINEABLE getMonotonicTime #-}
 
@@ -271,6 +301,12 @@ instance MonadTime IO where
 instance (MonadTime m) => MonadTime (ReaderT e m) where
   getSystemZonedTime = lift getSystemZonedTime
   {-# INLINEABLE getSystemZonedTime #-}
+  getTimeZone = lift . getTimeZone
+  {-# INLINEABLE getTimeZone #-}
+  utcToLocalZonedTime = lift . utcToLocalZonedTime
+  {-# INLINEABLE utcToLocalZonedTime #-}
+  loadLocalTZ = lift loadLocalTZ
+  {-# INLINEABLE loadLocalTZ #-}
   getMonotonicTime = lift getMonotonicTime
   {-# INLINEABLE getMonotonicTime #-}
 
