@@ -35,7 +35,7 @@ import Effects.FileSystem.PathWriter
   )
 import Effects.FileSystem.PathWriter qualified as PW
 import Effects.IORef (MonadIORef (modifyIORef', newIORef, readIORef))
-import FileSystem.OsPath (osp, (</>))
+import FileSystem.OsPath (osp, ospPathSep, (</>))
 import FileSystem.OsPath qualified as FS.OsPath
 import GHC.Stack (HasCallStack)
 import Test.Tasty (TestTree, testGroup)
@@ -90,10 +90,10 @@ copyTestData getTmpDir = testCase desc $ do
             [osp|bar|],
             [osp|baz|],
             [osp|foo|],
-            [osp|dir1|] </> [osp|f|],
-            [osp|dir2|] </> [osp|f|],
-            [osp|dir3|] </> [osp|f|],
-            [osp|dir3|] </> [osp|dir3.1|] </> [osp|f|]
+            [ospPathSep|dir1/f|],
+            [ospPathSep|dir2/f|],
+            [ospPathSep|dir3/f|],
+            [ospPathSep|dir3/dir3.1/f|]
           ]
   TestUtils.assertDirsExist $
     (\p -> destDir </> [osp|data|] </> p)
@@ -101,7 +101,7 @@ copyTestData getTmpDir = testCase desc $ do
             [osp|dir1|],
             [osp|dir2|],
             [osp|dir3|],
-            [osp|dir3|] </> [osp|dir3.1|]
+            [osp|dir3/dir3.1|]
           ]
 
   -- Notice that while the link names are copied to the new location, of course
@@ -133,7 +133,7 @@ copyDotDir getTmpDir = testCase desc $ do
     destDir
 
   TestUtils.assertDirsExist [destDir </> [osp|src-0.2.2|]]
-  TestUtils.assertFilesExist [destDir </> [osp|src-0.2.2|] </> [osp|f|]]
+  TestUtils.assertFilesExist [destDir </> [ospPathSep|src-0.2.2/f|]]
   where
     desc = "Copies dir with dots in the name"
 
@@ -155,7 +155,7 @@ copyHidden getTmpDir = testCase desc $ do
     destDir
 
   TestUtils.assertDirsExist [destDir </> [osp|.hidden|]]
-  TestUtils.assertFilesExist [destDir </> [osp|.hidden|] </> [osp|f|]]
+  TestUtils.assertFilesExist [destDir </> [ospPathSep|.hidden/f|]]
   where
     desc = "Copies top-level hidden dir"
 
@@ -227,17 +227,17 @@ cdrnCustomTarget getTmpDir = testCase desc $ do
   assertSrcExists tmpDir
   TestUtils.assertFilesExist $
     (destDir </>)
-      <$> [ [osp|target|] </> [osp|a|] </> [osp|b|] </> [osp|c|] </> [osp|f1|],
-            [osp|target|] </> [osp|a|] </> [osp|f2|],
-            [osp|target|] </> [osp|a|] </> [osp|b|] </> [osp|f3|],
-            [osp|target|] </> [osp|a|] </> [osp|f4|],
-            [osp|target|] </> [osp|a|] </> [osp|f5|],
-            [osp|target|] </> [osp|a|] </> [osp|b|] </> [osp|f5|]
+      <$> [ [ospPathSep|target/a/b/c/f1|],
+            [ospPathSep|target/a/f2|],
+            [ospPathSep|target/a/b/f3|],
+            [ospPathSep|target/a/f4|],
+            [ospPathSep|target/a/f5|],
+            [ospPathSep|target/a/b/f5|]
           ]
   TestUtils.assertDirsExist $
     (destDir </>)
-      <$> [ [osp|target|] </> [osp|a|] </> [osp|b|] </> [osp|c|],
-            [osp|target|] </> [osp|empty|] </> [osp|d|]
+      <$> [ [ospPathSep|target/a/b/c|],
+            [ospPathSep|target/empty/d|]
           ]
   where
     desc = "Copy with custom directory succeeds"
@@ -307,8 +307,8 @@ cdrnOverwriteFails getTmpDir = testCase desc $ do
   -- assert files were _not_ copied
   TestUtils.assertDirsDoNotExist $
     (destDir </>)
-      <$> [ [osp|src|] </> [osp|a|],
-            [osp|src|] </> [osp|empty|]
+      <$> [ [ospPathSep|src/a|],
+            [ospPathSep|src/empty|]
           ]
   where
     desc = "Copy to extant dest/<target> fails"
@@ -420,8 +420,8 @@ cdrtOverwriteTargetSucceeds getTmpDir = testCase desc $ do
 
   -- NOTE: test that dir already exists and succeeds
   createDirectoryIfMissing False (destDir </> [osp|src|])
-  createDirectoryIfMissing False (destDir </> [osp|src|] </> [osp|test|])
-  TestUtils.writeFiles [(destDir </> [osp|src|] </> [osp|test|] </> [osp|here|], "cat")]
+  createDirectoryIfMissing False (destDir </> [ospPathSep|src/test|])
+  TestUtils.writeFiles [(destDir </> [ospPathSep|src/test/here|], "cat")]
 
   -- copy files
   PW.copyDirectoryRecursiveConfig
@@ -430,7 +430,7 @@ cdrtOverwriteTargetSucceeds getTmpDir = testCase desc $ do
     destDir
 
   assertSrcExists tmpDir
-  TestUtils.assertFilesExist [destDir </> [osp|src|] </> [osp|test|] </> [osp|here|]]
+  TestUtils.assertFilesExist [destDir </> [ospPathSep|src/test/here|]]
   assertDestExists tmpDir
   where
     desc = "copy to extant dest/<target> succeeds"
@@ -474,30 +474,30 @@ cdrtOverwriteTargetMergeSucceeds getTmpDir = testCase desc $ do
   -- assert copy correctly merged directories
   TestUtils.assertFilesExist $
     (destDir </>)
-      <$> [ [osp|one|] </> [osp|f1|],
-            [osp|one|] </> [osp|f2|],
-            [osp|one|] </> [osp|f3|],
-            [osp|one|] </> [osp|f4|],
-            [osp|two|] </> [osp|f1|],
-            [osp|two|] </> [osp|f2|],
-            [osp|two|] </> [osp|f3|],
-            [osp|two|] </> [osp|f4|]
+      <$> [ [ospPathSep|one/f1|],
+            [ospPathSep|one/f2|],
+            [ospPathSep|one/f3|],
+            [ospPathSep|one/f4|],
+            [ospPathSep|two/f1|],
+            [ospPathSep|two/f2|],
+            [ospPathSep|two/f3|],
+            [ospPathSep|two/f4|]
           ]
 
   -- src still exists
   TestUtils.assertFilesExist $
     (srcDir </>)
-      <$> [ [osp|one|] </> [osp|f3|],
-            [osp|one|] </> [osp|f4|],
-            [osp|two|] </> [osp|f3|],
-            [osp|two|] </> [osp|f4|]
+      <$> [ [ospPathSep|one/f3|],
+            [ospPathSep|one/f4|],
+            [ospPathSep|two/f3|],
+            [ospPathSep|two/f4|]
           ]
   TestUtils.assertFilesDoNotExist $
     (srcDir </>)
-      <$> [ [osp|one|] </> [osp|f1|],
-            [osp|one|] </> [osp|f2|],
-            [osp|two|] </> [osp|f1|],
-            [osp|two|] </> [osp|f2|]
+      <$> [ [ospPathSep|one/f1|],
+            [ospPathSep|one/f2|],
+            [ospPathSep|two/f1|],
+            [ospPathSep|two/f2|]
           ]
   where
     desc = "copy to extant dest/<target> merges successfully"
@@ -552,40 +552,40 @@ cdrtOverwriteTargetMergeFails getTmpDir = testCase desc $ do
   -- assert dest unchanged from bad copy
   TestUtils.assertFilesExist $
     (destDir </>)
-      <$> [ [osp|one|] </> [osp|f1|],
-            [osp|one|] </> [osp|f2|],
-            [osp|two|] </> [osp|f1|],
-            [osp|two|] </> [osp|f2|],
-            [osp|two|] </> [osp|f3|]
+      <$> [ [ospPathSep|one/f1|],
+            [ospPathSep|one/f2|],
+            [ospPathSep|two/f1|],
+            [ospPathSep|two/f2|],
+            [ospPathSep|two/f3|]
           ]
 
   TestUtils.assertFilesDoNotExist $
     (destDir </>)
-      <$> [ [osp|one|] </> [osp|f3|],
-            [osp|one|] </> [osp|f4|],
-            [osp|two|] </> [osp|f4|]
+      <$> [ [ospPathSep|one/f3|],
+            [ospPathSep|one/f4|],
+            [ospPathSep|two/f4|]
           ]
 
   -- src still exists
   TestUtils.assertFilesExist $
     (srcDir </>)
-      <$> [ [osp|one|] </> [osp|f3|],
-            [osp|one|] </> [osp|f4|],
-            [osp|two|] </> [osp|f3|],
-            [osp|two|] </> [osp|f4|]
+      <$> [ [ospPathSep|one/f3|],
+            [ospPathSep|one/f4|],
+            [ospPathSep|two/f3|],
+            [ospPathSep|two/f4|]
           ]
   TestUtils.assertFilesDoNotExist $
     (srcDir </>)
-      <$> [ [osp|one|] </> [osp|f1|],
-            [osp|one|] </> [osp|f2|],
-            [osp|two|] </> [osp|f1|],
-            [osp|two|] </> [osp|f2|]
+      <$> [ [ospPathSep|one/f1|],
+            [ospPathSep|one/f2|],
+            [ospPathSep|two/f1|],
+            [ospPathSep|two/f2|]
           ]
   where
     desc = "copy to extant dest/<target> merge fails"
     config = MkCopyDirConfig OverwriteDirectories TargetNameDest
     suffix =
-      FS.OsPath.decodeDisplayEx ([osp|dest|] </> [osp|two|] </> [osp|f3|])
+      FS.OsPath.decodeDisplayEx [ospPathSep|dest/two/f3|]
         <> ": copyDirectoryOverwrite: already exists (Attempted file overwrite when CopyDirConfig.overwriteFiles is false)"
 
 cdrtOverwriteFileFails :: IO OsPath -> TestTree
@@ -594,7 +594,7 @@ cdrtOverwriteFileFails getTmpDir = testCase desc $ do
   srcDir <- setupSrc tmpDir
   let destDir = tmpDir </> [osp|dest|]
 
-  createDirectoryIfMissing True (destDir </> [osp|src|] </> [osp|a|] </> [osp|b|] </> [osp|c|])
+  createDirectoryIfMissing True (destDir </> [ospPathSep|src/a/b/c|])
 
   -- NOTE: this line causes it to die
   TestUtils.writeFiles [(destDir </> pathEnd, "cat")]
@@ -619,7 +619,7 @@ cdrtOverwriteFileFails getTmpDir = testCase desc $ do
   TestUtils.assertFilesExist [destDir </> pathEnd]
   where
     desc = "copy to extant dest/<target>/file fails"
-    pathEnd = [osp|src|] </> [osp|a|] </> [osp|b|] </> [osp|c|] </> [osp|f1|]
+    pathEnd = [ospPathSep|src/a/b/c/f1|]
     suffix =
       FS.OsPath.decodeDisplayEx ([osp|dest|] </> pathEnd)
         <> ": copyDirectoryOverwrite: already exists (Attempted file overwrite when CopyDirConfig.overwriteFiles is false)"
@@ -666,8 +666,8 @@ cdrtOverwritePartialFails getTmpDir = testCase desc $ do
 
   -- NOTE: test overwriting
   createDirectoryIfMissing False (destDir </> [osp|src|])
-  createDirectoryIfMissing False (destDir </> [osp|src|] </> [osp|test|])
-  TestUtils.writeFiles [(destDir </> [osp|src|] </> [osp|test|] </> [osp|here|], "cat")]
+  createDirectoryIfMissing False (destDir </> [ospPathSep|src/test|])
+  TestUtils.writeFiles [(destDir </> [ospPathSep|src/test/here|], "cat")]
 
   -- copy files
   result <-
@@ -691,12 +691,12 @@ cdrtOverwritePartialFails getTmpDir = testCase desc $ do
   -- assert files were not copied over
   TestUtils.assertDirsDoNotExist $
     (destDir </>)
-      <$> [ [osp|src|] </> [osp|a|],
-            [osp|src|] </> [osp|empty|]
+      <$> [ [ospPathSep|src/a|],
+            [ospPathSep|src/empty|]
           ]
 
   -- assert original file exists after copy failure
-  TestUtils.assertFilesExist [destDir </> [osp|src|] </> [osp|test|] </> [osp|here|]]
+  TestUtils.assertFilesExist [destDir </> [ospPathSep|src/test/here|]]
   where
     desc = "Partial failure with extant dest/<target> rolls back changes"
 
@@ -713,26 +713,16 @@ cdraOverWriteFilesucceeds getTmpDir = testCase desc $ do
   srcDir <- setupSrc tmpDir
   let destDir = tmpDir </> [osp|dest|]
 
-  createDirectoryIfMissing True (destDir </> [osp|src|] </> [osp|a|] </> [osp|b|] </> [osp|c|])
+  createDirectoryIfMissing True (destDir </> [ospPathSep|src/a/b/c|])
 
   -- NOTE: this line is what is tested
   TestUtils.writeFiles
-    [ ( destDir
-          </> [osp|src|]
-          </> [osp|a|]
-          </> [osp|b|]
-          </> [osp|c|]
-          </> [osp|f1|],
+    [ ( destDir </> [ospPathSep|src/a/b/c/f1|],
         "cat"
       )
     ]
   TestUtils.assertFileContents
-    [ ( destDir
-          </> [osp|src|]
-          </> [osp|a|]
-          </> [osp|b|]
-          </> [osp|c|]
-          </> [osp|f1|],
+    [ ( destDir </> [ospPathSep|src/a/b/c/f1|],
         "cat"
       )
     ]
@@ -746,12 +736,7 @@ cdraOverWriteFilesucceeds getTmpDir = testCase desc $ do
   assertSrcExists tmpDir
   -- check contents actually overwritten
   TestUtils.assertFileContents
-    [ ( destDir
-          </> [osp|src|]
-          </> [osp|a|]
-          </> [osp|b|]
-          </> [osp|c|]
-          </> [osp|f1|],
+    [ ( destDir </> [ospPathSep|src/a/b/c/f1|],
         "1"
       )
     ]
@@ -766,18 +751,18 @@ cdraOverWriteFilesucceeds getTmpDir = testCase desc $ do
 setupSrc :: (HasCallStack) => OsPath -> IO OsPath
 setupSrc baseDir = do
   let files =
-        [ [osp|a|] </> [osp|b|] </> [osp|c|] </> [osp|f1|],
-          [osp|a|] </> [osp|f2|],
-          [osp|a|] </> [osp|b|] </> [osp|f3|],
-          [osp|a|] </> [osp|f4|],
-          [osp|a|] </> [osp|f5|],
-          [osp|a|] </> [osp|b|] </> [osp|f5|]
+        [ [ospPathSep|a/b/c/f1|],
+          [ospPathSep|a/f2|],
+          [ospPathSep|a/b/f3|],
+          [ospPathSep|a/f4|],
+          [ospPathSep|a/f5|],
+          [ospPathSep|a/b/f5|]
         ]
       srcDir = baseDir </> [osp|src|]
 
   -- create directories and files
-  createDirectoryIfMissing True (srcDir </> [osp|a|] </> [osp|b|] </> [osp|c|])
-  createDirectoryIfMissing True (srcDir </> [osp|empty|] </> [osp|d|])
+  createDirectoryIfMissing True (srcDir </> [ospPathSep|a/b/c|])
+  createDirectoryIfMissing True (srcDir </> [ospPathSep|empty/d|])
 
   let baseFiles = zip files ["1", "2", "3", "4", "5", "6"]
       srcFiles = fmap (first (srcDir </>)) baseFiles
@@ -842,17 +827,17 @@ assertSrcExists baseDir = do
   let srcDir = baseDir </> [osp|src|]
   TestUtils.assertFilesExist $
     (srcDir </>)
-      <$> [ [osp|a|] </> [osp|b|] </> [osp|c|] </> [osp|f1|],
-            [osp|a|] </> [osp|f2|],
-            [osp|a|] </> [osp|b|] </> [osp|f3|],
-            [osp|a|] </> [osp|f4|],
-            [osp|a|] </> [osp|f5|],
-            [osp|a|] </> [osp|b|] </> [osp|f5|]
+      <$> [ [ospPathSep|a/b/c/f1|],
+            [ospPathSep|a/f2|],
+            [ospPathSep|a/b/f3|],
+            [ospPathSep|a/f4|],
+            [ospPathSep|a/f5|],
+            [ospPathSep|a/b/f5|]
           ]
   TestUtils.assertDirsExist $
     (srcDir </>)
-      <$> [ [osp|a|] </> [osp|b|] </> [osp|c|],
-            [osp|empty|] </> [osp|d|]
+      <$> [ [ospPathSep|a/b/c|],
+            [ospPathSep|empty/d|]
           ]
 
 -- | Asserts that the copied dest directory exists.
@@ -861,15 +846,15 @@ assertDestExists baseDir = do
   let destDir = baseDir </> [osp|dest|]
   TestUtils.assertFilesExist $
     (destDir </>)
-      <$> [ [osp|src|] </> [osp|a|] </> [osp|b|] </> [osp|c|] </> [osp|f1|],
-            [osp|src|] </> [osp|a|] </> [osp|f2|],
-            [osp|src|] </> [osp|a|] </> [osp|b|] </> [osp|f3|],
-            [osp|src|] </> [osp|a|] </> [osp|f4|],
-            [osp|src|] </> [osp|a|] </> [osp|f5|],
-            [osp|src|] </> [osp|a|] </> [osp|b|] </> [osp|f5|]
+      <$> [ [ospPathSep|src/a/b/c/f1|],
+            [ospPathSep|src/a/f2|],
+            [ospPathSep|src/a/b/f3|],
+            [ospPathSep|src/a/f4|],
+            [ospPathSep|src/a/f5|],
+            [ospPathSep|src/a/b/f5|]
           ]
   TestUtils.assertDirsExist $
     (destDir </>)
-      <$> [ [osp|src|] </> [osp|a|] </> [osp|b|] </> [osp|c|],
-            [osp|src|] </> [osp|empty|] </> [osp|d|]
+      <$> [ [ospPathSep|src/a/b/c|],
+            [ospPathSep|src/empty/d|]
           ]
