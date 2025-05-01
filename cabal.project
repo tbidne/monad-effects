@@ -70,7 +70,7 @@ source-repository-package
 source-repository-package
     type: git
     location: https://github.com/tbidne/fs-utils.git
-    tag: ebe9822c78be2c6b983dfd849168508604db0c51
+    tag: 2389f7dbe5b94f65bd22088f4e5a5f6644caaade
 
 source-repository-package
     type: git
