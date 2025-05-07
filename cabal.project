@@ -55,7 +55,7 @@ program-options
 source-repository-package
     type: git
     location: https://github.com/tbidne/algebra-simple.git
-    tag: 973852fc69a3bb7c0477dafcc933c14ec4cb0f75
+    tag: 37ec7127fbd0f591d4539e4bf72a0badd7569181
 
 source-repository-package
     type: git
@@ -65,7 +65,7 @@ source-repository-package
 source-repository-package
     type: git
     location: https://github.com/tbidne/exception-utils.git
-    tag: d9d3d6061d9ad16d9840a4e5e9cdc36a498a2a82
+    tag: e28b28ae3bc90a0336abf69eff28369b790f4e13
 
 source-repository-package
     type: git
