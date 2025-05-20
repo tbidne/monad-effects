@@ -200,7 +200,9 @@ instance Normed TimeSpec where
   norm = id
   {-# INLINEABLE norm #-}
 
-  sgn _ = MkTimeSpec 1 0
+  sgn x
+    | x == zero = zero
+    | otherwise = MkTimeSpec 1 0
   {-# INLINEABLE sgn #-}
 
 -- | Converts 'Double' seconds to a 'TimeSpec'.
