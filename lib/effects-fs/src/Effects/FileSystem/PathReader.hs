@@ -50,7 +50,7 @@ where
 
 import Control.Category ((>>>))
 import Control.Monad (unless, (>=>))
-import Control.Monad.Catch (MonadCatch, MonadThrow (throwM))
+import Control.Monad.Catch (MonadCatch, MonadThrow)
 import Control.Monad.Catch qualified as Ex
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
@@ -58,12 +58,10 @@ import Data.Time (UTCTime (UTCTime, utctDay, utctDayTime))
 import FileSystem.IO qualified as FS.IO
 import FileSystem.OsPath
   ( OsPath,
-    OsPathNE (OsPathEmpty, OsPathNonEmpty),
-    TildeException (MkTildeException),
-    TildeState
-      ( TildeStateNonPrefix,
-        TildeStateNone,
-        TildeStatePrefix
+    OsPathOrEmpty (OsPathEmpty, OsPathNonEmpty),
+    TildePrefixState
+      ( TildePrefixStateNone,
+        TildePrefixStateStripped
       ),
     (</>),
   )
@@ -677,9 +675,8 @@ forExpandedTilde ::
 forExpandedTilde = flip onExpandedTilde
 {-# INLINEABLE forExpandedTilde #-}
 
--- | Expands a "tilde prefix" (~) with the home directory, running the
--- action on the result. Throws an exception if the 'OsPath' contains any
--- other tildes i.e. the only expansions we allow are:
+-- | Expands "tilde prefix(es)" (~) with the home directory, running the
+-- action on the result.
 --
 -- - @"~/..."@
 -- - @"~"@
@@ -690,8 +687,7 @@ forExpandedTilde = flip onExpandedTilde
 -- @since 0.1
 onExpandedTilde ::
   ( HasCallStack,
-    MonadPathReader m,
-    MonadThrow m
+    MonadPathReader m
   ) =>
   -- | Action to run on the expanded path.
   (OsPath -> m a) ->
@@ -699,11 +695,10 @@ onExpandedTilde ::
   OsPath ->
   m a
 onExpandedTilde onPath =
-  OsP.toTildeState >>> \case
-    TildeStateNone p -> onPath p
-    TildeStatePrefix pne ->
+  OsP.toTildePrefixState >>> \case
+    TildePrefixStateNone p -> onPath p
+    TildePrefixStateStripped pne ->
       getHomeDirectory >>= \d -> case pne of
         OsPathEmpty -> onPath d
         OsPathNonEmpty p -> onPath $ d </> p
-    TildeStateNonPrefix p -> throwM $ MkTildeException p
 {-# INLINEABLE onExpandedTilde #-}
