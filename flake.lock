@@ -122,6 +122,23 @@
         "type": "github"
       }
     },
+    "haskeline": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1751116625,
+        "narHash": "sha256-PitVU6h3pDAP+PR3wCSiqUu8Vr1KfqSao7LDNtTtC3c=",
+        "owner": "tbidne",
+        "repo": "haskeline",
+        "rev": "f57a946604f5be44330e1ab145c67b6dffb74e7b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tbidne",
+        "ref": "reader",
+        "repo": "haskeline",
+        "type": "github"
+      }
+    },
     "nix-hs-utils": {
       "locked": {
         "lastModified": 1742030678,
@@ -175,6 +192,7 @@
         "exception-utils": "exception-utils",
         "flake-parts": "flake-parts",
         "fs-utils": "fs-utils",
+        "haskeline": "haskeline",
         "nix-hs-utils": "nix-hs-utils",
         "nixpkgs": "nixpkgs",
         "smart-math": "smart-math"

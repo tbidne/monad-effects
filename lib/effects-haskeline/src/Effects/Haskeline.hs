@@ -1,19 +1,7 @@
-{-# LANGUAGE CPP #-}
-
-{- ORMOLU_DISABLE -}
+{-# LANGUAGE MonoLocalBinds #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Effects.Haskeline
-
-#if MIN_VERSION_base(4,19,0)
-
-{-# WARNING in "x-experimental" "Effects.Haskeline is experimental and subject to change." #-}
-
-#else
-
-{-# WARNING "Effects.Haskeline is experimental (not deprecated) and subject to change." #-}
-
-#endif
-
   ( -- * Class
     MonadHaskeline (..),
 
@@ -29,16 +17,19 @@ module Effects.Haskeline
   )
 where
 
-{- ORMOLU_ENABLE -}
-
 import Control.Monad.Catch (MonadMask)
-import Control.Monad.IO.Class (MonadIO)
-import Control.Monad.Trans.Class (MonadTrans (lift))
-import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
+import Control.Monad.IO.Class (MonadIO (liftIO))
+import Control.Monad.Identity (IdentityT (IdentityT))
+import Control.Monad.Reader (ReaderT, runReaderT)
+import Control.Monad.Reader.Class (MonadReader (ask, local))
+import Control.Monad.Trans (MonadTrans (lift))
+import Data.Kind (Type)
 import GHC.Stack (HasCallStack)
 import System.Console.Haskeline (InputT)
 import System.Console.Haskeline qualified as H
 import System.Console.Haskeline.History (History)
+import System.Console.Haskeline.Internal (InputTEnv)
+import System.Console.Haskeline.Internal qualified as HI
 
 -- NOTE: We implement most of the effectful functions from
 -- System.Console.Haskeline. What is missing is functions of the form
@@ -176,3 +167,58 @@ instance (MonadHaskeline m) => MonadHaskeline (ReaderT e m) where
     ask >>= \env ->
       lift $ handleInterrupt (runReaderT m1 env) (runReaderT m2 env)
   {-# INLINEABLE handleInterrupt #-}
+
+type InputTReader :: (Type -> Type) -> Type -> Type
+newtype InputTReader m a = MkInputTReader {unInputTReader :: m a}
+  deriving newtype (Applicative, Functor, Monad, MonadIO)
+  deriving (MonadTrans) via (IdentityT)
+
+instance
+  ( MonadIO m,
+    MonadMask m,
+    MonadReader (InputTEnv IO) (InputTReader m)
+  ) =>
+  MonadHaskeline (InputTReader m)
+  where
+  haveTerminalUI = liftInputT H.haveTerminalUI
+  {-# INLINEABLE haveTerminalUI #-}
+  getInputLine = liftInputT . H.getInputLine
+  {-# INLINEABLE getInputLine #-}
+  getInputLineWithInitial s = liftInputT . H.getInputLineWithInitial s
+  {-# INLINEABLE getInputLineWithInitial #-}
+  getInputChar = liftInputT . H.getInputChar
+  {-# INLINEABLE getInputChar #-}
+  getPassword c = liftInputT . H.getPassword c
+  {-# INLINEABLE getPassword #-}
+  waitForAnyKey = liftInputT . H.waitForAnyKey
+  {-# INLINEABLE waitForAnyKey #-}
+  outputStr = liftInputT . H.outputStr
+  {-# INLINEABLE outputStr #-}
+  outputStrLn = liftInputT . H.outputStrLn
+  {-# INLINEABLE outputStrLn #-}
+  getHistory = liftInputT H.getHistory
+  {-# INLINEABLE getHistory #-}
+  putHistory = liftInputT . H.putHistory
+  {-# INLINEABLE putHistory #-}
+  modifyHistory = liftInputT . H.modifyHistory
+  {-# INLINEABLE modifyHistory #-}
+  withInterrupt = liftInputT . H.withInterrupt . lift . unInputTReader
+  {-# INLINEABLE withInterrupt #-}
+  handleInterrupt (MkInputTReader m1) (MkInputTReader m2) =
+    liftInputT
+      (H.handleInterrupt (lift m1) (lift m2))
+  {-# INLINEABLE handleInterrupt #-}
+
+-- | @since 0.1
+instance (MonadReader r m) => MonadReader r (InputTReader m) where
+  ask = lift ask
+  local f = lift . local f . unInputTReader
+
+liftInputT ::
+  ( MonadIO m,
+    MonadReader (InputTEnv IO) (InputTReader m)
+  ) =>
+  InputT m a ->
+  InputTReader m a
+liftInputT f = do
+  ask >>= lift . runReaderT (HI.toReaderT f) . HI.mapInputTEnv liftIO

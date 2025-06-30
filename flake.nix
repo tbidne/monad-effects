@@ -40,6 +40,10 @@
     inputs.algebra-simple.follows = "algebra-simple";
     inputs.bounds.follows = "bounds";
   };
+  inputs.haskeline = {
+    url = "github:tbidne/haskeline/reader";
+    flake = false;
+  };
   outputs =
     inputs@{
       flake-parts,
@@ -58,6 +62,8 @@
               final: prev:
               {
                 path = hlib.dontCheck prev.path_0_9_6;
+
+                haskeline = hlib.dontCheck (final.callCabal2nix "haskeline" inputs.haskeline { });
               }
               // nix-hs-utils.mkLibs inputs final [
                 "algebra-simple"
