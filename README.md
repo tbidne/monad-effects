@@ -17,7 +17,7 @@
   - [effects-fs](#effects-fs)
   - [effects-haskeline](#effects-haskeline)
   - [effects-ioref](#effects-ioref)
-  - [effects-logger-ns](#effects-logger-ns)
+  - [effects-logger](#effects-logger)
   - [effects-optparse](#effects-optparse)
   - [effects-stm](#effects-stm)
   - [effects-terminal](#effects-terminal)
@@ -126,12 +126,13 @@ Effects for the `haskeline` library.
 
 `IORef` effects.
 
-## effects-logger-ns
+## effects-logger
 
 ### Library: `effects-logger`
 
 ### Modules
-* `Effects.LoggerNS`
+* `Effects.Logger`
+* `Effects.Logger.Namespace`
 
 ### Description
 

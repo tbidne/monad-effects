@@ -64,12 +64,12 @@ jobs:
       - name: Build effects-ioref
         run: cabal build effects-ioref
 
-      - name: Build effects-logger-ns
-        run: cabal build effects-logger-ns
+      - name: Build effects-logger
+        run: cabal build effects-logger
 
-      - name: Test effects-logger-ns
+      - name: Test effects-logger
         run: |
-          cabal test effects-logger-ns --test-options '--hedgehog-tests 100000'
+          cabal test effects-logger --test-options '--hedgehog-tests 100000'
 
       - name: Build effects-optparse
         run: cabal build effects-optparse
@@ -157,8 +157,8 @@ jobs:
       - name: Build effects-ioref
         run: nix build -Lv .#effects-ioref
 
-      - name: Build effects-logger-ns
-        run: nix build -Lv .#effects-logger-ns
+      - name: Build effects-logger
+        run: nix build -Lv .#effects-logger
 
       - name: Build effects-optparse
         run: nix build -Lv .#effects-optparse

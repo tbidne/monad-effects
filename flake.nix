@@ -82,7 +82,7 @@
                 effects-fs = ./lib/effects-fs;
                 effects-haskeline = ./lib/effects-haskeline;
                 effects-ioref = ./lib/effects-ioref;
-                effects-logger-ns = ./lib/effects-logger-ns;
+                effects-logger = ./lib/effects-logger;
                 effects-optparse = ./lib/effects-optparse;
                 effects-stm = ./lib/effects-stm;
                 effects-terminal = ./lib/effects-terminal;
@@ -100,7 +100,7 @@
             p.effects-fs
             p.effects-haskeline
             p.effects-ioref
-            p.effects-logger-ns
+            p.effects-logger
             p.effects-optparse
             p.effects-stm
             p.effects-terminal
@@ -126,7 +126,7 @@
           packages.effects-fs = mkPkg "effects-fs" ./lib/effects-fs { effects-ioref = ./lib/effects-ioref; };
           packages.effects-haskeline = mkPkg "effects-haskeline" ./lib/effects-haskeline { };
           packages.effects-ioref = mkPkg "effects-ioref" ./lib/effects-ioref { };
-          packages.effects-logger-ns = mkPkg "effects-logger-ns" ./lib/effects-logger-ns {
+          packages.effects-logger = mkPkg "effects-logger" ./lib/effects-logger {
             effects-thread = ./lib/effects-thread;
             effects-time = ./lib/effects-time;
           };

@@ -22,11 +22,11 @@ cradle:
     - path: "./lib/effects-ioref/src"
       component: "lib:effects-ioref"
 
-    - path: "./lib/effects-logger-ns/src"
-      component: "lib:effects-logger-ns"
+    - path: "./lib/effects-logger/src"
+      component: "lib:effects-logger"
 
-    - path: "./lib/effects-logger-ns/test/unit"
-      component: "effects-logger-ns:test:unit"
+    - path: "./lib/effects-logger/test/unit"
+      component: "effects-logger:test:unit"
 
     - path: "./lib/effects-optparse/src"
       component: "lib:effects-optparse"

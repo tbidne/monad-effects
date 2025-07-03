@@ -1,5 +1,5 @@
 cabal-version:   2.4
-name:            effects-logger-ns
+name:            effects-logger
 version:         0.1
 license:         MIT
 license-file:    LICENSE
@@ -43,7 +43,11 @@ common common-lang
 
 library
   import:          common-lang
-  exposed-modules: Effects.LoggerNS
+  exposed-modules:
+    Effects.Logger
+    Effects.Logger.Namespace
+    Effects.Logger.Utils
+
   build-depends:
     , base              >=4.16.0.0  && <4.22
     , bytestring        >=0.10.12.0 && <0.13
@@ -53,6 +57,7 @@ library
     , effects-time      ^>=0.1
     , fast-logger       >=2.1       && <3.3
     , monad-logger      ^>=0.3.30
+    , mtl               >=2.2.1     && <2.4
     , optics-core       ^>=0.4
     , template-haskell  >=2.16.0.0  && <2.24
     , text              >=1.2.4.0   && <2.2
@@ -63,22 +68,28 @@ test-suite unit
   import:         common-lang
   type:           exitcode-stdio-1.0
   main-is:        Main.hs
+  other-modules:
+    Unit.Effects.Logger
+    Unit.Effects.Logger.Namespace
+    Unit.Prelude
+
   build-depends:
     , base
     , bytestring
     , containers
-    , effects-logger-ns
+    , effects-logger
     , effects-thread
     , effects-time
-    , hedgehog           >=1.0.2   && <1.6
+    , hedgehog        >=1.0.2   && <1.6
     , monad-logger
+    , mtl
     , optics-core
-    , tasty              >=1.1.0.3 && <1.6
-    , tasty-hedgehog     >=1.2.0.0 && <1.5
-    , tasty-hunit        >=0.9     && <0.11
+    , tasty           >=1.1.0.3 && <1.6
+    , tasty-hedgehog  >=1.2.0.0 && <1.5
+    , tasty-hunit     >=0.9     && <0.11
     , text
-    , time               >=1.9.3   && <1.15
-    , transformers       >=0.5.6.2 && <0.7
+    , time            >=1.9.3   && <1.15
+    , transformers    >=0.5.6.2 && <0.7
 
   hs-source-dirs: test/unit
   ghc-options:    -threaded -with-rtsopts=-N

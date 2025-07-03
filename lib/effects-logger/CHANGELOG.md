@@ -1,4 +1,4 @@
-# Revision history for effects-logger-ns
+# Revision history for effects-logger
 
 ## 0.1 -- YYYY-mm-dd
 

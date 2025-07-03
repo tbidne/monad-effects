@@ -6,7 +6,7 @@ if os(windows)
     ./lib/effects-fs
     ./lib/effects-haskeline
     ./lib/effects-ioref
-    ./lib/effects-logger-ns
+    ./lib/effects-logger
     ./lib/effects-optparse
     ./lib/effects-stm
     ./lib/effects-terminal
@@ -22,7 +22,7 @@ else
     ./lib/effects-fs
     ./lib/effects-haskeline
     ./lib/effects-ioref
-    ./lib/effects-logger-ns
+    ./lib/effects-logger
     ./lib/effects-optparse
     ./lib/effects-stm
     ./lib/effects-terminal
