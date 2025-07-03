@@ -1,0 +1,436 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-comment">{- ORMOLU_DISABLE -}</span><span>
+</span><span id="line-4"></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Effects.Haskeline.html"><span class="hs-identifier">Effects.Haskeline</span></a></span><span class="hs-cpp">
+
+#if MIN_VERSION_base(4,19,0)
+</span><span>
+</span><span id="line-9"></span><span class="hs-pragma">{-# WARNING</span><span> </span><span class="hs-pragma">in</span><span> </span><span class="hs-pragma">&quot;x-experimental&quot;</span><span> </span><span class="hs-pragma">&quot;Effects.Haskeline is experimental and subject to change.&quot;</span><span> </span><span class="hs-pragma">#-}</span><span class="hs-cpp">
+
+#else
+</span><span>
+</span><span id="line-13"></span><span class="hs-pragma">{-# WARNING</span><span> </span><span class="hs-pragma">&quot;Effects.Haskeline is experimental (not deprecated) and subject to change.&quot;</span><span> </span><span class="hs-pragma">#-}</span><span class="hs-cpp">
+
+#endif
+</span><span>
+</span><span id="line-17"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Class</span></span><span>
+</span><span id="line-18"></span><span>    </span><span class="annot"><a href="Effects.Haskeline.html#MonadHaskeline"><span class="hs-identifier">MonadHaskeline</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span>    </span><span class="annot"><span class="hs-comment">-- * IO Runners</span></span><span>
+</span><span id="line-21"></span><span>    </span><span class="annot"><span class="hs-identifier">H.runInputT</span></span><span class="hs-special">,</span><span>
+</span><span id="line-22"></span><span>    </span><span class="annot"><span class="hs-identifier">H.runInputTBehavior</span></span><span class="hs-special">,</span><span>
+</span><span id="line-23"></span><span>    </span><span class="annot"><span class="hs-identifier">H.runInputTBehaviorWithPrefs</span></span><span class="hs-special">,</span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Config</span></span><span>
+</span><span id="line-26"></span><span>    </span><span class="annot"><span class="hs-identifier">H.defaultSettings</span></span><span class="hs-special">,</span><span>
+</span><span id="line-27"></span><span>    </span><span class="annot"><span class="hs-identifier">H.defaultBehavior</span></span><span class="hs-special">,</span><span>
+</span><span id="line-28"></span><span>    </span><span class="annot"><span class="hs-identifier">H.defaultPrefs</span></span><span class="hs-special">,</span><span>
+</span><span id="line-29"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-31"></span><span>
+</span><span id="line-32"></span><span class="hs-comment">{- ORMOLU_ENABLE -}</span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Catch</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadMask</span></span><span class="hs-special">)</span><span>
+</span><span id="line-35"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.IO.Class</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadIO</span></span><span class="hs-special">)</span><span>
+</span><span id="line-36"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Class</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadTrans</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">lift</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-37"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Reader</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ReaderT</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">ask</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">runReaderT</span></span><span class="hs-special">)</span><span>
+</span><span id="line-38"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Stack</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">HasCallStack</span></span><span class="hs-special">)</span><span>
+</span><span id="line-39"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.Console.Haskeline</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">InputT</span></span><span class="hs-special">)</span><span>
+</span><span id="line-40"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.Console.Haskeline</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">H</span></span><span>
+</span><span id="line-41"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.Console.Haskeline.History</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">History</span></span><span class="hs-special">)</span><span>
+</span><span id="line-42"></span><span>
+</span><span id="line-43"></span><span class="hs-comment">-- NOTE: We implement most of the effectful functions from</span><span>
+</span><span id="line-44"></span><span class="hs-comment">-- System.Console.Haskeline. What is missing is functions of the form</span><span>
+</span><span id="line-45"></span><span class="hs-comment">-- 'foo :: Input m a -&gt; m a' i.e. they run the input to produce a result in the</span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- underlying monad.</span><span>
+</span><span id="line-47"></span><span class="hs-comment">--</span><span>
+</span><span id="line-48"></span><span class="hs-comment">-- It is not obvious how to add such functionality here since we chose to</span><span>
+</span><span id="line-49"></span><span class="hs-comment">-- return functions in the class parameter m, rather than InputT m. We</span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- chose this because e.g. lifting to ReaderT was straightforward. Otherwise</span><span>
+</span><span id="line-51"></span><span class="hs-comment">-- we would have to write a 'hoist :: InputT (ReaderT e m) a -&gt; InputT m a',</span><span>
+</span><span id="line-52"></span><span class="hs-comment">-- and this is also not obvious.</span><span>
+</span><span id="line-53"></span><span class="hs-comment">--</span><span>
+</span><span id="line-54"></span><span class="hs-comment">-- One way we might implement functions like foo is to include an associated</span><span>
+</span><span id="line-55"></span><span class="hs-comment">-- type 'type Base m' ana have 'foo :: m a -&gt; Base m a'.</span><span>
+</span><span id="line-56"></span><span class="hs-keyword">class</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Monad</span></span><span> </span><span class="annot"><a href="#local-6989586621679036939"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span id="MonadHaskeline"><span class="annot"><a href="Effects.Haskeline.html#MonadHaskeline"><span class="hs-identifier hs-var">MonadHaskeline</span></a></span></span><span> </span><span id="local-6989586621679036939"><span class="annot"><a href="#local-6989586621679036939"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-57"></span><span>  </span><span class="hs-comment">-- | Lifted 'H.haveTerminalUI'.</span><span>
+</span><span id="line-58"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-59"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-60"></span><span>  </span><span id="haveTerminalUI"><span class="annot"><a href="Effects.Haskeline.html#haveTerminalUI"><span class="hs-identifier hs-type">haveTerminalUI</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679036939"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-61"></span><span>
+</span><span id="line-62"></span><span>  </span><span class="hs-comment">-- | Lifted 'H.getInputLine'.</span><span>
+</span><span id="line-63"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-64"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-65"></span><span>  </span><span id="getInputLine"><span class="annot"><a href="Effects.Haskeline.html#getInputLine"><span class="hs-identifier hs-type">getInputLine</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679036939"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span>
+</span><span id="line-66"></span><span>
+</span><span id="line-67"></span><span>  </span><span class="hs-comment">-- | Lifted 'H.getInputLineWithInitial'.</span><span>
+</span><span id="line-68"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-69"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-70"></span><span>  </span><span id="getInputLineWithInitial"><span class="annot"><a href="Effects.Haskeline.html#getInputLineWithInitial"><span class="hs-identifier hs-type">getInputLineWithInitial</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679036939"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span>
+</span><span id="line-71"></span><span>
+</span><span id="line-72"></span><span>  </span><span class="hs-comment">-- | Lifted 'H.getInputChar'.</span><span>
+</span><span id="line-73"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-74"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-75"></span><span>  </span><span id="getInputChar"><span class="annot"><a href="Effects.Haskeline.html#getInputChar"><span class="hs-identifier hs-type">getInputChar</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679036939"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span class="hs-special">)</span><span>
+</span><span id="line-76"></span><span>
+</span><span id="line-77"></span><span>  </span><span class="hs-comment">-- | Lifted 'H.getPassword'.</span><span>
+</span><span id="line-78"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-79"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-80"></span><span>  </span><span id="getPassword"><span class="annot"><a href="Effects.Haskeline.html#getPassword"><span class="hs-identifier hs-type">getPassword</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679036939"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span>
+</span><span id="line-81"></span><span>
+</span><span id="line-82"></span><span>  </span><span class="hs-comment">-- | Lifted 'H.waitForAnyKey'.</span><span>
+</span><span id="line-83"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-84"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-85"></span><span>  </span><span id="waitForAnyKey"><span class="annot"><a href="Effects.Haskeline.html#waitForAnyKey"><span class="hs-identifier hs-type">waitForAnyKey</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679036939"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-86"></span><span>
+</span><span id="line-87"></span><span>  </span><span class="hs-comment">-- | Lifted 'H.outputStr'.</span><span>
+</span><span id="line-88"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-89"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-90"></span><span>  </span><span id="outputStr"><span class="annot"><a href="Effects.Haskeline.html#outputStr"><span class="hs-identifier hs-type">outputStr</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679036939"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-91"></span><span>
+</span><span id="line-92"></span><span>  </span><span class="hs-comment">-- | Lifted 'H.outputStrLn'.</span><span>
+</span><span id="line-93"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-94"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-95"></span><span>  </span><span id="outputStrLn"><span class="annot"><a href="Effects.Haskeline.html#outputStrLn"><span class="hs-identifier hs-type">outputStrLn</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679036939"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-96"></span><span>
+</span><span id="line-97"></span><span>  </span><span class="hs-comment">-- | Lifted 'H.getHistory'.</span><span>
+</span><span id="line-98"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-99"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-100"></span><span>  </span><span id="getHistory"><span class="annot"><a href="Effects.Haskeline.html#getHistory"><span class="hs-identifier hs-type">getHistory</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679036939"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">History</span></span><span>
+</span><span id="line-101"></span><span>
+</span><span id="line-102"></span><span>  </span><span class="hs-comment">-- | Lifted 'H.putHistory'.</span><span>
+</span><span id="line-103"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-104"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-105"></span><span>  </span><span id="putHistory"><span class="annot"><a href="Effects.Haskeline.html#putHistory"><span class="hs-identifier hs-type">putHistory</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">History</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679036939"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-106"></span><span>
+</span><span id="line-107"></span><span>  </span><span class="hs-comment">-- | Lifted 'H.modifyHistory'.</span><span>
+</span><span id="line-108"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-109"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-110"></span><span>  </span><span id="modifyHistory"><span class="annot"><a href="Effects.Haskeline.html#modifyHistory"><span class="hs-identifier hs-type">modifyHistory</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">History</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">History</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679036939"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-111"></span><span>
+</span><span id="line-112"></span><span>  </span><span class="hs-comment">-- | Lifted 'H.withInterrupt'.</span><span>
+</span><span id="line-113"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-114"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-115"></span><span>  </span><span id="withInterrupt"><span class="annot"><a href="Effects.Haskeline.html#withInterrupt"><span class="hs-identifier hs-type">withInterrupt</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span id="local-6989586621679036945"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679036939"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679036945"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679036939"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679036945"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-116"></span><span>
+</span><span id="line-117"></span><span>  </span><span class="hs-comment">-- | Lifted 'H.handleInterrupt'.</span><span>
+</span><span id="line-118"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-119"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-120"></span><span>  </span><span id="handleInterrupt"><span class="annot"><a href="Effects.Haskeline.html#handleInterrupt"><span class="hs-identifier hs-type">handleInterrupt</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span id="local-6989586621679036946"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679036939"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679036946"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679036939"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679036946"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679036939"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679036946"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-121"></span><span>
+</span><span id="line-122"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679036949"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadIO</span></span><span> </span><span class="annot"><a href="#local-6989586621679036949"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadMask</span></span><span> </span><span class="annot"><a href="#local-6989586621679036949"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#MonadHaskeline"><span class="hs-identifier hs-type">MonadHaskeline</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">InputT</span></span><span> </span><span class="annot"><a href="#local-6989586621679036949"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-123"></span><span>  </span><span id="local-6989586621679037045"><span class="annot"><span class="annottext">haveTerminalUI :: HasCallStack =&gt; InputT m Bool
+</span><a href="Effects.Haskeline.html#haveTerminalUI"><span class="hs-identifier hs-var hs-var hs-var">haveTerminalUI</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">InputT m Bool
+forall (m :: * -&gt; *). Monad m =&gt; InputT m Bool
+</span><span class="hs-identifier hs-var">H.haveTerminalUI</span></span><span>
+</span><span id="line-124"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#haveTerminalUI"><span class="hs-pragma hs-type">haveTerminalUI</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-125"></span><span>  </span><span id="local-6989586621679037050"><span class="annot"><span class="annottext">getInputLine :: HasCallStack =&gt; String -&gt; InputT m (Maybe String)
+</span><a href="Effects.Haskeline.html#getInputLine"><span class="hs-identifier hs-var hs-var hs-var">getInputLine</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; InputT m (Maybe String)
+forall (m :: * -&gt; *).
+(MonadIO m, MonadMask m) =&gt;
+String -&gt; InputT m (Maybe String)
+</span><span class="hs-identifier hs-var">H.getInputLine</span></span><span>
+</span><span id="line-126"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#getInputLine"><span class="hs-pragma hs-type">getInputLine</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-127"></span><span>  </span><span id="local-6989586621679037055"><span class="annot"><span class="annottext">getInputLineWithInitial :: HasCallStack =&gt;
+String -&gt; (String, String) -&gt; InputT m (Maybe String)
+</span><a href="Effects.Haskeline.html#getInputLineWithInitial"><span class="hs-identifier hs-var hs-var hs-var">getInputLineWithInitial</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (String, String) -&gt; InputT m (Maybe String)
+forall (m :: * -&gt; *).
+(MonadIO m, MonadMask m) =&gt;
+String -&gt; (String, String) -&gt; InputT m (Maybe String)
+</span><span class="hs-identifier hs-var">H.getInputLineWithInitial</span></span><span>
+</span><span id="line-128"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#getInputLineWithInitial"><span class="hs-pragma hs-type">getInputLineWithInitial</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-129"></span><span>  </span><span id="local-6989586621679037060"><span class="annot"><span class="annottext">getInputChar :: HasCallStack =&gt; String -&gt; InputT m (Maybe Char)
+</span><a href="Effects.Haskeline.html#getInputChar"><span class="hs-identifier hs-var hs-var hs-var">getInputChar</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; InputT m (Maybe Char)
+forall (m :: * -&gt; *).
+(MonadIO m, MonadMask m) =&gt;
+String -&gt; InputT m (Maybe Char)
+</span><span class="hs-identifier hs-var">H.getInputChar</span></span><span>
+</span><span id="line-130"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#getInputChar"><span class="hs-pragma hs-type">getInputChar</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-131"></span><span>  </span><span id="local-6989586621679037065"><span class="annot"><span class="annottext">getPassword :: HasCallStack =&gt; Maybe Char -&gt; String -&gt; InputT m (Maybe String)
+</span><a href="Effects.Haskeline.html#getPassword"><span class="hs-identifier hs-var hs-var hs-var">getPassword</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Char -&gt; String -&gt; InputT m (Maybe String)
+forall (m :: * -&gt; *).
+(MonadIO m, MonadMask m) =&gt;
+Maybe Char -&gt; String -&gt; InputT m (Maybe String)
+</span><span class="hs-identifier hs-var">H.getPassword</span></span><span>
+</span><span id="line-132"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#getPassword"><span class="hs-pragma hs-type">getPassword</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-133"></span><span>  </span><span id="local-6989586621679037070"><span class="annot"><span class="annottext">waitForAnyKey :: HasCallStack =&gt; String -&gt; InputT m Bool
+</span><a href="Effects.Haskeline.html#waitForAnyKey"><span class="hs-identifier hs-var hs-var hs-var">waitForAnyKey</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; InputT m Bool
+forall (m :: * -&gt; *).
+(MonadIO m, MonadMask m) =&gt;
+String -&gt; InputT m Bool
+</span><span class="hs-identifier hs-var">H.waitForAnyKey</span></span><span>
+</span><span id="line-134"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#waitForAnyKey"><span class="hs-pragma hs-type">waitForAnyKey</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-135"></span><span>  </span><span id="local-6989586621679037074"><span class="annot"><span class="annottext">outputStr :: HasCallStack =&gt; String -&gt; InputT m ()
+</span><a href="Effects.Haskeline.html#outputStr"><span class="hs-identifier hs-var hs-var hs-var">outputStr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; InputT m ()
+forall (m :: * -&gt; *). MonadIO m =&gt; String -&gt; InputT m ()
+</span><span class="hs-identifier hs-var">H.outputStr</span></span><span>
+</span><span id="line-136"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#outputStr"><span class="hs-pragma hs-type">outputStr</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-137"></span><span>  </span><span id="local-6989586621679037078"><span class="annot"><span class="annottext">outputStrLn :: HasCallStack =&gt; String -&gt; InputT m ()
+</span><a href="Effects.Haskeline.html#outputStrLn"><span class="hs-identifier hs-var hs-var hs-var">outputStrLn</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; InputT m ()
+forall (m :: * -&gt; *). MonadIO m =&gt; String -&gt; InputT m ()
+</span><span class="hs-identifier hs-var">H.outputStrLn</span></span><span>
+</span><span id="line-138"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#outputStrLn"><span class="hs-pragma hs-type">outputStrLn</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-139"></span><span>  </span><span id="local-6989586621679037082"><span class="annot"><span class="annottext">getHistory :: HasCallStack =&gt; InputT m History
+</span><a href="Effects.Haskeline.html#getHistory"><span class="hs-identifier hs-var hs-var hs-var">getHistory</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">InputT m History
+forall (m :: * -&gt; *). MonadIO m =&gt; InputT m History
+</span><span class="hs-identifier hs-var">H.getHistory</span></span><span>
+</span><span id="line-140"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#getHistory"><span class="hs-pragma hs-type">getHistory</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-141"></span><span>  </span><span id="local-6989586621679037086"><span class="annot"><span class="annottext">putHistory :: HasCallStack =&gt; History -&gt; InputT m ()
+</span><a href="Effects.Haskeline.html#putHistory"><span class="hs-identifier hs-var hs-var hs-var">putHistory</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">History -&gt; InputT m ()
+forall (m :: * -&gt; *). MonadIO m =&gt; History -&gt; InputT m ()
+</span><span class="hs-identifier hs-var">H.putHistory</span></span><span>
+</span><span id="line-142"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#putHistory"><span class="hs-pragma hs-type">putHistory</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-143"></span><span>  </span><span id="local-6989586621679037090"><span class="annot"><span class="annottext">modifyHistory :: HasCallStack =&gt; (History -&gt; History) -&gt; InputT m ()
+</span><a href="Effects.Haskeline.html#modifyHistory"><span class="hs-identifier hs-var hs-var hs-var">modifyHistory</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(History -&gt; History) -&gt; InputT m ()
+forall (m :: * -&gt; *).
+MonadIO m =&gt;
+(History -&gt; History) -&gt; InputT m ()
+</span><span class="hs-identifier hs-var">H.modifyHistory</span></span><span>
+</span><span id="line-144"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#modifyHistory"><span class="hs-pragma hs-type">modifyHistory</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-145"></span><span>  </span><span id="local-6989586621679037095"><span class="annot"><span class="annottext">withInterrupt :: forall a. HasCallStack =&gt; InputT m a -&gt; InputT m a
+</span><a href="Effects.Haskeline.html#withInterrupt"><span class="hs-identifier hs-var hs-var hs-var">withInterrupt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">InputT m a -&gt; InputT m a
+forall (m :: * -&gt; *) a.
+(MonadIO m, MonadMask m) =&gt;
+InputT m a -&gt; InputT m a
+</span><span class="hs-identifier hs-var">H.withInterrupt</span></span><span>
+</span><span id="line-146"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#withInterrupt"><span class="hs-pragma hs-type">withInterrupt</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-147"></span><span>  </span><span id="local-6989586621679037100"><span class="annot"><span class="annottext">handleInterrupt :: forall a. HasCallStack =&gt; InputT m a -&gt; InputT m a -&gt; InputT m a
+</span><a href="Effects.Haskeline.html#handleInterrupt"><span class="hs-identifier hs-var hs-var hs-var">handleInterrupt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">InputT m a -&gt; InputT m a -&gt; InputT m a
+forall (m :: * -&gt; *) a. MonadMask m =&gt; m a -&gt; m a -&gt; m a
+</span><span class="hs-identifier hs-var">H.handleInterrupt</span></span><span>
+</span><span id="line-148"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#handleInterrupt"><span class="hs-pragma hs-type">handleInterrupt</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-149"></span><span>
+</span><span id="line-150"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679036974"><span id="local-6989586621679036975"><span class="hs-special">(</span><span class="annot"><a href="Effects.Haskeline.html#MonadHaskeline"><span class="hs-identifier hs-type">MonadHaskeline</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679036974"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#MonadHaskeline"><span class="hs-identifier hs-type">MonadHaskeline</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ReaderT</span></span><span> </span><span class="annot"><a href="#local-6989586621679036975"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679036974"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-151"></span><span>  </span><span id="local-6989586621679037128"><span class="annot"><span class="annottext">haveTerminalUI :: HasCallStack =&gt; ReaderT e m Bool
+</span><a href="Effects.Haskeline.html#haveTerminalUI"><span class="hs-identifier hs-var hs-var hs-var">haveTerminalUI</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Bool -&gt; ReaderT e m Bool
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m Bool
+forall (m :: * -&gt; *). (MonadHaskeline m, HasCallStack) =&gt; m Bool
+</span><a href="Effects.Haskeline.html#haveTerminalUI"><span class="hs-identifier hs-var">haveTerminalUI</span></a></span><span>
+</span><span id="line-152"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#haveTerminalUI"><span class="hs-pragma hs-type">haveTerminalUI</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-153"></span><span>  </span><span id="local-6989586621679037135"><span class="annot"><span class="annottext">getInputLine :: HasCallStack =&gt; String -&gt; ReaderT e m (Maybe String)
+</span><a href="Effects.Haskeline.html#getInputLine"><span class="hs-identifier hs-var hs-var hs-var">getInputLine</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m (Maybe String) -&gt; ReaderT e m (Maybe String)
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m (Maybe String) -&gt; ReaderT e m (Maybe String))
+-&gt; (String -&gt; m (Maybe String))
+-&gt; String
+-&gt; ReaderT e m (Maybe String)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; m (Maybe String)
+forall (m :: * -&gt; *).
+(MonadHaskeline m, HasCallStack) =&gt;
+String -&gt; m (Maybe String)
+</span><a href="Effects.Haskeline.html#getInputLine"><span class="hs-identifier hs-var">getInputLine</span></a></span><span>
+</span><span id="line-154"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#getInputLine"><span class="hs-pragma hs-type">getInputLine</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-155"></span><span>  </span><span id="local-6989586621679037143"><span class="annot"><span class="annottext">getInputLineWithInitial :: HasCallStack =&gt;
+String -&gt; (String, String) -&gt; ReaderT e m (Maybe String)
+</span><a href="Effects.Haskeline.html#getInputLineWithInitial"><span class="hs-identifier hs-var hs-var hs-var">getInputLineWithInitial</span></a></span></span><span> </span><span id="local-6989586621679037144"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679037144"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m (Maybe String) -&gt; ReaderT e m (Maybe String)
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m (Maybe String) -&gt; ReaderT e m (Maybe String))
+-&gt; ((String, String) -&gt; m (Maybe String))
+-&gt; (String, String)
+-&gt; ReaderT e m (Maybe String)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; (String, String) -&gt; m (Maybe String)
+forall (m :: * -&gt; *).
+(MonadHaskeline m, HasCallStack) =&gt;
+String -&gt; (String, String) -&gt; m (Maybe String)
+</span><a href="Effects.Haskeline.html#getInputLineWithInitial"><span class="hs-identifier hs-var">getInputLineWithInitial</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679037144"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-156"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#getInputLineWithInitial"><span class="hs-pragma hs-type">getInputLineWithInitial</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-157"></span><span>  </span><span id="local-6989586621679037151"><span class="annot"><span class="annottext">getInputChar :: HasCallStack =&gt; String -&gt; ReaderT e m (Maybe Char)
+</span><a href="Effects.Haskeline.html#getInputChar"><span class="hs-identifier hs-var hs-var hs-var">getInputChar</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m (Maybe Char) -&gt; ReaderT e m (Maybe Char)
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m (Maybe Char) -&gt; ReaderT e m (Maybe Char))
+-&gt; (String -&gt; m (Maybe Char)) -&gt; String -&gt; ReaderT e m (Maybe Char)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; m (Maybe Char)
+forall (m :: * -&gt; *).
+(MonadHaskeline m, HasCallStack) =&gt;
+String -&gt; m (Maybe Char)
+</span><a href="Effects.Haskeline.html#getInputChar"><span class="hs-identifier hs-var">getInputChar</span></a></span><span>
+</span><span id="line-158"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#getInputChar"><span class="hs-pragma hs-type">getInputChar</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-159"></span><span>  </span><span id="local-6989586621679037158"><span class="annot"><span class="annottext">getPassword :: HasCallStack =&gt; Maybe Char -&gt; String -&gt; ReaderT e m (Maybe String)
+</span><a href="Effects.Haskeline.html#getPassword"><span class="hs-identifier hs-var hs-var hs-var">getPassword</span></a></span></span><span> </span><span id="local-6989586621679037159"><span class="annot"><span class="annottext">Maybe Char
+</span><a href="#local-6989586621679037159"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m (Maybe String) -&gt; ReaderT e m (Maybe String)
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m (Maybe String) -&gt; ReaderT e m (Maybe String))
+-&gt; (String -&gt; m (Maybe String))
+-&gt; String
+-&gt; ReaderT e m (Maybe String)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Maybe Char -&gt; String -&gt; m (Maybe String)
+forall (m :: * -&gt; *).
+(MonadHaskeline m, HasCallStack) =&gt;
+Maybe Char -&gt; String -&gt; m (Maybe String)
+</span><a href="Effects.Haskeline.html#getPassword"><span class="hs-identifier hs-var">getPassword</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Char
+</span><a href="#local-6989586621679037159"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><span id="line-160"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#getPassword"><span class="hs-pragma hs-type">getPassword</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-161"></span><span>  </span><span id="local-6989586621679037166"><span class="annot"><span class="annottext">waitForAnyKey :: HasCallStack =&gt; String -&gt; ReaderT e m Bool
+</span><a href="Effects.Haskeline.html#waitForAnyKey"><span class="hs-identifier hs-var hs-var hs-var">waitForAnyKey</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Bool -&gt; ReaderT e m Bool
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m Bool -&gt; ReaderT e m Bool)
+-&gt; (String -&gt; m Bool) -&gt; String -&gt; ReaderT e m Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; m Bool
+forall (m :: * -&gt; *).
+(MonadHaskeline m, HasCallStack) =&gt;
+String -&gt; m Bool
+</span><a href="Effects.Haskeline.html#waitForAnyKey"><span class="hs-identifier hs-var">waitForAnyKey</span></a></span><span>
+</span><span id="line-162"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#waitForAnyKey"><span class="hs-pragma hs-type">waitForAnyKey</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-163"></span><span>  </span><span id="local-6989586621679037173"><span class="annot"><span class="annottext">outputStr :: HasCallStack =&gt; String -&gt; ReaderT e m ()
+</span><a href="Effects.Haskeline.html#outputStr"><span class="hs-identifier hs-var hs-var hs-var">outputStr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ())
+-&gt; (String -&gt; m ()) -&gt; String -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadHaskeline m, HasCallStack) =&gt;
+String -&gt; m ()
+</span><a href="Effects.Haskeline.html#outputStr"><span class="hs-identifier hs-var">outputStr</span></a></span><span>
+</span><span id="line-164"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#outputStr"><span class="hs-pragma hs-type">outputStr</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-165"></span><span>  </span><span id="local-6989586621679037180"><span class="annot"><span class="annottext">outputStrLn :: HasCallStack =&gt; String -&gt; ReaderT e m ()
+</span><a href="Effects.Haskeline.html#outputStrLn"><span class="hs-identifier hs-var hs-var hs-var">outputStrLn</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ())
+-&gt; (String -&gt; m ()) -&gt; String -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadHaskeline m, HasCallStack) =&gt;
+String -&gt; m ()
+</span><a href="Effects.Haskeline.html#outputStrLn"><span class="hs-identifier hs-var">outputStrLn</span></a></span><span>
+</span><span id="line-166"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#outputStrLn"><span class="hs-pragma hs-type">outputStrLn</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-167"></span><span>  </span><span id="local-6989586621679037187"><span class="annot"><span class="annottext">getHistory :: HasCallStack =&gt; ReaderT e m History
+</span><a href="Effects.Haskeline.html#getHistory"><span class="hs-identifier hs-var hs-var hs-var">getHistory</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m History -&gt; ReaderT e m History
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m History
+forall (m :: * -&gt; *). (MonadHaskeline m, HasCallStack) =&gt; m History
+</span><a href="Effects.Haskeline.html#getHistory"><span class="hs-identifier hs-var">getHistory</span></a></span><span>
+</span><span id="line-168"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#getHistory"><span class="hs-pragma hs-type">getHistory</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-169"></span><span>  </span><span id="local-6989586621679037194"><span class="annot"><span class="annottext">putHistory :: HasCallStack =&gt; History -&gt; ReaderT e m ()
+</span><a href="Effects.Haskeline.html#putHistory"><span class="hs-identifier hs-var hs-var hs-var">putHistory</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ())
+-&gt; (History -&gt; m ()) -&gt; History -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">History -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadHaskeline m, HasCallStack) =&gt;
+History -&gt; m ()
+</span><a href="Effects.Haskeline.html#putHistory"><span class="hs-identifier hs-var">putHistory</span></a></span><span>
+</span><span id="line-170"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#putHistory"><span class="hs-pragma hs-type">putHistory</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-171"></span><span>  </span><span id="local-6989586621679037201"><span class="annot"><span class="annottext">modifyHistory :: HasCallStack =&gt; (History -&gt; History) -&gt; ReaderT e m ()
+</span><a href="Effects.Haskeline.html#modifyHistory"><span class="hs-identifier hs-var hs-var hs-var">modifyHistory</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ())
+-&gt; ((History -&gt; History) -&gt; m ())
+-&gt; (History -&gt; History)
+-&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(History -&gt; History) -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadHaskeline m, HasCallStack) =&gt;
+(History -&gt; History) -&gt; m ()
+</span><a href="Effects.Haskeline.html#modifyHistory"><span class="hs-identifier hs-var">modifyHistory</span></a></span><span>
+</span><span id="line-172"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#modifyHistory"><span class="hs-pragma hs-type">modifyHistory</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-173"></span><span>  </span><span id="local-6989586621679037210"><span class="annot"><span class="annottext">withInterrupt :: forall a. HasCallStack =&gt; ReaderT e m a -&gt; ReaderT e m a
+</span><a href="Effects.Haskeline.html#withInterrupt"><span class="hs-identifier hs-var hs-var hs-var">withInterrupt</span></a></span></span><span> </span><span id="local-6989586621679037211"><span class="annot"><span class="annottext">ReaderT e m a
+</span><a href="#local-6989586621679037211"><span class="hs-identifier hs-var">rdr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ReaderT e m e
+forall (m :: * -&gt; *) r. Monad m =&gt; ReaderT r m r
+</span><span class="hs-identifier hs-var">ask</span></span><span> </span><span class="annot"><span class="annottext">ReaderT e m e -&gt; (e -&gt; ReaderT e m a) -&gt; ReaderT e m a
+forall a b. ReaderT e m a -&gt; (a -&gt; ReaderT e m b) -&gt; ReaderT e m b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679037212"><span class="annot"><span class="annottext">e
+</span><a href="#local-6989586621679037212"><span class="hs-identifier hs-var">env</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">m a -&gt; ReaderT e m a
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m a -&gt; ReaderT e m a) -&gt; m a -&gt; ReaderT e m a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">m a -&gt; m a
+forall a. HasCallStack =&gt; m a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadHaskeline m, HasCallStack) =&gt;
+m a -&gt; m a
+</span><a href="Effects.Haskeline.html#withInterrupt"><span class="hs-identifier hs-var">withInterrupt</span></a></span><span> </span><span class="annot"><span class="annottext">(m a -&gt; m a) -&gt; m a -&gt; m a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">ReaderT e m a -&gt; e -&gt; m a
+forall r (m :: * -&gt; *) a. ReaderT r m a -&gt; r -&gt; m a
+</span><span class="hs-identifier hs-var">runReaderT</span></span><span> </span><span class="annot"><span class="annottext">ReaderT e m a
+</span><a href="#local-6989586621679037211"><span class="hs-identifier hs-var">rdr</span></a></span><span> </span><span class="annot"><span class="annottext">e
+</span><a href="#local-6989586621679037212"><span class="hs-identifier hs-var">env</span></a></span><span>
+</span><span id="line-174"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#withInterrupt"><span class="hs-pragma hs-type">withInterrupt</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-175"></span><span>  </span><span id="local-6989586621679037221"><span class="annot"><span class="annottext">handleInterrupt :: forall a.
+HasCallStack =&gt;
+ReaderT e m a -&gt; ReaderT e m a -&gt; ReaderT e m a
+</span><a href="Effects.Haskeline.html#handleInterrupt"><span class="hs-identifier hs-var hs-var hs-var">handleInterrupt</span></a></span></span><span> </span><span id="local-6989586621679037222"><span class="annot"><span class="annottext">ReaderT e m a
+</span><a href="#local-6989586621679037222"><span class="hs-identifier hs-var">m1</span></a></span></span><span> </span><span id="local-6989586621679037223"><span class="annot"><span class="annottext">ReaderT e m a
+</span><a href="#local-6989586621679037223"><span class="hs-identifier hs-var">m2</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-176"></span><span>    </span><span class="annot"><span class="annottext">ReaderT e m e
+forall (m :: * -&gt; *) r. Monad m =&gt; ReaderT r m r
+</span><span class="hs-identifier hs-var">ask</span></span><span> </span><span class="annot"><span class="annottext">ReaderT e m e -&gt; (e -&gt; ReaderT e m a) -&gt; ReaderT e m a
+forall a b. ReaderT e m a -&gt; (a -&gt; ReaderT e m b) -&gt; ReaderT e m b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679037224"><span class="annot"><span class="annottext">e
+</span><a href="#local-6989586621679037224"><span class="hs-identifier hs-var">env</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-177"></span><span>      </span><span class="annot"><span class="annottext">m a -&gt; ReaderT e m a
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m a -&gt; ReaderT e m a) -&gt; m a -&gt; ReaderT e m a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">m a -&gt; m a -&gt; m a
+forall a. HasCallStack =&gt; m a -&gt; m a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadHaskeline m, HasCallStack) =&gt;
+m a -&gt; m a -&gt; m a
+</span><a href="Effects.Haskeline.html#handleInterrupt"><span class="hs-identifier hs-var">handleInterrupt</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ReaderT e m a -&gt; e -&gt; m a
+forall r (m :: * -&gt; *) a. ReaderT r m a -&gt; r -&gt; m a
+</span><span class="hs-identifier hs-var">runReaderT</span></span><span> </span><span class="annot"><span class="annottext">ReaderT e m a
+</span><a href="#local-6989586621679037222"><span class="hs-identifier hs-var">m1</span></a></span><span> </span><span class="annot"><span class="annottext">e
+</span><a href="#local-6989586621679037224"><span class="hs-identifier hs-var">env</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ReaderT e m a -&gt; e -&gt; m a
+forall r (m :: * -&gt; *) a. ReaderT r m a -&gt; r -&gt; m a
+</span><span class="hs-identifier hs-var">runReaderT</span></span><span> </span><span class="annot"><span class="annottext">ReaderT e m a
+</span><a href="#local-6989586621679037223"><span class="hs-identifier hs-var">m2</span></a></span><span> </span><span class="annot"><span class="annottext">e
+</span><a href="#local-6989586621679037224"><span class="hs-identifier hs-var">env</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-178"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Haskeline.html#handleInterrupt"><span class="hs-pragma hs-type">handleInterrupt</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-179"></span></pre></body></html>
