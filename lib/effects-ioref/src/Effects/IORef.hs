@@ -6,6 +6,8 @@ module Effects.IORef
     MonadIORef (..),
 
     -- * Functions
+    newIORef',
+    writeIORef',
     atomicModifyIORef'_,
 
     -- * Reexports
@@ -13,6 +15,8 @@ module Effects.IORef
   )
 where
 
+import Control.Exception (evaluate)
+import Control.Monad ((>=>))
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.IORef (IORef)
@@ -82,6 +86,18 @@ instance (MonadIORef m) => MonadIORef (ReaderT e m) where
   {-# INLINEABLE modifyIORef' #-}
   atomicModifyIORef' r = lift . atomicModifyIORef' r
   {-# INLINEABLE atomicModifyIORef' #-}
+
+-- | Evaluates a to WHNF then calls 'newIORef'.
+--
+-- @since 0.1
+newIORef' :: a -> IO (IORef a)
+newIORef' = evaluate >=> newIORef
+
+-- | Evaluates a to WHNF before calling 'writeIORef'.
+--
+-- @since 0.1
+writeIORef' :: IORef a -> a -> IO ()
+writeIORef' ref = evaluate >=> writeIORef ref
 
 -- | Atomically apply a function to the contents of an 'IORef' and return the
 -- old and new values. The result of the function is forced.
