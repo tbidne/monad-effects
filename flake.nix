@@ -40,11 +40,6 @@
     inputs.algebra-simple.follows = "algebra-simple";
     inputs.bounds.follows = "bounds";
   };
-  # TODO: Remove once PR merged and new lib released.
-  inputs.haskeline = {
-    url = "github:haskell/haskeline";
-    flake = false;
-  };
   outputs =
     inputs@{
       flake-parts,
@@ -64,7 +59,14 @@
               {
                 path = hlib.dontCheck prev.path_0_9_6;
 
-                haskeline = hlib.dontCheck (final.callCabal2nix "haskeline" inputs.haskeline { });
+                # TODO: Remove once in nixpkgs.
+                haskeline = hlib.dontCheck (
+                  final.callHackageDirect {
+                    pkg = "haskeline";
+                    ver = "0.8.4.0";
+                    sha256 = "sha256-2nvkzitEH+a4vO0y5N4GCq2S3ido3++sUGdxiRBQQgE=";
+                  } { }
+                );
               }
               // nix-hs-utils.mkLibs inputs final [
                 "algebra-simple"
