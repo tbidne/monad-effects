@@ -1,18 +1,18 @@
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE QuasiQuotes #-}
 
-module Posix (tests) where
+module Posix.Files (tests) where
 
 import Control.Exception.Utils (trySync)
 import Data.ByteString qualified as BS
-import Effects.System.Posix
+import Effects.System.Posix.Files
   ( PathType
       ( PathTypeDirectory,
         PathTypeFile,
         PathTypeSymbolicLink
       ),
   )
-import Effects.System.Posix qualified as P
+import Effects.System.Posix.Files qualified as P
 import FileSystem.OsPath (OsPath, osp, (</>))
 import FileSystem.OsPath qualified as FS.OsPath
 import System.Directory.OsPath qualified as Dir

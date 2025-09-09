@@ -4,7 +4,7 @@ module Main (main) where
 
 import Control.Monad (when)
 import FileSystem.OsPath (OsPath, osp, (</>))
-import Posix qualified
+import Posix.Files qualified
 import System.Directory.OsPath qualified as Dir
 import System.Environment.Guard (ExpectEnv (ExpectEnvSet), guardOrElse')
 import Test.Tasty (defaultMain, testGroup, withResource)
@@ -15,7 +15,7 @@ main =
     withResource setup teardown $ \args ->
       testGroup
         "Unit Tests"
-        [ Posix.tests args
+        [ Posix.Files.tests args
         ]
 
 setup :: IO OsPath

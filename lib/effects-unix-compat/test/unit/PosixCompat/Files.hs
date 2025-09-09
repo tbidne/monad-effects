@@ -1,15 +1,15 @@
-module PosixCompat (tests) where
+module PosixCompat.Files (tests) where
 
 import Control.Exception.Utils (trySync)
 import Data.ByteString qualified as BS
-import Effects.System.PosixCompat
+import Effects.System.PosixCompat.Files
   ( PathType
       ( PathTypeDirectory,
         PathTypeFile,
         PathTypeSymbolicLink
       ),
   )
-import Effects.System.PosixCompat qualified as PC
+import Effects.System.PosixCompat.Files qualified as PC
 import System.Directory qualified as Dir
 import System.FilePath ((</>))
 import Test.Tasty (TestTree, testGroup)

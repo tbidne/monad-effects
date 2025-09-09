@@ -35,7 +35,7 @@ common common-lang
 
 library
   import:          common-lang
-  exposed-modules: Effects.System.PosixCompat
+  exposed-modules: Effects.System.PosixCompat.Files
   build-depends:
     , base          >=4.16.0.0 && <4.22
     , exceptions    ^>=0.10.4
@@ -49,7 +49,7 @@ test-suite unit
   import:         common-lang
   type:           exitcode-stdio-1.0
   main-is:        Main.hs
-  other-modules:  PosixCompat
+  other-modules:  PosixCompat.Files
   build-depends:
     , base
     , bytestring           >=0.10.12.0 && <0.13

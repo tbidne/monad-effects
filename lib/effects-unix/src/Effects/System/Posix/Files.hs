@@ -1,9 +1,9 @@
--- | Provides the 'MonadPosixCompat' typeclass.
+-- | Provides the 'MonadPosixFiles' typeclass.
 --
 -- @since 0.1
-module Effects.System.PosixCompat
+module Effects.System.Posix.Files
   ( -- * Effect
-    MonadPosixCompat (..),
+    MonadPosixFiles (..),
 
     -- * PathType
     PathType (..),
@@ -33,9 +33,11 @@ import FileSystem.PathType
   )
 import GHC.IO.Exception (IOErrorType (InappropriateType))
 import GHC.Stack (HasCallStack)
-import System.PosixCompat.Files (FileStatus, PathVar)
-import System.PosixCompat.Files qualified as PFiles
-import System.PosixCompat.Types
+import System.OsString.Internal.Types (OsString (OsString))
+import System.Posix.Files.PosixString (FileStatus, PathVar)
+import System.Posix.Files.PosixString qualified as PFiles
+import System.Posix.PosixString (PosixPath)
+import System.Posix.Types
   ( DeviceID,
     EpochTime,
     Fd,
@@ -48,14 +50,14 @@ import System.PosixCompat.Types
 
 {- HLINT ignore "Redundant bracket" -}
 
--- | Class for unix-compat effects.
+-- | Class for unix "System.PosixCompat.Files" effects.
 --
 -- @since 0.1
-class (Monad m) => MonadPosixCompat m where
-  -- System.PosixCompat.Files
+class (Monad m) => MonadPosixFiles m where
+  -- System.Posix.Files
 
   -- | @since 0.1
-  setFileMode :: (HasCallStack) => FilePath -> FileMode -> m ()
+  setFileMode :: (HasCallStack) => PosixPath -> FileMode -> m ()
 
   -- | @since 0.1
   setFdMode :: (HasCallStack) => Fd -> FileMode -> m ()
@@ -64,70 +66,70 @@ class (Monad m) => MonadPosixCompat m where
   setFileCreationMask :: (HasCallStack) => FileMode -> m FileMode
 
   -- | @since 0.1
-  fileAccess :: (HasCallStack) => FilePath -> Bool -> Bool -> Bool -> m Bool
+  fileAccess :: (HasCallStack) => PosixPath -> Bool -> Bool -> Bool -> m Bool
 
   -- | @since 0.1
-  fileExist :: (HasCallStack) => FilePath -> m Bool
+  fileExist :: (HasCallStack) => PosixPath -> m Bool
 
   -- | @since 0.1
-  getFileStatus :: (HasCallStack) => FilePath -> m FileStatus
+  getFileStatus :: (HasCallStack) => PosixPath -> m FileStatus
 
   -- | @since 0.1
   getFdStatus :: (HasCallStack) => Fd -> m FileStatus
 
   -- | @since 0.1
-  getSymbolicLinkStatus :: (HasCallStack) => FilePath -> m FileStatus
+  getSymbolicLinkStatus :: (HasCallStack) => PosixPath -> m FileStatus
 
   -- | @since 0.1
-  createNamedPipe :: (HasCallStack) => FilePath -> FileMode -> m ()
+  createNamedPipe :: (HasCallStack) => PosixPath -> FileMode -> m ()
 
   -- | @since 0.1
-  createDevice :: (HasCallStack) => FilePath -> FileMode -> DeviceID -> m ()
+  createDevice :: (HasCallStack) => PosixPath -> FileMode -> DeviceID -> m ()
 
   -- | @since 0.1
-  createLink :: (HasCallStack) => FilePath -> FilePath -> m ()
+  createLink :: (HasCallStack) => PosixPath -> PosixPath -> m ()
 
   -- | @since 0.1
-  removeLink :: (HasCallStack) => FilePath -> m ()
+  removeLink :: (HasCallStack) => PosixPath -> m ()
 
   -- | @since 0.1
-  createSymbolicLink :: (HasCallStack) => FilePath -> FilePath -> m ()
+  createSymbolicLink :: (HasCallStack) => PosixPath -> PosixPath -> m ()
 
   -- | @since 0.1
-  readSymbolicLink :: (HasCallStack) => FilePath -> m FilePath
+  readSymbolicLink :: (HasCallStack) => PosixPath -> m PosixPath
 
   -- | @since 0.1
-  rename :: (HasCallStack) => FilePath -> FilePath -> m ()
+  rename :: (HasCallStack) => PosixPath -> PosixPath -> m ()
 
   -- | @since 0.1
-  setOwnerAndGroup :: (HasCallStack) => FilePath -> UserID -> GroupID -> m ()
+  setOwnerAndGroup :: (HasCallStack) => PosixPath -> UserID -> GroupID -> m ()
 
   -- | @since 0.1
   setFdOwnerAndGroup :: (HasCallStack) => Fd -> UserID -> GroupID -> m ()
 
   -- | @since 0.1
-  setSymbolicLinkOwnerAndGroup :: (HasCallStack) => FilePath -> UserID -> GroupID -> m ()
+  setSymbolicLinkOwnerAndGroup :: (HasCallStack) => PosixPath -> UserID -> GroupID -> m ()
 
   -- | @since 0.1
-  setFileTimes :: (HasCallStack) => FilePath -> EpochTime -> EpochTime -> m ()
+  setFileTimes :: (HasCallStack) => PosixPath -> EpochTime -> EpochTime -> m ()
 
   -- | @since 0.1
-  touchFile :: (HasCallStack) => FilePath -> m ()
+  touchFile :: (HasCallStack) => PosixPath -> m ()
 
   -- | @since 0.1
-  setFileSize :: (HasCallStack) => FilePath -> FileOffset -> m ()
+  setFileSize :: (HasCallStack) => PosixPath -> FileOffset -> m ()
 
   -- | @since 0.1
   setFdSize :: (HasCallStack) => Fd -> FileOffset -> m ()
 
   -- | @since 0.1
-  getPathVar :: (HasCallStack) => FilePath -> PathVar -> m Limit
+  getPathVar :: (HasCallStack) => PosixPath -> PathVar -> m Limit
 
   -- | @since 0.1
   getFdPathVar :: (HasCallStack) => Fd -> PathVar -> m Limit
 
 -- | @since 0.1
-instance MonadPosixCompat IO where
+instance MonadPosixFiles IO where
   setFileMode = PFiles.setFileMode
   {-# INLINEABLE setFileMode #-}
   setFdMode = PFiles.setFdMode
@@ -178,7 +180,7 @@ instance MonadPosixCompat IO where
   {-# INLINEABLE getFdPathVar #-}
 
 -- | @since 0.1
-instance (MonadPosixCompat m) => MonadPosixCompat (ReaderT e m) where
+instance (MonadPosixFiles m) => MonadPosixFiles (ReaderT e m) where
   setFileMode p = lift . setFileMode p
   {-# INLINEABLE setFileMode #-}
   setFdMode fd = lift . setFdMode fd
@@ -235,11 +237,11 @@ instance (MonadPosixCompat m) => MonadPosixCompat (ReaderT e m) where
 throwIfWrongPathType ::
   ( HasCallStack,
     MonadCatch m,
-    MonadPosixCompat m
+    MonadPosixFiles m
   ) =>
   String ->
   PathType ->
-  FilePath ->
+  PosixPath ->
   m ()
 throwIfWrongPathType location expected path = do
   actual <- getPathType path
@@ -253,8 +255,8 @@ throwIfWrongPathType location expected path = do
           ]
 
   unless (expected == actual) $
-    FS.IO.throwFilePathIOError
-      path
+    FS.IO.throwPathIOError
+      (OsString path)
       location
       InappropriateType
       err
@@ -266,10 +268,10 @@ throwIfWrongPathType location expected path = do
 -- @since 0.1
 isPathType ::
   ( HasCallStack,
-    MonadPosixCompat m
+    MonadPosixFiles m
   ) =>
   PathType ->
-  FilePath ->
+  PosixPath ->
   m Bool
 isPathType expected = fmap (== expected) . getPathType
 {-# INLINEABLE isPathType #-}
@@ -281,9 +283,9 @@ isPathType expected = fmap (== expected) . getPathType
 -- @since 0.1
 getPathType ::
   ( HasCallStack,
-    MonadPosixCompat m
+    MonadPosixFiles m
   ) =>
-  FilePath ->
+  PosixPath ->
   m PathType
 getPathType path =
   -- NOTE: We use getSymbolicLinkStatus instead of getFileStatus because

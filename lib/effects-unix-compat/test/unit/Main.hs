@@ -1,7 +1,7 @@
 module Main (main) where
 
 import Control.Monad (when)
-import PosixCompat qualified
+import PosixCompat.Files qualified
 import System.Directory qualified as Dir
 import System.Environment.Guard (ExpectEnv (ExpectEnvSet), guardOrElse')
 import System.FilePath ((</>))
@@ -13,7 +13,7 @@ main =
     withResource setup teardown $ \args ->
       testGroup
         "Unit Tests"
-        [ PosixCompat.tests args
+        [ PosixCompat.Files.tests args
         ]
 
 -- NOTE: FilePath and not OsPath as the unix-compat API uses FilePath.
