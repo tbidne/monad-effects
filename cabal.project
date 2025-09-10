@@ -8,6 +8,7 @@ if os(windows)
     ./lib/effects-ioref
     ./lib/effects-logger
     ./lib/effects-optparse
+    ./lib/effects-process
     ./lib/effects-stm
     ./lib/effects-terminal
     ./lib/effects-thread
@@ -24,6 +25,7 @@ else
     ./lib/effects-ioref
     ./lib/effects-logger
     ./lib/effects-optparse
+    ./lib/effects-process
     ./lib/effects-stm
     ./lib/effects-terminal
     ./lib/effects-thread

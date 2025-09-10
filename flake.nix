@@ -84,6 +84,7 @@
                 effects-ioref = ./lib/effects-ioref;
                 effects-logger = ./lib/effects-logger;
                 effects-optparse = ./lib/effects-optparse;
+                effects-process = ./lib/effects-process;
                 effects-stm = ./lib/effects-stm;
                 effects-terminal = ./lib/effects-terminal;
                 effects-thread = ./lib/effects-thread;
@@ -102,6 +103,7 @@
             p.effects-ioref
             p.effects-logger
             p.effects-optparse
+            p.effects-process
             p.effects-stm
             p.effects-terminal
             p.effects-thread
@@ -131,6 +133,7 @@
             effects-time = ./lib/effects-time;
           };
           packages.effects-optparse = mkPkg "effects-optparse" ./lib/effects-optparse { };
+          packages.effects-process = mkPkg "effects-process" ./lib/effects-process { };
           packages.effects-stm = mkPkg "effects-stm" ./lib/effects-stm { };
           packages.effects-terminal = mkPkg "effects-terminal" ./lib/effects-terminal { };
           packages.effects-time = mkPkg "effects-time" ./lib/effects-time { };

@@ -19,6 +19,7 @@
   - [effects-ioref](#effects-ioref)
   - [effects-logger](#effects-logger)
   - [effects-optparse](#effects-optparse)
+  - [effects-process](#effects-process)
   - [effects-stm](#effects-stm)
   - [effects-terminal](#effects-terminal)
   - [effects-thread](#effects-thread)
@@ -148,6 +149,17 @@ Builds on top of the `monad-logger` library to add the concept of "namespacing" 
 ### Description
 
 Most of `optparse-applicative`'s API is pure, so there is not much here, just functions for running the parser.
+
+## effects-process
+
+### Library: `process`
+
+### Modules
+* `Effects.System.Process (System.Process)`
+
+### Description
+
+Effect for the `process` library.
 
 ## effects-stm
 

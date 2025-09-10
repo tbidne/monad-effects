@@ -31,6 +31,9 @@ cradle:
     - path: "./lib/effects-optparse/src"
       component: "lib:effects-optparse"
 
+    - path: "./lib/effects-process/src"
+      component: "lib:effects-process"
+
     - path: "./lib/effects-stm/src"
       component: "lib:effects-stm"
 
