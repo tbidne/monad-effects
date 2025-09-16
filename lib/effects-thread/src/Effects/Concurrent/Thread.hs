@@ -31,7 +31,7 @@ import Control.Concurrent.QSemN (QSemN)
 import Control.Concurrent.QSemN qualified as QSemN
 import Control.Exception (Exception)
 import Control.Monad.Trans.Class (MonadTrans (lift))
-import Control.Monad.Trans.Reader (ReaderT)
+import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Data.Foldable (for_)
 import GHC.Conc.Sync qualified as Sync
 import GHC.Natural (Natural)
@@ -47,6 +47,11 @@ class (Monad m) => MonadThread m where
   --
   -- @since 0.1
   threadDelay :: (HasCallStack) => Int -> m ()
+
+  -- | Lifted 'CC.forkIO'.
+  --
+  -- @since 0.1
+  forkM :: (HasCallStack) => m () -> m ThreadId
 
   -- | Lifted 'CC.throwTo'.
   --
@@ -101,6 +106,8 @@ instance MonadThread IO where
   {-# INLINEABLE threadCapability #-}
   myThreadId = CC.myThreadId
   {-# INLINEABLE myThreadId #-}
+  forkM = CC.forkIO
+  {-# INLINEABLE forkM #-}
   labelThread = Sync.labelThread
   {-# INLINEABLE labelThread #-}
 #if MIN_VERSION_base(4, 18, 0)
@@ -122,6 +129,8 @@ instance (MonadThread m) => MonadThread (ReaderT e m) where
   {-# INLINEABLE threadCapability #-}
   myThreadId = lift myThreadId
   {-# INLINEABLE myThreadId #-}
+  forkM m = ask >>= \e -> lift (forkM (runReaderT m e))
+  {-# INLINEABLE forkM #-}
   labelThread tid = lift . labelThread tid
   {-# INLINEABLE labelThread #-}
 #if MIN_VERSION_base(4, 18, 0)
