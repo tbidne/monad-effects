@@ -9,15 +9,21 @@ module Effects.Concurrent.Thread
     microsleep,
     sleep,
 
-    -- * Reexports
+    -- ** Reexports
     Natural,
     ThreadId,
+
+    -- * MVar Effect
+    MonadMVar (..),
+
+    -- ** Reexports
+    MVar,
 
     -- * QSem Effect
     MonadQSem (..),
     MonadQSemN (..),
 
-    -- * Reexports
+    -- ** Reexports
     QSem,
     QSemN,
   )
@@ -25,17 +31,20 @@ where
 
 import Control.Concurrent (ThreadId)
 import Control.Concurrent qualified as CC
+import Control.Concurrent.MVar (MVar)
+import Control.Concurrent.MVar qualified as MVar
 import Control.Concurrent.QSem (QSem)
 import Control.Concurrent.QSem qualified as QSem
 import Control.Concurrent.QSemN (QSemN)
 import Control.Concurrent.QSemN qualified as QSemN
 import Control.Exception (Exception)
 import Control.Monad.Trans.Class (MonadTrans (lift))
-import Control.Monad.Trans.Reader (ReaderT)
+import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Data.Foldable (for_)
 import GHC.Conc.Sync qualified as Sync
 import GHC.Natural (Natural)
 import GHC.Stack (HasCallStack)
+import System.Mem.Weak (Weak)
 
 {- ORMOLU_DISABLE -}
 
@@ -162,6 +171,163 @@ n2i = fromIntegral
 
 i2n :: Int -> Natural
 i2n = fromIntegral
+
+-- | Effect for 'MVar'.
+--
+-- @since 0.1
+class (Monad m) => MonadMVar m where
+  -- | Lifted 'MVar.newEmptyMVar'.
+  --
+  -- @since 0.1
+  newEmptyMVar :: m (MVar a)
+
+  -- | Lifted 'MVar.newMVar'.
+  --
+  -- @since 0.1
+  newMVar :: a -> m (MVar a)
+
+  -- | Lifted 'MVar.takeMVar'.
+  --
+  -- @since 0.1
+  takeMVar :: MVar a -> m a
+
+  -- | Lifted 'MVar.putMVar'.
+  --
+  -- @since 0.1
+  putMVar :: MVar a -> a -> m ()
+
+  -- | Lifted 'MVar.tryTakeMVar'.
+  --
+  -- @since 0.1
+  tryTakeMVar :: MVar a -> m (Maybe a)
+
+  -- | Lifted 'MVar.tryPutMVar'.
+  --
+  -- @since 0.1
+  tryPutMVar :: MVar a -> a -> m Bool
+
+  -- | Lifted 'MVar.isEmptyMVar'.
+  --
+  -- @since 0.1
+  isEmptyMVar :: MVar a -> m Bool
+
+  -- | Lifted 'MVar.withMVar'.
+  --
+  -- @since 0.1
+  withMVar :: MVar a -> (a -> m b) -> m b
+
+  -- | Lifted 'MVar.withMVarMasked'.
+  --
+  -- @since 0.1
+  withMVarMasked :: MVar a -> (a -> m b) -> m b
+
+  -- | Lifted 'MVar.modifyMVar_'.
+  --
+  -- @since 0.1
+  modifyMVar_ :: MVar a -> (a -> m a) -> m ()
+
+  -- | Lifted 'MVar.modifyMVar'.
+  --
+  -- @since 0.1
+  modifyMVar :: MVar a -> (a -> m (a, b)) -> m b
+
+  -- | Lifted 'MVar.modifyMVarMasked_'.
+  --
+  -- @since 0.1
+  modifyMVarMasked_ :: MVar a -> (a -> m a) -> m ()
+
+  -- | Lifted 'MVar.modifyMVarMasked'.
+  --
+  -- @since 0.1
+  modifyMVarMasked :: MVar a -> (a -> m (a, b)) -> m b
+
+  -- | Lifted 'MVar.tryReadMVar'.
+  --
+  -- @since 0.1
+  tryReadMVar :: MVar a -> m (Maybe a)
+
+  -- | Lifted 'MVar.mkWeakMVar'.
+  --
+  -- @since 0.1
+  mkWeakMVar :: MVar a -> m () -> m (Weak (MVar a))
+
+-- | @since 0.1
+instance MonadMVar IO where
+  newEmptyMVar = MVar.newEmptyMVar
+  {-# INLINEABLE newEmptyMVar #-}
+  newMVar = MVar.newMVar
+  {-# INLINEABLE newMVar #-}
+  takeMVar = MVar.takeMVar
+  {-# INLINEABLE takeMVar #-}
+  putMVar = MVar.putMVar
+  {-# INLINEABLE putMVar #-}
+  tryTakeMVar = MVar.tryTakeMVar
+  {-# INLINEABLE tryTakeMVar #-}
+  tryPutMVar = MVar.tryPutMVar
+  {-# INLINEABLE tryPutMVar #-}
+  isEmptyMVar = MVar.isEmptyMVar
+  {-# INLINEABLE isEmptyMVar #-}
+  withMVar = MVar.withMVar
+  {-# INLINEABLE withMVar #-}
+  withMVarMasked = MVar.withMVarMasked
+  {-# INLINEABLE withMVarMasked #-}
+  modifyMVar_ = MVar.modifyMVar_
+  {-# INLINEABLE modifyMVar_ #-}
+  modifyMVar = MVar.modifyMVar
+  {-# INLINEABLE modifyMVar #-}
+  modifyMVarMasked_ = MVar.modifyMVarMasked_
+  {-# INLINEABLE modifyMVarMasked_ #-}
+  modifyMVarMasked = MVar.modifyMVarMasked
+  {-# INLINEABLE modifyMVarMasked #-}
+  tryReadMVar = MVar.tryReadMVar
+  {-# INLINEABLE tryReadMVar #-}
+  mkWeakMVar = MVar.mkWeakMVar
+  {-# INLINEABLE mkWeakMVar #-}
+
+-- | @since 0.1
+instance (MonadMVar m) => MonadMVar (ReaderT e m) where
+  newEmptyMVar = lift newEmptyMVar
+  {-# INLINEABLE newEmptyMVar #-}
+  newMVar = lift . newMVar
+  {-# INLINEABLE newMVar #-}
+  takeMVar = lift . takeMVar
+  {-# INLINEABLE takeMVar #-}
+  putMVar x1 = lift . putMVar x1
+  {-# INLINEABLE putMVar #-}
+  tryTakeMVar = lift . tryTakeMVar
+  {-# INLINEABLE tryTakeMVar #-}
+  tryPutMVar x1 = lift . tryPutMVar x1
+  {-# INLINEABLE tryPutMVar #-}
+  isEmptyMVar = lift . isEmptyMVar
+  {-# INLINEABLE isEmptyMVar #-}
+  withMVar var onVar =
+    ask >>= \e ->
+      lift $ withMVar var (\x -> runReaderT (onVar x) e)
+  {-# INLINEABLE withMVar #-}
+  withMVarMasked var onVar =
+    ask >>= \e ->
+      lift $ withMVarMasked var (\x -> runReaderT (onVar x) e)
+  {-# INLINEABLE withMVarMasked #-}
+  modifyMVar_ var onVar =
+    ask >>= \e ->
+      lift $ modifyMVar_ var (\x -> runReaderT (onVar x) e)
+  {-# INLINEABLE modifyMVar_ #-}
+  modifyMVar var onVar =
+    ask >>= \e ->
+      lift $ modifyMVar var (\x -> runReaderT (onVar x) e)
+  {-# INLINEABLE modifyMVar #-}
+  modifyMVarMasked_ var onVar =
+    ask >>= \e ->
+      lift $ modifyMVarMasked_ var (\x -> runReaderT (onVar x) e)
+  {-# INLINEABLE modifyMVarMasked_ #-}
+  modifyMVarMasked var onVar =
+    ask >>= \e ->
+      lift $ modifyMVarMasked var (\x -> runReaderT (onVar x) e)
+  {-# INLINEABLE modifyMVarMasked #-}
+  tryReadMVar = lift . tryReadMVar
+  {-# INLINEABLE tryReadMVar #-}
+  mkWeakMVar var m = ask >>= \e -> lift $ mkWeakMVar var (runReaderT m e)
+  {-# INLINEABLE mkWeakMVar #-}
 
 -- | Effect for 'QSem' semaphore.
 --
