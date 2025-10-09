@@ -5,14 +5,13 @@
 module PathWriter.CopyDir (tests) where
 
 import Control.Exception (IOException, displayException)
-import Control.Exception.Utils (TextException, throwText)
+import Control.Exception.Utils (StringException, throwString)
 import Control.Monad.Catch (MonadCatch, MonadMask, MonadThrow, try)
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import Data.Bifunctor (first)
 import Data.IORef (IORef)
 import Data.List qualified as L
-import Data.Text qualified as T
 import Data.Word (Word8)
 import Effects.FileSystem.FileWriter
   ( OsPath,
@@ -334,7 +333,7 @@ cdrnPartialFails getTmpDir = testCase desc $ do
           destDir
   resultEx <- case result of
     Right _ -> assertFailure "Expected exception, received none"
-    Left (ex :: TextException) -> pure ex
+    Left (ex :: StringException) -> pure ex
 
   let exText = displayException resultEx
 
@@ -642,7 +641,7 @@ cdrtPartialFails getTmpDir = testCase desc $ do
           destDir
   resultEx <- case result of
     Right _ -> assertFailure "Expected exception, received none"
-    Left (ex :: TextException) -> pure ex
+    Left (ex :: StringException) -> pure ex
 
   let exText = displayException resultEx
 
@@ -679,7 +678,7 @@ cdrtOverwritePartialFails getTmpDir = testCase desc $ do
           destDir
   resultEx <- case result of
     Right _ -> assertFailure "Expected exception, received none"
-    Left (ex :: TextException) -> pure ex
+    Left (ex :: StringException) -> pure ex
 
   let exText = displayException resultEx
 
@@ -811,7 +810,7 @@ instance MonadPathWriter PartialIO where
 
     -- want some successes first
     if counter > 3
-      then throwText $ "Failed copying: " <> T.pack (show dest)
+      then throwString $ "Failed copying: " ++ show dest
       else do
         modifyIORef' counterRef (+ 1)
         liftIO $ copyFileWithMetadata src dest

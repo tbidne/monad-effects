@@ -263,9 +263,9 @@ traceProps = testPropertyNamed "Trace properties" "traceProps" $ do
     lvl <- forAll genAnyLevel
 
     -- trace logs everything
-    assert $ (LevelOther "Trace") `shouldLog` lvl
+    assert $ LevelOther "Trace" `shouldLog` lvl
 
-    if lvl `shouldLog` (LevelOther "Trace")
+    if lvl `shouldLog` LevelOther "Trace"
       then assert $ isTrace lvl
       else
         assert $
@@ -396,7 +396,7 @@ fatalProps = testPropertyNamed "Fatal properties" "fatalProps" $ do
     lvl <- forAll genAnyLevel
 
     -- Fatal logs nothing except itself and non-trace custom
-    if (LevelOther "Fatal") `shouldLog` lvl
+    if LevelOther "Fatal" `shouldLog` lvl
       then
         assert $
           isFatal lvl
@@ -409,7 +409,7 @@ fatalProps = testPropertyNamed "Fatal properties" "fatalProps" $ do
             || LevelWarn == lvl
             || LevelError == lvl
 
-    if lvl `shouldLog` (LevelOther "Fatal")
+    if lvl `shouldLog` LevelOther "Fatal"
       then
         assert $
           isTrace lvl

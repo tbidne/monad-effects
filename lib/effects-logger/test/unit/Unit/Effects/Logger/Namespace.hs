@@ -400,7 +400,7 @@ instance
   labelOptic =
     lensVL $ \f (MkLensEnv a1) ->
       fmap
-        (\b -> MkLensEnv b)
+        MkLensEnv
         (f a1)
 
 newtype IsoEnv = MkIsoEnv Namespace

@@ -37,9 +37,7 @@ jobs:
           ghc-version: ${{ matrix.ghc }}
 
       - name: Configure
-        # yamllint disable rule:line-length
         run: cabal configure --enable-tests --ghc-options='-Wno-deprecations -Werror'
-        # yamllint enable
 
       # In general, list libs in alphabetical order though we break this rule
       # when a later dep (name) l is a dependency of an earlier one e, since we
@@ -201,3 +199,6 @@ jobs:
         run: |
           nix run .#format
           git diff --exit-code --color=always
+
+      - name: Linting
+        run: nix run .#lint

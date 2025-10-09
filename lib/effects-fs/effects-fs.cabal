@@ -100,7 +100,6 @@ test-suite unit
     , fs-utils
     , tasty            >=1.1.0.3 && <1.6
     , tasty-hunit      >=0.9     && <0.11
-    , text
     , transformers
 
   hs-source-dirs: test/unit

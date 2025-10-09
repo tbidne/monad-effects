@@ -51,13 +51,13 @@
       perSystem =
         { pkgs, ... }:
         let
-          ghc-version = "ghc9101";
+          ghc-version = "ghc9122";
           hlib = pkgs.haskell.lib;
           compiler = pkgs.haskell.packages."${ghc-version}".override {
             overrides =
               final: prev:
               {
-                path = hlib.dontCheck prev.path_0_9_6;
+                Cabal-syntax_3_10_3_0 = hlib.doJailbreak prev.Cabal-syntax_3_10_3_0;
               }
               // nix-hs-utils.mkLibs inputs final [
                 "algebra-simple"
@@ -150,7 +150,8 @@
               (hlib.dontCheck compiler.cabal-fmt)
               (hlib.dontCheck compiler.haskell-language-server)
               pkgs.nixfmt-rfc-style
-            ] ++ (nix-hs-utils.mkBuildTools pkgsCompiler);
+            ]
+            ++ (nix-hs-utils.mkBuildTools pkgsCompiler);
           };
 
           apps = {
@@ -163,16 +164,12 @@
 
             lint = nix-hs-utils.mergeApps {
               apps = [
-                # TODO: We require GHC 9.10+ since we need filepath >= 1.5,
-                # but hlint is sadly not compatible yet. Hence it is disabled
-                # for now.
-                #
-                #(nix-hs-utils.lint (compilerPkgs // pkgsMkDrv))
+                (nix-hs-utils.lint (pkgsCompiler // pkgsMkDrv))
                 (nix-hs-utils.lint-yaml pkgsMkDrv)
               ];
             };
 
-            #lint-refactor = nix-hs-utils.lint-refactor compilerPkgs;
+            lint-refactor = nix-hs-utils.lint-refactor pkgsCompiler;
           };
         };
       systems = [

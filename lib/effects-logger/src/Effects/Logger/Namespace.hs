@@ -92,7 +92,7 @@ addNamespace ::
   Text ->
   m a ->
   m a
-addNamespace txt = local ((over' (castSet #namespace % #unNamespace) (:|> txt)))
+addNamespace txt = local (over' (castSet #namespace % #unNamespace) (:|> txt))
   where
     -- See https://github.com/well-typed/optics/issues/368 for why this is
     -- necessary.

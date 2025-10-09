@@ -13,7 +13,6 @@
       - "Effects.FileSystem.PathReader.MonadPathReader"
       - "Effects.FileSystem.PathWriter.MonadPathWriter"
       - "Effects.IORef.MonadIORef"
-      - "Effects.LoggerNS.MonadLoggerNS"
       - "Effects.Optparse.MonadOptparse"
       - "Effects.Time.MonadTime"
       - "Effects.System.Process.MonadProcess"
@@ -24,7 +23,7 @@
 - ignore:
     name: "Avoid lambda"
     within:
-      - "Effects.LoggerNS"
+      - "Effects.Logger.Utils"
       - "Effects.Time"
 
 - ignore:
