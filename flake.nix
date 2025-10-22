@@ -145,7 +145,6 @@
           devShells.default = hsOverlay.shellFor {
             inherit packages;
             withHoogle = true;
-            #buildInputs = (nix-hs-utils.mkBuildTools pkgsCompiler) ++ (nix-hs-utils.mkDevTools pkgsCompiler);
             buildInputs = [
               (hlib.dontCheck compiler.cabal-fmt)
               (hlib.dontCheck compiler.haskell-language-server)
