@@ -132,7 +132,11 @@
             effects-thread = ./lib/effects-thread;
             effects-time = ./lib/effects-time;
           };
-          packages.effects-optparse = mkPkg "effects-optparse" ./lib/effects-optparse { };
+          packages.effects-optparse = mkPkg "effects-optparse" ./lib/effects-optparse {
+            effects-fs = ./lib/effects-fs;
+            effects-ioref = ./lib/effects-ioref;
+            effects-process = ./lib/effects-process;
+          };
           packages.effects-process = mkPkg "effects-process" ./lib/effects-process { };
           packages.effects-stm = mkPkg "effects-stm" ./lib/effects-stm { };
           packages.effects-terminal = mkPkg "effects-terminal" ./lib/effects-terminal { };
@@ -145,7 +149,6 @@
           devShells.default = hsOverlay.shellFor {
             inherit packages;
             withHoogle = true;
-            #buildInputs = (nix-hs-utils.mkBuildTools pkgsCompiler) ++ (nix-hs-utils.mkDevTools pkgsCompiler);
             buildInputs = [
               (hlib.dontCheck compiler.cabal-fmt)
               (hlib.dontCheck compiler.haskell-language-server)
