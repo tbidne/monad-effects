@@ -1,58 +1,62 @@
-{-# LANGUAGE CPP #-}
-
-{- ORMOLU_DISABLE -}
-
+-- | Provides the 'MonadHaskeline' typeclass.
+--
+-- @since 0.1
 module Effects.Haskeline
-
-#if MIN_VERSION_base(4,19,0)
-
-{-# WARNING in "x-experimental" "Effects.Haskeline is experimental and subject to change." #-}
-
-#else
-
-{-# WARNING "Effects.Haskeline is experimental (not deprecated) and subject to change." #-}
-
-#endif
-
   ( -- * Class
     MonadHaskeline (..),
 
-    -- * IO Runners
+    -- * ReaderT
+    -- $readert
+
+    -- * Runners
+    runInputTEnv,
+    runInputTEnvWith,
+
+    -- * Haskeline Re-exports
+
+    -- ** Types
+    InputT,
+    InputTEnv,
+
+    -- ** IO Runners
     H.runInputT,
     H.runInputTBehavior,
     H.runInputTBehaviorWithPrefs,
 
-    -- * Config
+    -- ** Config
     H.defaultSettings,
     H.defaultBehavior,
     H.defaultPrefs,
   )
 where
 
-{- ORMOLU_ENABLE -}
-
 import Control.Monad.Catch (MonadMask)
 import Control.Monad.IO.Class (MonadIO)
-import Control.Monad.Trans.Class (MonadTrans (lift))
-import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
+import Control.Monad.Reader (ReaderT (ReaderT), runReaderT)
+import Control.Monad.Reader.Class (MonadReader (ask))
+import Control.Monad.Trans (MonadTrans (lift))
 import GHC.Stack (HasCallStack)
 import System.Console.Haskeline (InputT)
 import System.Console.Haskeline qualified as H
 import System.Console.Haskeline.History (History)
+import System.Console.Haskeline.ReaderT (InputTEnv)
+import System.Console.Haskeline.ReaderT qualified as HR
 
 -- NOTE: We implement most of the effectful functions from
 -- System.Console.Haskeline. What is missing is functions of the form
 -- 'foo :: Input m a -> m a' i.e. they run the input to produce a result in the
 -- underlying monad.
 --
--- It is not obvious how to add such functionality here since we chose to
--- return functions in the class parameter m, rather than InputT m. We
--- chose this because e.g. lifting to ReaderT was straightforward. Otherwise
--- we would have to write a 'hoist :: InputT (ReaderT e m) a -> InputT m a',
--- and this is also not obvious.
+-- Ultimately, such functions like
 --
--- One way we might implement functions like foo is to include an associated
--- type 'type Base m' ana have 'foo :: m a -> Base m a'.
+--   runInputT :: Settings m -> InputT m a -> m a
+--
+-- do not make sense to mock anyway, since custom monads will implement
+-- their own functions, and "real" code will call the real runInputT.
+
+-- | Allows haskeline effects.
+--
+-- @since 0.1
 class (Monad m) => MonadHaskeline m where
   -- | Lifted 'H.haveTerminalUI'.
   --
@@ -94,6 +98,11 @@ class (Monad m) => MonadHaskeline m where
   -- @since 0.1
   outputStrLn :: (HasCallStack) => String -> m ()
 
+  -- | Lifted 'H.getExternalPrint'.
+  --
+  -- @since 0.1
+  getExternalPrint :: (HasCallStack) => m (String -> IO ())
+
   -- | Lifted 'H.getHistory'.
   --
   -- @since 0.1
@@ -119,6 +128,7 @@ class (Monad m) => MonadHaskeline m where
   -- @since 0.1
   handleInterrupt :: (HasCallStack) => m a -> m a -> m a
 
+-- | @since 0.1
 instance (MonadIO m, MonadMask m) => MonadHaskeline (InputT m) where
   haveTerminalUI = H.haveTerminalUI
   {-# INLINEABLE haveTerminalUI #-}
@@ -136,6 +146,8 @@ instance (MonadIO m, MonadMask m) => MonadHaskeline (InputT m) where
   {-# INLINEABLE outputStr #-}
   outputStrLn = H.outputStrLn
   {-# INLINEABLE outputStrLn #-}
+  getExternalPrint = H.getExternalPrint
+  {-# INLINEABLE getExternalPrint #-}
   getHistory = H.getHistory
   {-# INLINEABLE getHistory #-}
   putHistory = H.putHistory
@@ -147,7 +159,45 @@ instance (MonadIO m, MonadMask m) => MonadHaskeline (InputT m) where
   handleInterrupt = H.handleInterrupt
   {-# INLINEABLE handleInterrupt #-}
 
-instance (MonadHaskeline m) => MonadHaskeline (ReaderT e m) where
+-- $readert
+--
+-- We provide two (overlapping) 'Control.Monad.Reader.ReaderT' instances:
+-- A standard instance i.e.
+--
+-- @
+--   instance ('MonadHaskeline' m) => 'MonadHaskeline' ('Control.Monad.Reader.ReaderT.ReaderT' e m)
+-- @
+--
+-- And one in terms of the concrete (abstract) haskeline environment:
+--
+-- @
+--   instance 'MonadHaskeline' ('Control.Monad.Reader.ReaderT.ReaderT' ('InputTEnv' m) m)
+-- @
+--
+-- The latter is the intended way to run the application in real code:
+--
+-- @
+--   run :: ('MonadHaskeline' m, ...) => m ()
+--
+--   -- Uses 'Control.Monad.Reader.ReaderT.ReaderT' ('InputTEnv' m) instance
+--   main :: IO ()
+--   main = 'runInputTDefault' 'runReaderT' run
+-- @
+--
+-- On the other hand, the former is useful for deriving e.g.
+--
+-- @
+--   newtype AppT e m a = MkAppT {unAppT :: 'Control.Monad.Reader.ReaderT.ReaderT' e m a }
+--     deriving ('Applicative', 'Functor', 'Monad') via ('Control.Monad.Reader.ReaderT.ReaderT' e m)
+--
+--   deriving instance ('MonadHaskeline' m) => 'MonadHaskeline' (AppT env m)
+-- @
+--
+-- This allows typical usage with some custom type that picks up the
+-- instances automatically.
+
+-- | @since 0.1
+instance {-# OVERLAPPABLE #-} (MonadHaskeline m) => MonadHaskeline (ReaderT e m) where
   haveTerminalUI = lift haveTerminalUI
   {-# INLINEABLE haveTerminalUI #-}
   getInputLine = lift . getInputLine
@@ -164,6 +214,8 @@ instance (MonadHaskeline m) => MonadHaskeline (ReaderT e m) where
   {-# INLINEABLE outputStr #-}
   outputStrLn = lift . outputStrLn
   {-# INLINEABLE outputStrLn #-}
+  getExternalPrint = lift getExternalPrint
+  {-# INLINEABLE getExternalPrint #-}
   getHistory = lift getHistory
   {-# INLINEABLE getHistory #-}
   putHistory = lift . putHistory
@@ -176,3 +228,64 @@ instance (MonadHaskeline m) => MonadHaskeline (ReaderT e m) where
     ask >>= \env ->
       lift $ handleInterrupt (runReaderT m1 env) (runReaderT m2 env)
   {-# INLINEABLE handleInterrupt #-}
+
+-- | @since 0.1
+instance {-# OVERLAPPING #-} (MonadIO m, MonadMask m) => MonadHaskeline (ReaderT (InputTEnv m) m) where
+  haveTerminalUI = liftReaderT H.haveTerminalUI
+  {-# INLINEABLE haveTerminalUI #-}
+  getInputLine = liftReaderT . H.getInputLine
+  {-# INLINEABLE getInputLine #-}
+  getInputLineWithInitial s = liftReaderT . H.getInputLineWithInitial s
+  {-# INLINEABLE getInputLineWithInitial #-}
+  getInputChar = liftReaderT . H.getInputChar
+  {-# INLINEABLE getInputChar #-}
+  getPassword c = liftReaderT . H.getPassword c
+  {-# INLINEABLE getPassword #-}
+  waitForAnyKey = liftReaderT . H.waitForAnyKey
+  {-# INLINEABLE waitForAnyKey #-}
+  outputStr = liftReaderT . H.outputStr
+  {-# INLINEABLE outputStr #-}
+  outputStrLn = liftReaderT . H.outputStrLn
+  {-# INLINEABLE outputStrLn #-}
+  getExternalPrint = liftReaderT H.getExternalPrint
+  {-# INLINEABLE getExternalPrint #-}
+  getHistory = liftReaderT H.getHistory
+  {-# INLINEABLE getHistory #-}
+  putHistory = liftReaderT . H.putHistory
+  {-# INLINEABLE putHistory #-}
+  modifyHistory = liftReaderT . H.modifyHistory
+  {-# INLINEABLE modifyHistory #-}
+  withInterrupt r = ask >>= liftReaderT . H.withInterrupt . lift . runReaderT r
+  {-# INLINEABLE withInterrupt #-}
+  handleInterrupt r1 r2 = do
+    env <- ask
+    liftReaderT $
+      H.handleInterrupt
+        (lift $ runReaderT r1 env)
+        (lift $ runReaderT r2 env)
+  {-# INLINEABLE handleInterrupt #-}
+
+liftReaderT :: InputT m a -> ReaderT (InputTEnv m) m a
+liftReaderT = HR.toReaderT
+{-# INLINEABLE liftReaderT #-}
+
+-- | 'runInputTWith' with default haskeline settings.
+--
+-- @since 0.1
+runInputTEnv :: (MonadIO m, MonadMask m) => (InputTEnv m -> m a) -> m a
+runInputTEnv = runInputTEnvWith (H.runInputT H.defaultSettings)
+{-# INLINEABLE runInputTEnv #-}
+
+-- | Runs 'Control.Monad.Reader.ReaderT' 'InputTEnv' in 'IO' with 'InputT'
+-- runner.
+--
+-- @since 0.1
+runInputTEnvWith ::
+  -- | 'InputT' Runner.
+  (InputT m a -> m a) ->
+  -- | Action.
+  (InputTEnv m -> m a) ->
+  -- | IO Result.
+  m a
+runInputTEnvWith runInput onEnv = runInput $ HR.fromReaderT $ ReaderT onEnv
+{-# INLINEABLE runInputTEnvWith #-}
