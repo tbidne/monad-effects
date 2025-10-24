@@ -107,8 +107,9 @@ jobs:
       - name: Test effects-unix-compat
         run: cabal test effects-unix-compat
 
+      # Don't run on CI because these are suddenly unreliable.
       - name: Benchmark effects-fs/unix
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+        if: false
         id: bench
         run: |
           cabal bench --enable-benchmarks fs-unix:benchmark:benchmarks --benchmark-options '
