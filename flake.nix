@@ -58,6 +58,7 @@
               final: prev:
               {
                 Cabal-syntax_3_10_3_0 = hlib.doJailbreak prev.Cabal-syntax_3_10_3_0;
+                haskeline = prev.haskeline_0_8_4_0;
               }
               // nix-hs-utils.mkLibs inputs final [
                 "algebra-simple"

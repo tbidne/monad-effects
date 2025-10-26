@@ -11,7 +11,7 @@ tested-with:
    || ==9.10.2
    || ==9.12.2
 
-copyright:       2022-2025 Thomas Bidne
+copyright:       2024-2025 Thomas Bidne
 author:          Thomas Bidne
 maintainer:      tbidne@protonmail.com
 homepage:        https://github.com/tbidne/monad-effects/
@@ -32,9 +32,9 @@ library
   import:          common-lang
   exposed-modules: Effects.Haskeline
   build-depends:
-    , base          >=4.16.0.0 && <4.22
-    , exceptions    ^>=0.10.4
-    , haskeline     ^>=0.8.1.1
-    , transformers  >=0.5.6.2  && <0.7
+    , base        >=4.16.0.0 && <4.22
+    , exceptions  ^>=0.10.4
+    , haskeline   ^>=0.8.4.0
+    , mtl         >=2.2.1    && <2.4
 
   hs-source-dirs:  src
