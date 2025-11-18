@@ -50,6 +50,9 @@ jobs:
       - name: Build effects-env
         run: cabal build effects-env
 
+      - name: Build effects-evaluate
+        run: cabal build effects-evaluate
+
       - name: Build effects-fs
         run: cabal build effects-fs
 
@@ -149,6 +152,9 @@ jobs:
 
       - name: Build effects-env
         run: nix build -Lv .#effects-env
+
+      - name: Build effects-evaluate
+        run: nix build -Lv .#effects-evaluate
 
       - name: Build effects-fs
         run: nix build -Lv .#effects-fs

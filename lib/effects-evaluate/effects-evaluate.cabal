@@ -1,5 +1,5 @@
 cabal-version:   2.4
-name:            effects-ioref
+name:            effects-evaluate
 version:         0.1
 license:         MIT
 license-file:    LICENSE
@@ -17,7 +17,7 @@ maintainer:      tbidne@protonmail.com
 homepage:        https://github.com/tbidne/monad-effects/
 bug-reports:     https://github.com/tbidne/monad-effects/issues
 synopsis:        IORef effects
-description:     Provides IORef effects
+description:     Provides evaluate effect
 category:        Effects
 extra-doc-files: CHANGELOG.md
 
@@ -30,7 +30,7 @@ common common-lang
 
 library
   import:          common-lang
-  exposed-modules: Effects.IORef
+  exposed-modules: Effects.Evaluate
   build-depends:
     , base          >=4.16.0.0 && <4.22
     , transformers  >=0.5.6.2  && <0.7

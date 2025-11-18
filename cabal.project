@@ -3,6 +3,7 @@ if os(windows)
   packages:
     ./lib/effects-async
     ./lib/effects-env
+    ./lib/effects-evaluate
     ./lib/effects-fs
     ./lib/effects-haskeline
     ./lib/effects-ioref
@@ -20,6 +21,7 @@ else
     ./bench/fs-unix
     ./lib/effects-async
     ./lib/effects-env
+    ./lib/effects-evaluate
     ./lib/effects-fs
     ./lib/effects-haskeline
     ./lib/effects-ioref

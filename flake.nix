@@ -80,6 +80,7 @@
               hlib.compose.packageSourceOverrides {
                 effects-async = ./lib/effects-async;
                 effects-env = ./lib/effects-env;
+                effects-evaluate = ./lib/effects-evaluate;
                 effects-fs = ./lib/effects-fs;
                 effects-haskeline = ./lib/effects-haskeline;
                 effects-ioref = ./lib/effects-ioref;
@@ -99,6 +100,7 @@
           packages = p: [
             p.effects-async
             p.effects-env
+            p.effects-evaluate
             p.effects-fs
             p.effects-haskeline
             p.effects-ioref
@@ -126,7 +128,10 @@
             effects-thread = ./lib/effects-thread;
           };
           packages.effects-env = mkPkg "effects-env" ./lib/effects-env { };
-          packages.effects-fs = mkPkg "effects-fs" ./lib/effects-fs { effects-ioref = ./lib/effects-ioref; };
+          packages.effects-evaluate = mkPkg "effects-evaluate" ./lib/effects-evaluate { };
+          packages.effects-fs = mkPkg "effects-fs" ./lib/effects-fs {
+            effects-ioref = ./lib/effects-ioref;
+          };
           packages.effects-haskeline = mkPkg "effects-haskeline" ./lib/effects-haskeline { };
           packages.effects-ioref = mkPkg "effects-ioref" ./lib/effects-ioref { };
           packages.effects-logger = mkPkg "effects-logger" ./lib/effects-logger {

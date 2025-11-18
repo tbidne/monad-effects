@@ -14,6 +14,7 @@
 - [Effects](#effects)
   - [effects-async](#effects-async)
   - [effects-env](#effects-env)
+  - [effects-evaluate](#effects-evaluate)
   - [effects-fs](#effects-fs)
   - [effects-haskeline](#effects-haskeline)
   - [effects-ioref](#effects-ioref)
@@ -84,6 +85,17 @@ Effect for the `async` library. The implementation is nearly identical to `async
 ### Description
 
 Effect for `System.Environment`.
+
+## effects-evaluate
+
+### Library: `base`
+
+### Modules
+* `Effects.Evaluate (Control.Exception)`
+
+### Description
+
+Effect for `Control.Exception.evaluate :: a -> IO a`.
 
 ## effects-fs
 
