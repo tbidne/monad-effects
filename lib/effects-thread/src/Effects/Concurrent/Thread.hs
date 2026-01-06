@@ -300,34 +300,26 @@ instance (MonadMVar m) => MonadMVar (ReaderT e m) where
   {-# INLINEABLE tryPutMVar #-}
   isEmptyMVar = lift . isEmptyMVar
   {-# INLINEABLE isEmptyMVar #-}
-  withMVar var onVar =
-    ask >>= \e ->
-      lift $ withMVar var (\x -> runReaderT (onVar x) e)
+  withMVar = runInReader . withMVar
   {-# INLINEABLE withMVar #-}
-  withMVarMasked var onVar =
-    ask >>= \e ->
-      lift $ withMVarMasked var (\x -> runReaderT (onVar x) e)
+  withMVarMasked = runInReader . withMVarMasked
   {-# INLINEABLE withMVarMasked #-}
-  modifyMVar_ var onVar =
-    ask >>= \e ->
-      lift $ modifyMVar_ var (\x -> runReaderT (onVar x) e)
+  modifyMVar_ = runInReader . modifyMVar_
   {-# INLINEABLE modifyMVar_ #-}
-  modifyMVar var onVar =
-    ask >>= \e ->
-      lift $ modifyMVar var (\x -> runReaderT (onVar x) e)
+  modifyMVar = runInReader . modifyMVar
   {-# INLINEABLE modifyMVar #-}
-  modifyMVarMasked_ var onVar =
-    ask >>= \e ->
-      lift $ modifyMVarMasked_ var (\x -> runReaderT (onVar x) e)
+  modifyMVarMasked_ = runInReader . modifyMVarMasked_
   {-# INLINEABLE modifyMVarMasked_ #-}
-  modifyMVarMasked var onVar =
-    ask >>= \e ->
-      lift $ modifyMVarMasked var (\x -> runReaderT (onVar x) e)
+  modifyMVarMasked = runInReader . modifyMVarMasked
   {-# INLINEABLE modifyMVarMasked #-}
   tryReadMVar = lift . tryReadMVar
   {-# INLINEABLE tryReadMVar #-}
-  mkWeakMVar var m = ask >>= \e -> lift $ mkWeakMVar var (runReaderT m e)
+  mkWeakMVar var = runInReader (\g -> mkWeakMVar var (g ())) . const
   {-# INLINEABLE mkWeakMVar #-}
+
+-- Morally @lift $ f $ \x -> unlift (g x)@.
+runInReader :: (Monad m) => ((a -> m b) -> m c) -> (a -> ReaderT e m b) -> ReaderT e m c
+runInReader f g = ask >>= \e -> lift (f (\x -> runReaderT (g x) e))
 
 -- | Effect for 'QSem' semaphore.
 --

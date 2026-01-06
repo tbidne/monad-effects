@@ -80,9 +80,7 @@ cwdPathsCompleter = cwdPathsCompleterFilter (const True)
 -- @since 0.1
 cwdPathsCompleterFilter :: (String -> Bool) -> Completer
 cwdPathsCompleterFilter predFn = OAC.mkCompleter $ \word -> do
-  eFiles <- tryIO $ do
-    cwd <- Dir.getCurrentDirectory
-    Dir.listDirectory cwd
+  eFiles <- tryIO $ Dir.getCurrentDirectory >>= Dir.listDirectory
 
   let files = fromRight [] eFiles
 
