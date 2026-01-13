@@ -26,7 +26,8 @@ source-repository head
   location: https://github.com/tbidne/monad-effects
 
 common common-lang
-  default-language: GHC2021
+  default-extensions: LambdaCase
+  default-language:   GHC2021
 
 library
   import:          common-lang
