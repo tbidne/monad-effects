@@ -182,7 +182,7 @@ Effect for the `process` library.
 
 ### Description
 
-Provides a single function `atomically :: MonadSTM m => STM a -> m a` and helper combinators for other `STM` concepts (e.g. `readTVarA :: MonadSTM m => TVar a -> m a`).
+Provides a single function `atomically :: MonadAtomic m => STM a -> m a` and helper combinators for other `STM` concepts (e.g. `readTVarA :: MonadSTM m => TVar a -> m a`).
 
 ## effects-terminal
 

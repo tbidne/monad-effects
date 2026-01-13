@@ -6,7 +6,7 @@
 module Effects.Concurrent.STM
   ( -- * Effect
     STM,
-    MonadSTM (..),
+    MonadAtomic (..),
 
     -- * TVar
     TVar,
@@ -82,25 +82,25 @@ import GHC.Exts (seq#)
 import GHC.Stack (HasCallStack)
 import Numeric.Natural (Natural)
 
--- | 'STM' effect. Note that this class is for monads that can lift entire
--- STM transactions (i.e. atomically). It is not intended for "STM-like"
--- monads -- hence has no STM instance -- as the semantics for "STM-like" and
--- "can lift STM atomically" are different.
+-- | Effect for atomically lifting 'STM' actions. Note that this classes is
+-- intended for "IO-like" monads /not/ "STM-like" monads -- hence has no STM
+-- instance -- as the semantics for "STM-like" and "can lift STM atomically"
+-- are different.
 --
 -- @since 0.1
-class (Monad m) => MonadSTM m where
+class (Monad m) => MonadAtomic m where
   -- | Lifted 'STM.atomically'.
   --
   -- @since 0.1
   atomically :: (HasCallStack) => STM a -> m a
 
 -- | @since 0.1
-instance MonadSTM IO where
+instance MonadAtomic IO where
   atomically = STM.atomically
   {-# INLINEABLE atomically #-}
 
 -- | @since 0.1
-instance (MonadSTM m) => MonadSTM (ReaderT e m) where
+instance (MonadAtomic m) => MonadAtomic (ReaderT e m) where
   atomically = lift . atomically
   {-# INLINEABLE atomically #-}
 
@@ -114,14 +114,14 @@ newTVar' = evaluateSTM >=> TVar.newTVar
 -- 'atomically'.
 --
 -- @since 0.1
-newTVarA :: (HasCallStack, MonadSTM m) => a -> m (TVar a)
+newTVarA :: (HasCallStack, MonadAtomic m) => a -> m (TVar a)
 newTVarA = atomically . TVar.newTVar
 {-# INLINEABLE newTVarA #-}
 
 -- | Atomic 'newTVar''.
 --
 -- @since 0.1
-newTVarA' :: (HasCallStack, MonadSTM m) => a -> m (TVar a)
+newTVarA' :: (HasCallStack, MonadAtomic m) => a -> m (TVar a)
 newTVarA' = atomically . newTVar'
 {-# INLINEABLE newTVarA' #-}
 
@@ -135,14 +135,14 @@ readTVar' = TVar.readTVar >=> evaluateSTM
 -- 'atomically'.
 --
 -- @since 0.1
-readTVarA :: (HasCallStack, MonadSTM m) => TVar a -> m a
+readTVarA :: (HasCallStack, MonadAtomic m) => TVar a -> m a
 readTVarA = atomically . TVar.readTVar
 {-# INLINEABLE readTVarA #-}
 
 -- | Atomic 'readTVarA''.
 --
 -- @since 0.1
-readTVarA' :: (HasCallStack, MonadSTM m) => TVar a -> m a
+readTVarA' :: (HasCallStack, MonadAtomic m) => TVar a -> m a
 readTVarA' = atomically . readTVar'
 {-# INLINEABLE readTVarA' #-}
 
@@ -156,28 +156,28 @@ writeTVar' var = evaluateSTM >=> TVar.writeTVar var
 -- 'atomically'.
 --
 -- @since 0.1
-writeTVarA :: (HasCallStack, MonadSTM m) => TVar a -> a -> m ()
+writeTVarA :: (HasCallStack, MonadAtomic m) => TVar a -> a -> m ()
 writeTVarA r = atomically . TVar.writeTVar r
 {-# INLINEABLE writeTVarA #-}
 
 -- | Atomic 'writeTVarA''.
 --
 -- @since 0.1
-writeTVarA' :: (HasCallStack, MonadSTM m) => TVar a -> a -> m ()
+writeTVarA' :: (HasCallStack, MonadAtomic m) => TVar a -> a -> m ()
 writeTVarA' r = atomically . writeTVar' r
 {-# INLINEABLE writeTVarA' #-}
 
 -- | Atomic 'TVar.modifyTVar'.
 --
 -- @since 0.1
-modifyTVarA :: (HasCallStack, MonadSTM m) => TVar a -> (a -> a) -> m ()
+modifyTVarA :: (HasCallStack, MonadAtomic m) => TVar a -> (a -> a) -> m ()
 modifyTVarA r = atomically . TVar.modifyTVar r
 {-# INLINEABLE modifyTVarA #-}
 
 -- | Atomic 'TVar.modifyTVar''.
 --
 -- @since 0.1
-modifyTVarA' :: (HasCallStack, MonadSTM m) => TVar a -> (a -> a) -> m ()
+modifyTVarA' :: (HasCallStack, MonadAtomic m) => TVar a -> (a -> a) -> m ()
 modifyTVarA' r = atomically . TVar.modifyTVar' r
 {-# INLINEABLE modifyTVarA' #-}
 
@@ -185,7 +185,7 @@ modifyTVarA' r = atomically . TVar.modifyTVar' r
 --
 -- @since 0.1
 newTBQueueA ::
-  (HasCallStack, MonadSTM m) =>
+  (HasCallStack, MonadAtomic m) =>
   -- | maximum number of elements the queue can hold
   Natural ->
   m (TBQueue a)
@@ -202,14 +202,14 @@ readTBQueue' = TBQueue.readTBQueue >=> evaluateSTM
 -- | Read the next value from the 'TBQueue', lifting via 'atomically'.
 --
 -- @since 0.1
-readTBQueueA :: (HasCallStack, MonadSTM m) => TBQueue a -> m a
+readTBQueueA :: (HasCallStack, MonadAtomic m) => TBQueue a -> m a
 readTBQueueA = atomically . TBQueue.readTBQueue
 {-# INLINEABLE readTBQueueA #-}
 
 -- | Atomic 'readTBQueue''.
 --
 -- @since 0.1
-readTBQueueA' :: (HasCallStack, MonadSTM m) => TBQueue a -> m a
+readTBQueueA' :: (HasCallStack, MonadAtomic m) => TBQueue a -> m a
 readTBQueueA' = atomically . readTBQueue'
 {-# INLINEABLE readTBQueueA' #-}
 
@@ -228,14 +228,14 @@ tryReadTBQueue' =
 -- returns @Nothing@ if no value is available. Lifts via 'atomically'.
 --
 -- @since 0.1
-tryReadTBQueueA :: (HasCallStack, MonadSTM m) => TBQueue a -> m (Maybe a)
+tryReadTBQueueA :: (HasCallStack, MonadAtomic m) => TBQueue a -> m (Maybe a)
 tryReadTBQueueA = atomically . TBQueue.tryReadTBQueue
 {-# INLINEABLE tryReadTBQueueA #-}
 
 -- | Atomic 'tryReadTBQueue''.
 --
 -- @since 0.1
-tryReadTBQueueA' :: (HasCallStack, MonadSTM m) => TBQueue a -> m (Maybe a)
+tryReadTBQueueA' :: (HasCallStack, MonadAtomic m) => TBQueue a -> m (Maybe a)
 tryReadTBQueueA' = atomically . tryReadTBQueue'
 {-# INLINEABLE tryReadTBQueueA' #-}
 
@@ -249,14 +249,14 @@ writeTBQueue' q = evaluateSTM >=> TBQueue.writeTBQueue q
 -- 'atomically'.
 --
 -- @since 0.1
-writeTBQueueA :: (HasCallStack, MonadSTM m) => TBQueue a -> a -> m ()
+writeTBQueueA :: (HasCallStack, MonadAtomic m) => TBQueue a -> a -> m ()
 writeTBQueueA q = atomically . TBQueue.writeTBQueue q
 {-# INLINEABLE writeTBQueueA #-}
 
 -- | Atomic 'writeTBQueue''.
 --
 -- @since 0.1
-writeTBQueueA' :: (HasCallStack, MonadSTM m) => TBQueue a -> a -> m ()
+writeTBQueueA' :: (HasCallStack, MonadAtomic m) => TBQueue a -> a -> m ()
 writeTBQueueA' q = atomically . writeTBQueue' q
 {-# INLINEABLE writeTBQueueA' #-}
 
@@ -270,14 +270,14 @@ flushTBQueue' = TBQueue.flushTBQueue >=> evaluateSTM
 -- function never retries. Lifts via 'atomically'.
 --
 -- @since 0.1
-flushTBQueueA :: (HasCallStack, MonadSTM m) => TBQueue a -> m [a]
+flushTBQueueA :: (HasCallStack, MonadAtomic m) => TBQueue a -> m [a]
 flushTBQueueA = atomically . TBQueue.flushTBQueue
 {-# INLINEABLE flushTBQueueA #-}
 
 -- | Atomic 'flushTBQueue''.
 --
 -- @since 0.1
-flushTBQueueA' :: (HasCallStack, MonadSTM m) => TBQueue a -> m [a]
+flushTBQueueA' :: (HasCallStack, MonadAtomic m) => TBQueue a -> m [a]
 flushTBQueueA' = atomically . flushTBQueue'
 {-# INLINEABLE flushTBQueueA' #-}
 
