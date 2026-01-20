@@ -288,17 +288,27 @@ class (Monad m) => MonadMVar m where
   -- @since 0.1
   withMVar :: MVar a -> (a -> m b) -> m b
 
+  -- | Evaluates the input of the callback to 'withMVar' to WHNF.
+  --
+  -- @since 0.1
+  withMVar' :: MVar a -> (a -> m b) -> m b
+
   -- | Lifted 'MVar.withMVarMasked'.
   --
   -- @since 0.1
   withMVarMasked :: MVar a -> (a -> m b) -> m b
+
+  -- | Evaluates the input of the callback to 'withMVarMasked' to WHNF.
+  --
+  -- @since 0.1
+  withMVarMasked' :: MVar a -> (a -> m b) -> m b
 
   -- | Lifted 'MVar.modifyMVar_'.
   --
   -- @since 0.1
   modifyMVar_ :: MVar a -> (a -> m a) -> m ()
 
-  -- | Evaluates the output of the modifier to WHNF.
+  -- | Evaluates 'modifyMVar_'\'s modifier's input and output to WHNF.
   --
   -- @since 0.1
   modifyMVar_' :: MVar a -> (a -> m a) -> m ()
@@ -308,7 +318,7 @@ class (Monad m) => MonadMVar m where
   -- @since 0.1
   modifyMVar :: MVar a -> (a -> m (a, b)) -> m b
 
-  -- | Evaluates the output of the modifier to WHNF.
+  -- | Evaluates 'modifyMVar'\'s modifier's input and left-output to WHNF.
   --
   -- @since 0.1
   modifyMVar' :: MVar a -> (a -> m (a, b)) -> m b
@@ -318,7 +328,7 @@ class (Monad m) => MonadMVar m where
   -- @since 0.1
   modifyMVarMasked_ :: MVar a -> (a -> m a) -> m ()
 
-  -- | Evaluates the output of the modifier to WHNF.
+  -- | Evaluates 'modifyMVarMasked_'\'s modifier's input and output to WHNF.
   --
   -- @since 0.1
   modifyMVarMasked_' :: MVar a -> (a -> m a) -> m ()
@@ -328,7 +338,7 @@ class (Monad m) => MonadMVar m where
   -- @since 0.1
   modifyMVarMasked :: MVar a -> (a -> m (a, b)) -> m b
 
-  -- | Evaluates the output of the modifier to WHNF.
+  -- | Evaluates 'modifyMVarMasked'\'s modifier's input and left-output to WHNF.
   --
   -- @since 0.1
   modifyMVarMasked' :: MVar a -> (a -> m (a, b)) -> m b
@@ -393,34 +403,40 @@ instance MonadMVar IO where
   withMVar = MVar.withMVar
   {-# INLINEABLE withMVar #-}
 
+  withMVar' v f = withMVar v (evaluate >=> f)
+  {-# INLINEABLE withMVar' #-}
+
   withMVarMasked = MVar.withMVarMasked
   {-# INLINEABLE withMVarMasked #-}
+
+  withMVarMasked' v f = withMVarMasked v (evaluate >=> f)
+  {-# INLINEABLE withMVarMasked' #-}
 
   modifyMVar_ = MVar.modifyMVar_
   {-# INLINEABLE modifyMVar_ #-}
 
-  modifyMVar_' v f = modifyMVar_ v (f >=> evaluate)
+  modifyMVar_' v f = modifyMVar_ v (evaluate >=> f >=> evaluate)
   {-# INLINEABLE modifyMVar_' #-}
 
   modifyMVar = MVar.modifyMVar
   {-# INLINEABLE modifyMVar #-}
 
   modifyMVar' v f = modifyMVar v $ \x -> do
-    (a, b) <- f x
+    (a, b) <- f =<< evaluate x
     (,b) <$> evaluate a
   {-# INLINEABLE modifyMVar' #-}
 
   modifyMVarMasked_ = MVar.modifyMVarMasked_
   {-# INLINEABLE modifyMVarMasked_ #-}
 
-  modifyMVarMasked_' v f = modifyMVarMasked_ v (f >=> evaluate)
+  modifyMVarMasked_' v f = modifyMVarMasked_ v (evaluate >=> f >=> evaluate)
   {-# INLINEABLE modifyMVarMasked_' #-}
 
   modifyMVarMasked = MVar.modifyMVarMasked
   {-# INLINEABLE modifyMVarMasked #-}
 
   modifyMVarMasked' v f = modifyMVarMasked v $ \x -> do
-    (a, b) <- f x
+    (a, b) <- f =<< evaluate x
     (,b) <$> evaluate a
   {-# INLINEABLE modifyMVarMasked' #-}
 
@@ -464,8 +480,12 @@ instance (MonadMVar m) => MonadMVar (ReaderT e m) where
   {-# INLINEABLE isEmptyMVar #-}
   withMVar = runInReader . withMVar
   {-# INLINEABLE withMVar #-}
+  withMVar' = runInReader . withMVar'
+  {-# INLINEABLE withMVar' #-}
   withMVarMasked = runInReader . withMVarMasked
   {-# INLINEABLE withMVarMasked #-}
+  withMVarMasked' = runInReader . withMVarMasked'
+  {-# INLINEABLE withMVarMasked' #-}
   modifyMVar_ = runInReader . modifyMVar_
   {-# INLINEABLE modifyMVar_ #-}
   modifyMVar_' = runInReader . modifyMVar_'
