@@ -1,0 +1,307 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- | Provides the 'MonadEnv' typeclass.</span><span>
+</span><span id="line-4"></span><span class="hs-comment">--</span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-6"></span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Effects.System.Environment.html"><span class="hs-identifier">Effects.System.Environment</span></a></span><span>
+</span><span id="line-7"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Effect</span></span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><a href="Effects.System.Environment.html#MonadEnv"><span class="hs-identifier">MonadEnv</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-10"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Class</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadTrans</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">lift</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Reader</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ReaderT</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">runReaderT</span></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">ask</span></span><span class="hs-special">)</span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Stack</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">HasCallStack</span></span><span class="hs-special">)</span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.Environment</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Env</span></span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span class="hs-comment">{- ORMOLU_DISABLE -}</span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span class="hs-comment">-- | Environment effects.</span><span>
+</span><span id="line-20"></span><span class="hs-comment">--</span><span>
+</span><span id="line-21"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-22"></span><span class="hs-keyword">class</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Monad</span></span><span> </span><span class="annot"><a href="#local-6989586621679028613"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span id="MonadEnv"><span class="annot"><a href="Effects.System.Environment.html#MonadEnv"><span class="hs-identifier hs-var">MonadEnv</span></a></span></span><span> </span><span id="local-6989586621679028613"><span class="annot"><a href="#local-6989586621679028613"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-comment">-- | Lifted 'Env.getArgs'.</span><span>
+</span><span id="line-24"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-25"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-26"></span><span>  </span><span id="getArgs"><span class="annot"><a href="Effects.System.Environment.html#getArgs"><span class="hs-identifier hs-type">getArgs</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679028613"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span>  </span><span class="hs-comment">-- | Lifted 'Env.getProgName'.</span><span>
+</span><span id="line-29"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-30"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-31"></span><span>  </span><span id="getProgName"><span class="annot"><a href="Effects.System.Environment.html#getProgName"><span class="hs-identifier hs-type">getProgName</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679028613"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-cpp">
+
+#if MIN_VERSION_base(4,17,0)
+</span><span>  </span><span class="hs-comment">-- | Lifted 'Env.executablePath'.</span><span>
+</span><span id="line-35"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-36"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-37"></span><span>  </span><span id="executablePath"><span class="annot"><a href="Effects.System.Environment.html#executablePath"><span class="hs-identifier hs-type">executablePath</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679028613"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-40"></span><span>  </span><span class="hs-comment">-- | Lifted 'Env.getExecutablePath'.</span><span>
+</span><span id="line-41"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-42"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-43"></span><span>  </span><span id="getExecutablePath"><span class="annot"><a href="Effects.System.Environment.html#getExecutablePath"><span class="hs-identifier hs-type">getExecutablePath</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679028613"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span>
+</span><span id="line-44"></span><span>  </span><span class="hs-comment">-- | Lifted 'Env.getEnv'.</span><span>
+</span><span id="line-45"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-46"></span><span>  </span><span id="getEnv"><span class="annot"><a href="Effects.System.Environment.html#getEnv"><span class="hs-identifier hs-type">getEnv</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679028613"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-47"></span><span>  </span><span class="hs-comment">-- | Lifted 'Env.lookupEnv'.</span><span>
+</span><span id="line-48"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-49"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-50"></span><span>  </span><span id="lookupEnv"><span class="annot"><a href="Effects.System.Environment.html#lookupEnv"><span class="hs-identifier hs-type">lookupEnv</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679028613"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span>
+</span><span id="line-51"></span><span>  </span><span class="hs-comment">-- | Lifted 'Env.setEnv'.</span><span>
+</span><span id="line-52"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-53"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-54"></span><span>  </span><span id="setEnv"><span class="annot"><a href="Effects.System.Environment.html#setEnv"><span class="hs-identifier hs-type">setEnv</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679028613"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-55"></span><span>  </span><span class="hs-comment">-- | Lifted 'Env.unsetEnv'.</span><span>
+</span><span id="line-56"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-57"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-58"></span><span>  </span><span id="unsetEnv"><span class="annot"><a href="Effects.System.Environment.html#unsetEnv"><span class="hs-identifier hs-type">unsetEnv</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679028613"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-59"></span><span>  </span><span class="hs-comment">-- | Lifted 'Env.withArgs'.</span><span>
+</span><span id="line-60"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-61"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-62"></span><span>  </span><span id="withArgs"><span class="annot"><a href="Effects.System.Environment.html#withArgs"><span class="hs-identifier hs-type">withArgs</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span id="local-6989586621679028616"><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679028613"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679028616"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679028613"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679028616"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-63"></span><span>  </span><span class="hs-comment">-- | Lifted 'Env.withProgName'.</span><span>
+</span><span id="line-64"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-65"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-66"></span><span>  </span><span id="withProgName"><span class="annot"><a href="Effects.System.Environment.html#withProgName"><span class="hs-identifier hs-type">withProgName</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span id="local-6989586621679028617"><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679028613"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679028617"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679028613"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679028617"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-67"></span><span>  </span><span class="hs-comment">-- | Lifted 'Env.getEnvironment'.</span><span>
+</span><span id="line-68"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-69"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-70"></span><span>  </span><span id="getEnvironment"><span class="annot"><a href="Effects.System.Environment.html#getEnvironment"><span class="hs-identifier hs-type">getEnvironment</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679028613"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-71"></span><span>
+</span><span id="line-72"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-73"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Effects.System.Environment.html#MonadEnv"><span class="hs-identifier hs-type">MonadEnv</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-74"></span><span>  </span><span id="local-6989586621679028683"><span class="annot"><span class="annottext">getArgs :: HasCallStack =&gt; IO [String]
+</span><a href="Effects.System.Environment.html#getArgs"><span class="hs-identifier hs-var hs-var hs-var">getArgs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO [String]
+</span><span class="hs-identifier hs-var">Env.getArgs</span></span><span>
+</span><span id="line-75"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Environment.html#getArgs"><span class="hs-pragma hs-type">getArgs</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-76"></span><span>  </span><span id="local-6989586621679028686"><span class="annot"><span class="annottext">getProgName :: HasCallStack =&gt; IO String
+</span><a href="Effects.System.Environment.html#getProgName"><span class="hs-identifier hs-var hs-var hs-var">getProgName</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO String
+</span><span class="hs-identifier hs-var">Env.getProgName</span></span><span>
+</span><span id="line-77"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Environment.html#getProgName"><span class="hs-pragma hs-type">getProgName</span></a></span><span> </span><span class="hs-pragma">#-}</span><span class="hs-cpp">
+#if MIN_VERSION_base(4,17,0)
+</span><span>  </span><span id="local-6989586621679028689"><span class="annot"><span class="annottext">executablePath :: HasCallStack =&gt; Maybe (IO (Maybe String))
+</span><a href="Effects.System.Environment.html#executablePath"><span class="hs-identifier hs-var hs-var hs-var">executablePath</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe (IO (Maybe String))
+</span><span class="hs-identifier hs-var">Env.executablePath</span></span><span>
+</span><span id="line-80"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Environment.html#executablePath"><span class="hs-pragma hs-type">executablePath</span></a></span><span> </span><span class="hs-pragma">#-}</span><span class="hs-cpp">
+#endif
+</span><span>  </span><span id="local-6989586621679028692"><span class="annot"><span class="annottext">getExecutablePath :: HasCallStack =&gt; IO String
+</span><a href="Effects.System.Environment.html#getExecutablePath"><span class="hs-identifier hs-var hs-var hs-var">getExecutablePath</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO String
+</span><span class="hs-identifier hs-var">Env.getExecutablePath</span></span><span>
+</span><span id="line-83"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Environment.html#getExecutablePath"><span class="hs-pragma hs-type">getExecutablePath</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-84"></span><span>  </span><span id="local-6989586621679028695"><span class="annot"><span class="annottext">getEnv :: HasCallStack =&gt; String -&gt; IO String
+</span><a href="Effects.System.Environment.html#getEnv"><span class="hs-identifier hs-var hs-var hs-var">getEnv</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO String
+</span><span class="hs-identifier hs-var">Env.getEnv</span></span><span>
+</span><span id="line-85"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Environment.html#getEnv"><span class="hs-pragma hs-type">getEnv</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-86"></span><span>  </span><span id="local-6989586621679028698"><span class="annot"><span class="annottext">lookupEnv :: HasCallStack =&gt; String -&gt; IO (Maybe String)
+</span><a href="Effects.System.Environment.html#lookupEnv"><span class="hs-identifier hs-var hs-var hs-var">lookupEnv</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO (Maybe String)
+</span><span class="hs-identifier hs-var">Env.lookupEnv</span></span><span>
+</span><span id="line-87"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Environment.html#lookupEnv"><span class="hs-pragma hs-type">lookupEnv</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-88"></span><span>  </span><span id="local-6989586621679028701"><span class="annot"><span class="annottext">setEnv :: HasCallStack =&gt; String -&gt; String -&gt; IO ()
+</span><a href="Effects.System.Environment.html#setEnv"><span class="hs-identifier hs-var hs-var hs-var">setEnv</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; IO ()
+</span><span class="hs-identifier hs-var">Env.setEnv</span></span><span>
+</span><span id="line-89"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Environment.html#setEnv"><span class="hs-pragma hs-type">setEnv</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-90"></span><span>  </span><span id="local-6989586621679028704"><span class="annot"><span class="annottext">unsetEnv :: HasCallStack =&gt; String -&gt; IO ()
+</span><a href="Effects.System.Environment.html#unsetEnv"><span class="hs-identifier hs-var hs-var hs-var">unsetEnv</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO ()
+</span><span class="hs-identifier hs-var">Env.unsetEnv</span></span><span>
+</span><span id="line-91"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Environment.html#unsetEnv"><span class="hs-pragma hs-type">unsetEnv</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-92"></span><span>  </span><span id="local-6989586621679028707"><span class="annot"><span class="annottext">withArgs :: forall a. HasCallStack =&gt; [String] -&gt; IO a -&gt; IO a
+</span><a href="Effects.System.Environment.html#withArgs"><span class="hs-identifier hs-var hs-var hs-var">withArgs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; IO a -&gt; IO a
+forall a. [String] -&gt; IO a -&gt; IO a
+</span><span class="hs-identifier hs-var">Env.withArgs</span></span><span>
+</span><span id="line-93"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Environment.html#withArgs"><span class="hs-pragma hs-type">withArgs</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-94"></span><span>  </span><span id="local-6989586621679028710"><span class="annot"><span class="annottext">withProgName :: forall a. HasCallStack =&gt; String -&gt; IO a -&gt; IO a
+</span><a href="Effects.System.Environment.html#withProgName"><span class="hs-identifier hs-var hs-var hs-var">withProgName</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO a -&gt; IO a
+forall a. String -&gt; IO a -&gt; IO a
+</span><span class="hs-identifier hs-var">Env.withProgName</span></span><span>
+</span><span id="line-95"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Environment.html#withProgName"><span class="hs-pragma hs-type">withProgName</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-96"></span><span>  </span><span id="local-6989586621679028713"><span class="annot"><span class="annottext">getEnvironment :: HasCallStack =&gt; IO [(String, String)]
+</span><a href="Effects.System.Environment.html#getEnvironment"><span class="hs-identifier hs-var hs-var hs-var">getEnvironment</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO [(String, String)]
+</span><span class="hs-identifier hs-var">Env.getEnvironment</span></span><span>
+</span><span id="line-97"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Environment.html#getEnvironment"><span class="hs-pragma hs-type">getEnvironment</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-98"></span><span>
+</span><span id="line-99"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-100"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679028627"><span id="local-6989586621679028628"><span class="annot"><a href="Effects.System.Environment.html#MonadEnv"><span class="hs-identifier hs-type">MonadEnv</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679028627"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Effects.System.Environment.html#MonadEnv"><span class="hs-identifier hs-type">MonadEnv</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ReaderT</span></span><span> </span><span class="annot"><a href="#local-6989586621679028628"><span class="hs-identifier hs-type">env</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679028627"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-101"></span><span>  </span><span id="local-6989586621679028739"><span class="annot"><span class="annottext">getArgs :: HasCallStack =&gt; ReaderT env m [String]
+</span><a href="Effects.System.Environment.html#getArgs"><span class="hs-identifier hs-var hs-var hs-var">getArgs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m [String] -&gt; ReaderT env m [String]
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m [String]
+forall (m :: * -&gt; *). (MonadEnv m, HasCallStack) =&gt; m [String]
+</span><a href="Effects.System.Environment.html#getArgs"><span class="hs-identifier hs-var">getArgs</span></a></span><span>
+</span><span id="line-102"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Environment.html#getArgs"><span class="hs-pragma hs-type">getArgs</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-103"></span><span>  </span><span id="local-6989586621679028746"><span class="annot"><span class="annottext">getProgName :: HasCallStack =&gt; ReaderT env m String
+</span><a href="Effects.System.Environment.html#getProgName"><span class="hs-identifier hs-var hs-var hs-var">getProgName</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m String -&gt; ReaderT env m String
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m String
+forall (m :: * -&gt; *). (MonadEnv m, HasCallStack) =&gt; m String
+</span><a href="Effects.System.Environment.html#getProgName"><span class="hs-identifier hs-var">getProgName</span></a></span><span>
+</span><span id="line-104"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Environment.html#getProgName"><span class="hs-pragma hs-type">getProgName</span></a></span><span> </span><span class="hs-pragma">#-}</span><span class="hs-cpp">
+#if MIN_VERSION_base(4,17,0)
+</span><span>  </span><span id="local-6989586621679028755"><span class="annot"><span class="annottext">executablePath :: HasCallStack =&gt; Maybe (ReaderT env m (Maybe String))
+</span><a href="Effects.System.Environment.html#executablePath"><span class="hs-identifier hs-var hs-var hs-var">executablePath</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(m (Maybe String) -&gt; ReaderT env m (Maybe String))
+-&gt; Maybe (m (Maybe String)) -&gt; Maybe (ReaderT env m (Maybe String))
+forall a b. (a -&gt; b) -&gt; Maybe a -&gt; Maybe b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="annot"><span class="annottext">m (Maybe String) -&gt; ReaderT env m (Maybe String)
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">Maybe (m (Maybe String))
+forall (m :: * -&gt; *).
+(MonadEnv m, HasCallStack) =&gt;
+Maybe (m (Maybe String))
+</span><a href="Effects.System.Environment.html#executablePath"><span class="hs-identifier hs-var">executablePath</span></a></span><span>
+</span><span id="line-107"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Environment.html#executablePath"><span class="hs-pragma hs-type">executablePath</span></a></span><span> </span><span class="hs-pragma">#-}</span><span class="hs-cpp">
+#endif
+</span><span>  </span><span id="local-6989586621679028762"><span class="annot"><span class="annottext">getExecutablePath :: HasCallStack =&gt; ReaderT env m String
+</span><a href="Effects.System.Environment.html#getExecutablePath"><span class="hs-identifier hs-var hs-var hs-var">getExecutablePath</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m String -&gt; ReaderT env m String
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m String
+forall (m :: * -&gt; *). (MonadEnv m, HasCallStack) =&gt; m String
+</span><a href="Effects.System.Environment.html#getExecutablePath"><span class="hs-identifier hs-var">getExecutablePath</span></a></span><span>
+</span><span id="line-110"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Environment.html#getExecutablePath"><span class="hs-pragma hs-type">getExecutablePath</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-111"></span><span>  </span><span id="local-6989586621679028769"><span class="annot"><span class="annottext">getEnv :: HasCallStack =&gt; String -&gt; ReaderT env m String
+</span><a href="Effects.System.Environment.html#getEnv"><span class="hs-identifier hs-var hs-var hs-var">getEnv</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m String -&gt; ReaderT env m String
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m String -&gt; ReaderT env m String)
+-&gt; (String -&gt; m String) -&gt; String -&gt; ReaderT env m String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; m String
+forall (m :: * -&gt; *).
+(MonadEnv m, HasCallStack) =&gt;
+String -&gt; m String
+</span><a href="Effects.System.Environment.html#getEnv"><span class="hs-identifier hs-var">getEnv</span></a></span><span>
+</span><span id="line-112"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Environment.html#getEnv"><span class="hs-pragma hs-type">getEnv</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-113"></span><span>  </span><span id="local-6989586621679028777"><span class="annot"><span class="annottext">lookupEnv :: HasCallStack =&gt; String -&gt; ReaderT env m (Maybe String)
+</span><a href="Effects.System.Environment.html#lookupEnv"><span class="hs-identifier hs-var hs-var hs-var">lookupEnv</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m (Maybe String) -&gt; ReaderT env m (Maybe String)
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m (Maybe String) -&gt; ReaderT env m (Maybe String))
+-&gt; (String -&gt; m (Maybe String))
+-&gt; String
+-&gt; ReaderT env m (Maybe String)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; m (Maybe String)
+forall (m :: * -&gt; *).
+(MonadEnv m, HasCallStack) =&gt;
+String -&gt; m (Maybe String)
+</span><a href="Effects.System.Environment.html#lookupEnv"><span class="hs-identifier hs-var">lookupEnv</span></a></span><span>
+</span><span id="line-114"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Environment.html#lookupEnv"><span class="hs-pragma hs-type">lookupEnv</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-115"></span><span>  </span><span id="local-6989586621679028784"><span class="annot"><span class="annottext">setEnv :: HasCallStack =&gt; String -&gt; String -&gt; ReaderT env m ()
+</span><a href="Effects.System.Environment.html#setEnv"><span class="hs-identifier hs-var hs-var hs-var">setEnv</span></a></span></span><span> </span><span id="local-6989586621679028785"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679028785"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT env m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT env m ())
+-&gt; (String -&gt; m ()) -&gt; String -&gt; ReaderT env m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadEnv m, HasCallStack) =&gt;
+String -&gt; String -&gt; m ()
+</span><a href="Effects.System.Environment.html#setEnv"><span class="hs-identifier hs-var">setEnv</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679028785"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-116"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Environment.html#setEnv"><span class="hs-pragma hs-type">setEnv</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-117"></span><span>  </span><span id="local-6989586621679028792"><span class="annot"><span class="annottext">unsetEnv :: HasCallStack =&gt; String -&gt; ReaderT env m ()
+</span><a href="Effects.System.Environment.html#unsetEnv"><span class="hs-identifier hs-var hs-var hs-var">unsetEnv</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT env m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT env m ())
+-&gt; (String -&gt; m ()) -&gt; String -&gt; ReaderT env m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; m ()
+forall (m :: * -&gt; *). (MonadEnv m, HasCallStack) =&gt; String -&gt; m ()
+</span><a href="Effects.System.Environment.html#unsetEnv"><span class="hs-identifier hs-var">unsetEnv</span></a></span><span>
+</span><span id="line-118"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Environment.html#unsetEnv"><span class="hs-pragma hs-type">unsetEnv</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-119"></span><span>  </span><span id="local-6989586621679028801"><span class="annot"><span class="annottext">withArgs :: forall a.
+HasCallStack =&gt;
+[String] -&gt; ReaderT env m a -&gt; ReaderT env m a
+</span><a href="Effects.System.Environment.html#withArgs"><span class="hs-identifier hs-var hs-var hs-var">withArgs</span></a></span></span><span> </span><span id="local-6989586621679028802"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679028802"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679028803"><span class="annot"><span class="annottext">ReaderT env m a
+</span><a href="#local-6989586621679028803"><span class="hs-identifier hs-var">m</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ReaderT env m env
+forall (m :: * -&gt; *) r. Monad m =&gt; ReaderT r m r
+</span><span class="hs-identifier hs-var">ask</span></span><span> </span><span class="annot"><span class="annottext">ReaderT env m env -&gt; (env -&gt; ReaderT env m a) -&gt; ReaderT env m a
+forall a b.
+ReaderT env m a -&gt; (a -&gt; ReaderT env m b) -&gt; ReaderT env m b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679028804"><span class="annot"><span class="annottext">env
+</span><a href="#local-6989586621679028804"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">m a -&gt; ReaderT env m a
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[String] -&gt; m a -&gt; m a
+forall a. HasCallStack =&gt; [String] -&gt; m a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadEnv m, HasCallStack) =&gt;
+[String] -&gt; m a -&gt; m a
+</span><a href="Effects.System.Environment.html#withArgs"><span class="hs-identifier hs-var">withArgs</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679028802"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ReaderT env m a -&gt; env -&gt; m a
+forall r (m :: * -&gt; *) a. ReaderT r m a -&gt; r -&gt; m a
+</span><span class="hs-identifier hs-var">runReaderT</span></span><span> </span><span class="annot"><span class="annottext">ReaderT env m a
+</span><a href="#local-6989586621679028803"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="annot"><span class="annottext">env
+</span><a href="#local-6989586621679028804"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-120"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Environment.html#withArgs"><span class="hs-pragma hs-type">withArgs</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-121"></span><span>  </span><span id="local-6989586621679028813"><span class="annot"><span class="annottext">withProgName :: forall a.
+HasCallStack =&gt;
+String -&gt; ReaderT env m a -&gt; ReaderT env m a
+</span><a href="Effects.System.Environment.html#withProgName"><span class="hs-identifier hs-var hs-var hs-var">withProgName</span></a></span></span><span> </span><span id="local-6989586621679028814"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679028814"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679028815"><span class="annot"><span class="annottext">ReaderT env m a
+</span><a href="#local-6989586621679028815"><span class="hs-identifier hs-var">m</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ReaderT env m env
+forall (m :: * -&gt; *) r. Monad m =&gt; ReaderT r m r
+</span><span class="hs-identifier hs-var">ask</span></span><span> </span><span class="annot"><span class="annottext">ReaderT env m env -&gt; (env -&gt; ReaderT env m a) -&gt; ReaderT env m a
+forall a b.
+ReaderT env m a -&gt; (a -&gt; ReaderT env m b) -&gt; ReaderT env m b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679028816"><span class="annot"><span class="annottext">env
+</span><a href="#local-6989586621679028816"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">m a -&gt; ReaderT env m a
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; m a -&gt; m a
+forall a. HasCallStack =&gt; String -&gt; m a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadEnv m, HasCallStack) =&gt;
+String -&gt; m a -&gt; m a
+</span><a href="Effects.System.Environment.html#withProgName"><span class="hs-identifier hs-var">withProgName</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679028814"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ReaderT env m a -&gt; env -&gt; m a
+forall r (m :: * -&gt; *) a. ReaderT r m a -&gt; r -&gt; m a
+</span><span class="hs-identifier hs-var">runReaderT</span></span><span> </span><span class="annot"><span class="annottext">ReaderT env m a
+</span><a href="#local-6989586621679028815"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="annot"><span class="annottext">env
+</span><a href="#local-6989586621679028816"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-122"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Environment.html#withProgName"><span class="hs-pragma hs-type">withProgName</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-123"></span><span>  </span><span id="local-6989586621679028823"><span class="annot"><span class="annottext">getEnvironment :: HasCallStack =&gt; ReaderT env m [(String, String)]
+</span><a href="Effects.System.Environment.html#getEnvironment"><span class="hs-identifier hs-var hs-var hs-var">getEnvironment</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m [(String, String)] -&gt; ReaderT env m [(String, String)]
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">m [(String, String)]
+forall (m :: * -&gt; *).
+(MonadEnv m, HasCallStack) =&gt;
+m [(String, String)]
+</span><a href="Effects.System.Environment.html#getEnvironment"><span class="hs-identifier hs-var">getEnvironment</span></a></span><span>
+</span><span id="line-124"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Environment.html#getEnvironment"><span class="hs-pragma hs-type">getEnvironment</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-125"></span><span>
+</span><span id="line-126"></span><span class="hs-comment">{- ORMOLU_ENABLE -}</span><span>
+</span><span id="line-127"></span></pre></body></html>

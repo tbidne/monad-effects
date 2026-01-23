@@ -1,0 +1,438 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- | Provides the 'MonadIORef' class.</span><span>
+</span><span id="line-2"></span><span class="hs-comment">--</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Effects.IORef.html"><span class="hs-identifier">Effects.IORef</span></a></span><span>
+</span><span id="line-5"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Effect</span></span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><a href="Effects.IORef.html#MonadIORef"><span class="hs-identifier">MonadIORef</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Utils</span></span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="Effects.IORef.html#atomicModifyIORef_"><span class="hs-identifier">atomicModifyIORef_</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><a href="Effects.IORef.html#atomicModifyIORef%27_"><span class="hs-identifier">atomicModifyIORef'_</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Reexports</span></span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><span class="hs-identifier">IORef</span></span><span class="hs-special">,</span><span>
+</span><span id="line-14"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-15"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Exception</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">evaluate</span></span><span class="hs-special">)</span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-operator">(&gt;=&gt;)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Class</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadTrans</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">lift</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Reader</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ReaderT</span></span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.IORef</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">IORef</span></span><span class="hs-special">)</span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.IORef</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">IORef</span></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Stack</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">HasCallStack</span></span><span class="hs-special">)</span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span class="hs-comment">-- | 'IORef' effect.</span><span>
+</span><span id="line-26"></span><span class="hs-comment">--</span><span>
+</span><span id="line-27"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-28"></span><span class="hs-keyword">class</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Monad</span></span><span> </span><span class="annot"><a href="#local-6989586621679041468"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span id="MonadIORef"><span class="annot"><a href="Effects.IORef.html#MonadIORef"><span class="hs-identifier hs-var">MonadIORef</span></a></span></span><span> </span><span id="local-6989586621679041468"><span class="annot"><a href="#local-6989586621679041468"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-29"></span><span>  </span><span class="hs-comment">-- | Lifted 'IORef.newIORef'.</span><span>
+</span><span id="line-30"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-31"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-32"></span><span>  </span><span id="newIORef"><span class="annot"><a href="Effects.IORef.html#newIORef"><span class="hs-identifier hs-type">newIORef</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span id="local-6989586621679041471"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679041471"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679041468"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">IORef</span></span><span> </span><span class="annot"><a href="#local-6989586621679041471"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span>  </span><span class="hs-comment">-- | Evaluates a to WHNF then calls 'newIORef'.</span><span>
+</span><span id="line-35"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-36"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-37"></span><span>  </span><span id="newIORef%27"><span class="annot"><a href="Effects.IORef.html#newIORef%27"><span class="hs-identifier hs-type">newIORef'</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span id="local-6989586621679041552"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679041552"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679041468"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">IORef</span></span><span> </span><span class="annot"><a href="#local-6989586621679041552"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span>  </span><span class="hs-comment">-- | Lifted 'IORef.readIORef'.</span><span>
+</span><span id="line-40"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-41"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-42"></span><span>  </span><span id="readIORef"><span class="annot"><a href="Effects.IORef.html#readIORef"><span class="hs-identifier hs-type">readIORef</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span id="local-6989586621679041473"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IORef</span></span><span> </span><span class="annot"><a href="#local-6989586621679041473"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679041468"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679041473"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-43"></span><span>
+</span><span id="line-44"></span><span>  </span><span class="hs-comment">-- | Evaluates the result of 'readIORef' to WHNF.</span><span>
+</span><span id="line-45"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-46"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-47"></span><span>  </span><span id="readIORef%27"><span class="annot"><a href="Effects.IORef.html#readIORef%27"><span class="hs-identifier hs-type">readIORef'</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span id="local-6989586621679041555"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IORef</span></span><span> </span><span class="annot"><a href="#local-6989586621679041555"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679041468"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679041555"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span>  </span><span class="hs-comment">-- | Lifted 'IORef.writeIORef'.</span><span>
+</span><span id="line-50"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-51"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-52"></span><span>  </span><span id="writeIORef"><span class="annot"><a href="Effects.IORef.html#writeIORef"><span class="hs-identifier hs-type">writeIORef</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span id="local-6989586621679041474"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IORef</span></span><span> </span><span class="annot"><a href="#local-6989586621679041474"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679041474"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679041468"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-53"></span><span>
+</span><span id="line-54"></span><span>  </span><span class="hs-comment">-- | Evaluates a to WHNF before calling 'writeIORef'.</span><span>
+</span><span id="line-55"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-56"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-57"></span><span>  </span><span id="writeIORef%27"><span class="annot"><a href="Effects.IORef.html#writeIORef%27"><span class="hs-identifier hs-type">writeIORef'</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span id="local-6989586621679041558"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IORef</span></span><span> </span><span class="annot"><a href="#local-6989586621679041558"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679041558"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679041468"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-58"></span><span>
+</span><span id="line-59"></span><span>  </span><span class="hs-comment">-- | Lifted 'IORef.atomicWriteIORef'.</span><span>
+</span><span id="line-60"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-61"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-62"></span><span>  </span><span id="atomicWriteIORef"><span class="annot"><a href="Effects.IORef.html#atomicWriteIORef"><span class="hs-identifier hs-type">atomicWriteIORef</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span id="local-6989586621679041560"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IORef</span></span><span> </span><span class="annot"><a href="#local-6989586621679041560"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679041560"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679041468"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span><span>  </span><span class="hs-comment">-- | Evaluates a to WHNF before calling 'atomicWriteIORef'.</span><span>
+</span><span id="line-65"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-66"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-67"></span><span>  </span><span id="atomicWriteIORef%27"><span class="annot"><a href="Effects.IORef.html#atomicWriteIORef%27"><span class="hs-identifier hs-type">atomicWriteIORef'</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span id="local-6989586621679041562"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IORef</span></span><span> </span><span class="annot"><a href="#local-6989586621679041562"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679041562"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679041468"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-68"></span><span>
+</span><span id="line-69"></span><span>  </span><span class="hs-comment">-- | Lifted 'IORef.modifyIORef''.</span><span>
+</span><span id="line-70"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-71"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-72"></span><span>  </span><span id="modifyIORef"><span class="annot"><a href="Effects.IORef.html#modifyIORef"><span class="hs-identifier hs-type">modifyIORef</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span id="local-6989586621679041475"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IORef</span></span><span> </span><span class="annot"><a href="#local-6989586621679041475"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679041475"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679041475"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679041468"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-73"></span><span>
+</span><span id="line-74"></span><span>  </span><span class="hs-comment">-- | Lifted 'IORef.modifyIORef''.</span><span>
+</span><span id="line-75"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-76"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-77"></span><span>  </span><span id="modifyIORef%27"><span class="annot"><a href="Effects.IORef.html#modifyIORef%27"><span class="hs-identifier hs-type">modifyIORef'</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span id="local-6989586621679041565"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IORef</span></span><span> </span><span class="annot"><a href="#local-6989586621679041565"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679041565"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679041565"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679041468"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-78"></span><span>
+</span><span id="line-79"></span><span>  </span><span class="hs-comment">-- | Lifted 'IORef.atomicModifyIORef'.</span><span>
+</span><span id="line-80"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-81"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-82"></span><span>  </span><span id="atomicModifyIORef"><span class="annot"><a href="Effects.IORef.html#atomicModifyIORef"><span class="hs-identifier hs-type">atomicModifyIORef</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span id="local-6989586621679041476"><span id="local-6989586621679041477"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IORef</span></span><span> </span><span class="annot"><a href="#local-6989586621679041476"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679041476"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679041476"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679041477"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679041468"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679041477"><span class="hs-identifier hs-type">b</span></a></span></span></span><span>
+</span><span id="line-83"></span><span>
+</span><span id="line-84"></span><span>  </span><span class="hs-comment">-- | Lifted 'IORef.atomicModifyIORef''.</span><span>
+</span><span id="line-85"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-86"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-87"></span><span>  </span><span id="atomicModifyIORef%27"><span class="annot"><a href="Effects.IORef.html#atomicModifyIORef%27"><span class="hs-identifier hs-type">atomicModifyIORef'</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span id="local-6989586621679041536"><span id="local-6989586621679041537"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IORef</span></span><span> </span><span class="annot"><a href="#local-6989586621679041536"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679041536"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679041536"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679041537"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679041468"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679041537"><span class="hs-identifier hs-type">b</span></a></span></span></span><span>
+</span><span id="line-88"></span><span>
+</span><span id="line-89"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-90"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Effects.IORef.html#MonadIORef"><span class="hs-identifier hs-type">MonadIORef</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-91"></span><span>  </span><span id="local-6989586621679041586"><span class="annot"><span class="annottext">newIORef :: forall a. HasCallStack =&gt; a -&gt; IO (IORef a)
+</span><a href="Effects.IORef.html#newIORef"><span class="hs-identifier hs-var hs-var hs-var">newIORef</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; IO (IORef a)
+forall a. a -&gt; IO (IORef a)
+</span><span class="hs-identifier hs-var">IORef.newIORef</span></span><span>
+</span><span id="line-92"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.IORef.html#newIORef"><span class="hs-pragma hs-type">newIORef</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-93"></span><span>  </span><span id="local-6989586621679041590"><span class="annot"><span class="annottext">newIORef' :: forall a. HasCallStack =&gt; a -&gt; IO (IORef a)
+</span><a href="Effects.IORef.html#newIORef%27"><span class="hs-identifier hs-var hs-var hs-var">newIORef'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; IO a
+forall a. a -&gt; IO a
+</span><span class="hs-identifier hs-var">evaluate</span></span><span> </span><span class="annot"><span class="annottext">(a -&gt; IO a) -&gt; (a -&gt; IO (IORef a)) -&gt; a -&gt; IO (IORef a)
+forall (m :: * -&gt; *) a b c.
+Monad m =&gt;
+(a -&gt; m b) -&gt; (b -&gt; m c) -&gt; a -&gt; m c
+</span><span class="hs-operator hs-var">&gt;=&gt;</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; IO (IORef a)
+forall a. a -&gt; IO (IORef a)
+</span><span class="hs-identifier hs-var">IORef.newIORef</span></span><span>
+</span><span id="line-94"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.IORef.html#newIORef%27"><span class="hs-pragma hs-type">newIORef'</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-95"></span><span>  </span><span id="local-6989586621679041592"><span class="annot"><span class="annottext">readIORef :: forall a. HasCallStack =&gt; IORef a -&gt; IO a
+</span><a href="Effects.IORef.html#readIORef"><span class="hs-identifier hs-var hs-var hs-var">readIORef</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IORef a -&gt; IO a
+forall a. IORef a -&gt; IO a
+</span><span class="hs-identifier hs-var">IORef.readIORef</span></span><span>
+</span><span id="line-96"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.IORef.html#readIORef"><span class="hs-pragma hs-type">readIORef</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-97"></span><span>  </span><span id="local-6989586621679041596"><span class="annot"><span class="annottext">readIORef' :: forall a. HasCallStack =&gt; IORef a -&gt; IO a
+</span><a href="Effects.IORef.html#readIORef%27"><span class="hs-identifier hs-var hs-var hs-var">readIORef'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IORef a -&gt; IO a
+forall a. IORef a -&gt; IO a
+</span><span class="hs-identifier hs-var">IORef.readIORef</span></span><span> </span><span class="annot"><span class="annottext">(IORef a -&gt; IO a) -&gt; (a -&gt; IO a) -&gt; IORef a -&gt; IO a
+forall (m :: * -&gt; *) a b c.
+Monad m =&gt;
+(a -&gt; m b) -&gt; (b -&gt; m c) -&gt; a -&gt; m c
+</span><span class="hs-operator hs-var">&gt;=&gt;</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; IO a
+forall a. a -&gt; IO a
+</span><span class="hs-identifier hs-var">evaluate</span></span><span>
+</span><span id="line-98"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.IORef.html#readIORef%27"><span class="hs-pragma hs-type">readIORef'</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-99"></span><span>  </span><span id="local-6989586621679041598"><span class="annot"><span class="annottext">writeIORef :: forall a. HasCallStack =&gt; IORef a -&gt; a -&gt; IO ()
+</span><a href="Effects.IORef.html#writeIORef"><span class="hs-identifier hs-var hs-var hs-var">writeIORef</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IORef a -&gt; a -&gt; IO ()
+forall a. IORef a -&gt; a -&gt; IO ()
+</span><span class="hs-identifier hs-var">IORef.writeIORef</span></span><span>
+</span><span id="line-100"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.IORef.html#writeIORef"><span class="hs-pragma hs-type">writeIORef</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-101"></span><span>  </span><span id="local-6989586621679041602"><span class="annot"><span class="annottext">writeIORef' :: forall a. HasCallStack =&gt; IORef a -&gt; a -&gt; IO ()
+</span><a href="Effects.IORef.html#writeIORef%27"><span class="hs-identifier hs-var hs-var hs-var">writeIORef'</span></a></span></span><span> </span><span id="local-6989586621679041603"><span class="annot"><span class="annottext">IORef a
+</span><a href="#local-6989586621679041603"><span class="hs-identifier hs-var">ref</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; IO a
+forall a. a -&gt; IO a
+</span><span class="hs-identifier hs-var">evaluate</span></span><span> </span><span class="annot"><span class="annottext">(a -&gt; IO a) -&gt; (a -&gt; IO ()) -&gt; a -&gt; IO ()
+forall (m :: * -&gt; *) a b c.
+Monad m =&gt;
+(a -&gt; m b) -&gt; (b -&gt; m c) -&gt; a -&gt; m c
+</span><span class="hs-operator hs-var">&gt;=&gt;</span></span><span> </span><span class="annot"><span class="annottext">IORef a -&gt; a -&gt; IO ()
+forall a. IORef a -&gt; a -&gt; IO ()
+</span><span class="hs-identifier hs-var">IORef.writeIORef</span></span><span> </span><span class="annot"><span class="annottext">IORef a
+</span><a href="#local-6989586621679041603"><span class="hs-identifier hs-var">ref</span></a></span><span>
+</span><span id="line-102"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.IORef.html#writeIORef%27"><span class="hs-pragma hs-type">writeIORef'</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-103"></span><span>  </span><span id="local-6989586621679041605"><span class="annot"><span class="annottext">atomicWriteIORef :: forall a. HasCallStack =&gt; IORef a -&gt; a -&gt; IO ()
+</span><a href="Effects.IORef.html#atomicWriteIORef"><span class="hs-identifier hs-var hs-var hs-var">atomicWriteIORef</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IORef a -&gt; a -&gt; IO ()
+forall a. IORef a -&gt; a -&gt; IO ()
+</span><span class="hs-identifier hs-var">IORef.atomicWriteIORef</span></span><span>
+</span><span id="line-104"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.IORef.html#atomicWriteIORef"><span class="hs-pragma hs-type">atomicWriteIORef</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-105"></span><span>  </span><span id="local-6989586621679041609"><span class="annot"><span class="annottext">atomicWriteIORef' :: forall a. HasCallStack =&gt; IORef a -&gt; a -&gt; IO ()
+</span><a href="Effects.IORef.html#atomicWriteIORef%27"><span class="hs-identifier hs-var hs-var hs-var">atomicWriteIORef'</span></a></span></span><span> </span><span id="local-6989586621679041610"><span class="annot"><span class="annottext">IORef a
+</span><a href="#local-6989586621679041610"><span class="hs-identifier hs-var">ref</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; IO a
+forall a. a -&gt; IO a
+</span><span class="hs-identifier hs-var">evaluate</span></span><span> </span><span class="annot"><span class="annottext">(a -&gt; IO a) -&gt; (a -&gt; IO ()) -&gt; a -&gt; IO ()
+forall (m :: * -&gt; *) a b c.
+Monad m =&gt;
+(a -&gt; m b) -&gt; (b -&gt; m c) -&gt; a -&gt; m c
+</span><span class="hs-operator hs-var">&gt;=&gt;</span></span><span> </span><span class="annot"><span class="annottext">IORef a -&gt; a -&gt; IO ()
+forall a. IORef a -&gt; a -&gt; IO ()
+</span><span class="hs-identifier hs-var">IORef.atomicWriteIORef</span></span><span> </span><span class="annot"><span class="annottext">IORef a
+</span><a href="#local-6989586621679041610"><span class="hs-identifier hs-var">ref</span></a></span><span>
+</span><span id="line-106"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.IORef.html#atomicWriteIORef%27"><span class="hs-pragma hs-type">atomicWriteIORef'</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-107"></span><span>  </span><span id="local-6989586621679041612"><span class="annot"><span class="annottext">modifyIORef :: forall a. HasCallStack =&gt; IORef a -&gt; (a -&gt; a) -&gt; IO ()
+</span><a href="Effects.IORef.html#modifyIORef"><span class="hs-identifier hs-var hs-var hs-var">modifyIORef</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IORef a -&gt; (a -&gt; a) -&gt; IO ()
+forall a. IORef a -&gt; (a -&gt; a) -&gt; IO ()
+</span><span class="hs-identifier hs-var">IORef.modifyIORef</span></span><span>
+</span><span id="line-108"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.IORef.html#modifyIORef"><span class="hs-pragma hs-type">modifyIORef</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-109"></span><span>  </span><span id="local-6989586621679041615"><span class="annot"><span class="annottext">modifyIORef' :: forall a. HasCallStack =&gt; IORef a -&gt; (a -&gt; a) -&gt; IO ()
+</span><a href="Effects.IORef.html#modifyIORef%27"><span class="hs-identifier hs-var hs-var hs-var">modifyIORef'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IORef a -&gt; (a -&gt; a) -&gt; IO ()
+forall a. IORef a -&gt; (a -&gt; a) -&gt; IO ()
+</span><span class="hs-identifier hs-var">IORef.modifyIORef'</span></span><span>
+</span><span id="line-110"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.IORef.html#modifyIORef%27"><span class="hs-pragma hs-type">modifyIORef'</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-111"></span><span>  </span><span id="local-6989586621679041618"><span class="annot"><span class="annottext">atomicModifyIORef :: forall a b. HasCallStack =&gt; IORef a -&gt; (a -&gt; (a, b)) -&gt; IO b
+</span><a href="Effects.IORef.html#atomicModifyIORef"><span class="hs-identifier hs-var hs-var hs-var">atomicModifyIORef</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IORef a -&gt; (a -&gt; (a, b)) -&gt; IO b
+forall a b. IORef a -&gt; (a -&gt; (a, b)) -&gt; IO b
+</span><span class="hs-identifier hs-var">IORef.atomicModifyIORef</span></span><span>
+</span><span id="line-112"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.IORef.html#atomicModifyIORef"><span class="hs-pragma hs-type">atomicModifyIORef</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-113"></span><span>  </span><span id="local-6989586621679041621"><span class="annot"><span class="annottext">atomicModifyIORef' :: forall a b. HasCallStack =&gt; IORef a -&gt; (a -&gt; (a, b)) -&gt; IO b
+</span><a href="Effects.IORef.html#atomicModifyIORef%27"><span class="hs-identifier hs-var hs-var hs-var">atomicModifyIORef'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IORef a -&gt; (a -&gt; (a, b)) -&gt; IO b
+forall a b. IORef a -&gt; (a -&gt; (a, b)) -&gt; IO b
+</span><span class="hs-identifier hs-var">IORef.atomicModifyIORef'</span></span><span>
+</span><span id="line-114"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.IORef.html#atomicModifyIORef%27"><span class="hs-pragma hs-type">atomicModifyIORef'</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-115"></span><span>
+</span><span id="line-116"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-117"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679041508"><span id="local-6989586621679041509"><span class="hs-special">(</span><span class="annot"><a href="Effects.IORef.html#MonadIORef"><span class="hs-identifier hs-type">MonadIORef</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679041508"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Effects.IORef.html#MonadIORef"><span class="hs-identifier hs-type">MonadIORef</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ReaderT</span></span><span> </span><span class="annot"><a href="#local-6989586621679041509"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679041508"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-118"></span><span>  </span><span id="local-6989586621679041648"><span class="annot"><span class="annottext">newIORef :: forall a. HasCallStack =&gt; a -&gt; ReaderT e m (IORef a)
+</span><a href="Effects.IORef.html#newIORef"><span class="hs-identifier hs-var hs-var hs-var">newIORef</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m (IORef a) -&gt; ReaderT e m (IORef a)
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m (IORef a) -&gt; ReaderT e m (IORef a))
+-&gt; (a -&gt; m (IORef a)) -&gt; a -&gt; ReaderT e m (IORef a)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; m (IORef a)
+forall a. HasCallStack =&gt; a -&gt; m (IORef a)
+forall (m :: * -&gt; *) a.
+(MonadIORef m, HasCallStack) =&gt;
+a -&gt; m (IORef a)
+</span><a href="Effects.IORef.html#newIORef"><span class="hs-identifier hs-var">newIORef</span></a></span><span>
+</span><span id="line-119"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.IORef.html#newIORef"><span class="hs-pragma hs-type">newIORef</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-120"></span><span>  </span><span id="local-6989586621679041656"><span class="annot"><span class="annottext">newIORef' :: forall a. HasCallStack =&gt; a -&gt; ReaderT e m (IORef a)
+</span><a href="Effects.IORef.html#newIORef%27"><span class="hs-identifier hs-var hs-var hs-var">newIORef'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m (IORef a) -&gt; ReaderT e m (IORef a)
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m (IORef a) -&gt; ReaderT e m (IORef a))
+-&gt; (a -&gt; m (IORef a)) -&gt; a -&gt; ReaderT e m (IORef a)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; m (IORef a)
+forall a. HasCallStack =&gt; a -&gt; m (IORef a)
+forall (m :: * -&gt; *) a.
+(MonadIORef m, HasCallStack) =&gt;
+a -&gt; m (IORef a)
+</span><a href="Effects.IORef.html#newIORef%27"><span class="hs-identifier hs-var">newIORef'</span></a></span><span>
+</span><span id="line-121"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.IORef.html#newIORef%27"><span class="hs-pragma hs-type">newIORef'</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-122"></span><span>  </span><span id="local-6989586621679041663"><span class="annot"><span class="annottext">readIORef :: forall a. HasCallStack =&gt; IORef a -&gt; ReaderT e m a
+</span><a href="Effects.IORef.html#readIORef"><span class="hs-identifier hs-var hs-var hs-var">readIORef</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m a -&gt; ReaderT e m a
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m a -&gt; ReaderT e m a)
+-&gt; (IORef a -&gt; m a) -&gt; IORef a -&gt; ReaderT e m a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">IORef a -&gt; m a
+forall a. HasCallStack =&gt; IORef a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadIORef m, HasCallStack) =&gt;
+IORef a -&gt; m a
+</span><a href="Effects.IORef.html#readIORef"><span class="hs-identifier hs-var">readIORef</span></a></span><span>
+</span><span id="line-123"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.IORef.html#readIORef"><span class="hs-pragma hs-type">readIORef</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-124"></span><span>  </span><span id="local-6989586621679041670"><span class="annot"><span class="annottext">readIORef' :: forall a. HasCallStack =&gt; IORef a -&gt; ReaderT e m a
+</span><a href="Effects.IORef.html#readIORef%27"><span class="hs-identifier hs-var hs-var hs-var">readIORef'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m a -&gt; ReaderT e m a
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m a -&gt; ReaderT e m a)
+-&gt; (IORef a -&gt; m a) -&gt; IORef a -&gt; ReaderT e m a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">IORef a -&gt; m a
+forall a. HasCallStack =&gt; IORef a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadIORef m, HasCallStack) =&gt;
+IORef a -&gt; m a
+</span><a href="Effects.IORef.html#readIORef%27"><span class="hs-identifier hs-var">readIORef'</span></a></span><span>
+</span><span id="line-125"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.IORef.html#readIORef%27"><span class="hs-pragma hs-type">readIORef'</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-126"></span><span>  </span><span id="local-6989586621679041677"><span class="annot"><span class="annottext">writeIORef :: forall a. HasCallStack =&gt; IORef a -&gt; a -&gt; ReaderT e m ()
+</span><a href="Effects.IORef.html#writeIORef"><span class="hs-identifier hs-var hs-var hs-var">writeIORef</span></a></span></span><span> </span><span id="local-6989586621679041678"><span class="annot"><span class="annottext">IORef a
+</span><a href="#local-6989586621679041678"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ()) -&gt; (a -&gt; m ()) -&gt; a -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">IORef a -&gt; a -&gt; m ()
+forall a. HasCallStack =&gt; IORef a -&gt; a -&gt; m ()
+forall (m :: * -&gt; *) a.
+(MonadIORef m, HasCallStack) =&gt;
+IORef a -&gt; a -&gt; m ()
+</span><a href="Effects.IORef.html#writeIORef"><span class="hs-identifier hs-var">writeIORef</span></a></span><span> </span><span class="annot"><span class="annottext">IORef a
+</span><a href="#local-6989586621679041678"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-127"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.IORef.html#writeIORef"><span class="hs-pragma hs-type">writeIORef</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-128"></span><span>  </span><span id="local-6989586621679041685"><span class="annot"><span class="annottext">writeIORef' :: forall a. HasCallStack =&gt; IORef a -&gt; a -&gt; ReaderT e m ()
+</span><a href="Effects.IORef.html#writeIORef%27"><span class="hs-identifier hs-var hs-var hs-var">writeIORef'</span></a></span></span><span> </span><span id="local-6989586621679041686"><span class="annot"><span class="annottext">IORef a
+</span><a href="#local-6989586621679041686"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ()) -&gt; (a -&gt; m ()) -&gt; a -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">IORef a -&gt; a -&gt; m ()
+forall a. HasCallStack =&gt; IORef a -&gt; a -&gt; m ()
+forall (m :: * -&gt; *) a.
+(MonadIORef m, HasCallStack) =&gt;
+IORef a -&gt; a -&gt; m ()
+</span><a href="Effects.IORef.html#writeIORef%27"><span class="hs-identifier hs-var">writeIORef'</span></a></span><span> </span><span class="annot"><span class="annottext">IORef a
+</span><a href="#local-6989586621679041686"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-129"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.IORef.html#writeIORef%27"><span class="hs-pragma hs-type">writeIORef'</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-130"></span><span>  </span><span id="local-6989586621679041693"><span class="annot"><span class="annottext">atomicWriteIORef :: forall a. HasCallStack =&gt; IORef a -&gt; a -&gt; ReaderT e m ()
+</span><a href="Effects.IORef.html#atomicWriteIORef"><span class="hs-identifier hs-var hs-var hs-var">atomicWriteIORef</span></a></span></span><span> </span><span id="local-6989586621679041694"><span class="annot"><span class="annottext">IORef a
+</span><a href="#local-6989586621679041694"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ()) -&gt; (a -&gt; m ()) -&gt; a -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">IORef a -&gt; a -&gt; m ()
+forall a. HasCallStack =&gt; IORef a -&gt; a -&gt; m ()
+forall (m :: * -&gt; *) a.
+(MonadIORef m, HasCallStack) =&gt;
+IORef a -&gt; a -&gt; m ()
+</span><a href="Effects.IORef.html#atomicWriteIORef"><span class="hs-identifier hs-var">atomicWriteIORef</span></a></span><span> </span><span class="annot"><span class="annottext">IORef a
+</span><a href="#local-6989586621679041694"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-131"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.IORef.html#atomicWriteIORef"><span class="hs-pragma hs-type">atomicWriteIORef</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-132"></span><span>  </span><span id="local-6989586621679041701"><span class="annot"><span class="annottext">atomicWriteIORef' :: forall a. HasCallStack =&gt; IORef a -&gt; a -&gt; ReaderT e m ()
+</span><a href="Effects.IORef.html#atomicWriteIORef%27"><span class="hs-identifier hs-var hs-var hs-var">atomicWriteIORef'</span></a></span></span><span> </span><span id="local-6989586621679041702"><span class="annot"><span class="annottext">IORef a
+</span><a href="#local-6989586621679041702"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ()) -&gt; (a -&gt; m ()) -&gt; a -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">IORef a -&gt; a -&gt; m ()
+forall a. HasCallStack =&gt; IORef a -&gt; a -&gt; m ()
+forall (m :: * -&gt; *) a.
+(MonadIORef m, HasCallStack) =&gt;
+IORef a -&gt; a -&gt; m ()
+</span><a href="Effects.IORef.html#atomicWriteIORef%27"><span class="hs-identifier hs-var">atomicWriteIORef'</span></a></span><span> </span><span class="annot"><span class="annottext">IORef a
+</span><a href="#local-6989586621679041702"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-133"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.IORef.html#atomicWriteIORef%27"><span class="hs-pragma hs-type">atomicWriteIORef'</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-134"></span><span>  </span><span id="local-6989586621679041709"><span class="annot"><span class="annottext">modifyIORef :: forall a. HasCallStack =&gt; IORef a -&gt; (a -&gt; a) -&gt; ReaderT e m ()
+</span><a href="Effects.IORef.html#modifyIORef"><span class="hs-identifier hs-var hs-var hs-var">modifyIORef</span></a></span></span><span> </span><span id="local-6989586621679041710"><span class="annot"><span class="annottext">IORef a
+</span><a href="#local-6989586621679041710"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ())
+-&gt; ((a -&gt; a) -&gt; m ()) -&gt; (a -&gt; a) -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">IORef a -&gt; (a -&gt; a) -&gt; m ()
+forall a. HasCallStack =&gt; IORef a -&gt; (a -&gt; a) -&gt; m ()
+forall (m :: * -&gt; *) a.
+(MonadIORef m, HasCallStack) =&gt;
+IORef a -&gt; (a -&gt; a) -&gt; m ()
+</span><a href="Effects.IORef.html#modifyIORef"><span class="hs-identifier hs-var">modifyIORef</span></a></span><span> </span><span class="annot"><span class="annottext">IORef a
+</span><a href="#local-6989586621679041710"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-135"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.IORef.html#modifyIORef"><span class="hs-pragma hs-type">modifyIORef</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-136"></span><span>  </span><span id="local-6989586621679041717"><span class="annot"><span class="annottext">modifyIORef' :: forall a. HasCallStack =&gt; IORef a -&gt; (a -&gt; a) -&gt; ReaderT e m ()
+</span><a href="Effects.IORef.html#modifyIORef%27"><span class="hs-identifier hs-var hs-var hs-var">modifyIORef'</span></a></span></span><span> </span><span id="local-6989586621679041718"><span class="annot"><span class="annottext">IORef a
+</span><a href="#local-6989586621679041718"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ())
+-&gt; ((a -&gt; a) -&gt; m ()) -&gt; (a -&gt; a) -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">IORef a -&gt; (a -&gt; a) -&gt; m ()
+forall a. HasCallStack =&gt; IORef a -&gt; (a -&gt; a) -&gt; m ()
+forall (m :: * -&gt; *) a.
+(MonadIORef m, HasCallStack) =&gt;
+IORef a -&gt; (a -&gt; a) -&gt; m ()
+</span><a href="Effects.IORef.html#modifyIORef%27"><span class="hs-identifier hs-var">modifyIORef'</span></a></span><span> </span><span class="annot"><span class="annottext">IORef a
+</span><a href="#local-6989586621679041718"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-137"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.IORef.html#modifyIORef%27"><span class="hs-pragma hs-type">modifyIORef'</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-138"></span><span>  </span><span id="local-6989586621679041725"><span class="annot"><span class="annottext">atomicModifyIORef :: forall a b.
+HasCallStack =&gt;
+IORef a -&gt; (a -&gt; (a, b)) -&gt; ReaderT e m b
+</span><a href="Effects.IORef.html#atomicModifyIORef"><span class="hs-identifier hs-var hs-var hs-var">atomicModifyIORef</span></a></span></span><span> </span><span id="local-6989586621679041726"><span class="annot"><span class="annottext">IORef a
+</span><a href="#local-6989586621679041726"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m b -&gt; ReaderT e m b
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m b -&gt; ReaderT e m b)
+-&gt; ((a -&gt; (a, b)) -&gt; m b) -&gt; (a -&gt; (a, b)) -&gt; ReaderT e m b
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">IORef a -&gt; (a -&gt; (a, b)) -&gt; m b
+forall a b. HasCallStack =&gt; IORef a -&gt; (a -&gt; (a, b)) -&gt; m b
+forall (m :: * -&gt; *) a b.
+(MonadIORef m, HasCallStack) =&gt;
+IORef a -&gt; (a -&gt; (a, b)) -&gt; m b
+</span><a href="Effects.IORef.html#atomicModifyIORef"><span class="hs-identifier hs-var">atomicModifyIORef</span></a></span><span> </span><span class="annot"><span class="annottext">IORef a
+</span><a href="#local-6989586621679041726"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-139"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.IORef.html#atomicModifyIORef"><span class="hs-pragma hs-type">atomicModifyIORef</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-140"></span><span>  </span><span id="local-6989586621679041733"><span class="annot"><span class="annottext">atomicModifyIORef' :: forall a b.
+HasCallStack =&gt;
+IORef a -&gt; (a -&gt; (a, b)) -&gt; ReaderT e m b
+</span><a href="Effects.IORef.html#atomicModifyIORef%27"><span class="hs-identifier hs-var hs-var hs-var">atomicModifyIORef'</span></a></span></span><span> </span><span id="local-6989586621679041734"><span class="annot"><span class="annottext">IORef a
+</span><a href="#local-6989586621679041734"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m b -&gt; ReaderT e m b
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m b -&gt; ReaderT e m b)
+-&gt; ((a -&gt; (a, b)) -&gt; m b) -&gt; (a -&gt; (a, b)) -&gt; ReaderT e m b
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">IORef a -&gt; (a -&gt; (a, b)) -&gt; m b
+forall a b. HasCallStack =&gt; IORef a -&gt; (a -&gt; (a, b)) -&gt; m b
+forall (m :: * -&gt; *) a b.
+(MonadIORef m, HasCallStack) =&gt;
+IORef a -&gt; (a -&gt; (a, b)) -&gt; m b
+</span><a href="Effects.IORef.html#atomicModifyIORef%27"><span class="hs-identifier hs-var">atomicModifyIORef'</span></a></span><span> </span><span class="annot"><span class="annottext">IORef a
+</span><a href="#local-6989586621679041734"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-141"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.IORef.html#atomicModifyIORef%27"><span class="hs-pragma hs-type">atomicModifyIORef'</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-142"></span><span>
+</span><span id="line-143"></span><span class="hs-comment">-- | Atomically apply a function to the contents of an 'IORef' and return the</span><span>
+</span><span id="line-144"></span><span class="hs-comment">-- old and new values. The result of the function is forced.</span><span>
+</span><span id="line-145"></span><span class="hs-comment">--</span><span>
+</span><span id="line-146"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-147"></span><span id="local-6989586621679041532"><span id="local-6989586621679041533"><span class="annot"><a href="Effects.IORef.html#atomicModifyIORef%27_"><span class="hs-identifier hs-type">atomicModifyIORef'_</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.IORef.html#MonadIORef"><span class="hs-identifier hs-type">MonadIORef</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679041532"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IORef</span></span><span> </span><span class="annot"><a href="#local-6989586621679041533"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679041533"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679041533"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679041532"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-148"></span><span id="atomicModifyIORef%27_"><span class="annot"><span class="annottext">atomicModifyIORef'_ :: forall (m :: * -&gt; *) a.
+(HasCallStack, MonadIORef m) =&gt;
+IORef a -&gt; (a -&gt; a) -&gt; m ()
+</span><a href="Effects.IORef.html#atomicModifyIORef%27_"><span class="hs-identifier hs-var hs-var">atomicModifyIORef'_</span></a></span></span><span> </span><span id="local-6989586621679041740"><span class="annot"><span class="annottext">IORef a
+</span><a href="#local-6989586621679041740"><span class="hs-identifier hs-var">ref</span></a></span></span><span> </span><span id="local-6989586621679041741"><span class="annot"><span class="annottext">a -&gt; a
+</span><a href="#local-6989586621679041741"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IORef a -&gt; (a -&gt; (a, ())) -&gt; m ()
+forall a b. HasCallStack =&gt; IORef a -&gt; (a -&gt; (a, b)) -&gt; m b
+forall (m :: * -&gt; *) a b.
+(MonadIORef m, HasCallStack) =&gt;
+IORef a -&gt; (a -&gt; (a, b)) -&gt; m b
+</span><a href="Effects.IORef.html#atomicModifyIORef%27"><span class="hs-identifier hs-var">atomicModifyIORef'</span></a></span><span> </span><span class="annot"><span class="annottext">IORef a
+</span><a href="#local-6989586621679041740"><span class="hs-identifier hs-var">ref</span></a></span><span> </span><span class="annot"><span class="annottext">((a -&gt; (a, ())) -&gt; m ()) -&gt; (a -&gt; (a, ())) -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679041742"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679041742"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; a
+</span><a href="#local-6989586621679041741"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679041742"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-149"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.IORef.html#atomicModifyIORef%27_"><span class="hs-pragma hs-type">atomicModifyIORef'_</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-150"></span><span>
+</span><span id="line-151"></span><span class="hs-comment">-- | Atomically apply a function to the contents of an 'IORef' and return the</span><span>
+</span><span id="line-152"></span><span class="hs-comment">-- old and new values.</span><span>
+</span><span id="line-153"></span><span class="hs-comment">--</span><span>
+</span><span id="line-154"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-155"></span><span id="local-6989586621679041743"><span id="local-6989586621679041744"><span class="annot"><a href="Effects.IORef.html#atomicModifyIORef_"><span class="hs-identifier hs-type">atomicModifyIORef_</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.IORef.html#MonadIORef"><span class="hs-identifier hs-type">MonadIORef</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679041743"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IORef</span></span><span> </span><span class="annot"><a href="#local-6989586621679041744"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679041744"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679041744"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679041743"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-156"></span><span id="atomicModifyIORef_"><span class="annot"><span class="annottext">atomicModifyIORef_ :: forall (m :: * -&gt; *) a.
+(HasCallStack, MonadIORef m) =&gt;
+IORef a -&gt; (a -&gt; a) -&gt; m ()
+</span><a href="Effects.IORef.html#atomicModifyIORef_"><span class="hs-identifier hs-var hs-var">atomicModifyIORef_</span></a></span></span><span> </span><span id="local-6989586621679041750"><span class="annot"><span class="annottext">IORef a
+</span><a href="#local-6989586621679041750"><span class="hs-identifier hs-var">ref</span></a></span></span><span> </span><span id="local-6989586621679041751"><span class="annot"><span class="annottext">a -&gt; a
+</span><a href="#local-6989586621679041751"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IORef a -&gt; (a -&gt; (a, ())) -&gt; m ()
+forall a b. HasCallStack =&gt; IORef a -&gt; (a -&gt; (a, b)) -&gt; m b
+forall (m :: * -&gt; *) a b.
+(MonadIORef m, HasCallStack) =&gt;
+IORef a -&gt; (a -&gt; (a, b)) -&gt; m b
+</span><a href="Effects.IORef.html#atomicModifyIORef"><span class="hs-identifier hs-var">atomicModifyIORef</span></a></span><span> </span><span class="annot"><span class="annottext">IORef a
+</span><a href="#local-6989586621679041750"><span class="hs-identifier hs-var">ref</span></a></span><span> </span><span class="annot"><span class="annottext">((a -&gt; (a, ())) -&gt; m ()) -&gt; (a -&gt; (a, ())) -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679041752"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679041752"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; a
+</span><a href="#local-6989586621679041751"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679041752"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-157"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.IORef.html#atomicModifyIORef_"><span class="hs-pragma hs-type">atomicModifyIORef_</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-158"></span></pre></body></html>

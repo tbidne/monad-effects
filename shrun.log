@@ -1,0 +1,296 @@
+[2026-01-23 21:14:29][Command][haddock_push] Starting...
+[2026-01-23 21:14:29][Command][haddock_push] Your branch is up to date with 'origin/main'.
+[2026-01-23 21:14:29][Command][haddock_push] Already on 'main'
+[2026-01-23 21:14:29][Command][haddock_push] Deleted branch gh-pages (was aa0708a).
+[2026-01-23 21:14:29][Command][haddock_push] Switched to a new branch 'gh-pages'
+[2026-01-23 21:14:32][Command][haddock_push] Resolving dependencies...
+[2026-01-23 21:14:33][Command][haddock_push] Build profile: -w ghc-9.12.2 -O1
+[2026-01-23 21:14:33][Command][haddock_push] In order, the following will be built (use -v for more details):
+[2026-01-23 21:14:33][Command][haddock_push]  - effects-env-0.1 (lib) (configuration changed)
+[2026-01-23 21:14:33][Command][haddock_push]  - effects-evaluate-0.1 (lib) (configuration changed)
+[2026-01-23 21:14:33][Command][haddock_push]  - effects-haskeline-0.1 (lib) (configuration changed)
+[2026-01-23 21:14:33][Command][haddock_push]  - effects-ioref-0.1 (lib) (configuration changed)
+[2026-01-23 21:14:33][Command][haddock_push]  - effects-optparse-0.1 (lib) (configuration changed)
+[2026-01-23 21:14:33][Command][haddock_push]  - effects-process-0.1 (lib) (configuration changed)
+[2026-01-23 21:14:33][Command][haddock_push]  - effects-stm-0.1 (lib) (configuration changed)
+[2026-01-23 21:14:33][Command][haddock_push]  - effects-terminal-0.1 (lib) (configuration changed)
+[2026-01-23 21:14:33][Command][haddock_push]  - effects-thread-0.1 (lib) (configuration changed)
+[2026-01-23 21:14:33][Command][haddock_push]  - effects-time-0.1 (lib) (configuration changed)
+[2026-01-23 21:14:33][Command][haddock_push]  - effects-typed-process-0.1 (lib) (configuration changed)
+[2026-01-23 21:14:33][Command][haddock_push]  - effects-unix-0.1 (lib) (configuration changed)
+[2026-01-23 21:14:33][Command][haddock_push]  - effects-unix-compat-0.1 (lib) (configuration changed)
+[2026-01-23 21:14:33][Command][haddock_push]  - effects-fs-0.1 (lib) (configuration changed)
+[2026-01-23 21:14:33][Command][haddock_push]  - effects-async-0.1 (lib) (configuration changed)
+[2026-01-23 21:14:33][Command][haddock_push]  - effects-logger-0.1 (lib) (configuration changed)
+[2026-01-23 21:14:33][Command][haddock_push] Configuring library for effects-env-0.1...
+[2026-01-23 21:14:33][Command][haddock_push] Configuring library for effects-haskeline-0.1...
+[2026-01-23 21:14:33][Command][haddock_push] Configuring library for effects-ioref-0.1...
+[2026-01-23 21:14:33][Command][haddock_push] Configuring library for effects-optparse-0.1...
+[2026-01-23 21:14:33][Command][haddock_push] Configuring library for effects-process-0.1...
+[2026-01-23 21:14:33][Command][haddock_push] Configuring library for effects-evaluate-0.1...
+[2026-01-23 21:14:33][Command][haddock_push] Configuring library for effects-terminal-0.1...
+[2026-01-23 21:14:33][Command][haddock_push] Configuring library for effects-stm-0.1...
+[2026-01-23 21:14:36][Command][haddock_push] Preprocessing library for effects-ioref-0.1...
+[2026-01-23 21:14:36][Command][haddock_push] Building library for effects-ioref-0.1...
+[2026-01-23 21:14:36][Command][haddock_push] Preprocessing library for effects-env-0.1...
+[2026-01-23 21:14:36][Command][haddock_push] Running Haddock on library for effects-env-0.1...
+[2026-01-23 21:14:36][Command][haddock_push] Preprocessing library for effects-evaluate-0.1...
+[2026-01-23 21:14:36][Command][haddock_push] Running Haddock on library for effects-evaluate-0.1...
+[2026-01-23 21:14:36][Command][haddock_push] Preprocessing library for effects-terminal-0.1...
+[2026-01-23 21:14:36][Command][haddock_push] Running Haddock on library for effects-terminal-0.1...
+[2026-01-23 21:14:36][Command][haddock_push] Preprocessing library for effects-stm-0.1...
+[2026-01-23 21:14:36][Command][haddock_push] Running Haddock on library for effects-stm-0.1...
+[2026-01-23 21:14:36][Command][haddock_push] Preprocessing library for effects-haskeline-0.1...
+[2026-01-23 21:14:36][Command][haddock_push] Running Haddock on library for effects-haskeline-0.1...
+[2026-01-23 21:14:36][Command][haddock_push] Preprocessing library for effects-process-0.1...
+[2026-01-23 21:14:36][Command][haddock_push] Running Haddock on library for effects-process-0.1...
+[2026-01-23 21:14:37][Command][haddock_push] Preprocessing library for effects-optparse-0.1...
+[2026-01-23 21:14:37][Command][haddock_push] Running Haddock on library for effects-optparse-0.1...
+[2026-01-23 21:14:37][Command][haddock_push] Warning: The following packages have no Haddock documentation installed. No
+[2026-01-23 21:14:37][Command][haddock_push] links will be generated to these packages: path-0.9.6, path-0.9.6,
+[2026-01-23 21:14:37][Command][haddock_push] vector-0.13.2.0
+[2026-01-23 21:14:37][Command][haddock_push] [1 of 1] Compiling Effects.System.Environment ( src/Effects/System/Environment.hs, nothing ) [Flags changed]
+[2026-01-23 21:14:37][Command][haddock_push] [1 of 1] Compiling Effects.Evaluate ( src/Effects/Evaluate.hs, nothing ) [Flags changed]
+[2026-01-23 21:14:37][Command][haddock_push] [1 of 1] Compiling Effects.Concurrent.STM ( src/Effects/Concurrent/STM.hs, nothing ) [Source file changed]
+[2026-01-23 21:14:37][Command][haddock_push] [1 of 1] Compiling Effects.System.Terminal ( src/Effects/System/Terminal.hs, nothing ) [Flags changed]
+[2026-01-23 21:14:37][Command][haddock_push] [1 of 1] Compiling Effects.Haskeline ( src/Effects/Haskeline.hs, nothing ) [Flags changed]
+[2026-01-23 21:14:37][Command][haddock_push] [1 of 1] Compiling Effects.System.Process ( src/Effects/System/Process.hs, nothing ) [Flags changed]
+[2026-01-23 21:14:37][Command][haddock_push] Preprocessing library for effects-ioref-0.1...
+[2026-01-23 21:14:37][Command][haddock_push] Running Haddock on library for effects-ioref-0.1...
+[2026-01-23 21:14:37][Command][haddock_push] [1 of 2] Compiling Effects.Optparse ( src/Effects/Optparse.hs, nothing ) [Flags changed]
+[2026-01-23 21:14:38][Command][haddock_push] [1 of 1] Compiling Effects.IORef    ( src/Effects/IORef.hs, nothing ) [HIE file is out of date]
+[2026-01-23 21:14:38][Command][haddock_push] [2 of 2] Compiling Effects.Optparse.Completer ( src/Effects/Optparse/Completer.hs, nothing ) [Flags changed]
+[2026-01-23 21:14:54][Command][haddock_push] Haddock coverage:
+[2026-01-23 21:14:54][Command][haddock_push]  100% (  3 /  3) in 'Effects.System.Environment'
+[2026-01-23 21:14:55][Command][haddock_push] Documentation created:
+[2026-01-23 21:14:55][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.12.2/effects-env-0.1/doc/html/effects-env
+[2026-01-23 21:14:55][Command][haddock_push] Haddock coverage:
+[2026-01-23 21:14:55][Command][haddock_push] Warning: 'Evaluate' is out of scope.
+[2026-01-23 21:14:55][Command][haddock_push]     If you qualify the identifier, haddock can try to link it anyway.
+[2026-01-23 21:14:55][Command][haddock_push]  100% (  3 /  3) in 'Effects.Evaluate'
+[2026-01-23 21:14:55][Command][haddock_push] Documentation created:
+[2026-01-23 21:14:55][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.12.2/effects-evaluate-0.1/doc/html/effects-evaluate
+[2026-01-23 21:14:56][Command][haddock_push] Configuring library for effects-thread-0.1...
+[2026-01-23 21:14:56][Command][haddock_push] Configuring library for effects-time-0.1...
+[2026-01-23 21:14:57][Command][haddock_push] Haddock coverage:
+[2026-01-23 21:14:57][Command][haddock_push] Warning: 'STM' is ambiguous. It is defined
+[2026-01-23 21:14:57][Command][haddock_push]     * in ‘GHC.Internal.Conc.Sync’
+[2026-01-23 21:14:57][Command][haddock_push]     * in ‘GHC.Internal.Conc.Sync’
+[2026-01-23 21:14:57][Command][haddock_push]     You may be able to disambiguate the identifier by qualifying it or
+[2026-01-23 21:14:57][Command][haddock_push]     by specifying the type/value namespace explicitly.
+[2026-01-23 21:14:57][Command][haddock_push]     Defaulting to the one defined in ‘GHC.Internal.Conc.Sync’
+[2026-01-23 21:14:57][Command][haddock_push]  100% ( 52 / 52) in 'Effects.Concurrent.STM'
+[2026-01-23 21:14:57][Command][haddock_push] Documentation created:
+[2026-01-23 21:14:57][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.12.2/effects-stm-0.1/doc/html/effects-stm
+[2026-01-23 21:14:57][Command][haddock_push] Haddock coverage:
+[2026-01-23 21:14:57][Command][haddock_push]  100% (  8 /  8) in 'Effects.IORef'
+[2026-01-23 21:14:57][Command][haddock_push] Documentation created:
+[2026-01-23 21:14:57][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.12.2/effects-ioref-0.1/doc/html/effects-ioref
+[2026-01-23 21:14:57][Command][haddock_push] Configuring library for effects-typed-process-0.1...
+[2026-01-23 21:14:58][Command][haddock_push] Configuring library for effects-unix-0.1...
+[2026-01-23 21:14:59][Command][haddock_push] Preprocessing library for effects-time-0.1...
+[2026-01-23 21:14:59][Command][haddock_push] Building library for effects-time-0.1...
+[2026-01-23 21:14:59][Command][haddock_push] Preprocessing library for effects-thread-0.1...
+[2026-01-23 21:14:59][Command][haddock_push] Building library for effects-thread-0.1...
+[2026-01-23 21:15:00][Command][haddock_push] [1 of 1] Compiling Effects.Concurrent.Thread ( src/Effects/Concurrent/Thread.hs, /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.12.2/effects-thread-0.1/build/Effects/Concurrent/Thread.o, /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.12.2/effects-thread-0.1/build/Effects/Concurrent/Thread.dyn_o ) [Source file changed]
+[2026-01-23 21:15:01][Command][haddock_push] Haddock coverage:
+[2026-01-23 21:15:01][Command][haddock_push]   91% ( 33 / 36) in 'Effects.System.Process'
+[2026-01-23 21:15:01][Command][haddock_push]   Missing documentation for:
+[2026-01-23 21:15:01][Command][haddock_push]     CreateProcess
+[2026-01-23 21:15:01][Command][haddock_push]     CmdSpec
+[2026-01-23 21:15:01][Command][haddock_push]     StdStream
+[2026-01-23 21:15:01][Command][haddock_push] Haddock coverage:
+[2026-01-23 21:15:01][Command][haddock_push]  100% ( 17 / 17) in 'Effects.System.Terminal'
+[2026-01-23 21:15:01][Command][haddock_push] Warning: Effects.System.Terminal: could not find link destinations for: 
+[2026-01-23 21:15:01][Command][haddock_push] - System.Console.Terminal.Common.Rep1_Window
+[2026-01-23 21:15:01][Command][haddock_push] - System.Console.Terminal.Common.Rep_Window
+[2026-01-23 21:15:01][Command][haddock_push] Documentation created:
+[2026-01-23 21:15:01][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.12.2/effects-process-0.1/doc/html/effects-process
+[2026-01-23 21:15:01][Command][haddock_push] Preprocessing library for effects-typed-process-0.1...
+[2026-01-23 21:15:01][Command][haddock_push] Running Haddock on library for effects-typed-process-0.1...
+[2026-01-23 21:15:01][Command][haddock_push] Preprocessing library for effects-time-0.1...
+[2026-01-23 21:15:01][Command][haddock_push] Running Haddock on library for effects-time-0.1...
+[2026-01-23 21:15:01][Command][haddock_push] Documentation created:
+[2026-01-23 21:15:01][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.12.2/effects-terminal-0.1/doc/html/effects-terminal
+[2026-01-23 21:15:01][Command][haddock_push] Warning: The following packages have no Haddock documentation installed. No
+[2026-01-23 21:15:01][Command][haddock_push] links will be generated to these packages: vector-0.13.2.0
+[2026-01-23 21:15:02][Command][haddock_push] Configuring library for effects-unix-compat-0.1...
+[2026-01-23 21:15:02][Command][haddock_push] Configuring library for effects-fs-0.1...
+[2026-01-23 21:15:02][Command][haddock_push] [1 of 1] Compiling Effects.Process.Typed ( src/Effects/Process/Typed.hs, nothing ) [Flags changed]
+[2026-01-23 21:15:02][Command][haddock_push] [1 of 1] Compiling Effects.Time     ( src/Effects/Time.hs, nothing ) [HIE file is out of date]
+[2026-01-23 21:15:02][Command][haddock_push] Preprocessing library for effects-unix-0.1...
+[2026-01-23 21:15:02][Command][haddock_push] Haddock coverage:
+[2026-01-23 21:15:02][Command][haddock_push] Warning: 'runInputTWith' is out of scope.
+[2026-01-23 21:15:02][Command][haddock_push]     If you qualify the identifier, haddock can try to link it anyway.
+[2026-01-23 21:15:02][Command][haddock_push] Warning: 'runInputTDefault' is out of scope.
+[2026-01-23 21:15:02][Command][haddock_push]     If you qualify the identifier, haddock can try to link it anyway.
+[2026-01-23 21:15:02][Command][haddock_push]  100% ( 20 / 20) in 'Effects.Haskeline'
+[2026-01-23 21:15:02][Command][haddock_push] Running Haddock on library for effects-unix-0.1...
+[2026-01-23 21:15:02][Command][haddock_push] Warning: The following packages have no Haddock documentation installed. No
+[2026-01-23 21:15:02][Command][haddock_push] links will be generated to these packages: path-0.9.6, path-0.9.6,
+[2026-01-23 21:15:02][Command][haddock_push] vector-0.13.2.0
+[2026-01-23 21:15:03][Command][haddock_push] Documentation created:
+[2026-01-23 21:15:03][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.12.2/effects-haskeline-0.1/doc/html/effects-haskeline
+[2026-01-23 21:15:03][Command][haddock_push] Preprocessing library for effects-thread-0.1...
+[2026-01-23 21:15:03][Command][haddock_push] Running Haddock on library for effects-thread-0.1...
+[2026-01-23 21:15:03][Command][haddock_push] [1 of 2] Compiling Effects.System.Posix.Files ( src/Effects/System/Posix/Files.hs, nothing ) [Flags changed]
+[2026-01-23 21:15:04][Command][haddock_push] [1 of 1] Compiling Effects.Concurrent.Thread ( src/Effects/Concurrent/Thread.hs, nothing ) [HIE file is out of date]
+[2026-01-23 21:15:04][Command][haddock_push] [2 of 2] Compiling Effects.System.Posix.Signals ( src/Effects/System/Posix/Signals.hs, nothing ) [Flags changed]
+[2026-01-23 21:15:06][Command][haddock_push] Preprocessing library for effects-unix-compat-0.1...
+[2026-01-23 21:15:06][Command][haddock_push] Running Haddock on library for effects-unix-compat-0.1...
+[2026-01-23 21:15:06][Command][haddock_push] Warning: The following packages have no Haddock documentation installed. No
+[2026-01-23 21:15:06][Command][haddock_push] links will be generated to these packages: path-0.9.6, path-0.9.6,
+[2026-01-23 21:15:06][Command][haddock_push] vector-0.13.2.0
+[2026-01-23 21:15:06][Command][haddock_push] Preprocessing library for effects-fs-0.1...
+[2026-01-23 21:15:06][Command][haddock_push] Running Haddock on library for effects-fs-0.1...
+[2026-01-23 21:15:06][Command][haddock_push] Warning: The following packages have no Haddock documentation installed. No
+[2026-01-23 21:15:06][Command][haddock_push] links will be generated to these packages: path-0.9.6, path-0.9.6,
+[2026-01-23 21:15:06][Command][haddock_push] vector-0.13.2.0
+[2026-01-23 21:15:07][Command][haddock_push] [1 of 1] Compiling Effects.System.PosixCompat.Files ( src/Effects/System/PosixCompat/Files.hs, nothing ) [Flags changed]
+[2026-01-23 21:15:08][Command][haddock_push] [1 of 6] Compiling Effects.FileSystem.FileReader ( src/Effects/FileSystem/FileReader.hs, nothing ) [Flags changed]
+[2026-01-23 21:15:08][Command][haddock_push] [2 of 6] Compiling Effects.FileSystem.FileWriter ( src/Effects/FileSystem/FileWriter.hs, nothing ) [Flags changed]
+[2026-01-23 21:15:08][Command][haddock_push] [3 of 6] Compiling Effects.FileSystem.HandleReader ( src/Effects/FileSystem/HandleReader.hs, nothing ) [Flags changed]
+[2026-01-23 21:15:08][Command][haddock_push] Haddock coverage:
+[2026-01-23 21:15:08][Command][haddock_push]  100% (  7 /  7) in 'Effects.Optparse'
+[2026-01-23 21:15:08][Command][haddock_push]  100% ( 12 / 12) in 'Effects.Optparse.Completer'
+[2026-01-23 21:15:09][Command][haddock_push] [4 of 6] Compiling Effects.FileSystem.HandleWriter ( src/Effects/FileSystem/HandleWriter.hs, nothing ) [Flags changed]
+[2026-01-23 21:15:09][Command][haddock_push] [5 of 6] Compiling Effects.FileSystem.PathReader ( src/Effects/FileSystem/PathReader.hs, nothing ) [Flags changed]
+[2026-01-23 21:15:09][Command][haddock_push] Documentation created:
+[2026-01-23 21:15:09][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.12.2/effects-optparse-0.1/doc/html/effects-optparse
+[2026-01-23 21:15:09][Command][haddock_push] [6 of 6] Compiling Effects.FileSystem.PathWriter ( src/Effects/FileSystem/PathWriter.hs, nothing ) [Flags changed]
+[2026-01-23 21:15:17][Command][haddock_push] Haddock coverage:
+[2026-01-23 21:15:17][Command][haddock_push]  100% ( 18 / 18) in 'Effects.Concurrent.Thread'
+[2026-01-23 21:15:18][Command][haddock_push] Documentation created:
+[2026-01-23 21:15:18][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.12.2/effects-thread-0.1/doc/html/effects-thread
+[2026-01-23 21:15:19][Command][haddock_push] Configuring library for effects-async-0.1...
+[2026-01-23 21:15:22][Command][haddock_push] Preprocessing library for effects-async-0.1...
+[2026-01-23 21:15:22][Command][haddock_push] Running Haddock on library for effects-async-0.1...
+[2026-01-23 21:15:23][Command][haddock_push] [1 of 1] Compiling Effects.Concurrent.Async ( src/Effects/Concurrent/Async.hs, nothing ) [Flags changed]
+[2026-01-23 21:15:23][Command][haddock_push] Haddock coverage:
+[2026-01-23 21:15:23][Command][haddock_push]   98% ( 79 / 80) in 'Effects.Process.Typed'
+[2026-01-23 21:15:23][Command][haddock_push]   Missing documentation for:
+[2026-01-23 21:15:23][Command][haddock_push]     StdStream
+[2026-01-23 21:15:23][Command][haddock_push] Warning: Effects.Process.Typed: could not find link destinations for: 
+[2026-01-23 21:15:23][Command][haddock_push] - GHC.Internal.IO.Exception.Rep_ExitCode
+[2026-01-23 21:15:24][Command][haddock_push] Documentation created:
+[2026-01-23 21:15:24][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.12.2/effects-typed-process-0.1/doc/html/effects-typed-process
+[2026-01-23 21:15:24][Command][haddock_push] Haddock coverage:
+[2026-01-23 21:15:24][Command][haddock_push] Warning: 'LocalTime' is ambiguous. It is defined
+[2026-01-23 21:15:24][Command][haddock_push]     * in ‘Data.Time.LocalTime.Internal.LocalTime’
+[2026-01-23 21:15:24][Command][haddock_push]     * in ‘Data.Time.LocalTime.Internal.LocalTime’
+[2026-01-23 21:15:24][Command][haddock_push]     You may be able to disambiguate the identifier by qualifying it or
+[2026-01-23 21:15:24][Command][haddock_push]     by specifying the type/value namespace explicitly.
+[2026-01-23 21:15:24][Command][haddock_push]     Defaulting to the one defined in ‘Data.Time.LocalTime.Internal.LocalTime’
+[2026-01-23 21:15:24][Command][haddock_push] Warning: 'ZonedTime' is ambiguous. It is defined
+[2026-01-23 21:15:24][Command][haddock_push]     * in ‘Data.Time.LocalTime.Internal.ZonedTime’
+[2026-01-23 21:15:24][Command][haddock_push]     * in ‘Data.Time.LocalTime.Internal.ZonedTime’
+[2026-01-23 21:15:24][Command][haddock_push]     You may be able to disambiguate the identifier by qualifying it or
+[2026-01-23 21:15:24][Command][haddock_push]     by specifying the type/value namespace explicitly.
+[2026-01-23 21:15:24][Command][haddock_push]     Defaulting to the one defined in ‘Data.Time.LocalTime.Internal.ZonedTime’
+[2026-01-23 21:15:24][Command][haddock_push]   97% ( 44 / 45) in 'Effects.Time'
+[2026-01-23 21:15:24][Command][haddock_push]   Missing documentation for:
+[2026-01-23 21:15:24][Command][haddock_push]     TZ
+[2026-01-23 21:15:24][Command][haddock_push] Warning: Effects.Time: could not find link destinations for: 
+[2026-01-23 21:15:24][Command][haddock_push] - Effects.Time.Rep_TimeSpec
+[2026-01-23 21:15:24][Command][haddock_push] - Data.Time.LocalTime.Internal.LocalTime.Rep_LocalTime
+[2026-01-23 21:15:24][Command][haddock_push] - Data.Time.LocalTime.Internal.ZonedTime.Rep_ZonedTime
+[2026-01-23 21:15:24][Command][haddock_push] - Data.Time.Clock.Internal.UTCTime.Rep_UTCTime
+[2026-01-23 21:15:24][Command][haddock_push] - Data.Time.LocalTime.Internal.TimeZone.Rep_TimeZone
+[2026-01-23 21:15:24][Command][haddock_push] Documentation created:
+[2026-01-23 21:15:24][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.12.2/effects-time-0.1/doc/html/effects-time
+[2026-01-23 21:15:25][Command][haddock_push] Configuring library for effects-logger-0.1...
+[2026-01-23 21:15:28][Command][haddock_push] Haddock coverage:
+[2026-01-23 21:15:28][Command][haddock_push] Warning: 'IOException' is out of scope.
+[2026-01-23 21:15:28][Command][haddock_push]     If you qualify the identifier, haddock can try to link it anyway.
+[2026-01-23 21:15:28][Command][haddock_push]  100% ( 10 / 10) in 'Effects.System.Posix.Files'
+[2026-01-23 21:15:28][Command][haddock_push]   38% (  5 / 13) in 'Effects.System.Posix.Signals'
+[2026-01-23 21:15:28][Command][haddock_push]   Missing documentation for:
+[2026-01-23 21:15:28][Command][haddock_push]     Module header
+[2026-01-23 21:15:28][Command][haddock_push]     mapHandler (src/Effects/System/Posix/Signals.hs:172)
+[2026-01-23 21:15:28][Command][haddock_push]     handlerToPosix (src/Effects/System/Posix/Signals.hs:181)
+[2026-01-23 21:15:28][Command][haddock_push]     handlerFromPosix (src/Effects/System/Posix/Signals.hs:190)
+[2026-01-23 21:15:28][Command][haddock_push]     Signal
+[2026-01-23 21:15:28][Command][haddock_push]     SignalSet
+[2026-01-23 21:15:28][Command][haddock_push]     ProcessID
+[2026-01-23 21:15:28][Command][haddock_push]     ProcessGroupID
+[2026-01-23 21:15:28][Command][haddock_push] Warning: Effects.System.Posix.Files: could not find link destinations for: 
+[2026-01-23 21:15:28][Command][haddock_push] - FileSystem.PathType.Rep_PathType
+[2026-01-23 21:15:28][Command][haddock_push] Documentation created:
+[2026-01-23 21:15:28][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.12.2/effects-unix-0.1/doc/html/effects-unix
+[2026-01-23 21:15:29][Command][haddock_push] Preprocessing library for effects-logger-0.1...
+[2026-01-23 21:15:29][Command][haddock_push] Running Haddock on library for effects-logger-0.1...
+[2026-01-23 21:15:29][Command][haddock_push] Warning: The following packages have no Haddock documentation installed. No
+[2026-01-23 21:15:29][Command][haddock_push] links will be generated to these packages: attoparsec-0.14.4,
+[2026-01-23 21:15:29][Command][haddock_push] attoparsec-0.14.4, vector-0.13.2.0
+[2026-01-23 21:15:30][Command][haddock_push] [1 of 3] Compiling Effects.Logger.Utils ( src/Effects/Logger/Utils.hs, /tmp/nix-shell.W2kvcj/ghc627165_tmp_0/ghc_tmp_4.o, /tmp/nix-shell.W2kvcj/ghc627165_tmp_0/ghc_tmp_4.dyn_o )
+[2026-01-23 21:15:30][Command][haddock_push] Haddock coverage:
+[2026-01-23 21:15:30][Command][haddock_push] Warning: 'IOException' is out of scope.
+[2026-01-23 21:15:30][Command][haddock_push]     If you qualify the identifier, haddock can try to link it anyway.
+[2026-01-23 21:15:30][Command][haddock_push]  100% ( 10 / 10) in 'Effects.System.PosixCompat.Files'
+[2026-01-23 21:15:30][Command][haddock_push] Warning: Effects.System.PosixCompat.Files: could not find link destinations for: 
+[2026-01-23 21:15:30][Command][haddock_push] - FileSystem.PathType.Rep_PathType
+[2026-01-23 21:15:31][Command][haddock_push] Documentation created:
+[2026-01-23 21:15:31][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.12.2/effects-unix-compat-0.1/doc/html/effects-unix-compat
+[2026-01-23 21:15:31][Command][haddock_push] [2 of 3] Compiling Effects.Logger.Namespace ( src/Effects/Logger/Namespace.hs, nothing ) [Flags changed]
+[2026-01-23 21:15:31][Command][haddock_push] [3 of 3] Compiling Effects.Logger   ( src/Effects/Logger.hs, nothing ) [Flags changed]
+[2026-01-23 21:15:33][Command][haddock_push] Haddock coverage:
+[2026-01-23 21:15:33][Command][haddock_push]  100% ( 15 / 15) in 'Effects.FileSystem.FileReader'
+[2026-01-23 21:15:33][Command][haddock_push]  100% ( 11 / 11) in 'Effects.FileSystem.FileWriter'
+[2026-01-23 21:15:33][Command][haddock_push]  100% ( 29 / 29) in 'Effects.FileSystem.HandleReader'
+[2026-01-23 21:15:33][Command][haddock_push]  100% ( 16 / 16) in 'Effects.FileSystem.HandleWriter'
+[2026-01-23 21:15:33][Command][haddock_push] Warning: 'IOException' is out of scope.
+[2026-01-23 21:15:33][Command][haddock_push]     If you qualify the identifier, haddock can try to link it anyway.
+[2026-01-23 21:15:33][Command][haddock_push]   97% ( 33 / 34) in 'Effects.FileSystem.PathReader'
+[2026-01-23 21:15:33][Command][haddock_push]   Missing documentation for:
+[2026-01-23 21:15:33][Command][haddock_push]     Permissions
+[2026-01-23 21:15:33][Command][haddock_push]   97% ( 38 / 39) in 'Effects.FileSystem.PathWriter'
+[2026-01-23 21:15:33][Command][haddock_push]   Missing documentation for:
+[2026-01-23 21:15:33][Command][haddock_push]     Permissions
+[2026-01-23 21:15:33][Command][haddock_push] Warning: Effects.FileSystem.FileReader: could not find link destinations for: 
+[2026-01-23 21:15:33][Command][haddock_push] - Data.ByteString.Internal.Type.D:R:ItemByteString
+[2026-01-23 21:15:33][Command][haddock_push] Warning: Effects.FileSystem.FileWriter: could not find link destinations for: 
+[2026-01-23 21:15:33][Command][haddock_push] - Data.ByteString.Internal.Type.D:R:ItemByteString
+[2026-01-23 21:15:33][Command][haddock_push] Warning: Effects.FileSystem.HandleReader: could not find link destinations for: 
+[2026-01-23 21:15:33][Command][haddock_push] - Data.ByteString.Internal.Type.D:R:ItemByteString
+[2026-01-23 21:15:33][Command][haddock_push] Warning: Effects.FileSystem.HandleWriter: could not find link destinations for: 
+[2026-01-23 21:15:33][Command][haddock_push] - Data.ByteString.Internal.Type.D:R:ItemByteString
+[2026-01-23 21:15:33][Command][haddock_push] Warning: Effects.FileSystem.PathReader: could not find link destinations for: 
+[2026-01-23 21:15:33][Command][haddock_push] - FileSystem.PathType.Rep_PathType
+[2026-01-23 21:15:33][Command][haddock_push] - Data.Time.Clock.Internal.UTCTime.Rep_UTCTime
+[2026-01-23 21:15:33][Command][haddock_push] Warning: Effects.FileSystem.PathWriter: could not find link destinations for: 
+[2026-01-23 21:15:33][Command][haddock_push] - Data.Time.Clock.Internal.UTCTime.Rep_UTCTime
+[2026-01-23 21:15:33][Command][haddock_push] - Effects.FileSystem.PathWriter.Rep_CopyDirConfig
+[2026-01-23 21:15:33][Command][haddock_push] - Effects.FileSystem.PathWriter.Rep_Overwrite
+[2026-01-23 21:15:33][Command][haddock_push] - Effects.FileSystem.PathWriter.Rep_TargetName
+[2026-01-23 21:15:33][Command][haddock_push] Documentation created:
+[2026-01-23 21:15:33][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.12.2/effects-fs-0.1/doc/html/effects-fs
+[2026-01-23 21:15:38][Command][haddock_push] Haddock coverage:
+[2026-01-23 21:15:38][Command][haddock_push]   98% ( 94 / 95) in 'Effects.Concurrent.Async'
+[2026-01-23 21:15:38][Command][haddock_push]   Missing documentation for:
+[2026-01-23 21:15:38][Command][haddock_push]     ExceptionInLinkedThread
+[2026-01-23 21:15:38][Command][haddock_push] Warning: Effects.Concurrent.Async: could not find link destinations for: 
+[2026-01-23 21:15:38][Command][haddock_push] - Numeric.Data.Positive.Internal.Rep_Positive
+[2026-01-23 21:15:39][Command][haddock_push] Documentation created:
+[2026-01-23 21:15:39][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.12.2/effects-async-0.1/doc/html/effects-async
+[2026-01-23 21:15:43][Command][haddock_push] Haddock coverage:
+[2026-01-23 21:15:43][Command][haddock_push]  100% ( 12 / 12) in 'Effects.Logger.Utils'
+[2026-01-23 21:15:43][Command][haddock_push]  100% ( 21 / 21) in 'Effects.Logger.Namespace'
+[2026-01-23 21:15:43][Command][haddock_push]   97% ( 35 / 36) in 'Effects.Logger'
+[2026-01-23 21:15:43][Command][haddock_push]   Missing documentation for:
+[2026-01-23 21:15:43][Command][haddock_push]     LogLevel
+[2026-01-23 21:15:43][Command][haddock_push] Warning: Effects.Logger.Utils: could not find link destinations for: 
+[2026-01-23 21:15:43][Command][haddock_push] - Effects.Logger.Utils.D:R:ItemNamespace
+[2026-01-23 21:15:43][Command][haddock_push] - Effects.Logger.Utils.Rep_LogFormatter
+[2026-01-23 21:15:43][Command][haddock_push] - Effects.Logger.Utils.Rep_LocStrategy
+[2026-01-23 21:15:43][Command][haddock_push] - Effects.Logger.Utils.Rep_Namespace
+[2026-01-23 21:15:43][Command][haddock_push] Warning: Effects.Logger.Namespace: could not find link destinations for: 
+[2026-01-23 21:15:43][Command][haddock_push] - Effects.Logger.Utils.D:R:ItemNamespace
+[2026-01-23 21:15:43][Command][haddock_push] - Effects.Logger.Utils.Rep_LogFormatter
+[2026-01-23 21:15:43][Command][haddock_push] - Effects.Logger.Utils.Rep_LocStrategy
+[2026-01-23 21:15:43][Command][haddock_push] - Effects.Logger.Utils.Rep_Namespace
+[2026-01-23 21:15:43][Command][haddock_push] Warning: Effects.Logger: could not find link destinations for: 
+[2026-01-23 21:15:43][Command][haddock_push] - GHC.Internal.TH.Syntax.Rep_Loc
+[2026-01-23 21:15:43][Command][haddock_push] - Effects.Logger.Utils.Rep_LogFormatter
+[2026-01-23 21:15:43][Command][haddock_push] - Effects.Logger.Utils.Rep_LocStrategy
+[2026-01-23 21:15:44][Command][haddock_push] Documentation created:
+[2026-01-23 21:15:44][Command][haddock_push] /home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.12.2/effects-logger-0.1/doc/html/effects-logger

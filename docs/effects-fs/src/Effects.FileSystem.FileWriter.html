@@ -1,0 +1,128 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- | Provides the MonadFileWriter effect.</span><span>
+</span><span id="line-2"></span><span class="hs-comment">--</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Effects.FileSystem.FileWriter.html"><span class="hs-identifier">Effects.FileSystem.FileWriter</span></a></span><span>
+</span><span id="line-5"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Effect</span></span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.FileWriter.html#MonadFileWriter"><span class="hs-identifier">MonadFileWriter</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-7"></span><span>    </span><span class="annot"><span class="hs-identifier">OsPath</span></span><span class="hs-special">,</span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><span class="hs-comment">-- * UTF-8 Utils</span></span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.FileWriter.html#writeFileUtf8"><span class="hs-identifier">writeFileUtf8</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-11"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.FileWriter.html#appendFileUtf8"><span class="hs-identifier">appendFileUtf8</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><span class="hs-identifier">FS.UTF8.encodeUtf8</span></span><span class="hs-special">,</span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Reexports</span></span><span>
+</span><span id="line-15"></span><span>    </span><span class="annot"><span class="hs-identifier">ByteString</span></span><span class="hs-special">,</span><span>
+</span><span id="line-16"></span><span>    </span><span class="annot"><span class="hs-identifier">Text</span></span><span class="hs-special">,</span><span>
+</span><span id="line-17"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-18"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Class</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadTrans</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">lift</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Reader</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ReaderT</span></span><span class="hs-special">)</span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ByteString</span></span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Text</span></span><span class="hs-special">)</span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.IO.html"><span class="hs-identifier">FileSystem.IO</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">FS.IO</span></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.OsPath.html"><span class="hs-identifier">FileSystem.OsPath</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">OsPath</span></span><span class="hs-special">)</span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.UTF8.html"><span class="hs-identifier">FileSystem.UTF8</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">FS.UTF8</span></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Stack</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">HasCallStack</span></span><span class="hs-special">)</span><span>
+</span><span id="line-28"></span><span>
+</span><span id="line-29"></span><span class="hs-comment">-- | Represents file-system writer effects.</span><span>
+</span><span id="line-30"></span><span class="hs-comment">--</span><span>
+</span><span id="line-31"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-32"></span><span class="hs-keyword">class</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Monad</span></span><span> </span><span class="annot"><a href="#local-6989586621679095584"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span id="MonadFileWriter"><span class="annot"><a href="Effects.FileSystem.FileWriter.html#MonadFileWriter"><span class="hs-identifier hs-var">MonadFileWriter</span></a></span></span><span> </span><span id="local-6989586621679095584"><span class="annot"><a href="#local-6989586621679095584"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-33"></span><span>  </span><span class="hs-comment">-- | Writes to a file.</span><span>
+</span><span id="line-34"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-35"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-36"></span><span>  </span><span id="writeBinaryFile"><span class="annot"><a href="Effects.FileSystem.FileWriter.html#writeBinaryFile"><span class="hs-identifier hs-type">writeBinaryFile</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ByteString</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679095584"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span>  </span><span class="hs-comment">-- | Appends to a file.</span><span>
+</span><span id="line-39"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-40"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-41"></span><span>  </span><span id="appendBinaryFile"><span class="annot"><a href="Effects.FileSystem.FileWriter.html#appendBinaryFile"><span class="hs-identifier hs-type">appendBinaryFile</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ByteString</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679095584"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-42"></span><span>
+</span><span id="line-43"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-44"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Effects.FileSystem.FileWriter.html#MonadFileWriter"><span class="hs-identifier hs-type">MonadFileWriter</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-45"></span><span>  </span><span id="local-6989586621679095623"><span class="annot"><span class="annottext">writeBinaryFile :: HasCallStack =&gt; OsPath -&gt; ByteString -&gt; IO ()
+</span><a href="Effects.FileSystem.FileWriter.html#writeBinaryFile"><span class="hs-identifier hs-var hs-var hs-var">writeBinaryFile</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; ByteString -&gt; IO ()
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.IO.html#writeBinaryFileIO"><span class="hs-identifier hs-var">FS.IO.writeBinaryFileIO</span></a></span><span>
+</span><span id="line-46"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.FileWriter.html#writeBinaryFile"><span class="hs-pragma hs-type">writeBinaryFile</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-47"></span><span>  </span><span id="local-6989586621679095626"><span class="annot"><span class="annottext">appendBinaryFile :: HasCallStack =&gt; OsPath -&gt; ByteString -&gt; IO ()
+</span><a href="Effects.FileSystem.FileWriter.html#appendBinaryFile"><span class="hs-identifier hs-var hs-var hs-var">appendBinaryFile</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; ByteString -&gt; IO ()
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.IO.html#appendBinaryFileIO"><span class="hs-identifier hs-var">FS.IO.appendBinaryFileIO</span></a></span><span>
+</span><span id="line-48"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.FileWriter.html#appendBinaryFile"><span class="hs-pragma hs-type">appendBinaryFile</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-49"></span><span>
+</span><span id="line-50"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-51"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679095594"><span id="local-6989586621679095595"><span class="hs-special">(</span><span class="annot"><a href="Effects.FileSystem.FileWriter.html#MonadFileWriter"><span class="hs-identifier hs-type">MonadFileWriter</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679095594"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Effects.FileSystem.FileWriter.html#MonadFileWriter"><span class="hs-identifier hs-type">MonadFileWriter</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ReaderT</span></span><span> </span><span class="annot"><a href="#local-6989586621679095595"><span class="hs-identifier hs-type">env</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679095594"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-52"></span><span>  </span><span id="local-6989586621679095643"><span class="annot"><span class="annottext">writeBinaryFile :: HasCallStack =&gt; OsPath -&gt; ByteString -&gt; ReaderT env m ()
+</span><a href="Effects.FileSystem.FileWriter.html#writeBinaryFile"><span class="hs-identifier hs-var hs-var hs-var">writeBinaryFile</span></a></span></span><span> </span><span id="local-6989586621679095644"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679095644"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT env m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT env m ())
+-&gt; (ByteString -&gt; m ()) -&gt; ByteString -&gt; ReaderT env m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; ByteString -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadFileWriter m, HasCallStack) =&gt;
+OsPath -&gt; ByteString -&gt; m ()
+</span><a href="Effects.FileSystem.FileWriter.html#writeBinaryFile"><span class="hs-identifier hs-var">writeBinaryFile</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679095644"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-53"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.FileWriter.html#writeBinaryFile"><span class="hs-pragma hs-type">writeBinaryFile</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-54"></span><span>  </span><span id="local-6989586621679095652"><span class="annot"><span class="annottext">appendBinaryFile :: HasCallStack =&gt; OsPath -&gt; ByteString -&gt; ReaderT env m ()
+</span><a href="Effects.FileSystem.FileWriter.html#appendBinaryFile"><span class="hs-identifier hs-var hs-var hs-var">appendBinaryFile</span></a></span></span><span> </span><span id="local-6989586621679095653"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679095653"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT env m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT env m ())
+-&gt; (ByteString -&gt; m ()) -&gt; ByteString -&gt; ReaderT env m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; ByteString -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadFileWriter m, HasCallStack) =&gt;
+OsPath -&gt; ByteString -&gt; m ()
+</span><a href="Effects.FileSystem.FileWriter.html#appendBinaryFile"><span class="hs-identifier hs-var">appendBinaryFile</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679095653"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-55"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.FileWriter.html#appendBinaryFile"><span class="hs-pragma hs-type">appendBinaryFile</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-56"></span><span>
+</span><span id="line-57"></span><span class="hs-comment">-- | Writes to a file as UTF-8.</span><span>
+</span><span id="line-58"></span><span class="hs-comment">--</span><span>
+</span><span id="line-59"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-60"></span><span id="local-6989586621679095604"><span class="annot"><a href="Effects.FileSystem.FileWriter.html#writeFileUtf8"><span class="hs-identifier hs-type">writeFileUtf8</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.FileSystem.FileWriter.html#MonadFileWriter"><span class="hs-identifier hs-type">MonadFileWriter</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679095604"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679095604"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-61"></span><span id="writeFileUtf8"><span class="annot"><span class="annottext">writeFileUtf8 :: forall (m :: * -&gt; *).
+(HasCallStack, MonadFileWriter m) =&gt;
+OsPath -&gt; Text -&gt; m ()
+</span><a href="Effects.FileSystem.FileWriter.html#writeFileUtf8"><span class="hs-identifier hs-var hs-var">writeFileUtf8</span></a></span></span><span> </span><span id="local-6989586621679095659"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679095659"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; ByteString -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadFileWriter m, HasCallStack) =&gt;
+OsPath -&gt; ByteString -&gt; m ()
+</span><a href="Effects.FileSystem.FileWriter.html#writeBinaryFile"><span class="hs-identifier hs-var">writeBinaryFile</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679095659"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; m ()) -&gt; (Text -&gt; ByteString) -&gt; Text -&gt; m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; ByteString
+</span><span class="hs-identifier hs-var">FS.UTF8.encodeUtf8</span></span><span>
+</span><span id="line-62"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.FileWriter.html#writeFileUtf8"><span class="hs-pragma hs-type">writeFileUtf8</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span><span class="hs-comment">-- | Appends to a file as UTF-8.</span><span>
+</span><span id="line-65"></span><span class="hs-comment">--</span><span>
+</span><span id="line-66"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-67"></span><span id="local-6989586621679095660"><span class="annot"><a href="Effects.FileSystem.FileWriter.html#appendFileUtf8"><span class="hs-identifier hs-type">appendFileUtf8</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.FileSystem.FileWriter.html#MonadFileWriter"><span class="hs-identifier hs-type">MonadFileWriter</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679095660"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679095660"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-68"></span><span id="appendFileUtf8"><span class="annot"><span class="annottext">appendFileUtf8 :: forall (m :: * -&gt; *).
+(HasCallStack, MonadFileWriter m) =&gt;
+OsPath -&gt; Text -&gt; m ()
+</span><a href="Effects.FileSystem.FileWriter.html#appendFileUtf8"><span class="hs-identifier hs-var hs-var">appendFileUtf8</span></a></span></span><span> </span><span id="local-6989586621679095666"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679095666"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; ByteString -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadFileWriter m, HasCallStack) =&gt;
+OsPath -&gt; ByteString -&gt; m ()
+</span><a href="Effects.FileSystem.FileWriter.html#appendBinaryFile"><span class="hs-identifier hs-var">appendBinaryFile</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679095666"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; m ()) -&gt; (Text -&gt; ByteString) -&gt; Text -&gt; m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; ByteString
+</span><span class="hs-identifier hs-var">FS.UTF8.encodeUtf8</span></span><span>
+</span><span id="line-69"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.FileWriter.html#appendFileUtf8"><span class="hs-pragma hs-type">appendFileUtf8</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-70"></span></pre></body></html>

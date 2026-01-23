@@ -1,0 +1,773 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- | Provides the 'MonadPosixFiles' typeclass.</span><span>
+</span><span id="line-2"></span><span class="hs-comment">--</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html"><span class="hs-identifier">Effects.System.Posix.Files</span></a></span><span>
+</span><span id="line-5"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Effect</span></span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><a href="Effects.System.Posix.Files.html#MonadPosixFiles"><span class="hs-identifier">MonadPosixFiles</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><span class="hs-comment">-- * PathType</span></span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.PathType.html#PathType"><span class="hs-identifier">PathType</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Functions</span></span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.PathType.html#displayPathType"><span class="hs-identifier">displayPathType</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><a href="Effects.System.Posix.Files.html#throwIfWrongPathType"><span class="hs-identifier">throwIfWrongPathType</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-14"></span><span>    </span><span class="annot"><a href="Effects.System.Posix.Files.html#isPathType"><span class="hs-identifier">isPathType</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-15"></span><span>    </span><span class="annot"><a href="Effects.System.Posix.Files.html#getPathType"><span class="hs-identifier">getPathType</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-16"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-17"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">unless</span></span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Catch</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadCatch</span></span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Class</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadTrans</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">lift</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Reader</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ReaderT</span></span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Functor</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-operator">(&lt;&amp;&gt;)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.IO.html"><span class="hs-identifier">FileSystem.IO</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">FS.IO</span></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.PathType.html"><span class="hs-identifier">FileSystem.PathType</span></a></span><span>
+</span><span id="line-26"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.PathType.html#PathType"><span class="hs-identifier">PathType</span></a></span><span>
+</span><span id="line-27"></span><span>      </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.PathType.html#PathTypeDirectory"><span class="hs-identifier">PathTypeDirectory</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-28"></span><span>        </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.PathType.html#PathTypeFile"><span class="hs-identifier">PathTypeFile</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-29"></span><span>        </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.PathType.html#PathTypeOther"><span class="hs-identifier">PathTypeOther</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-30"></span><span>        </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.PathType.html#PathTypeSymbolicLink"><span class="hs-identifier">PathTypeSymbolicLink</span></a></span><span>
+</span><span id="line-31"></span><span>      </span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-32"></span><span>    </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.PathType.html#displayPathType"><span class="hs-identifier">displayPathType</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-33"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-34"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.IO.Exception</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">IOErrorType</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">InappropriateType</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-35"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Stack</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">HasCallStack</span></span><span class="hs-special">)</span><span>
+</span><span id="line-36"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.OsString.Internal.Types</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">OsString</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">OsString</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-37"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.Posix.Files.PosixString</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">FileStatus</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">PathVar</span></span><span class="hs-special">)</span><span>
+</span><span id="line-38"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.Posix.Files.PosixString</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">PFiles</span></span><span>
+</span><span id="line-39"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.Posix.PosixString</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">PosixPath</span></span><span class="hs-special">)</span><span>
+</span><span id="line-40"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.Posix.Types</span></span><span>
+</span><span id="line-41"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">DeviceID</span></span><span class="hs-special">,</span><span>
+</span><span id="line-42"></span><span>    </span><span class="annot"><span class="hs-identifier">EpochTime</span></span><span class="hs-special">,</span><span>
+</span><span id="line-43"></span><span>    </span><span class="annot"><span class="hs-identifier">Fd</span></span><span class="hs-special">,</span><span>
+</span><span id="line-44"></span><span>    </span><span class="annot"><span class="hs-identifier">FileMode</span></span><span class="hs-special">,</span><span>
+</span><span id="line-45"></span><span>    </span><span class="annot"><span class="hs-identifier">FileOffset</span></span><span class="hs-special">,</span><span>
+</span><span id="line-46"></span><span>    </span><span class="annot"><span class="hs-identifier">GroupID</span></span><span class="hs-special">,</span><span>
+</span><span id="line-47"></span><span>    </span><span class="annot"><span class="hs-identifier">Limit</span></span><span class="hs-special">,</span><span>
+</span><span id="line-48"></span><span>    </span><span class="annot"><span class="hs-identifier">UserID</span></span><span class="hs-special">,</span><span>
+</span><span id="line-49"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-50"></span><span>
+</span><span id="line-51"></span><span class="hs-comment">{- HLINT ignore &quot;Redundant bracket&quot; -}</span><span>
+</span><span id="line-52"></span><span>
+</span><span id="line-53"></span><span class="hs-comment">-- | Class for unix &quot;System.PosixCompat.Files&quot; effects.</span><span>
+</span><span id="line-54"></span><span class="hs-comment">--</span><span>
+</span><span id="line-55"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-56"></span><span class="hs-keyword">class</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Monad</span></span><span> </span><span class="annot"><a href="#local-6989586621679072544"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span id="MonadPosixFiles"><span class="annot"><a href="Effects.System.Posix.Files.html#MonadPosixFiles"><span class="hs-identifier hs-var">MonadPosixFiles</span></a></span></span><span> </span><span id="local-6989586621679072544"><span class="annot"><a href="#local-6989586621679072544"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-57"></span><span>  </span><span class="hs-comment">-- System.Posix.Files</span><span>
+</span><span id="line-58"></span><span>
+</span><span id="line-59"></span><span>  </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-60"></span><span>  </span><span id="setFileMode"><span class="annot"><a href="Effects.System.Posix.Files.html#setFileMode"><span class="hs-identifier hs-type">setFileMode</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">PosixPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FileMode</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072544"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-61"></span><span>
+</span><span id="line-62"></span><span>  </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-63"></span><span>  </span><span id="setFdMode"><span class="annot"><a href="Effects.System.Posix.Files.html#setFdMode"><span class="hs-identifier hs-type">setFdMode</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Fd</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FileMode</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072544"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-64"></span><span>
+</span><span id="line-65"></span><span>  </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-66"></span><span>  </span><span id="setFileCreationMask"><span class="annot"><a href="Effects.System.Posix.Files.html#setFileCreationMask"><span class="hs-identifier hs-type">setFileCreationMask</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FileMode</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072544"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">FileMode</span></span><span>
+</span><span id="line-67"></span><span>
+</span><span id="line-68"></span><span>  </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-69"></span><span>  </span><span id="fileAccess"><span class="annot"><a href="Effects.System.Posix.Files.html#fileAccess"><span class="hs-identifier hs-type">fileAccess</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">PosixPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072544"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-70"></span><span>
+</span><span id="line-71"></span><span>  </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-72"></span><span>  </span><span id="fileExist"><span class="annot"><a href="Effects.System.Posix.Files.html#fileExist"><span class="hs-identifier hs-type">fileExist</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">PosixPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072544"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-73"></span><span>
+</span><span id="line-74"></span><span>  </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-75"></span><span>  </span><span id="getFileStatus"><span class="annot"><a href="Effects.System.Posix.Files.html#getFileStatus"><span class="hs-identifier hs-type">getFileStatus</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">PosixPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072544"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">FileStatus</span></span><span>
+</span><span id="line-76"></span><span>
+</span><span id="line-77"></span><span>  </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-78"></span><span>  </span><span id="getFdStatus"><span class="annot"><a href="Effects.System.Posix.Files.html#getFdStatus"><span class="hs-identifier hs-type">getFdStatus</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Fd</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072544"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">FileStatus</span></span><span>
+</span><span id="line-79"></span><span>
+</span><span id="line-80"></span><span>  </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-81"></span><span>  </span><span id="getSymbolicLinkStatus"><span class="annot"><a href="Effects.System.Posix.Files.html#getSymbolicLinkStatus"><span class="hs-identifier hs-type">getSymbolicLinkStatus</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">PosixPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072544"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">FileStatus</span></span><span>
+</span><span id="line-82"></span><span>
+</span><span id="line-83"></span><span>  </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-84"></span><span>  </span><span id="createNamedPipe"><span class="annot"><a href="Effects.System.Posix.Files.html#createNamedPipe"><span class="hs-identifier hs-type">createNamedPipe</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">PosixPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FileMode</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072544"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-85"></span><span>
+</span><span id="line-86"></span><span>  </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-87"></span><span>  </span><span id="createDevice"><span class="annot"><a href="Effects.System.Posix.Files.html#createDevice"><span class="hs-identifier hs-type">createDevice</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">PosixPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FileMode</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">DeviceID</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072544"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-88"></span><span>
+</span><span id="line-89"></span><span>  </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-90"></span><span>  </span><span id="createLink"><span class="annot"><a href="Effects.System.Posix.Files.html#createLink"><span class="hs-identifier hs-type">createLink</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">PosixPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">PosixPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072544"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-91"></span><span>
+</span><span id="line-92"></span><span>  </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-93"></span><span>  </span><span id="removeLink"><span class="annot"><a href="Effects.System.Posix.Files.html#removeLink"><span class="hs-identifier hs-type">removeLink</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">PosixPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072544"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-94"></span><span>
+</span><span id="line-95"></span><span>  </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-96"></span><span>  </span><span id="createSymbolicLink"><span class="annot"><a href="Effects.System.Posix.Files.html#createSymbolicLink"><span class="hs-identifier hs-type">createSymbolicLink</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">PosixPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">PosixPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072544"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-97"></span><span>
+</span><span id="line-98"></span><span>  </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-99"></span><span>  </span><span id="readSymbolicLink"><span class="annot"><a href="Effects.System.Posix.Files.html#readSymbolicLink"><span class="hs-identifier hs-type">readSymbolicLink</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">PosixPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072544"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">PosixPath</span></span><span>
+</span><span id="line-100"></span><span>
+</span><span id="line-101"></span><span>  </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-102"></span><span>  </span><span id="rename"><span class="annot"><a href="Effects.System.Posix.Files.html#rename"><span class="hs-identifier hs-type">rename</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">PosixPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">PosixPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072544"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-103"></span><span>
+</span><span id="line-104"></span><span>  </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-105"></span><span>  </span><span id="setOwnerAndGroup"><span class="annot"><a href="Effects.System.Posix.Files.html#setOwnerAndGroup"><span class="hs-identifier hs-type">setOwnerAndGroup</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">PosixPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">UserID</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">GroupID</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072544"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-106"></span><span>
+</span><span id="line-107"></span><span>  </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-108"></span><span>  </span><span id="setFdOwnerAndGroup"><span class="annot"><a href="Effects.System.Posix.Files.html#setFdOwnerAndGroup"><span class="hs-identifier hs-type">setFdOwnerAndGroup</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Fd</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">UserID</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">GroupID</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072544"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-109"></span><span>
+</span><span id="line-110"></span><span>  </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-111"></span><span>  </span><span id="setSymbolicLinkOwnerAndGroup"><span class="annot"><a href="Effects.System.Posix.Files.html#setSymbolicLinkOwnerAndGroup"><span class="hs-identifier hs-type">setSymbolicLinkOwnerAndGroup</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">PosixPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">UserID</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">GroupID</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072544"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-112"></span><span>
+</span><span id="line-113"></span><span>  </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-114"></span><span>  </span><span id="setFileTimes"><span class="annot"><a href="Effects.System.Posix.Files.html#setFileTimes"><span class="hs-identifier hs-type">setFileTimes</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">PosixPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">EpochTime</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">EpochTime</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072544"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-115"></span><span>
+</span><span id="line-116"></span><span>  </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-117"></span><span>  </span><span id="touchFile"><span class="annot"><a href="Effects.System.Posix.Files.html#touchFile"><span class="hs-identifier hs-type">touchFile</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">PosixPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072544"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-118"></span><span>
+</span><span id="line-119"></span><span>  </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-120"></span><span>  </span><span id="setFileSize"><span class="annot"><a href="Effects.System.Posix.Files.html#setFileSize"><span class="hs-identifier hs-type">setFileSize</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">PosixPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FileOffset</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072544"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-121"></span><span>
+</span><span id="line-122"></span><span>  </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-123"></span><span>  </span><span id="setFdSize"><span class="annot"><a href="Effects.System.Posix.Files.html#setFdSize"><span class="hs-identifier hs-type">setFdSize</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Fd</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FileOffset</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072544"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-124"></span><span>
+</span><span id="line-125"></span><span>  </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-126"></span><span>  </span><span id="getPathVar"><span class="annot"><a href="Effects.System.Posix.Files.html#getPathVar"><span class="hs-identifier hs-type">getPathVar</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">PosixPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">PathVar</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072544"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Limit</span></span><span>
+</span><span id="line-127"></span><span>
+</span><span id="line-128"></span><span>  </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-129"></span><span>  </span><span id="getFdPathVar"><span class="annot"><a href="Effects.System.Posix.Files.html#getFdPathVar"><span class="hs-identifier hs-type">getFdPathVar</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Fd</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">PathVar</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679072544"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Limit</span></span><span>
+</span><span id="line-130"></span><span>
+</span><span id="line-131"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-132"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#MonadPosixFiles"><span class="hs-identifier hs-type">MonadPosixFiles</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-133"></span><span>  </span><span id="local-6989586621679072679"><span class="annot"><span class="annottext">setFileMode :: HasCallStack =&gt; PosixPath -&gt; FileMode -&gt; IO ()
+</span><a href="Effects.System.Posix.Files.html#setFileMode"><span class="hs-identifier hs-var hs-var hs-var">setFileMode</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; FileMode -&gt; IO ()
+</span><span class="hs-identifier hs-var">PFiles.setFileMode</span></span><span>
+</span><span id="line-134"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#setFileMode"><span class="hs-pragma hs-type">setFileMode</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-135"></span><span>  </span><span id="local-6989586621679072682"><span class="annot"><span class="annottext">setFdMode :: HasCallStack =&gt; Fd -&gt; FileMode -&gt; IO ()
+</span><a href="Effects.System.Posix.Files.html#setFdMode"><span class="hs-identifier hs-var hs-var hs-var">setFdMode</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Fd -&gt; FileMode -&gt; IO ()
+</span><span class="hs-identifier hs-var">PFiles.setFdMode</span></span><span>
+</span><span id="line-136"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#setFdMode"><span class="hs-pragma hs-type">setFdMode</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-137"></span><span>  </span><span id="local-6989586621679072685"><span class="annot"><span class="annottext">setFileCreationMask :: HasCallStack =&gt; FileMode -&gt; IO FileMode
+</span><a href="Effects.System.Posix.Files.html#setFileCreationMask"><span class="hs-identifier hs-var hs-var hs-var">setFileCreationMask</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FileMode -&gt; IO FileMode
+</span><span class="hs-identifier hs-var">PFiles.setFileCreationMask</span></span><span>
+</span><span id="line-138"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#setFileCreationMask"><span class="hs-pragma hs-type">setFileCreationMask</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-139"></span><span>  </span><span id="local-6989586621679072688"><span class="annot"><span class="annottext">fileAccess :: HasCallStack =&gt; PosixPath -&gt; Bool -&gt; Bool -&gt; Bool -&gt; IO Bool
+</span><a href="Effects.System.Posix.Files.html#fileAccess"><span class="hs-identifier hs-var hs-var hs-var">fileAccess</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; Bool -&gt; Bool -&gt; Bool -&gt; IO Bool
+</span><span class="hs-identifier hs-var">PFiles.fileAccess</span></span><span>
+</span><span id="line-140"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#fileAccess"><span class="hs-pragma hs-type">fileAccess</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-141"></span><span>  </span><span id="local-6989586621679072691"><span class="annot"><span class="annottext">fileExist :: HasCallStack =&gt; PosixPath -&gt; IO Bool
+</span><a href="Effects.System.Posix.Files.html#fileExist"><span class="hs-identifier hs-var hs-var hs-var">fileExist</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; IO Bool
+</span><span class="hs-identifier hs-var">PFiles.fileExist</span></span><span>
+</span><span id="line-142"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#fileExist"><span class="hs-pragma hs-type">fileExist</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-143"></span><span>  </span><span id="local-6989586621679072694"><span class="annot"><span class="annottext">getFileStatus :: HasCallStack =&gt; PosixPath -&gt; IO FileStatus
+</span><a href="Effects.System.Posix.Files.html#getFileStatus"><span class="hs-identifier hs-var hs-var hs-var">getFileStatus</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; IO FileStatus
+</span><span class="hs-identifier hs-var">PFiles.getFileStatus</span></span><span>
+</span><span id="line-144"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#getFileStatus"><span class="hs-pragma hs-type">getFileStatus</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-145"></span><span>  </span><span id="local-6989586621679072697"><span class="annot"><span class="annottext">getFdStatus :: HasCallStack =&gt; Fd -&gt; IO FileStatus
+</span><a href="Effects.System.Posix.Files.html#getFdStatus"><span class="hs-identifier hs-var hs-var hs-var">getFdStatus</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Fd -&gt; IO FileStatus
+</span><span class="hs-identifier hs-var">PFiles.getFdStatus</span></span><span>
+</span><span id="line-146"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#getFdStatus"><span class="hs-pragma hs-type">getFdStatus</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-147"></span><span>  </span><span id="local-6989586621679072700"><span class="annot"><span class="annottext">getSymbolicLinkStatus :: HasCallStack =&gt; PosixPath -&gt; IO FileStatus
+</span><a href="Effects.System.Posix.Files.html#getSymbolicLinkStatus"><span class="hs-identifier hs-var hs-var hs-var">getSymbolicLinkStatus</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; IO FileStatus
+</span><span class="hs-identifier hs-var">PFiles.getSymbolicLinkStatus</span></span><span>
+</span><span id="line-148"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#getSymbolicLinkStatus"><span class="hs-pragma hs-type">getSymbolicLinkStatus</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-149"></span><span>  </span><span id="local-6989586621679072703"><span class="annot"><span class="annottext">createNamedPipe :: HasCallStack =&gt; PosixPath -&gt; FileMode -&gt; IO ()
+</span><a href="Effects.System.Posix.Files.html#createNamedPipe"><span class="hs-identifier hs-var hs-var hs-var">createNamedPipe</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; FileMode -&gt; IO ()
+</span><span class="hs-identifier hs-var">PFiles.createNamedPipe</span></span><span>
+</span><span id="line-150"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#createNamedPipe"><span class="hs-pragma hs-type">createNamedPipe</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-151"></span><span>  </span><span id="local-6989586621679072706"><span class="annot"><span class="annottext">createDevice :: HasCallStack =&gt; PosixPath -&gt; FileMode -&gt; DeviceID -&gt; IO ()
+</span><a href="Effects.System.Posix.Files.html#createDevice"><span class="hs-identifier hs-var hs-var hs-var">createDevice</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; FileMode -&gt; DeviceID -&gt; IO ()
+</span><span class="hs-identifier hs-var">PFiles.createDevice</span></span><span>
+</span><span id="line-152"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#createDevice"><span class="hs-pragma hs-type">createDevice</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-153"></span><span>  </span><span id="local-6989586621679072709"><span class="annot"><span class="annottext">createLink :: HasCallStack =&gt; PosixPath -&gt; PosixPath -&gt; IO ()
+</span><a href="Effects.System.Posix.Files.html#createLink"><span class="hs-identifier hs-var hs-var hs-var">createLink</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; PosixPath -&gt; IO ()
+</span><span class="hs-identifier hs-var">PFiles.createLink</span></span><span>
+</span><span id="line-154"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#createLink"><span class="hs-pragma hs-type">createLink</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-155"></span><span>  </span><span id="local-6989586621679072712"><span class="annot"><span class="annottext">removeLink :: HasCallStack =&gt; PosixPath -&gt; IO ()
+</span><a href="Effects.System.Posix.Files.html#removeLink"><span class="hs-identifier hs-var hs-var hs-var">removeLink</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; IO ()
+</span><span class="hs-identifier hs-var">PFiles.removeLink</span></span><span>
+</span><span id="line-156"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#removeLink"><span class="hs-pragma hs-type">removeLink</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-157"></span><span>  </span><span id="local-6989586621679072715"><span class="annot"><span class="annottext">createSymbolicLink :: HasCallStack =&gt; PosixPath -&gt; PosixPath -&gt; IO ()
+</span><a href="Effects.System.Posix.Files.html#createSymbolicLink"><span class="hs-identifier hs-var hs-var hs-var">createSymbolicLink</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; PosixPath -&gt; IO ()
+</span><span class="hs-identifier hs-var">PFiles.createSymbolicLink</span></span><span>
+</span><span id="line-158"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#createSymbolicLink"><span class="hs-pragma hs-type">createSymbolicLink</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-159"></span><span>  </span><span id="local-6989586621679072718"><span class="annot"><span class="annottext">readSymbolicLink :: HasCallStack =&gt; PosixPath -&gt; IO PosixPath
+</span><a href="Effects.System.Posix.Files.html#readSymbolicLink"><span class="hs-identifier hs-var hs-var hs-var">readSymbolicLink</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; IO PosixPath
+</span><span class="hs-identifier hs-var">PFiles.readSymbolicLink</span></span><span>
+</span><span id="line-160"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#readSymbolicLink"><span class="hs-pragma hs-type">readSymbolicLink</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-161"></span><span>  </span><span id="local-6989586621679072721"><span class="annot"><span class="annottext">rename :: HasCallStack =&gt; PosixPath -&gt; PosixPath -&gt; IO ()
+</span><a href="Effects.System.Posix.Files.html#rename"><span class="hs-identifier hs-var hs-var hs-var">rename</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; PosixPath -&gt; IO ()
+</span><span class="hs-identifier hs-var">PFiles.rename</span></span><span>
+</span><span id="line-162"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#rename"><span class="hs-pragma hs-type">rename</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-163"></span><span>  </span><span id="local-6989586621679072724"><span class="annot"><span class="annottext">setOwnerAndGroup :: HasCallStack =&gt; PosixPath -&gt; UserID -&gt; GroupID -&gt; IO ()
+</span><a href="Effects.System.Posix.Files.html#setOwnerAndGroup"><span class="hs-identifier hs-var hs-var hs-var">setOwnerAndGroup</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; UserID -&gt; GroupID -&gt; IO ()
+</span><span class="hs-identifier hs-var">PFiles.setOwnerAndGroup</span></span><span>
+</span><span id="line-164"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#setOwnerAndGroup"><span class="hs-pragma hs-type">setOwnerAndGroup</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-165"></span><span>  </span><span id="local-6989586621679072727"><span class="annot"><span class="annottext">setFdOwnerAndGroup :: HasCallStack =&gt; Fd -&gt; UserID -&gt; GroupID -&gt; IO ()
+</span><a href="Effects.System.Posix.Files.html#setFdOwnerAndGroup"><span class="hs-identifier hs-var hs-var hs-var">setFdOwnerAndGroup</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Fd -&gt; UserID -&gt; GroupID -&gt; IO ()
+</span><span class="hs-identifier hs-var">PFiles.setFdOwnerAndGroup</span></span><span>
+</span><span id="line-166"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#setFdOwnerAndGroup"><span class="hs-pragma hs-type">setFdOwnerAndGroup</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-167"></span><span>  </span><span id="local-6989586621679072730"><span class="annot"><span class="annottext">setSymbolicLinkOwnerAndGroup :: HasCallStack =&gt; PosixPath -&gt; UserID -&gt; GroupID -&gt; IO ()
+</span><a href="Effects.System.Posix.Files.html#setSymbolicLinkOwnerAndGroup"><span class="hs-identifier hs-var hs-var hs-var">setSymbolicLinkOwnerAndGroup</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; UserID -&gt; GroupID -&gt; IO ()
+</span><span class="hs-identifier hs-var">PFiles.setSymbolicLinkOwnerAndGroup</span></span><span>
+</span><span id="line-168"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#setSymbolicLinkOwnerAndGroup"><span class="hs-pragma hs-type">setSymbolicLinkOwnerAndGroup</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-169"></span><span>  </span><span id="local-6989586621679072733"><span class="annot"><span class="annottext">setFileTimes :: HasCallStack =&gt; PosixPath -&gt; EpochTime -&gt; EpochTime -&gt; IO ()
+</span><a href="Effects.System.Posix.Files.html#setFileTimes"><span class="hs-identifier hs-var hs-var hs-var">setFileTimes</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; EpochTime -&gt; EpochTime -&gt; IO ()
+</span><span class="hs-identifier hs-var">PFiles.setFileTimes</span></span><span>
+</span><span id="line-170"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#setFileTimes"><span class="hs-pragma hs-type">setFileTimes</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-171"></span><span>  </span><span id="local-6989586621679072736"><span class="annot"><span class="annottext">touchFile :: HasCallStack =&gt; PosixPath -&gt; IO ()
+</span><a href="Effects.System.Posix.Files.html#touchFile"><span class="hs-identifier hs-var hs-var hs-var">touchFile</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; IO ()
+</span><span class="hs-identifier hs-var">PFiles.touchFile</span></span><span>
+</span><span id="line-172"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#touchFile"><span class="hs-pragma hs-type">touchFile</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-173"></span><span>  </span><span id="local-6989586621679072739"><span class="annot"><span class="annottext">setFileSize :: HasCallStack =&gt; PosixPath -&gt; FileOffset -&gt; IO ()
+</span><a href="Effects.System.Posix.Files.html#setFileSize"><span class="hs-identifier hs-var hs-var hs-var">setFileSize</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; FileOffset -&gt; IO ()
+</span><span class="hs-identifier hs-var">PFiles.setFileSize</span></span><span>
+</span><span id="line-174"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#setFileSize"><span class="hs-pragma hs-type">setFileSize</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-175"></span><span>  </span><span id="local-6989586621679072742"><span class="annot"><span class="annottext">setFdSize :: HasCallStack =&gt; Fd -&gt; FileOffset -&gt; IO ()
+</span><a href="Effects.System.Posix.Files.html#setFdSize"><span class="hs-identifier hs-var hs-var hs-var">setFdSize</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Fd -&gt; FileOffset -&gt; IO ()
+</span><span class="hs-identifier hs-var">PFiles.setFdSize</span></span><span>
+</span><span id="line-176"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#setFdSize"><span class="hs-pragma hs-type">setFdSize</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-177"></span><span>  </span><span id="local-6989586621679072745"><span class="annot"><span class="annottext">getPathVar :: HasCallStack =&gt; PosixPath -&gt; PathVar -&gt; IO Limit
+</span><a href="Effects.System.Posix.Files.html#getPathVar"><span class="hs-identifier hs-var hs-var hs-var">getPathVar</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; PathVar -&gt; IO Limit
+</span><span class="hs-identifier hs-var">PFiles.getPathVar</span></span><span>
+</span><span id="line-178"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#getPathVar"><span class="hs-pragma hs-type">getPathVar</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-179"></span><span>  </span><span id="local-6989586621679072748"><span class="annot"><span class="annottext">getFdPathVar :: HasCallStack =&gt; Fd -&gt; PathVar -&gt; IO Limit
+</span><a href="Effects.System.Posix.Files.html#getFdPathVar"><span class="hs-identifier hs-var hs-var hs-var">getFdPathVar</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Fd -&gt; PathVar -&gt; IO Limit
+</span><span class="hs-identifier hs-var">PFiles.getFdPathVar</span></span><span>
+</span><span id="line-180"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#getFdPathVar"><span class="hs-pragma hs-type">getFdPathVar</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-181"></span><span>
+</span><span id="line-182"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-183"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679072563"><span id="local-6989586621679072564"><span class="hs-special">(</span><span class="annot"><a href="Effects.System.Posix.Files.html#MonadPosixFiles"><span class="hs-identifier hs-type">MonadPosixFiles</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679072563"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#MonadPosixFiles"><span class="hs-identifier hs-type">MonadPosixFiles</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ReaderT</span></span><span> </span><span class="annot"><a href="#local-6989586621679072564"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679072563"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-184"></span><span>  </span><span id="local-6989586621679072787"><span class="annot"><span class="annottext">setFileMode :: HasCallStack =&gt; PosixPath -&gt; FileMode -&gt; ReaderT e m ()
+</span><a href="Effects.System.Posix.Files.html#setFileMode"><span class="hs-identifier hs-var hs-var hs-var">setFileMode</span></a></span></span><span> </span><span id="local-6989586621679072788"><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679072788"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ())
+-&gt; (FileMode -&gt; m ()) -&gt; FileMode -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; FileMode -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadPosixFiles m, HasCallStack) =&gt;
+PosixPath -&gt; FileMode -&gt; m ()
+</span><a href="Effects.System.Posix.Files.html#setFileMode"><span class="hs-identifier hs-var">setFileMode</span></a></span><span> </span><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679072788"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-185"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#setFileMode"><span class="hs-pragma hs-type">setFileMode</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-186"></span><span>  </span><span id="local-6989586621679072796"><span class="annot"><span class="annottext">setFdMode :: HasCallStack =&gt; Fd -&gt; FileMode -&gt; ReaderT e m ()
+</span><a href="Effects.System.Posix.Files.html#setFdMode"><span class="hs-identifier hs-var hs-var hs-var">setFdMode</span></a></span></span><span> </span><span id="local-6989586621679072797"><span class="annot"><span class="annottext">Fd
+</span><a href="#local-6989586621679072797"><span class="hs-identifier hs-var">fd</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ())
+-&gt; (FileMode -&gt; m ()) -&gt; FileMode -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Fd -&gt; FileMode -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadPosixFiles m, HasCallStack) =&gt;
+Fd -&gt; FileMode -&gt; m ()
+</span><a href="Effects.System.Posix.Files.html#setFdMode"><span class="hs-identifier hs-var">setFdMode</span></a></span><span> </span><span class="annot"><span class="annottext">Fd
+</span><a href="#local-6989586621679072797"><span class="hs-identifier hs-var">fd</span></a></span><span>
+</span><span id="line-187"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#setFdMode"><span class="hs-pragma hs-type">setFdMode</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-188"></span><span>  </span><span id="local-6989586621679072804"><span class="annot"><span class="annottext">setFileCreationMask :: HasCallStack =&gt; FileMode -&gt; ReaderT e m FileMode
+</span><a href="Effects.System.Posix.Files.html#setFileCreationMask"><span class="hs-identifier hs-var hs-var hs-var">setFileCreationMask</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m FileMode -&gt; ReaderT e m FileMode
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m FileMode -&gt; ReaderT e m FileMode)
+-&gt; (FileMode -&gt; m FileMode) -&gt; FileMode -&gt; ReaderT e m FileMode
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">FileMode -&gt; m FileMode
+forall (m :: * -&gt; *).
+(MonadPosixFiles m, HasCallStack) =&gt;
+FileMode -&gt; m FileMode
+</span><a href="Effects.System.Posix.Files.html#setFileCreationMask"><span class="hs-identifier hs-var">setFileCreationMask</span></a></span><span>
+</span><span id="line-189"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#setFileCreationMask"><span class="hs-pragma hs-type">setFileCreationMask</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-190"></span><span>  </span><span id="local-6989586621679072811"><span class="annot"><span class="annottext">fileAccess :: HasCallStack =&gt;
+PosixPath -&gt; Bool -&gt; Bool -&gt; Bool -&gt; ReaderT e m Bool
+</span><a href="Effects.System.Posix.Files.html#fileAccess"><span class="hs-identifier hs-var hs-var hs-var">fileAccess</span></a></span></span><span> </span><span id="local-6989586621679072812"><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679072812"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679072813"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679072813"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679072814"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679072814"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Bool -&gt; ReaderT e m Bool
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m Bool -&gt; ReaderT e m Bool)
+-&gt; (Bool -&gt; m Bool) -&gt; Bool -&gt; ReaderT e m Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; Bool -&gt; Bool -&gt; Bool -&gt; m Bool
+forall (m :: * -&gt; *).
+(MonadPosixFiles m, HasCallStack) =&gt;
+PosixPath -&gt; Bool -&gt; Bool -&gt; Bool -&gt; m Bool
+</span><a href="Effects.System.Posix.Files.html#fileAccess"><span class="hs-identifier hs-var">fileAccess</span></a></span><span> </span><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679072812"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679072813"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679072814"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-191"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#fileAccess"><span class="hs-pragma hs-type">fileAccess</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-192"></span><span>  </span><span id="local-6989586621679072821"><span class="annot"><span class="annottext">fileExist :: HasCallStack =&gt; PosixPath -&gt; ReaderT e m Bool
+</span><a href="Effects.System.Posix.Files.html#fileExist"><span class="hs-identifier hs-var hs-var hs-var">fileExist</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Bool -&gt; ReaderT e m Bool
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m Bool -&gt; ReaderT e m Bool)
+-&gt; (PosixPath -&gt; m Bool) -&gt; PosixPath -&gt; ReaderT e m Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; m Bool
+forall (m :: * -&gt; *).
+(MonadPosixFiles m, HasCallStack) =&gt;
+PosixPath -&gt; m Bool
+</span><a href="Effects.System.Posix.Files.html#fileExist"><span class="hs-identifier hs-var">fileExist</span></a></span><span>
+</span><span id="line-193"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#fileExist"><span class="hs-pragma hs-type">fileExist</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-194"></span><span>  </span><span id="local-6989586621679072828"><span class="annot"><span class="annottext">getFileStatus :: HasCallStack =&gt; PosixPath -&gt; ReaderT e m FileStatus
+</span><a href="Effects.System.Posix.Files.html#getFileStatus"><span class="hs-identifier hs-var hs-var hs-var">getFileStatus</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m FileStatus -&gt; ReaderT e m FileStatus
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m FileStatus -&gt; ReaderT e m FileStatus)
+-&gt; (PosixPath -&gt; m FileStatus)
+-&gt; PosixPath
+-&gt; ReaderT e m FileStatus
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; m FileStatus
+forall (m :: * -&gt; *).
+(MonadPosixFiles m, HasCallStack) =&gt;
+PosixPath -&gt; m FileStatus
+</span><a href="Effects.System.Posix.Files.html#getFileStatus"><span class="hs-identifier hs-var">getFileStatus</span></a></span><span>
+</span><span id="line-195"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#getFileStatus"><span class="hs-pragma hs-type">getFileStatus</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-196"></span><span>  </span><span id="local-6989586621679072835"><span class="annot"><span class="annottext">getFdStatus :: HasCallStack =&gt; Fd -&gt; ReaderT e m FileStatus
+</span><a href="Effects.System.Posix.Files.html#getFdStatus"><span class="hs-identifier hs-var hs-var hs-var">getFdStatus</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m FileStatus -&gt; ReaderT e m FileStatus
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m FileStatus -&gt; ReaderT e m FileStatus)
+-&gt; (Fd -&gt; m FileStatus) -&gt; Fd -&gt; ReaderT e m FileStatus
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Fd -&gt; m FileStatus
+forall (m :: * -&gt; *).
+(MonadPosixFiles m, HasCallStack) =&gt;
+Fd -&gt; m FileStatus
+</span><a href="Effects.System.Posix.Files.html#getFdStatus"><span class="hs-identifier hs-var">getFdStatus</span></a></span><span>
+</span><span id="line-197"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#getFdStatus"><span class="hs-pragma hs-type">getFdStatus</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-198"></span><span>  </span><span id="local-6989586621679072842"><span class="annot"><span class="annottext">getSymbolicLinkStatus :: HasCallStack =&gt; PosixPath -&gt; ReaderT e m FileStatus
+</span><a href="Effects.System.Posix.Files.html#getSymbolicLinkStatus"><span class="hs-identifier hs-var hs-var hs-var">getSymbolicLinkStatus</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m FileStatus -&gt; ReaderT e m FileStatus
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m FileStatus -&gt; ReaderT e m FileStatus)
+-&gt; (PosixPath -&gt; m FileStatus)
+-&gt; PosixPath
+-&gt; ReaderT e m FileStatus
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; m FileStatus
+forall (m :: * -&gt; *).
+(MonadPosixFiles m, HasCallStack) =&gt;
+PosixPath -&gt; m FileStatus
+</span><a href="Effects.System.Posix.Files.html#getSymbolicLinkStatus"><span class="hs-identifier hs-var">getSymbolicLinkStatus</span></a></span><span>
+</span><span id="line-199"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#getSymbolicLinkStatus"><span class="hs-pragma hs-type">getSymbolicLinkStatus</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-200"></span><span>  </span><span id="local-6989586621679072849"><span class="annot"><span class="annottext">createNamedPipe :: HasCallStack =&gt; PosixPath -&gt; FileMode -&gt; ReaderT e m ()
+</span><a href="Effects.System.Posix.Files.html#createNamedPipe"><span class="hs-identifier hs-var hs-var hs-var">createNamedPipe</span></a></span></span><span> </span><span id="local-6989586621679072850"><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679072850"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ())
+-&gt; (FileMode -&gt; m ()) -&gt; FileMode -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; FileMode -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadPosixFiles m, HasCallStack) =&gt;
+PosixPath -&gt; FileMode -&gt; m ()
+</span><a href="Effects.System.Posix.Files.html#createNamedPipe"><span class="hs-identifier hs-var">createNamedPipe</span></a></span><span> </span><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679072850"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-201"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#createNamedPipe"><span class="hs-pragma hs-type">createNamedPipe</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-202"></span><span>  </span><span id="local-6989586621679072857"><span class="annot"><span class="annottext">createDevice :: HasCallStack =&gt; PosixPath -&gt; FileMode -&gt; DeviceID -&gt; ReaderT e m ()
+</span><a href="Effects.System.Posix.Files.html#createDevice"><span class="hs-identifier hs-var hs-var hs-var">createDevice</span></a></span></span><span> </span><span id="local-6989586621679072858"><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679072858"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679072859"><span class="annot"><span class="annottext">FileMode
+</span><a href="#local-6989586621679072859"><span class="hs-identifier hs-var">m</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ())
+-&gt; (DeviceID -&gt; m ()) -&gt; DeviceID -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; FileMode -&gt; DeviceID -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadPosixFiles m, HasCallStack) =&gt;
+PosixPath -&gt; FileMode -&gt; DeviceID -&gt; m ()
+</span><a href="Effects.System.Posix.Files.html#createDevice"><span class="hs-identifier hs-var">createDevice</span></a></span><span> </span><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679072858"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">FileMode
+</span><a href="#local-6989586621679072859"><span class="hs-identifier hs-var">m</span></a></span><span>
+</span><span id="line-203"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#createDevice"><span class="hs-pragma hs-type">createDevice</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-204"></span><span>  </span><span id="local-6989586621679072866"><span class="annot"><span class="annottext">createLink :: HasCallStack =&gt; PosixPath -&gt; PosixPath -&gt; ReaderT e m ()
+</span><a href="Effects.System.Posix.Files.html#createLink"><span class="hs-identifier hs-var hs-var hs-var">createLink</span></a></span></span><span> </span><span id="local-6989586621679072867"><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679072867"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ())
+-&gt; (PosixPath -&gt; m ()) -&gt; PosixPath -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; PosixPath -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadPosixFiles m, HasCallStack) =&gt;
+PosixPath -&gt; PosixPath -&gt; m ()
+</span><a href="Effects.System.Posix.Files.html#createLink"><span class="hs-identifier hs-var">createLink</span></a></span><span> </span><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679072867"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-205"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#createLink"><span class="hs-pragma hs-type">createLink</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-206"></span><span>  </span><span id="local-6989586621679072874"><span class="annot"><span class="annottext">removeLink :: HasCallStack =&gt; PosixPath -&gt; ReaderT e m ()
+</span><a href="Effects.System.Posix.Files.html#removeLink"><span class="hs-identifier hs-var hs-var hs-var">removeLink</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ())
+-&gt; (PosixPath -&gt; m ()) -&gt; PosixPath -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadPosixFiles m, HasCallStack) =&gt;
+PosixPath -&gt; m ()
+</span><a href="Effects.System.Posix.Files.html#removeLink"><span class="hs-identifier hs-var">removeLink</span></a></span><span>
+</span><span id="line-207"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#removeLink"><span class="hs-pragma hs-type">removeLink</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-208"></span><span>  </span><span id="local-6989586621679072881"><span class="annot"><span class="annottext">createSymbolicLink :: HasCallStack =&gt; PosixPath -&gt; PosixPath -&gt; ReaderT e m ()
+</span><a href="Effects.System.Posix.Files.html#createSymbolicLink"><span class="hs-identifier hs-var hs-var hs-var">createSymbolicLink</span></a></span></span><span> </span><span id="local-6989586621679072882"><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679072882"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ())
+-&gt; (PosixPath -&gt; m ()) -&gt; PosixPath -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; PosixPath -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadPosixFiles m, HasCallStack) =&gt;
+PosixPath -&gt; PosixPath -&gt; m ()
+</span><a href="Effects.System.Posix.Files.html#createSymbolicLink"><span class="hs-identifier hs-var">createSymbolicLink</span></a></span><span> </span><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679072882"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-209"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#createSymbolicLink"><span class="hs-pragma hs-type">createSymbolicLink</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-210"></span><span>  </span><span id="local-6989586621679072889"><span class="annot"><span class="annottext">readSymbolicLink :: HasCallStack =&gt; PosixPath -&gt; ReaderT e m PosixPath
+</span><a href="Effects.System.Posix.Files.html#readSymbolicLink"><span class="hs-identifier hs-var hs-var hs-var">readSymbolicLink</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m PosixPath -&gt; ReaderT e m PosixPath
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m PosixPath -&gt; ReaderT e m PosixPath)
+-&gt; (PosixPath -&gt; m PosixPath) -&gt; PosixPath -&gt; ReaderT e m PosixPath
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; m PosixPath
+forall (m :: * -&gt; *).
+(MonadPosixFiles m, HasCallStack) =&gt;
+PosixPath -&gt; m PosixPath
+</span><a href="Effects.System.Posix.Files.html#readSymbolicLink"><span class="hs-identifier hs-var">readSymbolicLink</span></a></span><span>
+</span><span id="line-211"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#readSymbolicLink"><span class="hs-pragma hs-type">readSymbolicLink</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-212"></span><span>  </span><span id="local-6989586621679072896"><span class="annot"><span class="annottext">rename :: HasCallStack =&gt; PosixPath -&gt; PosixPath -&gt; ReaderT e m ()
+</span><a href="Effects.System.Posix.Files.html#rename"><span class="hs-identifier hs-var hs-var hs-var">rename</span></a></span></span><span> </span><span id="local-6989586621679072897"><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679072897"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ())
+-&gt; (PosixPath -&gt; m ()) -&gt; PosixPath -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; PosixPath -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadPosixFiles m, HasCallStack) =&gt;
+PosixPath -&gt; PosixPath -&gt; m ()
+</span><a href="Effects.System.Posix.Files.html#rename"><span class="hs-identifier hs-var">rename</span></a></span><span> </span><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679072897"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-213"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#rename"><span class="hs-pragma hs-type">rename</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-214"></span><span>  </span><span id="local-6989586621679072904"><span class="annot"><span class="annottext">setOwnerAndGroup :: HasCallStack =&gt; PosixPath -&gt; UserID -&gt; GroupID -&gt; ReaderT e m ()
+</span><a href="Effects.System.Posix.Files.html#setOwnerAndGroup"><span class="hs-identifier hs-var hs-var hs-var">setOwnerAndGroup</span></a></span></span><span> </span><span id="local-6989586621679072905"><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679072905"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679072906"><span class="annot"><span class="annottext">UserID
+</span><a href="#local-6989586621679072906"><span class="hs-identifier hs-var">u</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ())
+-&gt; (GroupID -&gt; m ()) -&gt; GroupID -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; UserID -&gt; GroupID -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadPosixFiles m, HasCallStack) =&gt;
+PosixPath -&gt; UserID -&gt; GroupID -&gt; m ()
+</span><a href="Effects.System.Posix.Files.html#setOwnerAndGroup"><span class="hs-identifier hs-var">setOwnerAndGroup</span></a></span><span> </span><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679072905"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">UserID
+</span><a href="#local-6989586621679072906"><span class="hs-identifier hs-var">u</span></a></span><span>
+</span><span id="line-215"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#setOwnerAndGroup"><span class="hs-pragma hs-type">setOwnerAndGroup</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-216"></span><span>  </span><span id="local-6989586621679072913"><span class="annot"><span class="annottext">setFdOwnerAndGroup :: HasCallStack =&gt; Fd -&gt; UserID -&gt; GroupID -&gt; ReaderT e m ()
+</span><a href="Effects.System.Posix.Files.html#setFdOwnerAndGroup"><span class="hs-identifier hs-var hs-var hs-var">setFdOwnerAndGroup</span></a></span></span><span> </span><span id="local-6989586621679072914"><span class="annot"><span class="annottext">Fd
+</span><a href="#local-6989586621679072914"><span class="hs-identifier hs-var">fd</span></a></span></span><span> </span><span id="local-6989586621679072915"><span class="annot"><span class="annottext">UserID
+</span><a href="#local-6989586621679072915"><span class="hs-identifier hs-var">u</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ())
+-&gt; (GroupID -&gt; m ()) -&gt; GroupID -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Fd -&gt; UserID -&gt; GroupID -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadPosixFiles m, HasCallStack) =&gt;
+Fd -&gt; UserID -&gt; GroupID -&gt; m ()
+</span><a href="Effects.System.Posix.Files.html#setFdOwnerAndGroup"><span class="hs-identifier hs-var">setFdOwnerAndGroup</span></a></span><span> </span><span class="annot"><span class="annottext">Fd
+</span><a href="#local-6989586621679072914"><span class="hs-identifier hs-var">fd</span></a></span><span> </span><span class="annot"><span class="annottext">UserID
+</span><a href="#local-6989586621679072915"><span class="hs-identifier hs-var">u</span></a></span><span>
+</span><span id="line-217"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#setFdOwnerAndGroup"><span class="hs-pragma hs-type">setFdOwnerAndGroup</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-218"></span><span>  </span><span id="local-6989586621679072922"><span class="annot"><span class="annottext">setSymbolicLinkOwnerAndGroup :: HasCallStack =&gt; PosixPath -&gt; UserID -&gt; GroupID -&gt; ReaderT e m ()
+</span><a href="Effects.System.Posix.Files.html#setSymbolicLinkOwnerAndGroup"><span class="hs-identifier hs-var hs-var hs-var">setSymbolicLinkOwnerAndGroup</span></a></span></span><span> </span><span id="local-6989586621679072923"><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679072923"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679072924"><span class="annot"><span class="annottext">UserID
+</span><a href="#local-6989586621679072924"><span class="hs-identifier hs-var">u</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ())
+-&gt; (GroupID -&gt; m ()) -&gt; GroupID -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; UserID -&gt; GroupID -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadPosixFiles m, HasCallStack) =&gt;
+PosixPath -&gt; UserID -&gt; GroupID -&gt; m ()
+</span><a href="Effects.System.Posix.Files.html#setSymbolicLinkOwnerAndGroup"><span class="hs-identifier hs-var">setSymbolicLinkOwnerAndGroup</span></a></span><span> </span><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679072923"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">UserID
+</span><a href="#local-6989586621679072924"><span class="hs-identifier hs-var">u</span></a></span><span>
+</span><span id="line-219"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#setSymbolicLinkOwnerAndGroup"><span class="hs-pragma hs-type">setSymbolicLinkOwnerAndGroup</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-220"></span><span>  </span><span id="local-6989586621679072931"><span class="annot"><span class="annottext">setFileTimes :: HasCallStack =&gt;
+PosixPath -&gt; EpochTime -&gt; EpochTime -&gt; ReaderT e m ()
+</span><a href="Effects.System.Posix.Files.html#setFileTimes"><span class="hs-identifier hs-var hs-var hs-var">setFileTimes</span></a></span></span><span> </span><span id="local-6989586621679072932"><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679072932"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679072933"><span class="annot"><span class="annottext">EpochTime
+</span><a href="#local-6989586621679072933"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ())
+-&gt; (EpochTime -&gt; m ()) -&gt; EpochTime -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; EpochTime -&gt; EpochTime -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadPosixFiles m, HasCallStack) =&gt;
+PosixPath -&gt; EpochTime -&gt; EpochTime -&gt; m ()
+</span><a href="Effects.System.Posix.Files.html#setFileTimes"><span class="hs-identifier hs-var">setFileTimes</span></a></span><span> </span><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679072932"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">EpochTime
+</span><a href="#local-6989586621679072933"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><span id="line-221"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#setFileTimes"><span class="hs-pragma hs-type">setFileTimes</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-222"></span><span>  </span><span id="local-6989586621679072940"><span class="annot"><span class="annottext">touchFile :: HasCallStack =&gt; PosixPath -&gt; ReaderT e m ()
+</span><a href="Effects.System.Posix.Files.html#touchFile"><span class="hs-identifier hs-var hs-var hs-var">touchFile</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ())
+-&gt; (PosixPath -&gt; m ()) -&gt; PosixPath -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadPosixFiles m, HasCallStack) =&gt;
+PosixPath -&gt; m ()
+</span><a href="Effects.System.Posix.Files.html#touchFile"><span class="hs-identifier hs-var">touchFile</span></a></span><span>
+</span><span id="line-223"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#touchFile"><span class="hs-pragma hs-type">touchFile</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-224"></span><span>  </span><span id="local-6989586621679072947"><span class="annot"><span class="annottext">setFileSize :: HasCallStack =&gt; PosixPath -&gt; FileOffset -&gt; ReaderT e m ()
+</span><a href="Effects.System.Posix.Files.html#setFileSize"><span class="hs-identifier hs-var hs-var hs-var">setFileSize</span></a></span></span><span> </span><span id="local-6989586621679072948"><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679072948"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ())
+-&gt; (FileOffset -&gt; m ()) -&gt; FileOffset -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; FileOffset -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadPosixFiles m, HasCallStack) =&gt;
+PosixPath -&gt; FileOffset -&gt; m ()
+</span><a href="Effects.System.Posix.Files.html#setFileSize"><span class="hs-identifier hs-var">setFileSize</span></a></span><span> </span><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679072948"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-225"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#setFileSize"><span class="hs-pragma hs-type">setFileSize</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-226"></span><span>  </span><span id="local-6989586621679072955"><span class="annot"><span class="annottext">setFdSize :: HasCallStack =&gt; Fd -&gt; FileOffset -&gt; ReaderT e m ()
+</span><a href="Effects.System.Posix.Files.html#setFdSize"><span class="hs-identifier hs-var hs-var hs-var">setFdSize</span></a></span></span><span> </span><span id="local-6989586621679072956"><span class="annot"><span class="annottext">Fd
+</span><a href="#local-6989586621679072956"><span class="hs-identifier hs-var">fd</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT e m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT e m ())
+-&gt; (FileOffset -&gt; m ()) -&gt; FileOffset -&gt; ReaderT e m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Fd -&gt; FileOffset -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadPosixFiles m, HasCallStack) =&gt;
+Fd -&gt; FileOffset -&gt; m ()
+</span><a href="Effects.System.Posix.Files.html#setFdSize"><span class="hs-identifier hs-var">setFdSize</span></a></span><span> </span><span class="annot"><span class="annottext">Fd
+</span><a href="#local-6989586621679072956"><span class="hs-identifier hs-var">fd</span></a></span><span>
+</span><span id="line-227"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#setFdSize"><span class="hs-pragma hs-type">setFdSize</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-228"></span><span>  </span><span id="local-6989586621679072963"><span class="annot"><span class="annottext">getPathVar :: HasCallStack =&gt; PosixPath -&gt; PathVar -&gt; ReaderT e m Limit
+</span><a href="Effects.System.Posix.Files.html#getPathVar"><span class="hs-identifier hs-var hs-var hs-var">getPathVar</span></a></span></span><span> </span><span id="local-6989586621679072964"><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679072964"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Limit -&gt; ReaderT e m Limit
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m Limit -&gt; ReaderT e m Limit)
+-&gt; (PathVar -&gt; m Limit) -&gt; PathVar -&gt; ReaderT e m Limit
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; PathVar -&gt; m Limit
+forall (m :: * -&gt; *).
+(MonadPosixFiles m, HasCallStack) =&gt;
+PosixPath -&gt; PathVar -&gt; m Limit
+</span><a href="Effects.System.Posix.Files.html#getPathVar"><span class="hs-identifier hs-var">getPathVar</span></a></span><span> </span><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679072964"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-229"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#getPathVar"><span class="hs-pragma hs-type">getPathVar</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-230"></span><span>  </span><span id="local-6989586621679072971"><span class="annot"><span class="annottext">getFdPathVar :: HasCallStack =&gt; Fd -&gt; PathVar -&gt; ReaderT e m Limit
+</span><a href="Effects.System.Posix.Files.html#getFdPathVar"><span class="hs-identifier hs-var hs-var hs-var">getFdPathVar</span></a></span></span><span> </span><span id="local-6989586621679072972"><span class="annot"><span class="annottext">Fd
+</span><a href="#local-6989586621679072972"><span class="hs-identifier hs-var">fd</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Limit -&gt; ReaderT e m Limit
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m Limit -&gt; ReaderT e m Limit)
+-&gt; (PathVar -&gt; m Limit) -&gt; PathVar -&gt; ReaderT e m Limit
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Fd -&gt; PathVar -&gt; m Limit
+forall (m :: * -&gt; *).
+(MonadPosixFiles m, HasCallStack) =&gt;
+Fd -&gt; PathVar -&gt; m Limit
+</span><a href="Effects.System.Posix.Files.html#getFdPathVar"><span class="hs-identifier hs-var">getFdPathVar</span></a></span><span> </span><span class="annot"><span class="annottext">Fd
+</span><a href="#local-6989586621679072972"><span class="hs-identifier hs-var">fd</span></a></span><span>
+</span><span id="line-231"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#getFdPathVar"><span class="hs-pragma hs-type">getFdPathVar</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-232"></span><span>
+</span><span id="line-233"></span><span class="hs-comment">-- | Throws 'IOException' if the path does not exist or the expected path type</span><span>
+</span><span id="line-234"></span><span class="hs-comment">-- does not match actual.</span><span>
+</span><span id="line-235"></span><span class="hs-comment">--</span><span>
+</span><span id="line-236"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-237"></span><span id="local-6989586621679072573"><span class="annot"><a href="Effects.System.Posix.Files.html#throwIfWrongPathType"><span class="hs-identifier hs-type">throwIfWrongPathType</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-238"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span>
+</span><span id="line-239"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">MonadCatch</span></span><span> </span><span class="annot"><a href="#local-6989586621679072573"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-240"></span><span>    </span><span class="annot"><a href="Effects.System.Posix.Files.html#MonadPosixFiles"><span class="hs-identifier hs-type">MonadPosixFiles</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679072573"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-241"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-242"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-243"></span><span>  </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.PathType.html#PathType"><span class="hs-identifier hs-type">PathType</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-244"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">PosixPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-245"></span><span>  </span><span class="annot"><a href="#local-6989586621679072573"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-246"></span><span id="throwIfWrongPathType"><span class="annot"><span class="annottext">throwIfWrongPathType :: forall (m :: * -&gt; *).
+(HasCallStack, MonadCatch m, MonadPosixFiles m) =&gt;
+String -&gt; PathType -&gt; PosixPath -&gt; m ()
+</span><a href="Effects.System.Posix.Files.html#throwIfWrongPathType"><span class="hs-identifier hs-var hs-var">throwIfWrongPathType</span></a></span></span><span> </span><span id="local-6989586621679072991"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679072991"><span class="hs-identifier hs-var">location</span></a></span></span><span> </span><span id="local-6989586621679072992"><span class="annot"><span class="annottext">PathType
+</span><a href="#local-6989586621679072992"><span class="hs-identifier hs-var">expected</span></a></span></span><span> </span><span id="local-6989586621679072993"><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679072993"><span class="hs-identifier hs-var">path</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-247"></span><span>  </span><span id="local-6989586621679072994"><span class="annot"><a href="#local-6989586621679072994"><span class="hs-identifier hs-var">actual</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; m PathType
+forall (m :: * -&gt; *).
+(HasCallStack, MonadPosixFiles m) =&gt;
+PosixPath -&gt; m PathType
+</span><a href="Effects.System.Posix.Files.html#getPathType"><span class="hs-identifier hs-var">getPathType</span></a></span><span> </span><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679072993"><span class="hs-identifier hs-var">path</span></a></span><span>
+</span><span id="line-248"></span><span>
+</span><span id="line-249"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679073005"><span class="annot"><a href="#local-6989586621679073005"><span class="hs-identifier hs-var hs-var">err</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-250"></span><span>        </span><span class="annot"><span class="annottext">[String] -&gt; String
+forall a. Monoid a =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">mconcat</span></span><span>
+</span><span id="line-251"></span><span>          </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Expected path to have type &quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-252"></span><span>            </span><span class="annot"><span class="annottext">PathType -&gt; String
+forall a. IsString a =&gt; PathType -&gt; a
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.PathType.html#displayPathType"><span class="hs-identifier hs-var">displayPathType</span></a></span><span> </span><span class="annot"><span class="annottext">PathType
+</span><a href="#local-6989586621679072992"><span class="hs-identifier hs-var">expected</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-253"></span><span>            </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;, but detected &quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-254"></span><span>            </span><span class="annot"><span class="annottext">PathType -&gt; String
+forall a. IsString a =&gt; PathType -&gt; a
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.PathType.html#displayPathType"><span class="hs-identifier hs-var">displayPathType</span></a></span><span> </span><span class="annot"><span class="annottext">PathType
+</span><a href="#local-6989586621679072994"><span class="hs-identifier hs-var">actual</span></a></span><span>
+</span><span id="line-255"></span><span>          </span><span class="hs-special">]</span><span>
+</span><span id="line-256"></span><span>
+</span><span id="line-257"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">unless</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679072992"><span class="hs-identifier hs-type">expected</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">==</span></span><span> </span><span class="annot"><a href="#local-6989586621679072994"><span class="hs-identifier hs-type">actual</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="hs-operator hs-type">$</span></span><span>
+</span><span id="line-258"></span><span>    </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.IO.html#throwPathIOError"><span class="hs-identifier hs-type">FS.IO.throwPathIOError</span></a></span><span>
+</span><span id="line-259"></span><span>      </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">OsString</span></span><span> </span><span class="annot"><a href="#local-6989586621679072993"><span class="hs-identifier hs-type">path</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-260"></span><span>      </span><span class="annot"><a href="#local-6989586621679072991"><span class="hs-identifier hs-type">location</span></a></span><span>
+</span><span id="line-261"></span><span>      </span><span class="annot"><span class="hs-identifier hs-type">InappropriateType</span></span><span>
+</span><span id="line-262"></span><span>      </span><span class="annot"><a href="#local-6989586621679073005"><span class="hs-identifier hs-type">err</span></a></span><span>
+</span><span id="line-263"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#throwIfWrongPathType"><span class="hs-pragma hs-type">throwIfWrongPathType</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-264"></span><span>
+</span><span id="line-265"></span><span class="hs-comment">-- | Checks that the path type matches the expectation. Throws</span><span>
+</span><span id="line-266"></span><span class="hs-comment">-- 'IOException' if the path does not exist or the type cannot be detected.</span><span>
+</span><span id="line-267"></span><span class="hs-comment">--</span><span>
+</span><span id="line-268"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-269"></span><span id="local-6989586621679072600"><span class="annot"><a href="Effects.System.Posix.Files.html#isPathType"><span class="hs-identifier hs-type">isPathType</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-270"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span>
+</span><span id="line-271"></span><span>    </span><span class="annot"><a href="Effects.System.Posix.Files.html#MonadPosixFiles"><span class="hs-identifier hs-type">MonadPosixFiles</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679072600"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-272"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-273"></span><span>  </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.PathType.html#PathType"><span class="hs-identifier hs-type">PathType</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-274"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">PosixPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-275"></span><span>  </span><span class="annot"><a href="#local-6989586621679072600"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span></span><span>
+</span><span id="line-276"></span><span id="isPathType"><span class="annot"><span class="annottext">isPathType :: forall (m :: * -&gt; *).
+(HasCallStack, MonadPosixFiles m) =&gt;
+PathType -&gt; PosixPath -&gt; m Bool
+</span><a href="Effects.System.Posix.Files.html#isPathType"><span class="hs-identifier hs-var hs-var">isPathType</span></a></span></span><span> </span><span id="local-6989586621679073018"><span class="annot"><span class="annottext">PathType
+</span><a href="#local-6989586621679073018"><span class="hs-identifier hs-var">expected</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(PathType -&gt; Bool) -&gt; m PathType -&gt; m Bool
+forall a b. (a -&gt; b) -&gt; m a -&gt; m b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PathType -&gt; PathType -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">PathType
+</span><a href="#local-6989586621679073018"><span class="hs-identifier hs-var">expected</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(m PathType -&gt; m Bool)
+-&gt; (PosixPath -&gt; m PathType) -&gt; PosixPath -&gt; m Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">PosixPath -&gt; m PathType
+forall (m :: * -&gt; *).
+(HasCallStack, MonadPosixFiles m) =&gt;
+PosixPath -&gt; m PathType
+</span><a href="Effects.System.Posix.Files.html#getPathType"><span class="hs-identifier hs-var">getPathType</span></a></span><span>
+</span><span id="line-277"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#isPathType"><span class="hs-pragma hs-type">isPathType</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-278"></span><span>
+</span><span id="line-279"></span><span class="hs-comment">-- | Returns the type for a given path without following symlinks.</span><span>
+</span><span id="line-280"></span><span class="hs-comment">-- Throws 'IOException' if the path does not exist or the type cannot be</span><span>
+</span><span id="line-281"></span><span class="hs-comment">-- detected.</span><span>
+</span><span id="line-282"></span><span class="hs-comment">--</span><span>
+</span><span id="line-283"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-284"></span><span id="local-6989586621679072580"><span class="annot"><a href="Effects.System.Posix.Files.html#getPathType"><span class="hs-identifier hs-type">getPathType</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-285"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span>
+</span><span id="line-286"></span><span>    </span><span class="annot"><a href="Effects.System.Posix.Files.html#MonadPosixFiles"><span class="hs-identifier hs-type">MonadPosixFiles</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679072580"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-287"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-288"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">PosixPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-289"></span><span>  </span><span class="annot"><a href="#local-6989586621679072580"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.PathType.html#PathType"><span class="hs-identifier hs-type">PathType</span></a></span></span><span>
+</span><span id="line-290"></span><span id="getPathType"><span class="annot"><span class="annottext">getPathType :: forall (m :: * -&gt; *).
+(HasCallStack, MonadPosixFiles m) =&gt;
+PosixPath -&gt; m PathType
+</span><a href="Effects.System.Posix.Files.html#getPathType"><span class="hs-identifier hs-var hs-var">getPathType</span></a></span></span><span> </span><span id="local-6989586621679073028"><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679073028"><span class="hs-identifier hs-var">path</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-291"></span><span>  </span><span class="hs-comment">-- NOTE: We use getSymbolicLinkStatus instead of getFileStatus because</span><span>
+</span><span id="line-292"></span><span>  </span><span class="hs-comment">-- the latter follows symlinks, which we do not want.</span><span>
+</span><span id="line-293"></span><span>  </span><span class="annot"><span class="annottext">PosixPath -&gt; m FileStatus
+forall (m :: * -&gt; *).
+(MonadPosixFiles m, HasCallStack) =&gt;
+PosixPath -&gt; m FileStatus
+</span><a href="Effects.System.Posix.Files.html#getSymbolicLinkStatus"><span class="hs-identifier hs-var">getSymbolicLinkStatus</span></a></span><span> </span><span class="annot"><span class="annottext">PosixPath
+</span><a href="#local-6989586621679073028"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">m FileStatus -&gt; (FileStatus -&gt; PathType) -&gt; m PathType
+forall (f :: * -&gt; *) a b. Functor f =&gt; f a -&gt; (a -&gt; b) -&gt; f b
+</span><span class="hs-operator hs-var">&lt;&amp;&gt;</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679073029"><span class="annot"><span class="annottext">FileStatus
+</span><a href="#local-6989586621679073029"><span class="hs-identifier hs-var">status</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-294"></span><span>    </span><span class="hs-keyword">if</span><span>
+</span><span id="line-295"></span><span>      </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">FileStatus -&gt; Bool
+</span><span class="hs-identifier hs-var">PFiles.isSymbolicLink</span></span><span> </span><span class="annot"><span class="annottext">FileStatus
+</span><a href="#local-6989586621679073029"><span class="hs-identifier hs-var">status</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PathType
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.PathType.html#PathTypeSymbolicLink"><span class="hs-identifier hs-var">PathTypeSymbolicLink</span></a></span><span>
+</span><span id="line-296"></span><span>      </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">FileStatus -&gt; Bool
+</span><span class="hs-identifier hs-var">PFiles.isDirectory</span></span><span> </span><span class="annot"><span class="annottext">FileStatus
+</span><a href="#local-6989586621679073029"><span class="hs-identifier hs-var">status</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PathType
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.PathType.html#PathTypeDirectory"><span class="hs-identifier hs-var">PathTypeDirectory</span></a></span><span>
+</span><span id="line-297"></span><span>      </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">FileStatus -&gt; Bool
+</span><span class="hs-identifier hs-var">PFiles.isRegularFile</span></span><span> </span><span class="annot"><span class="annottext">FileStatus
+</span><a href="#local-6989586621679073029"><span class="hs-identifier hs-var">status</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PathType
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.PathType.html#PathTypeFile"><span class="hs-identifier hs-var">PathTypeFile</span></a></span><span>
+</span><span id="line-298"></span><span>      </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PathType
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.PathType.html#PathTypeOther"><span class="hs-identifier hs-var">PathTypeOther</span></a></span><span>
+</span><span id="line-299"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.System.Posix.Files.html#getPathType"><span class="hs-pragma hs-type">getPathType</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-300"></span></pre></body></html>

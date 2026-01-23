@@ -1,0 +1,618 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE MagicHash #-}</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- | Provides classes for 'STM'.</span><span>
+</span><span id="line-4"></span><span class="hs-comment">--</span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-6"></span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html"><span class="hs-identifier">Effects.Concurrent.STM</span></a></span><span>
+</span><span id="line-7"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Effect</span></span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><span class="hs-identifier">STM</span></span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.STM.html#MonadAtomic"><span class="hs-identifier">MonadAtomic</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span>    </span><span class="annot"><span class="hs-comment">-- * TVar</span></span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><span class="hs-identifier">TVar</span></span><span class="hs-special">,</span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Strict</span></span><span>
+</span><span id="line-15"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.STM.html#newTVar%27"><span class="hs-identifier">newTVar'</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-16"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.STM.html#readTVar%27"><span class="hs-identifier">readTVar'</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-17"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.STM.html#writeTVar%27"><span class="hs-identifier">writeTVar'</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-18"></span><span>    </span><span class="annot"><span class="hs-identifier">TVar.modifyTVar'</span></span><span class="hs-special">,</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span>    </span><span class="annot"><span class="hs-comment">-- *** Atomic</span></span><span>
+</span><span id="line-21"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.STM.html#newTVarA%27"><span class="hs-identifier">newTVarA'</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-22"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.STM.html#readTVarA%27"><span class="hs-identifier">readTVarA'</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-23"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.STM.html#writeTVarA%27"><span class="hs-identifier">writeTVarA'</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-24"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.STM.html#modifyTVarA%27"><span class="hs-identifier">modifyTVarA'</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-25"></span><span>
+</span><span id="line-26"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Lazy</span></span><span>
+</span><span id="line-27"></span><span>    </span><span class="annot"><span class="hs-identifier">TVar.newTVar</span></span><span class="hs-special">,</span><span>
+</span><span id="line-28"></span><span>    </span><span class="annot"><span class="hs-identifier">TVar.readTVar</span></span><span class="hs-special">,</span><span>
+</span><span id="line-29"></span><span>    </span><span class="annot"><span class="hs-identifier">TVar.writeTVar</span></span><span class="hs-special">,</span><span>
+</span><span id="line-30"></span><span>    </span><span class="annot"><span class="hs-identifier">TVar.modifyTVar</span></span><span class="hs-special">,</span><span>
+</span><span id="line-31"></span><span>
+</span><span id="line-32"></span><span>    </span><span class="annot"><span class="hs-comment">-- *** Atomic</span></span><span>
+</span><span id="line-33"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.STM.html#newTVarA"><span class="hs-identifier">newTVarA</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-34"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.STM.html#readTVarA"><span class="hs-identifier">readTVarA</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-35"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.STM.html#writeTVarA"><span class="hs-identifier">writeTVarA</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-36"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.STM.html#modifyTVarA"><span class="hs-identifier">modifyTVarA</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span>    </span><span class="annot"><span class="hs-comment">-- * TBQueue</span></span><span>
+</span><span id="line-39"></span><span>    </span><span class="annot"><span class="hs-identifier">TBQueue</span></span><span class="hs-special">,</span><span>
+</span><span id="line-40"></span><span>
+</span><span id="line-41"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Strict</span></span><span>
+</span><span id="line-42"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.STM.html#readTBQueue%27"><span class="hs-identifier">readTBQueue'</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-43"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.STM.html#tryReadTBQueue%27"><span class="hs-identifier">tryReadTBQueue'</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-44"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.STM.html#writeTBQueue%27"><span class="hs-identifier">writeTBQueue'</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-45"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.STM.html#flushTBQueue%27"><span class="hs-identifier">flushTBQueue'</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-46"></span><span>
+</span><span id="line-47"></span><span>    </span><span class="annot"><span class="hs-comment">-- *** Atomic</span></span><span>
+</span><span id="line-48"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.STM.html#readTBQueueA%27"><span class="hs-identifier">readTBQueueA'</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-49"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.STM.html#tryReadTBQueueA%27"><span class="hs-identifier">tryReadTBQueueA'</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-50"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.STM.html#writeTBQueueA%27"><span class="hs-identifier">writeTBQueueA'</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-51"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.STM.html#flushTBQueueA%27"><span class="hs-identifier">flushTBQueueA'</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-52"></span><span>
+</span><span id="line-53"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Lazy</span></span><span>
+</span><span id="line-54"></span><span>    </span><span class="annot"><span class="hs-identifier">TBQueue.newTBQueue</span></span><span class="hs-special">,</span><span>
+</span><span id="line-55"></span><span>    </span><span class="annot"><span class="hs-identifier">TBQueue.readTBQueue</span></span><span class="hs-special">,</span><span>
+</span><span id="line-56"></span><span>    </span><span class="annot"><span class="hs-identifier">TBQueue.tryReadTBQueue</span></span><span class="hs-special">,</span><span>
+</span><span id="line-57"></span><span>    </span><span class="annot"><span class="hs-identifier">TBQueue.writeTBQueue</span></span><span class="hs-special">,</span><span>
+</span><span id="line-58"></span><span>    </span><span class="annot"><span class="hs-identifier">TBQueue.flushTBQueue</span></span><span class="hs-special">,</span><span>
+</span><span id="line-59"></span><span>
+</span><span id="line-60"></span><span>    </span><span class="annot"><span class="hs-comment">-- *** Atomic</span></span><span>
+</span><span id="line-61"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.STM.html#newTBQueueA"><span class="hs-identifier">newTBQueueA</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-62"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.STM.html#readTBQueueA"><span class="hs-identifier">readTBQueueA</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-63"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.STM.html#tryReadTBQueueA"><span class="hs-identifier">tryReadTBQueueA</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-64"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.STM.html#writeTBQueueA"><span class="hs-identifier">writeTBQueueA</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-65"></span><span>    </span><span class="annot"><a href="Effects.Concurrent.STM.html#flushTBQueueA"><span class="hs-identifier">flushTBQueueA</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-66"></span><span>
+</span><span id="line-67"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Reexports</span></span><span>
+</span><span id="line-68"></span><span>    </span><span class="annot"><span class="hs-identifier">Natural</span></span><span class="hs-special">,</span><span>
+</span><span id="line-69"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-70"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-71"></span><span>
+</span><span id="line-72"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Concurrent.STM</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">STM</span></span><span>
+</span><span id="line-73"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Concurrent.STM.TBQueue</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">TBQueue</span></span><span class="hs-special">)</span><span>
+</span><span id="line-74"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Concurrent.STM.TBQueue</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">TBQueue</span></span><span>
+</span><span id="line-75"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Concurrent.STM.TVar</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">TVar</span></span><span class="hs-special">)</span><span>
+</span><span id="line-76"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Concurrent.STM.TVar</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">TVar</span></span><span>
+</span><span id="line-77"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-operator">(&gt;=&gt;)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-78"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Class</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadTrans</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">lift</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-79"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Reader</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ReaderT</span></span><span class="hs-special">)</span><span>
+</span><span id="line-80"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Conc</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">STM</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">STM</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-81"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Exts</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">seq#</span></span><span class="hs-special">)</span><span>
+</span><span id="line-82"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Stack</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">HasCallStack</span></span><span class="hs-special">)</span><span>
+</span><span id="line-83"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Numeric.Natural</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Natural</span></span><span class="hs-special">)</span><span>
+</span><span id="line-84"></span><span>
+</span><span id="line-85"></span><span class="hs-comment">-- | Effect for atomically lifting 'STM' actions. Note that this classes is</span><span>
+</span><span id="line-86"></span><span class="hs-comment">-- intended for &quot;IO-like&quot; monads /not/ &quot;STM-like&quot; monads -- hence has no STM</span><span>
+</span><span id="line-87"></span><span class="hs-comment">-- instance -- as the semantics for &quot;STM-like&quot; and &quot;can lift STM atomically&quot;</span><span>
+</span><span id="line-88"></span><span class="hs-comment">-- are different.</span><span>
+</span><span id="line-89"></span><span class="hs-comment">--</span><span>
+</span><span id="line-90"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-91"></span><span class="hs-keyword">class</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Monad</span></span><span> </span><span class="annot"><a href="#local-6989586621679044653"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span id="MonadAtomic"><span class="annot"><a href="Effects.Concurrent.STM.html#MonadAtomic"><span class="hs-identifier hs-var">MonadAtomic</span></a></span></span><span> </span><span id="local-6989586621679044653"><span class="annot"><a href="#local-6989586621679044653"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-92"></span><span>  </span><span class="hs-comment">-- | Lifted 'STM.atomically'.</span><span>
+</span><span id="line-93"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-94"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-95"></span><span>  </span><span id="atomically"><span class="annot"><a href="Effects.Concurrent.STM.html#atomically"><span class="hs-identifier hs-type">atomically</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span id="local-6989586621679044656"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">STM</span></span><span> </span><span class="annot"><a href="#local-6989586621679044656"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044653"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679044656"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-96"></span><span>
+</span><span id="line-97"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-98"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#MonadAtomic"><span class="hs-identifier hs-type">MonadAtomic</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-99"></span><span>  </span><span id="local-6989586621679044811"><span class="annot"><span class="annottext">atomically :: forall a. HasCallStack =&gt; STM a -&gt; IO a
+</span><a href="Effects.Concurrent.STM.html#atomically"><span class="hs-identifier hs-var hs-var hs-var">atomically</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">STM a -&gt; IO a
+forall a. STM a -&gt; IO a
+</span><span class="hs-identifier hs-var">STM.atomically</span></span><span>
+</span><span id="line-100"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#atomically"><span class="hs-pragma hs-type">atomically</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-101"></span><span>
+</span><span id="line-102"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-103"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679044665"><span id="local-6989586621679044666"><span class="hs-special">(</span><span class="annot"><a href="Effects.Concurrent.STM.html#MonadAtomic"><span class="hs-identifier hs-type">MonadAtomic</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679044665"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#MonadAtomic"><span class="hs-identifier hs-type">MonadAtomic</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ReaderT</span></span><span> </span><span class="annot"><a href="#local-6989586621679044666"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679044665"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-104"></span><span>  </span><span id="local-6989586621679044827"><span class="annot"><span class="annottext">atomically :: forall a. HasCallStack =&gt; STM a -&gt; ReaderT e m a
+</span><a href="Effects.Concurrent.STM.html#atomically"><span class="hs-identifier hs-var hs-var hs-var">atomically</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m a -&gt; ReaderT e m a
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m a -&gt; ReaderT e m a) -&gt; (STM a -&gt; m a) -&gt; STM a -&gt; ReaderT e m a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">STM a -&gt; m a
+forall a. HasCallStack =&gt; STM a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadAtomic m, HasCallStack) =&gt;
+STM a -&gt; m a
+</span><a href="Effects.Concurrent.STM.html#atomically"><span class="hs-identifier hs-var">atomically</span></a></span><span>
+</span><span id="line-105"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#atomically"><span class="hs-pragma hs-type">atomically</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-106"></span><span>
+</span><span id="line-107"></span><span class="hs-comment">-- | Evaluates the input to 'TVar.newTVar' to WHNF.</span><span>
+</span><span id="line-108"></span><span class="hs-comment">--</span><span>
+</span><span id="line-109"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-110"></span><span id="local-6989586621679044676"><span class="annot"><a href="Effects.Concurrent.STM.html#newTVar%27"><span class="hs-identifier hs-type">newTVar'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679044676"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">STM</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">TVar</span></span><span> </span><span class="annot"><a href="#local-6989586621679044676"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span><span>
+</span><span id="line-111"></span><span id="newTVar%27"><span class="annot"><span class="annottext">newTVar' :: forall a. a -&gt; STM (TVar a)
+</span><a href="Effects.Concurrent.STM.html#newTVar%27"><span class="hs-identifier hs-var hs-var">newTVar'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; STM a
+forall a. a -&gt; STM a
+</span><a href="Effects.Concurrent.STM.html#evaluateSTM"><span class="hs-identifier hs-var">evaluateSTM</span></a></span><span> </span><span class="annot"><span class="annottext">(a -&gt; STM a) -&gt; (a -&gt; STM (TVar a)) -&gt; a -&gt; STM (TVar a)
+forall (m :: * -&gt; *) a b c.
+Monad m =&gt;
+(a -&gt; m b) -&gt; (b -&gt; m c) -&gt; a -&gt; m c
+</span><span class="hs-operator hs-var">&gt;=&gt;</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; STM (TVar a)
+forall a. a -&gt; STM (TVar a)
+</span><span class="hs-identifier hs-var">TVar.newTVar</span></span><span>
+</span><span id="line-112"></span><span>
+</span><span id="line-113"></span><span class="hs-comment">-- | Create a new 'TVar' holding a value supplied and lifts the result via</span><span>
+</span><span id="line-114"></span><span class="hs-comment">-- 'atomically'.</span><span>
+</span><span id="line-115"></span><span class="hs-comment">--</span><span>
+</span><span id="line-116"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-117"></span><span id="local-6989586621679044684"><span id="local-6989586621679044685"><span class="annot"><a href="Effects.Concurrent.STM.html#newTVarA"><span class="hs-identifier hs-type">newTVarA</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#MonadAtomic"><span class="hs-identifier hs-type">MonadAtomic</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679044684"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044685"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044684"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">TVar</span></span><span> </span><span class="annot"><a href="#local-6989586621679044685"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-118"></span><span id="newTVarA"><span class="annot"><span class="annottext">newTVarA :: forall (m :: * -&gt; *) a.
+(HasCallStack, MonadAtomic m) =&gt;
+a -&gt; m (TVar a)
+</span><a href="Effects.Concurrent.STM.html#newTVarA"><span class="hs-identifier hs-var hs-var">newTVarA</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">STM (TVar a) -&gt; m (TVar a)
+forall a. HasCallStack =&gt; STM a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadAtomic m, HasCallStack) =&gt;
+STM a -&gt; m a
+</span><a href="Effects.Concurrent.STM.html#atomically"><span class="hs-identifier hs-var">atomically</span></a></span><span> </span><span class="annot"><span class="annottext">(STM (TVar a) -&gt; m (TVar a))
+-&gt; (a -&gt; STM (TVar a)) -&gt; a -&gt; m (TVar a)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; STM (TVar a)
+forall a. a -&gt; STM (TVar a)
+</span><span class="hs-identifier hs-var">TVar.newTVar</span></span><span>
+</span><span id="line-119"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#newTVarA"><span class="hs-pragma hs-type">newTVarA</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-120"></span><span>
+</span><span id="line-121"></span><span class="hs-comment">-- | Atomic 'newTVar''.</span><span>
+</span><span id="line-122"></span><span class="hs-comment">--</span><span>
+</span><span id="line-123"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-124"></span><span id="local-6989586621679044837"><span id="local-6989586621679044838"><span class="annot"><a href="Effects.Concurrent.STM.html#newTVarA%27"><span class="hs-identifier hs-type">newTVarA'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#MonadAtomic"><span class="hs-identifier hs-type">MonadAtomic</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679044837"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044838"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044837"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">TVar</span></span><span> </span><span class="annot"><a href="#local-6989586621679044838"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-125"></span><span id="newTVarA%27"><span class="annot"><span class="annottext">newTVarA' :: forall (m :: * -&gt; *) a.
+(HasCallStack, MonadAtomic m) =&gt;
+a -&gt; m (TVar a)
+</span><a href="Effects.Concurrent.STM.html#newTVarA%27"><span class="hs-identifier hs-var hs-var">newTVarA'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">STM (TVar a) -&gt; m (TVar a)
+forall a. HasCallStack =&gt; STM a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadAtomic m, HasCallStack) =&gt;
+STM a -&gt; m a
+</span><a href="Effects.Concurrent.STM.html#atomically"><span class="hs-identifier hs-var">atomically</span></a></span><span> </span><span class="annot"><span class="annottext">(STM (TVar a) -&gt; m (TVar a))
+-&gt; (a -&gt; STM (TVar a)) -&gt; a -&gt; m (TVar a)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; STM (TVar a)
+forall a. a -&gt; STM (TVar a)
+</span><a href="Effects.Concurrent.STM.html#newTVar%27"><span class="hs-identifier hs-var">newTVar'</span></a></span><span>
+</span><span id="line-126"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#newTVarA%27"><span class="hs-pragma hs-type">newTVarA'</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-127"></span><span>
+</span><span id="line-128"></span><span class="hs-comment">-- | Evaluates the output from 'TVar.readTVar' to WHNF.</span><span>
+</span><span id="line-129"></span><span class="hs-comment">--</span><span>
+</span><span id="line-130"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-131"></span><span id="local-6989586621679044690"><span class="annot"><a href="Effects.Concurrent.STM.html#readTVar%27"><span class="hs-identifier hs-type">readTVar'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TVar</span></span><span> </span><span class="annot"><a href="#local-6989586621679044690"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">STM</span></span><span> </span><span class="annot"><a href="#local-6989586621679044690"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-132"></span><span id="readTVar%27"><span class="annot"><span class="annottext">readTVar' :: forall a. TVar a -&gt; STM a
+</span><a href="Effects.Concurrent.STM.html#readTVar%27"><span class="hs-identifier hs-var hs-var">readTVar'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">TVar a -&gt; STM a
+forall a. TVar a -&gt; STM a
+</span><span class="hs-identifier hs-var">TVar.readTVar</span></span><span> </span><span class="annot"><span class="annottext">(TVar a -&gt; STM a) -&gt; (a -&gt; STM a) -&gt; TVar a -&gt; STM a
+forall (m :: * -&gt; *) a b c.
+Monad m =&gt;
+(a -&gt; m b) -&gt; (b -&gt; m c) -&gt; a -&gt; m c
+</span><span class="hs-operator hs-var">&gt;=&gt;</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; STM a
+forall a. a -&gt; STM a
+</span><a href="Effects.Concurrent.STM.html#evaluateSTM"><span class="hs-identifier hs-var">evaluateSTM</span></a></span><span>
+</span><span id="line-133"></span><span>
+</span><span id="line-134"></span><span class="hs-comment">-- | Return the current value stored in a 'TVar' and lifts the result via</span><span>
+</span><span id="line-135"></span><span class="hs-comment">-- 'atomically'.</span><span>
+</span><span id="line-136"></span><span class="hs-comment">--</span><span>
+</span><span id="line-137"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-138"></span><span id="local-6989586621679044692"><span id="local-6989586621679044693"><span class="annot"><a href="Effects.Concurrent.STM.html#readTVarA"><span class="hs-identifier hs-type">readTVarA</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#MonadAtomic"><span class="hs-identifier hs-type">MonadAtomic</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679044692"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TVar</span></span><span> </span><span class="annot"><a href="#local-6989586621679044693"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044692"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679044693"><span class="hs-identifier hs-type">a</span></a></span></span></span><span>
+</span><span id="line-139"></span><span id="readTVarA"><span class="annot"><span class="annottext">readTVarA :: forall (m :: * -&gt; *) a.
+(HasCallStack, MonadAtomic m) =&gt;
+TVar a -&gt; m a
+</span><a href="Effects.Concurrent.STM.html#readTVarA"><span class="hs-identifier hs-var hs-var">readTVarA</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">STM a -&gt; m a
+forall a. HasCallStack =&gt; STM a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadAtomic m, HasCallStack) =&gt;
+STM a -&gt; m a
+</span><a href="Effects.Concurrent.STM.html#atomically"><span class="hs-identifier hs-var">atomically</span></a></span><span> </span><span class="annot"><span class="annottext">(STM a -&gt; m a) -&gt; (TVar a -&gt; STM a) -&gt; TVar a -&gt; m a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">TVar a -&gt; STM a
+forall a. TVar a -&gt; STM a
+</span><span class="hs-identifier hs-var">TVar.readTVar</span></span><span>
+</span><span id="line-140"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#readTVarA"><span class="hs-pragma hs-type">readTVarA</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-141"></span><span>
+</span><span id="line-142"></span><span class="hs-comment">-- | Atomic 'readTVarA''.</span><span>
+</span><span id="line-143"></span><span class="hs-comment">--</span><span>
+</span><span id="line-144"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-145"></span><span id="local-6989586621679044850"><span id="local-6989586621679044851"><span class="annot"><a href="Effects.Concurrent.STM.html#readTVarA%27"><span class="hs-identifier hs-type">readTVarA'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#MonadAtomic"><span class="hs-identifier hs-type">MonadAtomic</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679044850"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TVar</span></span><span> </span><span class="annot"><a href="#local-6989586621679044851"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044850"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679044851"><span class="hs-identifier hs-type">a</span></a></span></span></span><span>
+</span><span id="line-146"></span><span id="readTVarA%27"><span class="annot"><span class="annottext">readTVarA' :: forall (m :: * -&gt; *) a.
+(HasCallStack, MonadAtomic m) =&gt;
+TVar a -&gt; m a
+</span><a href="Effects.Concurrent.STM.html#readTVarA%27"><span class="hs-identifier hs-var hs-var">readTVarA'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">STM a -&gt; m a
+forall a. HasCallStack =&gt; STM a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadAtomic m, HasCallStack) =&gt;
+STM a -&gt; m a
+</span><a href="Effects.Concurrent.STM.html#atomically"><span class="hs-identifier hs-var">atomically</span></a></span><span> </span><span class="annot"><span class="annottext">(STM a -&gt; m a) -&gt; (TVar a -&gt; STM a) -&gt; TVar a -&gt; m a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">TVar a -&gt; STM a
+forall a. TVar a -&gt; STM a
+</span><a href="Effects.Concurrent.STM.html#readTVar%27"><span class="hs-identifier hs-var">readTVar'</span></a></span><span>
+</span><span id="line-147"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#readTVarA%27"><span class="hs-pragma hs-type">readTVarA'</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-148"></span><span>
+</span><span id="line-149"></span><span class="hs-comment">-- | Evaluates the input to 'TVar.writeTVar' to WHNF.</span><span>
+</span><span id="line-150"></span><span class="hs-comment">--</span><span>
+</span><span id="line-151"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-152"></span><span id="local-6989586621679044698"><span class="annot"><a href="Effects.Concurrent.STM.html#writeTVar%27"><span class="hs-identifier hs-type">writeTVar'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TVar</span></span><span> </span><span class="annot"><a href="#local-6989586621679044698"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044698"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">STM</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-153"></span><span id="writeTVar%27"><span class="annot"><span class="annottext">writeTVar' :: forall a. TVar a -&gt; a -&gt; STM ()
+</span><a href="Effects.Concurrent.STM.html#writeTVar%27"><span class="hs-identifier hs-var hs-var">writeTVar'</span></a></span></span><span> </span><span id="local-6989586621679044858"><span class="annot"><span class="annottext">TVar a
+</span><a href="#local-6989586621679044858"><span class="hs-identifier hs-var">var</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; STM a
+forall a. a -&gt; STM a
+</span><a href="Effects.Concurrent.STM.html#evaluateSTM"><span class="hs-identifier hs-var">evaluateSTM</span></a></span><span> </span><span class="annot"><span class="annottext">(a -&gt; STM a) -&gt; (a -&gt; STM ()) -&gt; a -&gt; STM ()
+forall (m :: * -&gt; *) a b c.
+Monad m =&gt;
+(a -&gt; m b) -&gt; (b -&gt; m c) -&gt; a -&gt; m c
+</span><span class="hs-operator hs-var">&gt;=&gt;</span></span><span> </span><span class="annot"><span class="annottext">TVar a -&gt; a -&gt; STM ()
+forall a. TVar a -&gt; a -&gt; STM ()
+</span><span class="hs-identifier hs-var">TVar.writeTVar</span></span><span> </span><span class="annot"><span class="annottext">TVar a
+</span><a href="#local-6989586621679044858"><span class="hs-identifier hs-var">var</span></a></span><span>
+</span><span id="line-154"></span><span>
+</span><span id="line-155"></span><span class="hs-comment">-- | Write the supplied value into a 'TVar' and lifts the action via</span><span>
+</span><span id="line-156"></span><span class="hs-comment">-- 'atomically'.</span><span>
+</span><span id="line-157"></span><span class="hs-comment">--</span><span>
+</span><span id="line-158"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-159"></span><span id="local-6989586621679044700"><span id="local-6989586621679044701"><span class="annot"><a href="Effects.Concurrent.STM.html#writeTVarA"><span class="hs-identifier hs-type">writeTVarA</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#MonadAtomic"><span class="hs-identifier hs-type">MonadAtomic</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679044700"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TVar</span></span><span> </span><span class="annot"><a href="#local-6989586621679044701"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044701"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044700"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-160"></span><span id="writeTVarA"><span class="annot"><span class="annottext">writeTVarA :: forall (m :: * -&gt; *) a.
+(HasCallStack, MonadAtomic m) =&gt;
+TVar a -&gt; a -&gt; m ()
+</span><a href="Effects.Concurrent.STM.html#writeTVarA"><span class="hs-identifier hs-var hs-var">writeTVarA</span></a></span></span><span> </span><span id="local-6989586621679044864"><span class="annot"><span class="annottext">TVar a
+</span><a href="#local-6989586621679044864"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">STM () -&gt; m ()
+forall a. HasCallStack =&gt; STM a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadAtomic m, HasCallStack) =&gt;
+STM a -&gt; m a
+</span><a href="Effects.Concurrent.STM.html#atomically"><span class="hs-identifier hs-var">atomically</span></a></span><span> </span><span class="annot"><span class="annottext">(STM () -&gt; m ()) -&gt; (a -&gt; STM ()) -&gt; a -&gt; m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">TVar a -&gt; a -&gt; STM ()
+forall a. TVar a -&gt; a -&gt; STM ()
+</span><span class="hs-identifier hs-var">TVar.writeTVar</span></span><span> </span><span class="annot"><span class="annottext">TVar a
+</span><a href="#local-6989586621679044864"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-161"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#writeTVarA"><span class="hs-pragma hs-type">writeTVarA</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-162"></span><span>
+</span><span id="line-163"></span><span class="hs-comment">-- | Atomic 'writeTVarA''.</span><span>
+</span><span id="line-164"></span><span class="hs-comment">--</span><span>
+</span><span id="line-165"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-166"></span><span id="local-6989586621679044865"><span id="local-6989586621679044866"><span class="annot"><a href="Effects.Concurrent.STM.html#writeTVarA%27"><span class="hs-identifier hs-type">writeTVarA'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#MonadAtomic"><span class="hs-identifier hs-type">MonadAtomic</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679044865"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TVar</span></span><span> </span><span class="annot"><a href="#local-6989586621679044866"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044866"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044865"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-167"></span><span id="writeTVarA%27"><span class="annot"><span class="annottext">writeTVarA' :: forall (m :: * -&gt; *) a.
+(HasCallStack, MonadAtomic m) =&gt;
+TVar a -&gt; a -&gt; m ()
+</span><a href="Effects.Concurrent.STM.html#writeTVarA%27"><span class="hs-identifier hs-var hs-var">writeTVarA'</span></a></span></span><span> </span><span id="local-6989586621679044872"><span class="annot"><span class="annottext">TVar a
+</span><a href="#local-6989586621679044872"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">STM () -&gt; m ()
+forall a. HasCallStack =&gt; STM a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadAtomic m, HasCallStack) =&gt;
+STM a -&gt; m a
+</span><a href="Effects.Concurrent.STM.html#atomically"><span class="hs-identifier hs-var">atomically</span></a></span><span> </span><span class="annot"><span class="annottext">(STM () -&gt; m ()) -&gt; (a -&gt; STM ()) -&gt; a -&gt; m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">TVar a -&gt; a -&gt; STM ()
+forall a. TVar a -&gt; a -&gt; STM ()
+</span><a href="Effects.Concurrent.STM.html#writeTVar%27"><span class="hs-identifier hs-var">writeTVar'</span></a></span><span> </span><span class="annot"><span class="annottext">TVar a
+</span><a href="#local-6989586621679044872"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-168"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#writeTVarA%27"><span class="hs-pragma hs-type">writeTVarA'</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-169"></span><span>
+</span><span id="line-170"></span><span class="hs-comment">-- | Atomic 'TVar.modifyTVar'.</span><span>
+</span><span id="line-171"></span><span class="hs-comment">--</span><span>
+</span><span id="line-172"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-173"></span><span id="local-6989586621679044706"><span id="local-6989586621679044707"><span class="annot"><a href="Effects.Concurrent.STM.html#modifyTVarA"><span class="hs-identifier hs-type">modifyTVarA</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#MonadAtomic"><span class="hs-identifier hs-type">MonadAtomic</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679044706"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TVar</span></span><span> </span><span class="annot"><a href="#local-6989586621679044707"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679044707"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044707"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044706"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-174"></span><span id="modifyTVarA"><span class="annot"><span class="annottext">modifyTVarA :: forall (m :: * -&gt; *) a.
+(HasCallStack, MonadAtomic m) =&gt;
+TVar a -&gt; (a -&gt; a) -&gt; m ()
+</span><a href="Effects.Concurrent.STM.html#modifyTVarA"><span class="hs-identifier hs-var hs-var">modifyTVarA</span></a></span></span><span> </span><span id="local-6989586621679044878"><span class="annot"><span class="annottext">TVar a
+</span><a href="#local-6989586621679044878"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">STM () -&gt; m ()
+forall a. HasCallStack =&gt; STM a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadAtomic m, HasCallStack) =&gt;
+STM a -&gt; m a
+</span><a href="Effects.Concurrent.STM.html#atomically"><span class="hs-identifier hs-var">atomically</span></a></span><span> </span><span class="annot"><span class="annottext">(STM () -&gt; m ()) -&gt; ((a -&gt; a) -&gt; STM ()) -&gt; (a -&gt; a) -&gt; m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">TVar a -&gt; (a -&gt; a) -&gt; STM ()
+forall a. TVar a -&gt; (a -&gt; a) -&gt; STM ()
+</span><span class="hs-identifier hs-var">TVar.modifyTVar</span></span><span> </span><span class="annot"><span class="annottext">TVar a
+</span><a href="#local-6989586621679044878"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-175"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#modifyTVarA"><span class="hs-pragma hs-type">modifyTVarA</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-176"></span><span>
+</span><span id="line-177"></span><span class="hs-comment">-- | Atomic 'TVar.modifyTVar''.</span><span>
+</span><span id="line-178"></span><span class="hs-comment">--</span><span>
+</span><span id="line-179"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-180"></span><span id="local-6989586621679044879"><span id="local-6989586621679044880"><span class="annot"><a href="Effects.Concurrent.STM.html#modifyTVarA%27"><span class="hs-identifier hs-type">modifyTVarA'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#MonadAtomic"><span class="hs-identifier hs-type">MonadAtomic</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679044879"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TVar</span></span><span> </span><span class="annot"><a href="#local-6989586621679044880"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679044880"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044880"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044879"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-181"></span><span id="modifyTVarA%27"><span class="annot"><span class="annottext">modifyTVarA' :: forall (m :: * -&gt; *) a.
+(HasCallStack, MonadAtomic m) =&gt;
+TVar a -&gt; (a -&gt; a) -&gt; m ()
+</span><a href="Effects.Concurrent.STM.html#modifyTVarA%27"><span class="hs-identifier hs-var hs-var">modifyTVarA'</span></a></span></span><span> </span><span id="local-6989586621679044886"><span class="annot"><span class="annottext">TVar a
+</span><a href="#local-6989586621679044886"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">STM () -&gt; m ()
+forall a. HasCallStack =&gt; STM a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadAtomic m, HasCallStack) =&gt;
+STM a -&gt; m a
+</span><a href="Effects.Concurrent.STM.html#atomically"><span class="hs-identifier hs-var">atomically</span></a></span><span> </span><span class="annot"><span class="annottext">(STM () -&gt; m ()) -&gt; ((a -&gt; a) -&gt; STM ()) -&gt; (a -&gt; a) -&gt; m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">TVar a -&gt; (a -&gt; a) -&gt; STM ()
+forall a. TVar a -&gt; (a -&gt; a) -&gt; STM ()
+</span><span class="hs-identifier hs-var">TVar.modifyTVar'</span></span><span> </span><span class="annot"><span class="annottext">TVar a
+</span><a href="#local-6989586621679044886"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-182"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#modifyTVarA%27"><span class="hs-pragma hs-type">modifyTVarA'</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-183"></span><span>
+</span><span id="line-184"></span><span class="hs-comment">-- | Builds and returns a new instance of 'TBQueue', lifting via 'atomically'.</span><span>
+</span><span id="line-185"></span><span class="hs-comment">--</span><span>
+</span><span id="line-186"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-187"></span><span id="local-6989586621679044713"><span id="local-6989586621679044714"><span class="annot"><a href="Effects.Concurrent.STM.html#newTBQueueA"><span class="hs-identifier hs-type">newTBQueueA</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-188"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#MonadAtomic"><span class="hs-identifier hs-type">MonadAtomic</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679044713"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-189"></span><span>  </span><span class="annot"><span class="hs-comment">-- | maximum number of elements the queue can hold</span></span><span>
+</span><span id="line-190"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Natural</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-191"></span><span>  </span><span class="annot"><a href="#local-6989586621679044713"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">TBQueue</span></span><span> </span><span class="annot"><a href="#local-6989586621679044714"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-192"></span><span id="newTBQueueA"><span class="annot"><span class="annottext">newTBQueueA :: forall (m :: * -&gt; *) a.
+(HasCallStack, MonadAtomic m) =&gt;
+Natural -&gt; m (TBQueue a)
+</span><a href="Effects.Concurrent.STM.html#newTBQueueA"><span class="hs-identifier hs-var hs-var">newTBQueueA</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">STM (TBQueue a) -&gt; m (TBQueue a)
+forall a. HasCallStack =&gt; STM a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadAtomic m, HasCallStack) =&gt;
+STM a -&gt; m a
+</span><a href="Effects.Concurrent.STM.html#atomically"><span class="hs-identifier hs-var">atomically</span></a></span><span> </span><span class="annot"><span class="annottext">(STM (TBQueue a) -&gt; m (TBQueue a))
+-&gt; (Natural -&gt; STM (TBQueue a)) -&gt; Natural -&gt; m (TBQueue a)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Natural -&gt; STM (TBQueue a)
+forall a. Natural -&gt; STM (TBQueue a)
+</span><span class="hs-identifier hs-var">TBQueue.newTBQueue</span></span><span>
+</span><span id="line-193"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#newTBQueueA"><span class="hs-pragma hs-type">newTBQueueA</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-194"></span><span>
+</span><span id="line-195"></span><span class="hs-comment">-- | Evaluates the output from 'TBQueue.readTBQueue' to WHNF.</span><span>
+</span><span id="line-196"></span><span class="hs-comment">--</span><span>
+</span><span id="line-197"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-198"></span><span id="local-6989586621679044719"><span class="annot"><a href="Effects.Concurrent.STM.html#readTBQueue%27"><span class="hs-identifier hs-type">readTBQueue'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TBQueue</span></span><span> </span><span class="annot"><a href="#local-6989586621679044719"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">STM</span></span><span> </span><span class="annot"><a href="#local-6989586621679044719"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-199"></span><span id="readTBQueue%27"><span class="annot"><span class="annottext">readTBQueue' :: forall a. TBQueue a -&gt; STM a
+</span><a href="Effects.Concurrent.STM.html#readTBQueue%27"><span class="hs-identifier hs-var hs-var">readTBQueue'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">TBQueue a -&gt; STM a
+forall a. TBQueue a -&gt; STM a
+</span><span class="hs-identifier hs-var">TBQueue.readTBQueue</span></span><span> </span><span class="annot"><span class="annottext">(TBQueue a -&gt; STM a) -&gt; (a -&gt; STM a) -&gt; TBQueue a -&gt; STM a
+forall (m :: * -&gt; *) a b c.
+Monad m =&gt;
+(a -&gt; m b) -&gt; (b -&gt; m c) -&gt; a -&gt; m c
+</span><span class="hs-operator hs-var">&gt;=&gt;</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; STM a
+forall a. a -&gt; STM a
+</span><a href="Effects.Concurrent.STM.html#evaluateSTM"><span class="hs-identifier hs-var">evaluateSTM</span></a></span><span>
+</span><span id="line-200"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#readTBQueue%27"><span class="hs-pragma hs-type">readTBQueue'</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-201"></span><span>
+</span><span id="line-202"></span><span class="hs-comment">-- | Read the next value from the 'TBQueue', lifting via 'atomically'.</span><span>
+</span><span id="line-203"></span><span class="hs-comment">--</span><span>
+</span><span id="line-204"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-205"></span><span id="local-6989586621679044721"><span id="local-6989586621679044722"><span class="annot"><a href="Effects.Concurrent.STM.html#readTBQueueA"><span class="hs-identifier hs-type">readTBQueueA</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#MonadAtomic"><span class="hs-identifier hs-type">MonadAtomic</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679044721"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TBQueue</span></span><span> </span><span class="annot"><a href="#local-6989586621679044722"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044721"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679044722"><span class="hs-identifier hs-type">a</span></a></span></span></span><span>
+</span><span id="line-206"></span><span id="readTBQueueA"><span class="annot"><span class="annottext">readTBQueueA :: forall (m :: * -&gt; *) a.
+(HasCallStack, MonadAtomic m) =&gt;
+TBQueue a -&gt; m a
+</span><a href="Effects.Concurrent.STM.html#readTBQueueA"><span class="hs-identifier hs-var hs-var">readTBQueueA</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">STM a -&gt; m a
+forall a. HasCallStack =&gt; STM a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadAtomic m, HasCallStack) =&gt;
+STM a -&gt; m a
+</span><a href="Effects.Concurrent.STM.html#atomically"><span class="hs-identifier hs-var">atomically</span></a></span><span> </span><span class="annot"><span class="annottext">(STM a -&gt; m a) -&gt; (TBQueue a -&gt; STM a) -&gt; TBQueue a -&gt; m a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">TBQueue a -&gt; STM a
+forall a. TBQueue a -&gt; STM a
+</span><span class="hs-identifier hs-var">TBQueue.readTBQueue</span></span><span>
+</span><span id="line-207"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#readTBQueueA"><span class="hs-pragma hs-type">readTBQueueA</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-208"></span><span>
+</span><span id="line-209"></span><span class="hs-comment">-- | Atomic 'readTBQueue''.</span><span>
+</span><span id="line-210"></span><span class="hs-comment">--</span><span>
+</span><span id="line-211"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-212"></span><span id="local-6989586621679044898"><span id="local-6989586621679044899"><span class="annot"><a href="Effects.Concurrent.STM.html#readTBQueueA%27"><span class="hs-identifier hs-type">readTBQueueA'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#MonadAtomic"><span class="hs-identifier hs-type">MonadAtomic</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679044898"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TBQueue</span></span><span> </span><span class="annot"><a href="#local-6989586621679044899"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044898"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679044899"><span class="hs-identifier hs-type">a</span></a></span></span></span><span>
+</span><span id="line-213"></span><span id="readTBQueueA%27"><span class="annot"><span class="annottext">readTBQueueA' :: forall (m :: * -&gt; *) a.
+(HasCallStack, MonadAtomic m) =&gt;
+TBQueue a -&gt; m a
+</span><a href="Effects.Concurrent.STM.html#readTBQueueA%27"><span class="hs-identifier hs-var hs-var">readTBQueueA'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">STM a -&gt; m a
+forall a. HasCallStack =&gt; STM a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadAtomic m, HasCallStack) =&gt;
+STM a -&gt; m a
+</span><a href="Effects.Concurrent.STM.html#atomically"><span class="hs-identifier hs-var">atomically</span></a></span><span> </span><span class="annot"><span class="annottext">(STM a -&gt; m a) -&gt; (TBQueue a -&gt; STM a) -&gt; TBQueue a -&gt; m a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">TBQueue a -&gt; STM a
+forall a. TBQueue a -&gt; STM a
+</span><a href="Effects.Concurrent.STM.html#readTBQueue%27"><span class="hs-identifier hs-var">readTBQueue'</span></a></span><span>
+</span><span id="line-214"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#readTBQueueA%27"><span class="hs-pragma hs-type">readTBQueueA'</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-215"></span><span>
+</span><span id="line-216"></span><span class="hs-comment">-- | Evaluates the output from 'TBQueue.tryReadTBQueue' to Nothing or</span><span>
+</span><span id="line-217"></span><span class="hs-comment">-- @Just a@, where @a@ is in WHNF.</span><span>
+</span><span id="line-218"></span><span class="hs-comment">--</span><span>
+</span><span id="line-219"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-220"></span><span id="local-6989586621679044727"><span class="annot"><a href="Effects.Concurrent.STM.html#tryReadTBQueue%27"><span class="hs-identifier hs-type">tryReadTBQueue'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TBQueue</span></span><span> </span><span class="annot"><a href="#local-6989586621679044727"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">STM</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679044727"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span><span>
+</span><span id="line-221"></span><span id="tryReadTBQueue%27"><span class="annot"><span class="annottext">tryReadTBQueue' :: forall a. TBQueue a -&gt; STM (Maybe a)
+</span><a href="Effects.Concurrent.STM.html#tryReadTBQueue%27"><span class="hs-identifier hs-var hs-var">tryReadTBQueue'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-222"></span><span>  </span><span class="annot"><span class="annottext">TBQueue a -&gt; STM (Maybe a)
+forall a. TBQueue a -&gt; STM (Maybe a)
+</span><span class="hs-identifier hs-var">TBQueue.tryReadTBQueue</span></span><span> </span><span class="annot"><span class="annottext">(TBQueue a -&gt; STM (Maybe a))
+-&gt; (Maybe a -&gt; STM (Maybe a)) -&gt; TBQueue a -&gt; STM (Maybe a)
+forall (m :: * -&gt; *) a b c.
+Monad m =&gt;
+(a -&gt; m b) -&gt; (b -&gt; m c) -&gt; a -&gt; m c
+</span><span class="hs-operator hs-var">&gt;=&gt;</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-223"></span><span>    </span><span class="annot"><span class="annottext">Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe a -&gt; STM (Maybe a)
+forall a. a -&gt; STM a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">Maybe a
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-224"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679044910"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679044910"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">a -&gt; Maybe a
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">(a -&gt; Maybe a) -&gt; STM a -&gt; STM (Maybe a)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; STM a
+forall a. a -&gt; STM a
+</span><a href="Effects.Concurrent.STM.html#evaluateSTM"><span class="hs-identifier hs-var">evaluateSTM</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679044910"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-225"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#tryReadTBQueue%27"><span class="hs-pragma hs-type">tryReadTBQueue'</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-226"></span><span>
+</span><span id="line-227"></span><span class="hs-comment">-- | A version of 'TBQueue.readTBQueue' which does not retry. Instead it</span><span>
+</span><span id="line-228"></span><span class="hs-comment">-- returns @Nothing@ if no value is available. Lifts via 'atomically'.</span><span>
+</span><span id="line-229"></span><span class="hs-comment">--</span><span>
+</span><span id="line-230"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-231"></span><span id="local-6989586621679044735"><span id="local-6989586621679044736"><span class="annot"><a href="Effects.Concurrent.STM.html#tryReadTBQueueA"><span class="hs-identifier hs-type">tryReadTBQueueA</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#MonadAtomic"><span class="hs-identifier hs-type">MonadAtomic</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679044735"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TBQueue</span></span><span> </span><span class="annot"><a href="#local-6989586621679044736"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044735"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679044736"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-232"></span><span id="tryReadTBQueueA"><span class="annot"><span class="annottext">tryReadTBQueueA :: forall (m :: * -&gt; *) a.
+(HasCallStack, MonadAtomic m) =&gt;
+TBQueue a -&gt; m (Maybe a)
+</span><a href="Effects.Concurrent.STM.html#tryReadTBQueueA"><span class="hs-identifier hs-var hs-var">tryReadTBQueueA</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">STM (Maybe a) -&gt; m (Maybe a)
+forall a. HasCallStack =&gt; STM a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadAtomic m, HasCallStack) =&gt;
+STM a -&gt; m a
+</span><a href="Effects.Concurrent.STM.html#atomically"><span class="hs-identifier hs-var">atomically</span></a></span><span> </span><span class="annot"><span class="annottext">(STM (Maybe a) -&gt; m (Maybe a))
+-&gt; (TBQueue a -&gt; STM (Maybe a)) -&gt; TBQueue a -&gt; m (Maybe a)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">TBQueue a -&gt; STM (Maybe a)
+forall a. TBQueue a -&gt; STM (Maybe a)
+</span><span class="hs-identifier hs-var">TBQueue.tryReadTBQueue</span></span><span>
+</span><span id="line-233"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#tryReadTBQueueA"><span class="hs-pragma hs-type">tryReadTBQueueA</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-234"></span><span>
+</span><span id="line-235"></span><span class="hs-comment">-- | Atomic 'tryReadTBQueue''.</span><span>
+</span><span id="line-236"></span><span class="hs-comment">--</span><span>
+</span><span id="line-237"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-238"></span><span id="local-6989586621679044917"><span id="local-6989586621679044918"><span class="annot"><a href="Effects.Concurrent.STM.html#tryReadTBQueueA%27"><span class="hs-identifier hs-type">tryReadTBQueueA'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#MonadAtomic"><span class="hs-identifier hs-type">MonadAtomic</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679044917"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TBQueue</span></span><span> </span><span class="annot"><a href="#local-6989586621679044918"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044917"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679044918"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-239"></span><span id="tryReadTBQueueA%27"><span class="annot"><span class="annottext">tryReadTBQueueA' :: forall (m :: * -&gt; *) a.
+(HasCallStack, MonadAtomic m) =&gt;
+TBQueue a -&gt; m (Maybe a)
+</span><a href="Effects.Concurrent.STM.html#tryReadTBQueueA%27"><span class="hs-identifier hs-var hs-var">tryReadTBQueueA'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">STM (Maybe a) -&gt; m (Maybe a)
+forall a. HasCallStack =&gt; STM a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadAtomic m, HasCallStack) =&gt;
+STM a -&gt; m a
+</span><a href="Effects.Concurrent.STM.html#atomically"><span class="hs-identifier hs-var">atomically</span></a></span><span> </span><span class="annot"><span class="annottext">(STM (Maybe a) -&gt; m (Maybe a))
+-&gt; (TBQueue a -&gt; STM (Maybe a)) -&gt; TBQueue a -&gt; m (Maybe a)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">TBQueue a -&gt; STM (Maybe a)
+forall a. TBQueue a -&gt; STM (Maybe a)
+</span><a href="Effects.Concurrent.STM.html#tryReadTBQueue%27"><span class="hs-identifier hs-var">tryReadTBQueue'</span></a></span><span>
+</span><span id="line-240"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#tryReadTBQueueA%27"><span class="hs-pragma hs-type">tryReadTBQueueA'</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-241"></span><span>
+</span><span id="line-242"></span><span class="hs-comment">-- | Evaluates the input to 'TBQueue.writeTBQueue' to WHNF.</span><span>
+</span><span id="line-243"></span><span class="hs-comment">--</span><span>
+</span><span id="line-244"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-245"></span><span id="local-6989586621679044741"><span class="annot"><a href="Effects.Concurrent.STM.html#writeTBQueue%27"><span class="hs-identifier hs-type">writeTBQueue'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TBQueue</span></span><span> </span><span class="annot"><a href="#local-6989586621679044741"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044741"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">STM</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-246"></span><span id="writeTBQueue%27"><span class="annot"><span class="annottext">writeTBQueue' :: forall a. TBQueue a -&gt; a -&gt; STM ()
+</span><a href="Effects.Concurrent.STM.html#writeTBQueue%27"><span class="hs-identifier hs-var hs-var">writeTBQueue'</span></a></span></span><span> </span><span id="local-6989586621679044925"><span class="annot"><span class="annottext">TBQueue a
+</span><a href="#local-6989586621679044925"><span class="hs-identifier hs-var">q</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; STM a
+forall a. a -&gt; STM a
+</span><a href="Effects.Concurrent.STM.html#evaluateSTM"><span class="hs-identifier hs-var">evaluateSTM</span></a></span><span> </span><span class="annot"><span class="annottext">(a -&gt; STM a) -&gt; (a -&gt; STM ()) -&gt; a -&gt; STM ()
+forall (m :: * -&gt; *) a b c.
+Monad m =&gt;
+(a -&gt; m b) -&gt; (b -&gt; m c) -&gt; a -&gt; m c
+</span><span class="hs-operator hs-var">&gt;=&gt;</span></span><span> </span><span class="annot"><span class="annottext">TBQueue a -&gt; a -&gt; STM ()
+forall a. TBQueue a -&gt; a -&gt; STM ()
+</span><span class="hs-identifier hs-var">TBQueue.writeTBQueue</span></span><span> </span><span class="annot"><span class="annottext">TBQueue a
+</span><a href="#local-6989586621679044925"><span class="hs-identifier hs-var">q</span></a></span><span>
+</span><span id="line-247"></span><span>
+</span><span id="line-248"></span><span class="hs-comment">-- | Write a value to a 'TBQueue'; blocks if the queue is full. Lifts via</span><span>
+</span><span id="line-249"></span><span class="hs-comment">-- 'atomically'.</span><span>
+</span><span id="line-250"></span><span class="hs-comment">--</span><span>
+</span><span id="line-251"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-252"></span><span id="local-6989586621679044743"><span id="local-6989586621679044744"><span class="annot"><a href="Effects.Concurrent.STM.html#writeTBQueueA"><span class="hs-identifier hs-type">writeTBQueueA</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#MonadAtomic"><span class="hs-identifier hs-type">MonadAtomic</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679044743"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TBQueue</span></span><span> </span><span class="annot"><a href="#local-6989586621679044744"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044744"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044743"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-253"></span><span id="writeTBQueueA"><span class="annot"><span class="annottext">writeTBQueueA :: forall (m :: * -&gt; *) a.
+(HasCallStack, MonadAtomic m) =&gt;
+TBQueue a -&gt; a -&gt; m ()
+</span><a href="Effects.Concurrent.STM.html#writeTBQueueA"><span class="hs-identifier hs-var hs-var">writeTBQueueA</span></a></span></span><span> </span><span id="local-6989586621679044931"><span class="annot"><span class="annottext">TBQueue a
+</span><a href="#local-6989586621679044931"><span class="hs-identifier hs-var">q</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">STM () -&gt; m ()
+forall a. HasCallStack =&gt; STM a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadAtomic m, HasCallStack) =&gt;
+STM a -&gt; m a
+</span><a href="Effects.Concurrent.STM.html#atomically"><span class="hs-identifier hs-var">atomically</span></a></span><span> </span><span class="annot"><span class="annottext">(STM () -&gt; m ()) -&gt; (a -&gt; STM ()) -&gt; a -&gt; m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">TBQueue a -&gt; a -&gt; STM ()
+forall a. TBQueue a -&gt; a -&gt; STM ()
+</span><span class="hs-identifier hs-var">TBQueue.writeTBQueue</span></span><span> </span><span class="annot"><span class="annottext">TBQueue a
+</span><a href="#local-6989586621679044931"><span class="hs-identifier hs-var">q</span></a></span><span>
+</span><span id="line-254"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#writeTBQueueA"><span class="hs-pragma hs-type">writeTBQueueA</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-255"></span><span>
+</span><span id="line-256"></span><span class="hs-comment">-- | Atomic 'writeTBQueue''.</span><span>
+</span><span id="line-257"></span><span class="hs-comment">--</span><span>
+</span><span id="line-258"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-259"></span><span id="local-6989586621679044932"><span id="local-6989586621679044933"><span class="annot"><a href="Effects.Concurrent.STM.html#writeTBQueueA%27"><span class="hs-identifier hs-type">writeTBQueueA'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#MonadAtomic"><span class="hs-identifier hs-type">MonadAtomic</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679044932"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TBQueue</span></span><span> </span><span class="annot"><a href="#local-6989586621679044933"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044933"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044932"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-260"></span><span id="writeTBQueueA%27"><span class="annot"><span class="annottext">writeTBQueueA' :: forall (m :: * -&gt; *) a.
+(HasCallStack, MonadAtomic m) =&gt;
+TBQueue a -&gt; a -&gt; m ()
+</span><a href="Effects.Concurrent.STM.html#writeTBQueueA%27"><span class="hs-identifier hs-var hs-var">writeTBQueueA'</span></a></span></span><span> </span><span id="local-6989586621679044939"><span class="annot"><span class="annottext">TBQueue a
+</span><a href="#local-6989586621679044939"><span class="hs-identifier hs-var">q</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">STM () -&gt; m ()
+forall a. HasCallStack =&gt; STM a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadAtomic m, HasCallStack) =&gt;
+STM a -&gt; m a
+</span><a href="Effects.Concurrent.STM.html#atomically"><span class="hs-identifier hs-var">atomically</span></a></span><span> </span><span class="annot"><span class="annottext">(STM () -&gt; m ()) -&gt; (a -&gt; STM ()) -&gt; a -&gt; m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">TBQueue a -&gt; a -&gt; STM ()
+forall a. TBQueue a -&gt; a -&gt; STM ()
+</span><a href="Effects.Concurrent.STM.html#writeTBQueue%27"><span class="hs-identifier hs-var">writeTBQueue'</span></a></span><span> </span><span class="annot"><span class="annottext">TBQueue a
+</span><a href="#local-6989586621679044939"><span class="hs-identifier hs-var">q</span></a></span><span>
+</span><span id="line-261"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#writeTBQueueA%27"><span class="hs-pragma hs-type">writeTBQueueA'</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-262"></span><span>
+</span><span id="line-263"></span><span class="hs-comment">-- | Evaluates the output from 'TBQueue.flushTBQueue' to WHNF.</span><span>
+</span><span id="line-264"></span><span class="hs-comment">--</span><span>
+</span><span id="line-265"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-266"></span><span id="local-6989586621679044749"><span class="annot"><a href="Effects.Concurrent.STM.html#flushTBQueue%27"><span class="hs-identifier hs-type">flushTBQueue'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TBQueue</span></span><span> </span><span class="annot"><a href="#local-6989586621679044749"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">STM</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679044749"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span></span><span>
+</span><span id="line-267"></span><span id="flushTBQueue%27"><span class="annot"><span class="annottext">flushTBQueue' :: forall a. TBQueue a -&gt; STM [a]
+</span><a href="Effects.Concurrent.STM.html#flushTBQueue%27"><span class="hs-identifier hs-var hs-var">flushTBQueue'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">TBQueue a -&gt; STM [a]
+forall a. TBQueue a -&gt; STM [a]
+</span><span class="hs-identifier hs-var">TBQueue.flushTBQueue</span></span><span> </span><span class="annot"><span class="annottext">(TBQueue a -&gt; STM [a]) -&gt; ([a] -&gt; STM [a]) -&gt; TBQueue a -&gt; STM [a]
+forall (m :: * -&gt; *) a b c.
+Monad m =&gt;
+(a -&gt; m b) -&gt; (b -&gt; m c) -&gt; a -&gt; m c
+</span><span class="hs-operator hs-var">&gt;=&gt;</span></span><span> </span><span class="annot"><span class="annottext">[a] -&gt; STM [a]
+forall a. a -&gt; STM a
+</span><a href="Effects.Concurrent.STM.html#evaluateSTM"><span class="hs-identifier hs-var">evaluateSTM</span></a></span><span>
+</span><span id="line-268"></span><span>
+</span><span id="line-269"></span><span class="hs-comment">-- | Efficiently read the entire contents of a 'TBQueue' into a list. This</span><span>
+</span><span id="line-270"></span><span class="hs-comment">-- function never retries. Lifts via 'atomically'.</span><span>
+</span><span id="line-271"></span><span class="hs-comment">--</span><span>
+</span><span id="line-272"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-273"></span><span id="local-6989586621679044751"><span id="local-6989586621679044752"><span class="annot"><a href="Effects.Concurrent.STM.html#flushTBQueueA"><span class="hs-identifier hs-type">flushTBQueueA</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#MonadAtomic"><span class="hs-identifier hs-type">MonadAtomic</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679044751"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TBQueue</span></span><span> </span><span class="annot"><a href="#local-6989586621679044752"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044751"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679044752"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span></span></span><span>
+</span><span id="line-274"></span><span id="flushTBQueueA"><span class="annot"><span class="annottext">flushTBQueueA :: forall (m :: * -&gt; *) a.
+(HasCallStack, MonadAtomic m) =&gt;
+TBQueue a -&gt; m [a]
+</span><a href="Effects.Concurrent.STM.html#flushTBQueueA"><span class="hs-identifier hs-var hs-var">flushTBQueueA</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">STM [a] -&gt; m [a]
+forall a. HasCallStack =&gt; STM a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadAtomic m, HasCallStack) =&gt;
+STM a -&gt; m a
+</span><a href="Effects.Concurrent.STM.html#atomically"><span class="hs-identifier hs-var">atomically</span></a></span><span> </span><span class="annot"><span class="annottext">(STM [a] -&gt; m [a]) -&gt; (TBQueue a -&gt; STM [a]) -&gt; TBQueue a -&gt; m [a]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">TBQueue a -&gt; STM [a]
+forall a. TBQueue a -&gt; STM [a]
+</span><span class="hs-identifier hs-var">TBQueue.flushTBQueue</span></span><span>
+</span><span id="line-275"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#flushTBQueueA"><span class="hs-pragma hs-type">flushTBQueueA</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-276"></span><span>
+</span><span id="line-277"></span><span class="hs-comment">-- | Atomic 'flushTBQueue''.</span><span>
+</span><span id="line-278"></span><span class="hs-comment">--</span><span>
+</span><span id="line-279"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-280"></span><span id="local-6989586621679044946"><span id="local-6989586621679044947"><span class="annot"><a href="Effects.Concurrent.STM.html#flushTBQueueA%27"><span class="hs-identifier hs-type">flushTBQueueA'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#MonadAtomic"><span class="hs-identifier hs-type">MonadAtomic</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679044946"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TBQueue</span></span><span> </span><span class="annot"><a href="#local-6989586621679044947"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679044946"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679044947"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span></span></span><span>
+</span><span id="line-281"></span><span id="flushTBQueueA%27"><span class="annot"><span class="annottext">flushTBQueueA' :: forall (m :: * -&gt; *) a.
+(HasCallStack, MonadAtomic m) =&gt;
+TBQueue a -&gt; m [a]
+</span><a href="Effects.Concurrent.STM.html#flushTBQueueA%27"><span class="hs-identifier hs-var hs-var">flushTBQueueA'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">STM [a] -&gt; m [a]
+forall a. HasCallStack =&gt; STM a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadAtomic m, HasCallStack) =&gt;
+STM a -&gt; m a
+</span><a href="Effects.Concurrent.STM.html#atomically"><span class="hs-identifier hs-var">atomically</span></a></span><span> </span><span class="annot"><span class="annottext">(STM [a] -&gt; m [a]) -&gt; (TBQueue a -&gt; STM [a]) -&gt; TBQueue a -&gt; m [a]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">TBQueue a -&gt; STM [a]
+forall a. TBQueue a -&gt; STM [a]
+</span><a href="Effects.Concurrent.STM.html#flushTBQueue%27"><span class="hs-identifier hs-var">flushTBQueue'</span></a></span><span>
+</span><span id="line-282"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Concurrent.STM.html#flushTBQueueA%27"><span class="hs-pragma hs-type">flushTBQueueA'</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-283"></span><span>
+</span><span id="line-284"></span><span class="hs-comment">-- | Like 'Control.Exception.evaluate', but for 'STM'.</span><span>
+</span><span id="line-285"></span><span class="hs-comment">--</span><span>
+</span><span id="line-286"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-287"></span><span id="local-6989586621679044679"><span class="annot"><a href="Effects.Concurrent.STM.html#evaluateSTM"><span class="hs-identifier hs-type">evaluateSTM</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679044679"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">STM</span></span><span> </span><span class="annot"><a href="#local-6989586621679044679"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-288"></span><span id="evaluateSTM"><span class="annot"><span class="annottext">evaluateSTM :: forall a. a -&gt; STM a
+</span><a href="Effects.Concurrent.STM.html#evaluateSTM"><span class="hs-identifier hs-var hs-var">evaluateSTM</span></a></span></span><span> </span><span id="local-6989586621679044953"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679044953"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(State# RealWorld -&gt; (# State# RealWorld, a #)) -&gt; STM a
+forall a. (State# RealWorld -&gt; (# State# RealWorld, a #)) -&gt; STM a
+</span><span class="hs-identifier hs-var">STM</span></span><span> </span><span class="annot"><span class="annottext">((State# RealWorld -&gt; (# State# RealWorld, a #)) -&gt; STM a)
+-&gt; (State# RealWorld -&gt; (# State# RealWorld, a #)) -&gt; STM a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679044954"><span class="annot"><span class="annottext">State# RealWorld
+</span><a href="#local-6989586621679044954"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">a -&gt; State# RealWorld -&gt; (# State# RealWorld, a #)
+forall a s. a -&gt; State# s -&gt; (# State# s, a #)
+</span><span class="hs-identifier hs-var">seq#</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679044953"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">State# RealWorld
+</span><a href="#local-6989586621679044954"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-289"></span></pre></body></html>

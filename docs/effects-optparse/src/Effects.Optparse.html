@@ -1,0 +1,151 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- | Provides the 'MonadOptparse' typeclass.</span><span>
+</span><span id="line-2"></span><span class="hs-comment">--</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Effects.Optparse.html"><span class="hs-identifier">Effects.Optparse</span></a></span><span>
+</span><span id="line-5"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Effect</span></span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><a href="Effects.Optparse.html#MonadOptparse"><span class="hs-identifier">MonadOptparse</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Misc</span></span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><span class="hs-identifier">OsPath</span></span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><a href="Effects.Optparse.html#osPath"><span class="hs-identifier">osPath</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-11"></span><span>    </span><span class="annot"><a href="Effects.Optparse.html#validOsPath"><span class="hs-identifier">validOsPath</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-12"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-13"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Class</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadTrans</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">lift</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Reader</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ReaderT</span></span><span class="hs-special">)</span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.OsPath.html"><span class="hs-identifier">FileSystem.OsPath</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">OsPath</span></span><span class="hs-special">)</span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.OsPath.html"><span class="hs-identifier">FileSystem.OsPath</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">FS.OsPath</span></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Stack</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">HasCallStack</span></span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///nix/store/ba4ilhsj4ynnzlcnpnazkp0771iw1yc8-optparse-applicative-0.18.1.0-doc/share/doc/optparse-applicative-0.18.1.0/html/src/Options.Applicative.html"><span class="hs-identifier">Options.Applicative</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///nix/store/ba4ilhsj4ynnzlcnpnazkp0771iw1yc8-optparse-applicative-0.18.1.0-doc/share/doc/optparse-applicative-0.18.1.0/html/src/Options.Applicative.Types.html#ParserInfo"><span class="hs-identifier">ParserInfo</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///nix/store/ba4ilhsj4ynnzlcnpnazkp0771iw1yc8-optparse-applicative-0.18.1.0-doc/share/doc/optparse-applicative-0.18.1.0/html/src/Options.Applicative.Types.html#ParserPrefs"><span class="hs-identifier">ParserPrefs</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///nix/store/ba4ilhsj4ynnzlcnpnazkp0771iw1yc8-optparse-applicative-0.18.1.0-doc/share/doc/optparse-applicative-0.18.1.0/html/src/Options.Applicative.Types.html#ParserResult"><span class="hs-identifier">ParserResult</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///nix/store/ba4ilhsj4ynnzlcnpnazkp0771iw1yc8-optparse-applicative-0.18.1.0-doc/share/doc/optparse-applicative-0.18.1.0/html/src/Options.Applicative.Types.html#ReadM"><span class="hs-identifier">ReadM</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///nix/store/ba4ilhsj4ynnzlcnpnazkp0771iw1yc8-optparse-applicative-0.18.1.0-doc/share/doc/optparse-applicative-0.18.1.0/html/src/Options.Applicative.html"><span class="hs-identifier">Options.Applicative</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">OA</span></span><span>
+</span><span id="line-22"></span><span>
+</span><span id="line-23"></span><span class="hs-comment">-- | Effects for</span><span>
+</span><span id="line-24"></span><span class="hs-comment">-- [optparse-applicative](https://hackage.haskell.org/package/optparse-applicative/docs/Options-Applicative.html).</span><span>
+</span><span id="line-25"></span><span class="hs-comment">--</span><span>
+</span><span id="line-26"></span><span class="hs-comment">-- The vast majority of optparse-applicative is not re-exported, as most of</span><span>
+</span><span id="line-27"></span><span class="hs-comment">-- the interface is pure. This is merely the functions needed to run a parser.</span><span>
+</span><span id="line-28"></span><span class="hs-comment">--</span><span>
+</span><span id="line-29"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-30"></span><span class="hs-keyword">class</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Monad</span></span><span> </span><span class="annot"><a href="#local-6989586621679075141"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span id="MonadOptparse"><span class="annot"><a href="Effects.Optparse.html#MonadOptparse"><span class="hs-identifier hs-var">MonadOptparse</span></a></span></span><span> </span><span id="local-6989586621679075141"><span class="annot"><a href="#local-6989586621679075141"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-31"></span><span>  </span><span class="hs-comment">-- | Lifted 'OA.execParser'.</span><span>
+</span><span id="line-32"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-33"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-34"></span><span>  </span><span id="execParser"><span class="annot"><a href="Effects.Optparse.html#execParser"><span class="hs-identifier hs-type">execParser</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span id="local-6989586621679075143"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/ba4ilhsj4ynnzlcnpnazkp0771iw1yc8-optparse-applicative-0.18.1.0-doc/share/doc/optparse-applicative-0.18.1.0/html/src/Options.Applicative.Types.html#ParserInfo"><span class="hs-identifier hs-type">ParserInfo</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679075143"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679075141"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679075143"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span>  </span><span class="hs-comment">-- | Lifted 'OA.customExecParser'.</span><span>
+</span><span id="line-37"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-38"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-39"></span><span>  </span><span id="customExecParser"><span class="annot"><a href="Effects.Optparse.html#customExecParser"><span class="hs-identifier hs-type">customExecParser</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span id="local-6989586621679075146"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/ba4ilhsj4ynnzlcnpnazkp0771iw1yc8-optparse-applicative-0.18.1.0-doc/share/doc/optparse-applicative-0.18.1.0/html/src/Options.Applicative.Types.html#ParserPrefs"><span class="hs-identifier hs-type">ParserPrefs</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/ba4ilhsj4ynnzlcnpnazkp0771iw1yc8-optparse-applicative-0.18.1.0-doc/share/doc/optparse-applicative-0.18.1.0/html/src/Options.Applicative.Types.html#ParserInfo"><span class="hs-identifier hs-type">ParserInfo</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679075146"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679075141"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679075146"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-40"></span><span>
+</span><span id="line-41"></span><span>  </span><span class="hs-comment">-- | Lifted 'OA.handleParseResult'.</span><span>
+</span><span id="line-42"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-43"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-44"></span><span>  </span><span id="handleParseResult"><span class="annot"><a href="Effects.Optparse.html#handleParseResult"><span class="hs-identifier hs-type">handleParseResult</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span id="local-6989586621679075147"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/ba4ilhsj4ynnzlcnpnazkp0771iw1yc8-optparse-applicative-0.18.1.0-doc/share/doc/optparse-applicative-0.18.1.0/html/src/Options.Applicative.Types.html#ParserResult"><span class="hs-identifier hs-type">ParserResult</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679075147"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679075141"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679075147"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-47"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Effects.Optparse.html#MonadOptparse"><span class="hs-identifier hs-type">MonadOptparse</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-48"></span><span>  </span><span id="local-6989586621679075209"><span class="annot"><span class="annottext">execParser :: forall a. HasCallStack =&gt; ParserInfo a -&gt; IO a
+</span><a href="Effects.Optparse.html#execParser"><span class="hs-identifier hs-var hs-var hs-var">execParser</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParserInfo a -&gt; IO a
+forall a. ParserInfo a -&gt; IO a
+</span><a href="file:///nix/store/ba4ilhsj4ynnzlcnpnazkp0771iw1yc8-optparse-applicative-0.18.1.0-doc/share/doc/optparse-applicative-0.18.1.0/html/src/Options.Applicative.Extra.html#execParser"><span class="hs-identifier hs-var">OA.execParser</span></a></span><span>
+</span><span id="line-49"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Optparse.html#execParser"><span class="hs-pragma hs-type">execParser</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-50"></span><span>  </span><span id="local-6989586621679075212"><span class="annot"><span class="annottext">customExecParser :: forall a. HasCallStack =&gt; ParserPrefs -&gt; ParserInfo a -&gt; IO a
+</span><a href="Effects.Optparse.html#customExecParser"><span class="hs-identifier hs-var hs-var hs-var">customExecParser</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParserPrefs -&gt; ParserInfo a -&gt; IO a
+forall a. ParserPrefs -&gt; ParserInfo a -&gt; IO a
+</span><a href="file:///nix/store/ba4ilhsj4ynnzlcnpnazkp0771iw1yc8-optparse-applicative-0.18.1.0-doc/share/doc/optparse-applicative-0.18.1.0/html/src/Options.Applicative.Extra.html#customExecParser"><span class="hs-identifier hs-var">OA.customExecParser</span></a></span><span>
+</span><span id="line-51"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Optparse.html#customExecParser"><span class="hs-pragma hs-type">customExecParser</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-52"></span><span>  </span><span id="local-6989586621679075215"><span class="annot"><span class="annottext">handleParseResult :: forall a. HasCallStack =&gt; ParserResult a -&gt; IO a
+</span><a href="Effects.Optparse.html#handleParseResult"><span class="hs-identifier hs-var hs-var hs-var">handleParseResult</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParserResult a -&gt; IO a
+forall a. ParserResult a -&gt; IO a
+</span><a href="file:///nix/store/ba4ilhsj4ynnzlcnpnazkp0771iw1yc8-optparse-applicative-0.18.1.0-doc/share/doc/optparse-applicative-0.18.1.0/html/src/Options.Applicative.Extra.html#handleParseResult"><span class="hs-identifier hs-var">OA.handleParseResult</span></a></span><span>
+</span><span id="line-53"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Optparse.html#handleParseResult"><span class="hs-pragma hs-type">handleParseResult</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-54"></span><span>
+</span><span id="line-55"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-56"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679075160"><span id="local-6989586621679075161"><span class="hs-special">(</span><span class="annot"><a href="Effects.Optparse.html#MonadOptparse"><span class="hs-identifier hs-type">MonadOptparse</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679075160"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Effects.Optparse.html#MonadOptparse"><span class="hs-identifier hs-type">MonadOptparse</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ReaderT</span></span><span> </span><span class="annot"><a href="#local-6989586621679075161"><span class="hs-identifier hs-type">env</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679075160"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-57"></span><span>  </span><span id="local-6989586621679075233"><span class="annot"><span class="annottext">execParser :: forall a. HasCallStack =&gt; ParserInfo a -&gt; ReaderT env m a
+</span><a href="Effects.Optparse.html#execParser"><span class="hs-identifier hs-var hs-var hs-var">execParser</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m a -&gt; ReaderT env m a
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m a -&gt; ReaderT env m a)
+-&gt; (ParserInfo a -&gt; m a) -&gt; ParserInfo a -&gt; ReaderT env m a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ParserInfo a -&gt; m a
+forall a. HasCallStack =&gt; ParserInfo a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadOptparse m, HasCallStack) =&gt;
+ParserInfo a -&gt; m a
+</span><a href="Effects.Optparse.html#execParser"><span class="hs-identifier hs-var">execParser</span></a></span><span>
+</span><span id="line-58"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Optparse.html#execParser"><span class="hs-pragma hs-type">execParser</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-59"></span><span>  </span><span id="local-6989586621679075241"><span class="annot"><span class="annottext">customExecParser :: forall a.
+HasCallStack =&gt;
+ParserPrefs -&gt; ParserInfo a -&gt; ReaderT env m a
+</span><a href="Effects.Optparse.html#customExecParser"><span class="hs-identifier hs-var hs-var hs-var">customExecParser</span></a></span></span><span> </span><span id="local-6989586621679075242"><span class="annot"><span class="annottext">ParserPrefs
+</span><a href="#local-6989586621679075242"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m a -&gt; ReaderT env m a
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m a -&gt; ReaderT env m a)
+-&gt; (ParserInfo a -&gt; m a) -&gt; ParserInfo a -&gt; ReaderT env m a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ParserPrefs -&gt; ParserInfo a -&gt; m a
+forall a. HasCallStack =&gt; ParserPrefs -&gt; ParserInfo a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadOptparse m, HasCallStack) =&gt;
+ParserPrefs -&gt; ParserInfo a -&gt; m a
+</span><a href="Effects.Optparse.html#customExecParser"><span class="hs-identifier hs-var">customExecParser</span></a></span><span> </span><span class="annot"><span class="annottext">ParserPrefs
+</span><a href="#local-6989586621679075242"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-60"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Optparse.html#customExecParser"><span class="hs-pragma hs-type">customExecParser</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-61"></span><span>  </span><span id="local-6989586621679075249"><span class="annot"><span class="annottext">handleParseResult :: forall a. HasCallStack =&gt; ParserResult a -&gt; ReaderT env m a
+</span><a href="Effects.Optparse.html#handleParseResult"><span class="hs-identifier hs-var hs-var hs-var">handleParseResult</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m a -&gt; ReaderT env m a
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m a -&gt; ReaderT env m a)
+-&gt; (ParserResult a -&gt; m a) -&gt; ParserResult a -&gt; ReaderT env m a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ParserResult a -&gt; m a
+forall a. HasCallStack =&gt; ParserResult a -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadOptparse m, HasCallStack) =&gt;
+ParserResult a -&gt; m a
+</span><a href="Effects.Optparse.html#handleParseResult"><span class="hs-identifier hs-var">handleParseResult</span></a></span><span>
+</span><span id="line-62"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Optparse.html#handleParseResult"><span class="hs-pragma hs-type">handleParseResult</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span><span class="hs-comment">-- | 'OsPath' 'OA.Option' reader.</span><span>
+</span><span id="line-65"></span><span class="hs-comment">--</span><span>
+</span><span id="line-66"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-67"></span><span class="annot"><a href="Effects.Optparse.html#osPath"><span class="hs-identifier hs-type">osPath</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/ba4ilhsj4ynnzlcnpnazkp0771iw1yc8-optparse-applicative-0.18.1.0-doc/share/doc/optparse-applicative-0.18.1.0/html/src/Options.Applicative.Types.html#ReadM"><span class="hs-identifier hs-type">ReadM</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span>
+</span><span id="line-68"></span><span id="osPath"><span class="annot"><span class="annottext">osPath :: ReadM OsPath
+</span><a href="Effects.Optparse.html#osPath"><span class="hs-identifier hs-var hs-var">osPath</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ReadM FilePath
+forall s. IsString s =&gt; ReadM s
+</span><a href="file:///nix/store/ba4ilhsj4ynnzlcnpnazkp0771iw1yc8-optparse-applicative-0.18.1.0-doc/share/doc/optparse-applicative-0.18.1.0/html/src/Options.Applicative.Builder.html#str"><span class="hs-identifier hs-var">OA.str</span></a></span><span> </span><span class="annot"><span class="annottext">ReadM FilePath -&gt; (FilePath -&gt; ReadM OsPath) -&gt; ReadM OsPath
+forall a b. ReadM a -&gt; (a -&gt; ReadM b) -&gt; ReadM b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; ReadM OsPath
+forall (m :: * -&gt; *).
+(HasCallStack, MonadFail m) =&gt;
+FilePath -&gt; m OsPath
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.OsPath.html#encodeFail"><span class="hs-identifier hs-var">FS.OsPath.encodeFail</span></a></span><span>
+</span><span id="line-69"></span><span>
+</span><span id="line-70"></span><span class="hs-comment">-- | 'OsPath' 'OA.Option' reader. This includes validation i.e. fails if the</span><span>
+</span><span id="line-71"></span><span class="hs-comment">-- path is considered invalid on the given platform.</span><span>
+</span><span id="line-72"></span><span class="hs-comment">--</span><span>
+</span><span id="line-73"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-74"></span><span class="annot"><a href="Effects.Optparse.html#validOsPath"><span class="hs-identifier hs-type">validOsPath</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/ba4ilhsj4ynnzlcnpnazkp0771iw1yc8-optparse-applicative-0.18.1.0-doc/share/doc/optparse-applicative-0.18.1.0/html/src/Options.Applicative.Types.html#ReadM"><span class="hs-identifier hs-type">ReadM</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span>
+</span><span id="line-75"></span><span id="validOsPath"><span class="annot"><span class="annottext">validOsPath :: ReadM OsPath
+</span><a href="Effects.Optparse.html#validOsPath"><span class="hs-identifier hs-var hs-var">validOsPath</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ReadM FilePath
+forall s. IsString s =&gt; ReadM s
+</span><a href="file:///nix/store/ba4ilhsj4ynnzlcnpnazkp0771iw1yc8-optparse-applicative-0.18.1.0-doc/share/doc/optparse-applicative-0.18.1.0/html/src/Options.Applicative.Builder.html#str"><span class="hs-identifier hs-var">OA.str</span></a></span><span> </span><span class="annot"><span class="annottext">ReadM FilePath -&gt; (FilePath -&gt; ReadM OsPath) -&gt; ReadM OsPath
+forall a b. ReadM a -&gt; (a -&gt; ReadM b) -&gt; ReadM b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; ReadM OsPath
+forall (m :: * -&gt; *).
+(HasCallStack, MonadFail m) =&gt;
+FilePath -&gt; m OsPath
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.OsPath.html#encodeValidFail"><span class="hs-identifier hs-var">FS.OsPath.encodeValidFail</span></a></span><span>
+</span><span id="line-76"></span></pre></body></html>

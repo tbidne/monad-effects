@@ -1,0 +1,435 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- | Provides the MonadFileWriter effect.</span><span>
+</span><span id="line-2"></span><span class="hs-comment">--</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html"><span class="hs-identifier">Effects.FileSystem.HandleWriter</span></a></span><span>
+</span><span id="line-5"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Effect</span></span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#MonadHandleWriter"><span class="hs-identifier">MonadHandleWriter</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-7"></span><span>    </span><span class="annot"><span class="hs-identifier">OsPath</span></span><span class="hs-special">,</span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><span class="hs-comment">-- * UTF-8 Utils</span></span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hPutUtf8"><span class="hs-identifier">hPutUtf8</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-11"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hPutNonBlockingUtf8"><span class="hs-identifier">hPutNonBlockingUtf8</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Misc</span></span><span>
+</span><span id="line-14"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#die"><span class="hs-identifier">die</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Reexports</span></span><span>
+</span><span id="line-17"></span><span>    </span><span class="annot"><span class="hs-identifier">BufferMode</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-18"></span><span>    </span><span class="annot"><span class="hs-identifier">ByteString</span></span><span class="hs-special">,</span><span>
+</span><span id="line-19"></span><span>    </span><span class="annot"><span class="hs-identifier">IOMode</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-20"></span><span>    </span><span class="annot"><span class="hs-identifier">Handle</span></span><span class="hs-special">,</span><span>
+</span><span id="line-21"></span><span>    </span><span class="annot"><span class="hs-identifier">SeekMode</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-22"></span><span>    </span><span class="annot"><span class="hs-identifier">Text</span></span><span class="hs-special">,</span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-24"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-25"></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/exception-utils-0.1-dd03d7295d91bc4bb634f8360b905a9811868702b9c94b9cd3403d099e75c774/share/doc/html/src/Control.Exception.Utils.html"><span class="hs-identifier">Control.Exception.Utils</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/exception-utils-0.1-dd03d7295d91bc4bb634f8360b905a9811868702b9c94b9cd3403d099e75c774/share/doc/html/src/Control.Exception.Utils.html#exitFailure"><span class="hs-identifier">exitFailure</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Catch</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadThrow</span></span><span class="hs-special">)</span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Class</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadTrans</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">lift</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Reader</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ReaderT</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">ask</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">runReaderT</span></span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ByteString</span></span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">BS</span></span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString.Char8</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Char8</span></span><span>
+</span><span id="line-33"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Text</span></span><span class="hs-special">)</span><span>
+</span><span id="line-34"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.IO.html"><span class="hs-identifier">FileSystem.IO</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">FS.IO</span></span><span>
+</span><span id="line-35"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.OsPath.html"><span class="hs-identifier">FileSystem.OsPath</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">OsPath</span></span><span class="hs-special">)</span><span>
+</span><span id="line-36"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.UTF8.html"><span class="hs-identifier">FileSystem.UTF8</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">FS.UTF8</span></span><span>
+</span><span id="line-37"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Stack</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">HasCallStack</span></span><span class="hs-special">)</span><span>
+</span><span id="line-38"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.IO</span></span><span>
+</span><span id="line-39"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">BufferMode</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">BlockBuffering</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">LineBuffering</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">NoBuffering</span></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-40"></span><span>    </span><span class="annot"><span class="hs-identifier">Handle</span></span><span class="hs-special">,</span><span>
+</span><span id="line-41"></span><span>    </span><span class="annot"><span class="hs-identifier">IOMode</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">AppendMode</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">ReadMode</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">ReadWriteMode</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">WriteMode</span></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-42"></span><span>    </span><span class="annot"><span class="hs-identifier">SeekMode</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">AbsoluteSeek</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">RelativeSeek</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">SeekFromEnd</span></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-43"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-44"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.IO</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">IO</span></span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- | Represents handle writer effects.</span><span>
+</span><span id="line-47"></span><span class="hs-comment">--</span><span>
+</span><span id="line-48"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-49"></span><span class="hs-keyword">class</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Monad</span></span><span> </span><span class="annot"><a href="#local-6989586621679096205"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span id="MonadHandleWriter"><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#MonadHandleWriter"><span class="hs-identifier hs-var">MonadHandleWriter</span></a></span></span><span> </span><span id="local-6989586621679096205"><span class="annot"><a href="#local-6989586621679096205"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-50"></span><span>  </span><span class="hs-comment">-- | Lifted 'FsUtils.openBinaryFileIO'.</span><span>
+</span><span id="line-51"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-52"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-53"></span><span>  </span><span id="openBinaryFile"><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#openBinaryFile"><span class="hs-identifier hs-type">openBinaryFile</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IOMode</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679096205"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span>
+</span><span id="line-54"></span><span>
+</span><span id="line-55"></span><span>  </span><span class="hs-comment">-- | Lifted 'FsUtils.withBinaryFileIO'.</span><span>
+</span><span id="line-56"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-57"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-58"></span><span>  </span><span id="withBinaryFile"><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#withBinaryFile"><span class="hs-identifier hs-type">withBinaryFile</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span id="local-6989586621679096211"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IOMode</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679096205"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679096211"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679096205"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679096211"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-59"></span><span>
+</span><span id="line-60"></span><span>  </span><span class="hs-comment">-- | Lifted 'IO.hClose'.</span><span>
+</span><span id="line-61"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-62"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-63"></span><span>  </span><span id="hClose"><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hClose"><span class="hs-identifier hs-type">hClose</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679096205"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-64"></span><span>
+</span><span id="line-65"></span><span>  </span><span class="hs-comment">-- | Lifted 'IO.hFlush'.</span><span>
+</span><span id="line-66"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-67"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-68"></span><span>  </span><span id="hFlush"><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hFlush"><span class="hs-identifier hs-type">hFlush</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679096205"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-69"></span><span>
+</span><span id="line-70"></span><span>  </span><span class="hs-comment">-- | Lifted 'IO.hSetFileSize'.</span><span>
+</span><span id="line-71"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-72"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-73"></span><span>  </span><span id="hSetFileSize"><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hSetFileSize"><span class="hs-identifier hs-type">hSetFileSize</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Integer</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679096205"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-74"></span><span>
+</span><span id="line-75"></span><span>  </span><span class="hs-comment">-- | Lifted 'IO.hSetBuffering'.</span><span>
+</span><span id="line-76"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-77"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-78"></span><span>  </span><span id="hSetBuffering"><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hSetBuffering"><span class="hs-identifier hs-type">hSetBuffering</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">BufferMode</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679096205"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-79"></span><span>
+</span><span id="line-80"></span><span>  </span><span class="hs-comment">-- | Lifted 'IO.hSeek'.</span><span>
+</span><span id="line-81"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-82"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-83"></span><span>  </span><span id="hSeek"><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hSeek"><span class="hs-identifier hs-type">hSeek</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">SeekMode</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Integer</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679096205"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-84"></span><span>
+</span><span id="line-85"></span><span>  </span><span class="hs-comment">-- | Lifted 'IO.hTell'.</span><span>
+</span><span id="line-86"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-87"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-88"></span><span>  </span><span id="hTell"><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hTell"><span class="hs-identifier hs-type">hTell</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679096205"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Integer</span></span><span>
+</span><span id="line-89"></span><span>
+</span><span id="line-90"></span><span>  </span><span class="hs-comment">-- | Lifted 'IO.hSetEcho'.</span><span>
+</span><span id="line-91"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-92"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-93"></span><span>  </span><span id="hSetEcho"><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hSetEcho"><span class="hs-identifier hs-type">hSetEcho</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679096205"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-94"></span><span>
+</span><span id="line-95"></span><span>  </span><span class="hs-comment">-- | Lifted 'BS.hPut'.</span><span>
+</span><span id="line-96"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-97"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-98"></span><span>  </span><span id="hPut"><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hPut"><span class="hs-identifier hs-type">hPut</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ByteString</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679096205"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-99"></span><span>
+</span><span id="line-100"></span><span>  </span><span class="hs-comment">-- | Lifted 'BS.hPutNonBlocking'.</span><span>
+</span><span id="line-101"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-102"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-103"></span><span>  </span><span id="hPutNonBlocking"><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hPutNonBlocking"><span class="hs-identifier hs-type">hPutNonBlocking</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ByteString</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679096205"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">ByteString</span></span><span>
+</span><span id="line-104"></span><span>
+</span><span id="line-105"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-106"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#MonadHandleWriter"><span class="hs-identifier hs-type">MonadHandleWriter</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-107"></span><span>  </span><span id="local-6989586621679096302"><span class="annot"><span class="annottext">openBinaryFile :: HasCallStack =&gt; OsPath -&gt; IOMode -&gt; IO Handle
+</span><a href="Effects.FileSystem.HandleWriter.html#openBinaryFile"><span class="hs-identifier hs-var hs-var hs-var">openBinaryFile</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; IOMode -&gt; IO Handle
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.IO.html#openBinaryFileIO"><span class="hs-identifier hs-var">FS.IO.openBinaryFileIO</span></a></span><span>
+</span><span id="line-108"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#openBinaryFile"><span class="hs-pragma hs-type">openBinaryFile</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-109"></span><span>  </span><span id="local-6989586621679096305"><span class="annot"><span class="annottext">withBinaryFile :: forall a.
+HasCallStack =&gt;
+OsPath -&gt; IOMode -&gt; (Handle -&gt; IO a) -&gt; IO a
+</span><a href="Effects.FileSystem.HandleWriter.html#withBinaryFile"><span class="hs-identifier hs-var hs-var hs-var">withBinaryFile</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; IOMode -&gt; (Handle -&gt; IO a) -&gt; IO a
+forall a. OsPath -&gt; IOMode -&gt; (Handle -&gt; IO a) -&gt; IO a
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/fs-utils-0.1-1cacf14b34b59da1c26b7b3c7a55a892ec2dc6ffdc3dce0fb0e256982e176006/share/doc/html/src/FileSystem.IO.html#withBinaryFileIO"><span class="hs-identifier hs-var">FS.IO.withBinaryFileIO</span></a></span><span>
+</span><span id="line-110"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#withBinaryFile"><span class="hs-pragma hs-type">withBinaryFile</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-111"></span><span>  </span><span id="local-6989586621679096308"><span class="annot"><span class="annottext">hClose :: HasCallStack =&gt; Handle -&gt; IO ()
+</span><a href="Effects.FileSystem.HandleWriter.html#hClose"><span class="hs-identifier hs-var hs-var hs-var">hClose</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; IO ()
+</span><span class="hs-identifier hs-var">IO.hClose</span></span><span>
+</span><span id="line-112"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hClose"><span class="hs-pragma hs-type">hClose</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-113"></span><span>  </span><span id="local-6989586621679096311"><span class="annot"><span class="annottext">hFlush :: HasCallStack =&gt; Handle -&gt; IO ()
+</span><a href="Effects.FileSystem.HandleWriter.html#hFlush"><span class="hs-identifier hs-var hs-var hs-var">hFlush</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; IO ()
+</span><span class="hs-identifier hs-var">IO.hFlush</span></span><span>
+</span><span id="line-114"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hFlush"><span class="hs-pragma hs-type">hFlush</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-115"></span><span>  </span><span id="local-6989586621679096314"><span class="annot"><span class="annottext">hSetFileSize :: HasCallStack =&gt; Handle -&gt; Integer -&gt; IO ()
+</span><a href="Effects.FileSystem.HandleWriter.html#hSetFileSize"><span class="hs-identifier hs-var hs-var hs-var">hSetFileSize</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; Integer -&gt; IO ()
+</span><span class="hs-identifier hs-var">IO.hSetFileSize</span></span><span>
+</span><span id="line-116"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hSetFileSize"><span class="hs-pragma hs-type">hSetFileSize</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-117"></span><span>  </span><span id="local-6989586621679096317"><span class="annot"><span class="annottext">hSetBuffering :: HasCallStack =&gt; Handle -&gt; BufferMode -&gt; IO ()
+</span><a href="Effects.FileSystem.HandleWriter.html#hSetBuffering"><span class="hs-identifier hs-var hs-var hs-var">hSetBuffering</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; BufferMode -&gt; IO ()
+</span><span class="hs-identifier hs-var">IO.hSetBuffering</span></span><span>
+</span><span id="line-118"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hSetBuffering"><span class="hs-pragma hs-type">hSetBuffering</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-119"></span><span>  </span><span id="local-6989586621679096320"><span class="annot"><span class="annottext">hSeek :: HasCallStack =&gt; Handle -&gt; SeekMode -&gt; Integer -&gt; IO ()
+</span><a href="Effects.FileSystem.HandleWriter.html#hSeek"><span class="hs-identifier hs-var hs-var hs-var">hSeek</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; SeekMode -&gt; Integer -&gt; IO ()
+</span><span class="hs-identifier hs-var">IO.hSeek</span></span><span>
+</span><span id="line-120"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hSeek"><span class="hs-pragma hs-type">hSeek</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-121"></span><span>  </span><span id="local-6989586621679096323"><span class="annot"><span class="annottext">hTell :: HasCallStack =&gt; Handle -&gt; IO Integer
+</span><a href="Effects.FileSystem.HandleWriter.html#hTell"><span class="hs-identifier hs-var hs-var hs-var">hTell</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; IO Integer
+</span><span class="hs-identifier hs-var">IO.hTell</span></span><span>
+</span><span id="line-122"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hTell"><span class="hs-pragma hs-type">hTell</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-123"></span><span>  </span><span id="local-6989586621679096326"><span class="annot"><span class="annottext">hSetEcho :: HasCallStack =&gt; Handle -&gt; Bool -&gt; IO ()
+</span><a href="Effects.FileSystem.HandleWriter.html#hSetEcho"><span class="hs-identifier hs-var hs-var hs-var">hSetEcho</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; Bool -&gt; IO ()
+</span><span class="hs-identifier hs-var">IO.hSetEcho</span></span><span>
+</span><span id="line-124"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hSetEcho"><span class="hs-pragma hs-type">hSetEcho</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-125"></span><span>  </span><span id="local-6989586621679096329"><span class="annot"><span class="annottext">hPut :: HasCallStack =&gt; Handle -&gt; ByteString -&gt; IO ()
+</span><a href="Effects.FileSystem.HandleWriter.html#hPut"><span class="hs-identifier hs-var hs-var hs-var">hPut</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; ByteString -&gt; IO ()
+</span><span class="hs-identifier hs-var">BS.hPut</span></span><span>
+</span><span id="line-126"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hPut"><span class="hs-pragma hs-type">hPut</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-127"></span><span>  </span><span id="local-6989586621679096332"><span class="annot"><span class="annottext">hPutNonBlocking :: HasCallStack =&gt; Handle -&gt; ByteString -&gt; IO ByteString
+</span><a href="Effects.FileSystem.HandleWriter.html#hPutNonBlocking"><span class="hs-identifier hs-var hs-var hs-var">hPutNonBlocking</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; ByteString -&gt; IO ByteString
+</span><span class="hs-identifier hs-var">BS.hPutNonBlocking</span></span><span>
+</span><span id="line-128"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hPutNonBlocking"><span class="hs-pragma hs-type">hPutNonBlocking</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-129"></span><span>
+</span><span id="line-130"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-131"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679096222"><span id="local-6989586621679096223"><span class="hs-special">(</span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#MonadHandleWriter"><span class="hs-identifier hs-type">MonadHandleWriter</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679096222"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#MonadHandleWriter"><span class="hs-identifier hs-type">MonadHandleWriter</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ReaderT</span></span><span> </span><span class="annot"><a href="#local-6989586621679096223"><span class="hs-identifier hs-type">env</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679096222"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-132"></span><span>  </span><span id="local-6989586621679096358"><span class="annot"><span class="annottext">openBinaryFile :: HasCallStack =&gt; OsPath -&gt; IOMode -&gt; ReaderT env m Handle
+</span><a href="Effects.FileSystem.HandleWriter.html#openBinaryFile"><span class="hs-identifier hs-var hs-var hs-var">openBinaryFile</span></a></span></span><span> </span><span id="local-6989586621679096359"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679096359"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Handle -&gt; ReaderT env m Handle
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m Handle -&gt; ReaderT env m Handle)
+-&gt; (IOMode -&gt; m Handle) -&gt; IOMode -&gt; ReaderT env m Handle
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; IOMode -&gt; m Handle
+forall (m :: * -&gt; *).
+(MonadHandleWriter m, HasCallStack) =&gt;
+OsPath -&gt; IOMode -&gt; m Handle
+</span><a href="Effects.FileSystem.HandleWriter.html#openBinaryFile"><span class="hs-identifier hs-var">openBinaryFile</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679096359"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-133"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#openBinaryFile"><span class="hs-pragma hs-type">openBinaryFile</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-134"></span><span>  </span><span id="local-6989586621679096369"><span class="annot"><span class="annottext">withBinaryFile :: forall a.
+HasCallStack =&gt;
+OsPath -&gt; IOMode -&gt; (Handle -&gt; ReaderT env m a) -&gt; ReaderT env m a
+</span><a href="Effects.FileSystem.HandleWriter.html#withBinaryFile"><span class="hs-identifier hs-var hs-var hs-var">withBinaryFile</span></a></span></span><span> </span><span id="local-6989586621679096370"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679096370"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679096371"><span class="annot"><span class="annottext">IOMode
+</span><a href="#local-6989586621679096371"><span class="hs-identifier hs-var">m</span></a></span></span><span> </span><span id="local-6989586621679096372"><span class="annot"><span class="annottext">Handle -&gt; ReaderT env m a
+</span><a href="#local-6989586621679096372"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-135"></span><span>    </span><span class="annot"><span class="annottext">ReaderT env m env
+forall (m :: * -&gt; *) r. Monad m =&gt; ReaderT r m r
+</span><span class="hs-identifier hs-var">ask</span></span><span> </span><span class="annot"><span class="annottext">ReaderT env m env -&gt; (env -&gt; ReaderT env m a) -&gt; ReaderT env m a
+forall a b.
+ReaderT env m a -&gt; (a -&gt; ReaderT env m b) -&gt; ReaderT env m b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="annot"><span class="annottext">m a -&gt; ReaderT env m a
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m a -&gt; ReaderT env m a) -&gt; (env -&gt; m a) -&gt; env -&gt; ReaderT env m a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679096373"><span class="annot"><span class="annottext">env
+</span><a href="#local-6989586621679096373"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; IOMode -&gt; (Handle -&gt; m a) -&gt; m a
+forall a.
+HasCallStack =&gt;
+OsPath -&gt; IOMode -&gt; (Handle -&gt; m a) -&gt; m a
+forall (m :: * -&gt; *) a.
+(MonadHandleWriter m, HasCallStack) =&gt;
+OsPath -&gt; IOMode -&gt; (Handle -&gt; m a) -&gt; m a
+</span><a href="Effects.FileSystem.HandleWriter.html#withBinaryFile"><span class="hs-identifier hs-var">withBinaryFile</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679096370"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">IOMode
+</span><a href="#local-6989586621679096371"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="annottext">ReaderT env m a -&gt; env -&gt; m a
+forall r (m :: * -&gt; *) a. ReaderT r m a -&gt; r -&gt; m a
+</span><span class="hs-operator hs-var">`runReaderT`</span></span><span> </span><span class="annot"><span class="annottext">env
+</span><a href="#local-6989586621679096373"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(ReaderT env m a -&gt; m a)
+-&gt; (Handle -&gt; ReaderT env m a) -&gt; Handle -&gt; m a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Handle -&gt; ReaderT env m a
+</span><a href="#local-6989586621679096372"><span class="hs-identifier hs-var">f</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-136"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#withBinaryFile"><span class="hs-pragma hs-type">withBinaryFile</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-137"></span><span>  </span><span id="local-6989586621679096380"><span class="annot"><span class="annottext">hClose :: HasCallStack =&gt; Handle -&gt; ReaderT env m ()
+</span><a href="Effects.FileSystem.HandleWriter.html#hClose"><span class="hs-identifier hs-var hs-var hs-var">hClose</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT env m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT env m ())
+-&gt; (Handle -&gt; m ()) -&gt; Handle -&gt; ReaderT env m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Handle -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadHandleWriter m, HasCallStack) =&gt;
+Handle -&gt; m ()
+</span><a href="Effects.FileSystem.HandleWriter.html#hClose"><span class="hs-identifier hs-var">hClose</span></a></span><span>
+</span><span id="line-138"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hClose"><span class="hs-pragma hs-type">hClose</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-139"></span><span>  </span><span id="local-6989586621679096387"><span class="annot"><span class="annottext">hFlush :: HasCallStack =&gt; Handle -&gt; ReaderT env m ()
+</span><a href="Effects.FileSystem.HandleWriter.html#hFlush"><span class="hs-identifier hs-var hs-var hs-var">hFlush</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT env m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT env m ())
+-&gt; (Handle -&gt; m ()) -&gt; Handle -&gt; ReaderT env m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Handle -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadHandleWriter m, HasCallStack) =&gt;
+Handle -&gt; m ()
+</span><a href="Effects.FileSystem.HandleWriter.html#hFlush"><span class="hs-identifier hs-var">hFlush</span></a></span><span>
+</span><span id="line-140"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hFlush"><span class="hs-pragma hs-type">hFlush</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-141"></span><span>  </span><span id="local-6989586621679096394"><span class="annot"><span class="annottext">hSetFileSize :: HasCallStack =&gt; Handle -&gt; Integer -&gt; ReaderT env m ()
+</span><a href="Effects.FileSystem.HandleWriter.html#hSetFileSize"><span class="hs-identifier hs-var hs-var hs-var">hSetFileSize</span></a></span></span><span> </span><span id="local-6989586621679096395"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679096395"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT env m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT env m ())
+-&gt; (Integer -&gt; m ()) -&gt; Integer -&gt; ReaderT env m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Handle -&gt; Integer -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadHandleWriter m, HasCallStack) =&gt;
+Handle -&gt; Integer -&gt; m ()
+</span><a href="Effects.FileSystem.HandleWriter.html#hSetFileSize"><span class="hs-identifier hs-var">hSetFileSize</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679096395"><span class="hs-identifier hs-var">h</span></a></span><span>
+</span><span id="line-142"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hSetFileSize"><span class="hs-pragma hs-type">hSetFileSize</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-143"></span><span>  </span><span id="local-6989586621679096402"><span class="annot"><span class="annottext">hSetBuffering :: HasCallStack =&gt; Handle -&gt; BufferMode -&gt; ReaderT env m ()
+</span><a href="Effects.FileSystem.HandleWriter.html#hSetBuffering"><span class="hs-identifier hs-var hs-var hs-var">hSetBuffering</span></a></span></span><span> </span><span id="local-6989586621679096403"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679096403"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT env m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT env m ())
+-&gt; (BufferMode -&gt; m ()) -&gt; BufferMode -&gt; ReaderT env m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Handle -&gt; BufferMode -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadHandleWriter m, HasCallStack) =&gt;
+Handle -&gt; BufferMode -&gt; m ()
+</span><a href="Effects.FileSystem.HandleWriter.html#hSetBuffering"><span class="hs-identifier hs-var">hSetBuffering</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679096403"><span class="hs-identifier hs-var">h</span></a></span><span>
+</span><span id="line-144"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hSetBuffering"><span class="hs-pragma hs-type">hSetBuffering</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-145"></span><span>  </span><span id="local-6989586621679096410"><span class="annot"><span class="annottext">hSeek :: HasCallStack =&gt; Handle -&gt; SeekMode -&gt; Integer -&gt; ReaderT env m ()
+</span><a href="Effects.FileSystem.HandleWriter.html#hSeek"><span class="hs-identifier hs-var hs-var hs-var">hSeek</span></a></span></span><span> </span><span id="local-6989586621679096411"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679096411"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span id="local-6989586621679096412"><span class="annot"><span class="annottext">SeekMode
+</span><a href="#local-6989586621679096412"><span class="hs-identifier hs-var">m</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT env m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT env m ())
+-&gt; (Integer -&gt; m ()) -&gt; Integer -&gt; ReaderT env m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Handle -&gt; SeekMode -&gt; Integer -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadHandleWriter m, HasCallStack) =&gt;
+Handle -&gt; SeekMode -&gt; Integer -&gt; m ()
+</span><a href="Effects.FileSystem.HandleWriter.html#hSeek"><span class="hs-identifier hs-var">hSeek</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679096411"><span class="hs-identifier hs-var">h</span></a></span><span> </span><span class="annot"><span class="annottext">SeekMode
+</span><a href="#local-6989586621679096412"><span class="hs-identifier hs-var">m</span></a></span><span>
+</span><span id="line-146"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hSeek"><span class="hs-pragma hs-type">hSeek</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-147"></span><span>  </span><span id="local-6989586621679096419"><span class="annot"><span class="annottext">hTell :: HasCallStack =&gt; Handle -&gt; ReaderT env m Integer
+</span><a href="Effects.FileSystem.HandleWriter.html#hTell"><span class="hs-identifier hs-var hs-var hs-var">hTell</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Integer -&gt; ReaderT env m Integer
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m Integer -&gt; ReaderT env m Integer)
+-&gt; (Handle -&gt; m Integer) -&gt; Handle -&gt; ReaderT env m Integer
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Handle -&gt; m Integer
+forall (m :: * -&gt; *).
+(MonadHandleWriter m, HasCallStack) =&gt;
+Handle -&gt; m Integer
+</span><a href="Effects.FileSystem.HandleWriter.html#hTell"><span class="hs-identifier hs-var">hTell</span></a></span><span>
+</span><span id="line-148"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hTell"><span class="hs-pragma hs-type">hTell</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-149"></span><span>  </span><span id="local-6989586621679096426"><span class="annot"><span class="annottext">hSetEcho :: HasCallStack =&gt; Handle -&gt; Bool -&gt; ReaderT env m ()
+</span><a href="Effects.FileSystem.HandleWriter.html#hSetEcho"><span class="hs-identifier hs-var hs-var hs-var">hSetEcho</span></a></span></span><span> </span><span id="local-6989586621679096427"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679096427"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT env m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT env m ())
+-&gt; (Bool -&gt; m ()) -&gt; Bool -&gt; ReaderT env m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Handle -&gt; Bool -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadHandleWriter m, HasCallStack) =&gt;
+Handle -&gt; Bool -&gt; m ()
+</span><a href="Effects.FileSystem.HandleWriter.html#hSetEcho"><span class="hs-identifier hs-var">hSetEcho</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679096427"><span class="hs-identifier hs-var">h</span></a></span><span>
+</span><span id="line-150"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hSetEcho"><span class="hs-pragma hs-type">hSetEcho</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-151"></span><span>  </span><span id="local-6989586621679096434"><span class="annot"><span class="annottext">hPut :: HasCallStack =&gt; Handle -&gt; ByteString -&gt; ReaderT env m ()
+</span><a href="Effects.FileSystem.HandleWriter.html#hPut"><span class="hs-identifier hs-var hs-var hs-var">hPut</span></a></span></span><span> </span><span id="local-6989586621679096435"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679096435"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT env m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT env m ())
+-&gt; (ByteString -&gt; m ()) -&gt; ByteString -&gt; ReaderT env m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Handle -&gt; ByteString -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadHandleWriter m, HasCallStack) =&gt;
+Handle -&gt; ByteString -&gt; m ()
+</span><a href="Effects.FileSystem.HandleWriter.html#hPut"><span class="hs-identifier hs-var">hPut</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679096435"><span class="hs-identifier hs-var">h</span></a></span><span>
+</span><span id="line-152"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hPut"><span class="hs-pragma hs-type">hPut</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-153"></span><span>  </span><span id="local-6989586621679096442"><span class="annot"><span class="annottext">hPutNonBlocking :: HasCallStack =&gt; Handle -&gt; ByteString -&gt; ReaderT env m ByteString
+</span><a href="Effects.FileSystem.HandleWriter.html#hPutNonBlocking"><span class="hs-identifier hs-var hs-var hs-var">hPutNonBlocking</span></a></span></span><span> </span><span id="local-6989586621679096443"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679096443"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m ByteString -&gt; ReaderT env m ByteString
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m ByteString -&gt; ReaderT env m ByteString)
+-&gt; (ByteString -&gt; m ByteString)
+-&gt; ByteString
+-&gt; ReaderT env m ByteString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Handle -&gt; ByteString -&gt; m ByteString
+forall (m :: * -&gt; *).
+(MonadHandleWriter m, HasCallStack) =&gt;
+Handle -&gt; ByteString -&gt; m ByteString
+</span><a href="Effects.FileSystem.HandleWriter.html#hPutNonBlocking"><span class="hs-identifier hs-var">hPutNonBlocking</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679096443"><span class="hs-identifier hs-var">h</span></a></span><span>
+</span><span id="line-154"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hPutNonBlocking"><span class="hs-pragma hs-type">hPutNonBlocking</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-155"></span><span>
+</span><span id="line-156"></span><span class="hs-comment">-- | Writes the UTF-8 text to the handle.</span><span>
+</span><span id="line-157"></span><span class="hs-comment">--</span><span>
+</span><span id="line-158"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-159"></span><span id="local-6989586621679096241"><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hPutUtf8"><span class="hs-identifier hs-type">hPutUtf8</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#MonadHandleWriter"><span class="hs-identifier hs-type">MonadHandleWriter</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679096241"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679096241"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-160"></span><span id="hPutUtf8"><span class="annot"><span class="annottext">hPutUtf8 :: forall (m :: * -&gt; *).
+(HasCallStack, MonadHandleWriter m) =&gt;
+Handle -&gt; Text -&gt; m ()
+</span><a href="Effects.FileSystem.HandleWriter.html#hPutUtf8"><span class="hs-identifier hs-var hs-var">hPutUtf8</span></a></span></span><span> </span><span id="local-6989586621679096449"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679096449"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; ByteString -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadHandleWriter m, HasCallStack) =&gt;
+Handle -&gt; ByteString -&gt; m ()
+</span><a href="Effects.FileSystem.HandleWriter.html#hPut"><span class="hs-identifier hs-var">hPut</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679096449"><span class="hs-identifier hs-var">h</span></a></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; m ()) -&gt; (Text -&gt; ByteString) -&gt; Text -&gt; m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; ByteString
+</span><span class="hs-identifier hs-var">FS.UTF8.encodeUtf8</span></span><span>
+</span><span id="line-161"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hPutUtf8"><span class="hs-pragma hs-type">hPutUtf8</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-162"></span><span>
+</span><span id="line-163"></span><span class="hs-comment">-- | Writes UTF-8 text to handle, returning leftover bytes.</span><span>
+</span><span id="line-164"></span><span class="hs-comment">--</span><span>
+</span><span id="line-165"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-166"></span><span id="local-6989586621679096244"><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hPutNonBlockingUtf8"><span class="hs-identifier hs-type">hPutNonBlockingUtf8</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-167"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span>
+</span><span id="line-168"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#MonadHandleWriter"><span class="hs-identifier hs-type">MonadHandleWriter</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679096244"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-169"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-170"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-171"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-172"></span><span>  </span><span class="annot"><a href="#local-6989586621679096244"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">ByteString</span></span></span><span>
+</span><span id="line-173"></span><span id="hPutNonBlockingUtf8"><span class="annot"><span class="annottext">hPutNonBlockingUtf8 :: forall (m :: * -&gt; *).
+(HasCallStack, MonadHandleWriter m) =&gt;
+Handle -&gt; Text -&gt; m ByteString
+</span><a href="Effects.FileSystem.HandleWriter.html#hPutNonBlockingUtf8"><span class="hs-identifier hs-var hs-var">hPutNonBlockingUtf8</span></a></span></span><span> </span><span id="local-6989586621679096456"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679096456"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; ByteString -&gt; m ByteString
+forall (m :: * -&gt; *).
+(MonadHandleWriter m, HasCallStack) =&gt;
+Handle -&gt; ByteString -&gt; m ByteString
+</span><a href="Effects.FileSystem.HandleWriter.html#hPutNonBlocking"><span class="hs-identifier hs-var">hPutNonBlocking</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679096456"><span class="hs-identifier hs-var">h</span></a></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; m ByteString)
+-&gt; (Text -&gt; ByteString) -&gt; Text -&gt; m ByteString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; ByteString
+</span><span class="hs-identifier hs-var">FS.UTF8.encodeUtf8</span></span><span>
+</span><span id="line-174"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#hPutNonBlockingUtf8"><span class="hs-pragma hs-type">hPutNonBlockingUtf8</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-175"></span><span>
+</span><span id="line-176"></span><span class="hs-comment">-- | Write given error message to 'IO.stderr' and terminate with `exitFailure`.</span><span>
+</span><span id="line-177"></span><span class="hs-comment">--</span><span>
+</span><span id="line-178"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-179"></span><span id="local-6989586621679096246"><span id="local-6989586621679096248"><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#die"><span class="hs-identifier hs-type">die</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.FileSystem.HandleWriter.html#MonadHandleWriter"><span class="hs-identifier hs-type">MonadHandleWriter</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679096246"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadThrow</span></span><span> </span><span class="annot"><a href="#local-6989586621679096246"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679096246"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679096248"><span class="hs-identifier hs-type">a</span></a></span></span></span><span>
+</span><span id="line-180"></span><span id="die"><span class="annot"><span class="annottext">die :: forall (m :: * -&gt; *) a.
+(HasCallStack, MonadHandleWriter m, MonadThrow m) =&gt;
+String -&gt; m a
+</span><a href="Effects.FileSystem.HandleWriter.html#die"><span class="hs-identifier hs-var hs-var">die</span></a></span></span><span> </span><span id="local-6989586621679096471"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679096471"><span class="hs-identifier hs-var">err</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; ByteString -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadHandleWriter m, HasCallStack) =&gt;
+Handle -&gt; ByteString -&gt; m ()
+</span><a href="Effects.FileSystem.HandleWriter.html#hPut"><span class="hs-identifier hs-var">hPut</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><span class="hs-identifier hs-var">IO.stderr</span></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679096472"><span class="hs-identifier hs-var">err'</span></a></span><span> </span><span class="annot"><span class="annottext">m () -&gt; m a -&gt; m a
+forall a b. m a -&gt; m b -&gt; m b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">m a
+forall (m :: * -&gt; *) a. (HasCallStack, MonadThrow m) =&gt; m a
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-c88f/exception-utils-0.1-dd03d7295d91bc4bb634f8360b905a9811868702b9c94b9cd3403d099e75c774/share/doc/html/src/Control.Exception.Utils.html#exitFailure"><span class="hs-identifier hs-var">exitFailure</span></a></span><span>
+</span><span id="line-181"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-182"></span><span>    </span><span id="local-6989586621679096472"><span class="annot"><span class="annottext">err' :: ByteString
+</span><a href="#local-6989586621679096472"><span class="hs-identifier hs-var hs-var">err'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; ByteString
+</span><span class="hs-identifier hs-var">Char8.pack</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679096471"><span class="hs-identifier hs-var">err</span></a></span><span>
+</span><span id="line-183"></span></pre></body></html>
