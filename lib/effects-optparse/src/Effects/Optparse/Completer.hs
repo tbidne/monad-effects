@@ -6,6 +6,7 @@ module Effects.Optparse.Completer
 
     -- ** Aggregate completers
     compgenCwdPathsCompleter,
+    compgenCwdDirsCompleter,
     compgenCwdPathsSuffixCompleter,
 
     -- ** Compen
@@ -13,6 +14,7 @@ module Effects.Optparse.Completer
 
     -- ** Pure haskell
     cwdPathsCompleter,
+    cwdDirsCompleter,
     cwdPathsCompleterFilter,
 
     -- * Misc
@@ -40,13 +42,19 @@ import System.Process qualified as P
 compgenCwdPathsCompleter :: Completer
 compgenCwdPathsCompleter = bashCompleterQuiet "file" <> cwdPathsCompleter
 
+-- | Like 'compgenCwdPathsCompleter' but returns directories only.
+--
+-- @since 0.1
+compgenCwdDirsCompleter :: Completer
+compgenCwdDirsCompleter = bashCompleterQuiet "directory" <> cwdDirsCompleter
+
 -- | 'compgenCwdPathsCompleter' that filters on the given suffix.
 --
 -- @since -.1
 compgenCwdPathsSuffixCompleter :: String -> Completer
 compgenCwdPathsSuffixCompleter sfx =
   bashCompleterQuiet compgenFilter
-    <> cwdPathsCompleterFilter strFilter
+    <> cwdPathsCompleterFilter (PathFilterStr strFilter)
   where
     compgenFilter =
       mconcat
@@ -73,26 +81,78 @@ bashCompleterQuiet action = OAC.mkCompleter $ \word -> do
 --
 -- @since 0.1
 cwdPathsCompleter :: Completer
-cwdPathsCompleter = cwdPathsCompleterFilter (const True)
+cwdPathsCompleter = cwdPathsCompleterFilter (PathFilterStr $ const True)
 
--- | 'cwdPathsCompleter' that runs an additional filter.
+-- | Like 'cwdPathsCompleter' but returns directories only.
 --
 -- @since 0.1
-cwdPathsCompleterFilter :: (String -> Bool) -> Completer
-cwdPathsCompleterFilter predFn = OAC.mkCompleter $ \word -> do
+cwdDirsCompleter :: Completer
+cwdDirsCompleter = cwdPathsCompleterFilter $ PathFilterOsPIO Dir.doesDirectoryExist
+
+-- | Filters paths.
+data PathFilter
+  = -- | Simple predicate on the path's lenient decode to 'String'.
+    --
+    -- @since 0.1
+    PathFilterStr (String -> Bool)
+  | -- | Simple predicate on the path.
+    --
+    -- @since 0.1
+    PathfilterOsP (OsPath -> Bool)
+  | -- | Effectful predicate on the path's lenient decode to 'String'.
+    --
+    -- @since 0.1
+    PathFilterStrIO (String -> IO Bool)
+  | -- | Effectful predicate on the path.
+    --
+    -- @since 0.1
+    PathFilterOsPIO (OsPath -> IO Bool)
+
+-- | 'cwdPathsCompleter' that runs an additional filter on paths.
+--
+-- @since 0.1
+cwdPathsCompleterFilter :: PathFilter -> Completer
+cwdPathsCompleterFilter pfilter = OAC.mkCompleter $ \word -> do
   eFiles <- tryIO $ Dir.getCurrentDirectory >>= Dir.listDirectory
 
   let files = fromRight [] eFiles
+      myFoldr :: forall a. a -> (String -> OsPath -> a -> a) -> a
+      myFoldr initial p = foldr (p word) initial files
 
-  pure $ foldr (go word) [] files
-  where
-    go :: String -> OsPath -> [String] -> [String]
-    go word p acc = do
+  case pfilter of
+    PathFilterStr predFn -> pure $ myFoldr [] $ \wd p acc ->
       let pStr = OsPath.decodeLenient p
-          matchesPat = word `L.isPrefixOf` pStr
+          matchesPat = wd `L.isPrefixOf` pStr
+       in if matchesPat && predFn pStr
+            then pStr : acc
+            else acc
+    PathfilterOsP predFn -> pure $ myFoldr [] $ \wd p acc ->
+      let pStr = OsPath.decodeLenient p
+          matchesPat = wd `L.isPrefixOf` pStr
+       in if matchesPat && predFn p
+            then pStr : acc
+            else acc
+    PathFilterStrIO predFn -> myFoldr (pure []) $ \wd p acc -> do
+      let pStr = OsPath.decodeLenient p
+          matchesPat = wd `L.isPrefixOf` pStr
 
-      if matchesPat && predFn pStr
-        then pStr : acc
+      if matchesPat
+        then do
+          c <- predFn pStr
+          if c
+            then (pStr :) <$> acc
+            else acc
+        else acc
+    PathFilterOsPIO predFn -> myFoldr (pure []) $ \wd p acc -> do
+      let pStr = OsPath.decodeLenient p
+          matchesPat = wd `L.isPrefixOf` pStr
+
+      if matchesPat
+        then do
+          c <- predFn p
+          if c
+            then (pStr :) <$> acc
+            else acc
         else acc
 
 tryIO :: (MonadCatch m) => m a -> m (Either IOException a)
