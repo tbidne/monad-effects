@@ -415,28 +415,28 @@ instance MonadMVar IO where
   modifyMVar_ = MVar.modifyMVar_
   {-# INLINEABLE modifyMVar_ #-}
 
-  modifyMVar_' v f = modifyMVar_ v (evaluate >=> f >=> evaluate)
+  modifyMVar_' v f = modifyMVar_ v (f >=> evaluate)
   {-# INLINEABLE modifyMVar_' #-}
 
   modifyMVar = MVar.modifyMVar
   {-# INLINEABLE modifyMVar #-}
 
   modifyMVar' v f = modifyMVar v $ \x -> do
-    (a, b) <- f =<< evaluate x
+    (a, b) <- f x
     (,b) <$> evaluate a
   {-# INLINEABLE modifyMVar' #-}
 
   modifyMVarMasked_ = MVar.modifyMVarMasked_
   {-# INLINEABLE modifyMVarMasked_ #-}
 
-  modifyMVarMasked_' v f = modifyMVarMasked_ v (evaluate >=> f >=> evaluate)
+  modifyMVarMasked_' v f = modifyMVarMasked_ v (f >=> evaluate)
   {-# INLINEABLE modifyMVarMasked_' #-}
 
   modifyMVarMasked = MVar.modifyMVarMasked
   {-# INLINEABLE modifyMVarMasked #-}
 
   modifyMVarMasked' v f = modifyMVarMasked v $ \x -> do
-    (a, b) <- f =<< evaluate x
+    (a, b) <- f x
     (,b) <$> evaluate a
   {-# INLINEABLE modifyMVarMasked' #-}
 
