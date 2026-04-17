@@ -1,0 +1,119 @@
+cabal-version:   2.4
+name:            effects-notify
+version:         0.1
+license:         MIT
+license-file:    LICENSE
+tested-with:
+  GHC ==9.2.8
+   || ==9.4.8
+   || ==9.6.7
+   || ==9.8.4
+   || ==9.10.2
+   || ==9.12.2
+
+copyright:       2022-2025 Thomas Bidne
+author:          Thomas Bidne
+maintainer:      tbidne@protonmail.com
+homepage:        https://github.com/tbidne/monad-effects/
+bug-reports:     https://github.com/tbidne/monad-effects/issues
+synopsis:        STM effects
+description:     Provides desktop notification effects
+category:        Effects
+extra-doc-files: CHANGELOG.md
+
+source-repository head
+  type:     git
+  location: https://github.com/tbidne/monad-effects
+
+common common-lang
+  default-extensions:
+    DataKinds
+    DeriveAnyClass
+    DerivingVia
+    LambdaCase
+    OverloadedLabels
+    OverloadedStrings
+    PatternSynonyms
+    StrictData
+    TypeFamilies
+
+  if os(windows)
+    cpp-options: -DWINDOWS
+
+  elif os(osx)
+    cpp-options: -DOSX
+
+  else
+    cpp-options: -DLINUX
+
+  default-language:   GHC2021
+
+library
+  import:          common-lang
+  exposed-modules: Effects.Notify
+  other-modules:
+    Effects.Notify.Internal.Data.Note
+    Effects.Notify.Internal.Data.NotifyEnv
+    Effects.Notify.Internal.Data.NotifyException
+    Effects.Notify.Internal.Data.NotifyInitException
+    Effects.Notify.Internal.Data.NotifySystem
+    Effects.Notify.Internal.Data.NotifyTimeout
+    Effects.Notify.Internal.Data.NotifyUrgency
+    Effects.Notify.Internal.Os
+    Effects.Notify.Internal.Utils
+
+  build-depends:
+    , base                 >=4.16.0.0 && <4.22
+    , deepseq              >=1.4.4.0  && <1.6
+    , effects-process      ^>=0.1
+    , exceptions           ^>=0.10.4
+    , optics-core          ^>=0.4
+    , text                 >=1.2.4.0  && <2.2
+    , text-builder-linear  ^>=0.1.3
+    , text-display         ^>=1.0.0.0
+    , transformers         >=0.5.6.2  && <0.7
+
+  if os(windows)
+    other-modules: Effects.Notify.Internal.Os.Windows
+
+  elif os(osx)
+    build-depends:   exception-utils ^>=0.1
+    exposed-modules: Effects.Notify.System.AppleScript
+    other-modules:
+      Effects.Notify.Internal.Os.Osx
+      Effects.Notify.Internal.System.AppleScript
+
+  else
+    build-depends:
+      , dbus             >=1.2.14 && <1.5
+      , exception-utils  ^>=0.1
+      , fdo-notify       ^>=0.3.1
+
+    exposed-modules:
+      Effects.Notify.System.DBus
+      Effects.Notify.System.NotifySend
+
+    other-modules:
+      Effects.Notify.Internal.Os.Linux
+      Effects.Notify.Internal.System.DBus
+      Effects.Notify.Internal.System.NotifySend
+
+  hs-source-dirs:  src
+
+test-suite unit
+  import:         common-lang
+  type:           exitcode-stdio-1.0
+  main-is:        Main.hs
+  other-modules:
+    Unit.Notify
+    Unit.NotifySystem
+
+  build-depends:
+    , base
+    , effects-notify
+    , env-guard       ^>=0.2
+    , exceptions
+    , tasty           >=1.1.0.3 && <1.6
+    , tasty-hunit     >=0.9     && <0.11
+
+  hs-source-dirs: test/unit

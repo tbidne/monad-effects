@@ -138,6 +138,9 @@
             effects-thread = ./lib/effects-thread;
             effects-time = ./lib/effects-time;
           };
+          packages.effects-notify = mkPkg "effects-notify" ./lib/effects-notify {
+            effects-process = ./lib/effects-process;
+          };
           packages.effects-optparse = mkPkg "effects-optparse" ./lib/effects-optparse { };
           packages.effects-process = mkPkg "effects-process" ./lib/effects-process { };
           packages.effects-stm = mkPkg "effects-stm" ./lib/effects-stm { };

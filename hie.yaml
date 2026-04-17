@@ -10,6 +10,9 @@ cradle:
     - path: "./lib/effects-env/src"
       component: "lib:effects-env"
 
+    - path: "./lib/effects-evaluate/src"
+      component: "lib:effects-evaluate"
+
     - path: "./lib/effects-fs/src"
       component: "lib:effects-fs"
 
@@ -27,6 +30,12 @@ cradle:
 
     - path: "./lib/effects-logger/test/unit"
       component: "effects-logger:test:unit"
+
+    - path: "./lib/effects-notify/src"
+      component: "lib:effects-notify"
+
+    - path: "./lib/effects-notify/test/unit"
+      component: "effects-notify:test:unit"
 
     - path: "./lib/effects-optparse/src"
       component: "lib:effects-optparse"
