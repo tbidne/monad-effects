@@ -5,6 +5,7 @@ on: # yamllint disable-line rule:truthy rule:comments
   push:
     branches:
       - main
+      - notify
 
   pull_request:
     branches:
@@ -24,11 +25,16 @@ jobs:
           - "9.8.4"
           - "9.10.2"
           - "9.12.2"
-        os:
-          - "macos-latest"
-          - "ubuntu-latest"
-          - "windows-latest"
-    runs-on: ${{ matrix.os }}
+        platform:
+          - os: "macos-latest"
+            notify-tests: "TEST_UNIT=1"
+          # Tragically, notify tests do not work on linux.
+          - os: "ubuntu-latest"
+            notify-tests: ""
+          - os: "windows-latest"
+            notify-tests: "TEST_UNIT=1"
+    name: cabal (${{ matrix.ghc }}, ${{ matrix.platform.os }})
+    runs-on: ${{ matrix.platform.os }}
     steps:
       - uses: actions/checkout@v4
 
@@ -37,7 +43,15 @@ jobs:
           ghc-version: ${{ matrix.ghc }}
 
       - name: Configure
-        run: cabal configure --enable-tests --ghc-options='-Wno-deprecations -Werror'
+        shell: bash
+        run: |
+          cabal configure \
+            --enable-tests \
+            --ghc-options='
+              -Wno-deprecations
+              -Wno-unrecognised-warning-flags
+              -Wno-x-stub
+              -Werror'
 
       # In general, list libs in alphabetical order though we break this rule
       # when a later dep (name) l is a dependency of an earlier one e, since we
@@ -72,6 +86,13 @@ jobs:
         run: |
           cabal test effects-logger --test-options '--hedgehog-tests 100000'
 
+      - name: Build effects-notify
+        run: cabal build effects-notify
+
+      - name: Test effects-notify
+        shell: bash
+        run: ${{ matrix.platform.notify-tests }} cabal test effects-notify
+
       - name: Build effects-optparse
         run: cabal build effects-optparse
 
@@ -97,11 +118,11 @@ jobs:
         run: cabal build effects-typed-process
 
       - name: Build effects-unix
-        if: ${{ matrix.os != 'windows-latest' }}
+        if: ${{ matrix.platform.os != 'windows-latest' }}
         run: cabal build effects-unix
 
       - name: Test effects-unix
-        if: ${{ matrix.os != 'windows-latest' }}
+        if: ${{ matrix.platform.os != 'windows-latest' }}
         run: cabal test effects-unix
 
       - name: Build effects-unix-compat
@@ -117,9 +138,9 @@ jobs:
         run: |
           cabal bench --enable-benchmarks fs-unix:benchmark:benchmarks --benchmark-options '
             +RTS -T -RTS -t100
-            --baseline bench/baseline_${{ matrix.os }}_${{ matrix.ghc }}_ci.csv
-            --csv bench/bench_${{ matrix.os }}_${{ matrix.ghc }}_ci.csv
-            --svg bench/bench_${{ matrix.os }}_${{ matrix.ghc }}_ci.svg
+            --baseline bench/baseline_${{ matrix.platform.os }}_${{ matrix.ghc }}_ci.csv
+            --csv bench/bench_${{ matrix.platform.os }}_${{ matrix.ghc }}_ci.csv
+            --svg bench/bench_${{ matrix.platform.os }}_${{ matrix.ghc }}_ci.svg
             --fail-if-slower 30
             --fail-if-faster 30'
 
@@ -128,8 +149,8 @@ jobs:
         with:
           name: build-artifacts
           path: |
-            bench/fs-unix/bench/bench_${{ matrix.os }}_${{ matrix.ghc }}_ci.csv
-            bench/fs-unix/bench/bench_${{ matrix.os }}_${{ matrix.ghc }}_ci.svg
+            bench/fs-unix/bench/bench_${{ matrix.platform.os }}_${{ matrix.ghc }}_ci.csv
+            bench/fs-unix/bench/bench_${{ matrix.platform.os }}_${{ matrix.ghc }}_ci.svg
   nix:
     strategy:
       fail-fast: false
@@ -167,6 +188,9 @@ jobs:
 
       - name: Build effects-logger
         run: nix build -Lv .#effects-logger
+
+      - name: Build effects-notify
+        run: nix build -Lv .#effects-notify
 
       - name: Build effects-optparse
         run: nix build -Lv .#effects-optparse

@@ -8,6 +8,7 @@ if os(windows)
     ./lib/effects-haskeline
     ./lib/effects-ioref
     ./lib/effects-logger
+    ./lib/effects-notify
     ./lib/effects-optparse
     ./lib/effects-process
     ./lib/effects-stm
@@ -26,6 +27,7 @@ else
     ./lib/effects-haskeline
     ./lib/effects-ioref
     ./lib/effects-logger
+    ./lib/effects-notify
     ./lib/effects-optparse
     ./lib/effects-process
     ./lib/effects-stm

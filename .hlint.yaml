@@ -22,9 +22,6 @@
 
 - ignore:
     name: "Avoid lambda"
-    within:
-      - "Effects.Logger.Utils"
-      - "Effects.Time"
 
 - ignore:
     name: "Avoid lambda using `infix`"

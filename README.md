@@ -19,6 +19,7 @@
   - [effects-haskeline](#effects-haskeline)
   - [effects-ioref](#effects-ioref)
   - [effects-logger](#effects-logger)
+  - [effects-notify](#effects-notify)
   - [effects-optparse](#effects-optparse)
   - [effects-process](#effects-process)
   - [effects-stm](#effects-stm)
@@ -150,6 +151,17 @@ Effects for the `haskeline` library.
 ### Description
 
 Builds on top of the `monad-logger` library to add the concept of "namespacing" to logs. Includes helper functions for formatting.
+
+## effects-notify
+
+### Library: `dbus`
+
+### Modules
+* `Effects.Notify`
+
+### Description
+
+Effect for sending desktop notifications. Not available on windows.
 
 ## effects-optparse
 
