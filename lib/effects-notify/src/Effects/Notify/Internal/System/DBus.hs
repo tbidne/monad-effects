@@ -33,21 +33,19 @@ import DBus.Notify qualified as DBusN
 import Data.Int (Int32)
 import Data.Text qualified as T
 import Effects.Notify.Internal.Data.Note (Note)
-import Effects.Notify.Internal.Data.NotifyEnv
-  ( NotifyEnv (NotifyEnvDBus),
-  )
 import Effects.Notify.Internal.Data.NotifyException
   ( NotifyException
       ( MkNotifyException,
         exception,
         fatal,
         note,
-        notifyEnv
+        notifySystem
       ),
   )
 import Effects.Notify.Internal.Data.NotifyInitException
   ( NotifyInitException (MkNotifyInitException),
   )
+import Effects.Notify.Internal.Data.NotifySystem (NotifySystem (NotifySystemDBus))
 import Effects.Notify.Internal.Data.NotifyTimeout
   ( NotifyTimeout (NotifyTimeoutMillis, NotifyTimeoutNever),
   )
@@ -90,7 +88,7 @@ notify client note =
           { exception = toException ex,
             fatal,
             note,
-            notifyEnv = NotifyEnvDBus client
+            notifySystem = NotifySystemDBus
           }
 
 noteToDbus :: Note -> DBusN.Note

@@ -12,7 +12,7 @@ import Control.Exception
 import Data.Text qualified as T
 import Data.Text.Display (display)
 import Effects.Notify.Internal.Data.Note (Note)
-import Effects.Notify.Internal.Data.NotifyEnv (NotifyEnv)
+import Effects.Notify.Internal.Data.NotifySystem (NotifySystem)
 import Optics.Core (A_Lens, LabelOptic (labelOptic), (^.))
 import Optics.Core qualified as O
 
@@ -31,8 +31,8 @@ data NotifyException = MkNotifyException
     fatal :: Bool,
     -- | Note we attempted to send.
     note :: Note,
-    -- | Notification env.
-    notifyEnv :: NotifyEnv
+    -- | Notification system.
+    notifySystem :: NotifySystem
   }
 
 -- | @since 0.1
@@ -67,8 +67,8 @@ instance
 
 -- | @since 0.1
 instance
-  (k ~ A_Lens, a ~ NotifyEnv, b ~ NotifyEnv) =>
-  LabelOptic "notifyEnv" k NotifyException NotifyException a b
+  (k ~ A_Lens, a ~ NotifySystem, b ~ NotifySystem) =>
+  LabelOptic "notifySystem" k NotifyException NotifyException a b
   where
   labelOptic = O.lensVL $ \f (MkNotifyException a1 a2 a3 a4) ->
     fmap (\b -> MkNotifyException a1 a2 a3 b) (f a4)
@@ -80,8 +80,8 @@ instance Exception NotifyException where
     T.unpack $
       mconcat
         [ fatalStr,
-          "exception sending notification with env '",
-          display (ex ^. #notifyEnv),
+          "exception sending notification with system '",
+          display (ex ^. #notifySystem),
           "' and note '",
           T.pack $ show (ex ^. #note),
           "': ",

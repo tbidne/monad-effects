@@ -8,7 +8,7 @@ import Unit.Notify qualified
 import Unit.NotifySystem qualified
 
 main :: IO ()
-main = guardOrElse' "TEST_UNIT" ExpectEnvSet runTests dontRun
+main = guardOrElse' "NOTIFY_UNIT" ExpectEnvSet runTests dontRun
   where
     runTests =
       defaultMain $
@@ -18,4 +18,4 @@ main = guardOrElse' "TEST_UNIT" ExpectEnvSet runTests dontRun
             Unit.NotifySystem.tests
           ]
 
-    dontRun = putStrLn "*** Unit tests disabled. Enable with TEST_UNIT=1 ***"
+    dontRun = putStrLn "*** Unit tests disabled. Enable with NOTIFY_UNIT=1 ***"

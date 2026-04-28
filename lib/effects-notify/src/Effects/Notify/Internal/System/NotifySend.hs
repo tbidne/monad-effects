@@ -12,17 +12,17 @@ import Control.Exception (throwIO)
 import Control.Exception.Utils qualified as Ex.Utils
 import Data.Text qualified as T
 import Effects.Notify.Internal.Data.Note (Note)
-import Effects.Notify.Internal.Data.NotifyEnv
-  ( NotifyEnv (NotifyEnvNotifySend),
-  )
 import Effects.Notify.Internal.Data.NotifyException
   ( NotifyException
       ( MkNotifyException,
         exception,
         fatal,
         note,
-        notifyEnv
+        notifySystem
       ),
+  )
+import Effects.Notify.Internal.Data.NotifySystem
+  ( NotifySystem (NotifySystemNotifySend),
   )
 import Effects.Notify.Internal.Data.NotifyTimeout
   ( NotifyTimeout (NotifyTimeoutMillis, NotifyTimeoutNever),
@@ -44,7 +44,7 @@ notify note =
         { exception = ex,
           fatal = True,
           note,
-          notifyEnv = NotifyEnvNotifySend
+          notifySystem = NotifySystemNotifySend
         }
   where
     sendNote = Utils.runProcessIO . noteToNotifySend
