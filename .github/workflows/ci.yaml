@@ -26,12 +26,12 @@ jobs:
           - "9.12.2"
         platform:
           - os: "macos-latest"
-            notify-tests: "TEST_UNIT=1"
+            notify-tests: "NOTIFY_UNIT=1"
           # Tragically, notify tests do not work on linux.
           - os: "ubuntu-latest"
             notify-tests: ""
           - os: "windows-latest"
-            notify-tests: "TEST_UNIT=1"
+            notify-tests: "NOTIFY_UNIT=1"
     name: cabal (${{ matrix.ghc }}, ${{ matrix.platform.os }})
     runs-on: ${{ matrix.platform.os }}
     steps:

@@ -68,6 +68,7 @@ import Control.Monad.Catch (MonadCatch)
 import Control.Monad.Catch qualified as C
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
+import Data.Kind (Type)
 import Effects.Notify.Internal.Data.Note (Note)
 import Effects.Notify.Internal.Data.Note qualified as Note
 import Effects.Notify.Internal.Data.NotifyEnv (NotifyEnv)
@@ -111,18 +112,25 @@ import Optics.Core ((^.))
 --
 -- @since 0.1
 class (Monad m) => MonadNotify m where
+  -- | Notification environment.
+  --
+  -- @since 0.1
+  type NotifyEnvF m :: Type
+
   -- | Initialize the notification environment.
   --
   -- @since 0.1
-  initNotifyEnv :: (HasCallStack) => NotifySystemOs -> m NotifyEnv
+  initNotifyEnv :: (HasCallStack) => NotifySystemOs -> m (NotifyEnvF m)
 
   -- | Send a notification.
   --
   -- @since 0.1
-  notify :: (HasCallStack) => NotifyEnv -> Note -> m ()
+  notify :: (HasCallStack) => NotifyEnvF m -> Note -> m ()
 
 -- | @since 0.1
 instance MonadNotify IO where
+  type NotifyEnvF IO = NotifyEnv
+
   initNotifyEnv = Os.initNotifyEnv
   {-# INLINEABLE initNotifyEnv #-}
 
@@ -131,6 +139,8 @@ instance MonadNotify IO where
 
 -- | @since 0.1
 instance (MonadNotify m) => MonadNotify (ReaderT env m) where
+  type NotifyEnvF (ReaderT env m) = NotifyEnvF m
+
   initNotifyEnv = lift . initNotifyEnv
   {-# INLINEABLE initNotifyEnv #-}
 
@@ -142,12 +152,13 @@ instance (MonadNotify m) => MonadNotify (ReaderT env m) where
 --
 -- @since 0.1
 catchNonFatalNotify ::
+  forall m.
   ( HasCallStack,
     MonadCatch m,
     MonadNotify m
   ) =>
   -- | Env.
-  NotifyEnv ->
+  NotifyEnvF m ->
   -- | Note.
   Note ->
   -- | Handler.
@@ -164,12 +175,13 @@ catchNonFatalNotify env note handler =
 --
 -- @since 0.1
 tryNonFatalNotify ::
+  forall m.
   ( HasCallStack,
     MonadCatch m,
     MonadNotify m
   ) =>
   -- | Env.
-  NotifyEnv ->
+  NotifyEnvF m ->
   -- | Note.
   Note ->
   m (Maybe NotifyException)
@@ -186,12 +198,13 @@ tryNonFatalNotify env note =
 --
 -- @since 0.1
 tryNonFatalNotify_ ::
+  forall m.
   ( HasCallStack,
     MonadCatch m,
     MonadNotify m
   ) =>
   -- | Env.
-  NotifyEnv ->
+  NotifyEnvF m ->
   -- | Note.
   Note ->
   m ()
