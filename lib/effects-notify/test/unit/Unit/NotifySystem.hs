@@ -2,10 +2,8 @@
 
 module Unit.NotifySystem (tests) where
 
-import Control.Monad.Catch
-  ( Exception (displayException),
-    MonadThrow (throwM),
-  )
+import Control.Monad.Catch (Exception (displayException))
+import Data.Bifunctor (first)
 import Effects.Notify qualified as Notify
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCase, (@=?))
@@ -22,24 +20,24 @@ tests =
 testNotifySystemToOs :: TestTree
 testNotifySystemToOs = testCase desc $ do
 #if LINUX
-  EL e1 @=? k Notify.NotifySystemAppleScript
-  ER Notify.NotifySystemOsDBus @=? k Notify.NotifySystemDBus
-  ER Notify.NotifySystemOsNotifySend @=? k Notify.NotifySystemNotifySend
-  EL e2 @=? k Notify.NotifySystemWindows
+  Left e1 @=? k Notify.NotifySystemAppleScript
+  Right Notify.NotifySystemOsDBus @=? k Notify.NotifySystemDBus
+  Right Notify.NotifySystemOsNotifySend @=? k Notify.NotifySystemNotifySend
+  Left e2 @=? k Notify.NotifySystemWindows
 #elif OSX
-  ER Notify.NotifySystemOsAppleScript @=? k Notify.NotifySystemAppleScript
-  EL e1 @=? k Notify.NotifySystemDBus
-  EL e2 @=? k Notify.NotifySystemNotifySend
-  EL e3 @=? k Notify.NotifySystemWindows
+  Right Notify.NotifySystemOsAppleScript @=? k Notify.NotifySystemAppleScript
+  Left e1 @=? k Notify.NotifySystemDBus
+  Left e2 @=? k Notify.NotifySystemNotifySend
+  Left e3 @=? k Notify.NotifySystemWindows
 #else
-  EL e1 @=? k Notify.NotifySystemAppleScript
-  EL e2 @=? k Notify.NotifySystemDBus
-  EL e3 @=? k Notify.NotifySystemNotifySend
-  ER Notify.NotifySystemOsWindows @=? k Notify.NotifySystemWindows
+  Left e1 @=? k Notify.NotifySystemAppleScript
+  Left e2 @=? k Notify.NotifySystemDBus
+  Left e3 @=? k Notify.NotifySystemNotifySend
+  Right Notify.NotifySystemOsWindows @=? k Notify.NotifySystemWindows
 #endif
   where
     desc = "notifySystemToOs"
-    k = Notify.notifySystemToOs @EitherString
+    k = first displayException . Notify.notifySystemToOs
 
 #if LINUX
     e1 = "Notification system 'apple-script' is unavailable on os linux. Available systems: dbus, notify-send."
@@ -55,22 +53,3 @@ testNotifySystemToOs = testCase desc $ do
 #endif
 
 {- ORMOLU_ENABLE -}
-
-data EitherString a
-  = EL String
-  | ER a
-  deriving stock (Eq, Functor, Show)
-
-instance Applicative EitherString where
-  pure = ER
-
-  EL s <*> _ = EL s
-  _ <*> EL s = EL s
-  ER f <*> ER x = ER (f x)
-
-instance Monad EitherString where
-  EL s >>= _ = EL s
-  ER x >>= k = k x
-
-instance MonadThrow EitherString where
-  throwM = EL . displayException

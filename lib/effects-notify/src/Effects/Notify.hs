@@ -23,44 +23,44 @@ module Effects.Notify
 
     -- *** Platform-specific
     NotifySystem.NotifySystemOs (..),
-    NotifySystem.defaultNotifySystemOs,
+    defaultNotifySystemOs,
 
     -- *** All platforms
     NotifySystem (..),
-    NotifySystem.defaultNotifySystem,
-    NotifySystem.notifySystemToOs,
-    NotifySystem.notifySystemFromOs,
+    defaultNotifySystem,
+    notifySystemToOs,
+    notifySystemFromOs,
     Os (..),
     NotifyParseException (..),
 
     -- ** Env
     NotifyEnv,
-    NotifyEnv.notifyEnvToSystemOs,
+    notifyEnvToSystemOs,
 
     -- ** Notes
     Note,
-    Note.mkNote,
-    Note.setBody,
-    Note.getBody,
-    Note.setSummary,
-    Note.getSummary,
-    Note.setTimeout,
-    Note.getTimeout,
-    Note.setTitle,
-    Note.getTitle,
-    Note.setUrgency,
-    Note.getUrgency,
+    mkNote,
+    setBody,
+    getBody,
+    setSummary,
+    getSummary,
+    setTimeout,
+    getTimeout,
+    setTitle,
+    getTitle,
+    setUrgency,
+    getUrgency,
 
     -- ** Timeout
     NotifyTimeout (..),
-    NotifyTimeout._NotifyTimeoutMillis,
-    NotifyTimeout._NotifyTimeoutNever,
+    _NotifyTimeoutMillis,
+    _NotifyTimeoutNever,
 
     -- ** NotifyUrgency
     NotifyUrgency (..),
-    NotifyUrgency._NotifyUrgencyLow,
-    NotifyUrgency._NotifyUrgencyNormal,
-    NotifyUrgency._NotifyUrgencyCritical,
+    _NotifyUrgencyLow,
+    _NotifyUrgencyNormal,
+    _NotifyUrgencyCritical,
   )
 where
 
@@ -70,10 +70,21 @@ import Control.Monad.Catch qualified as C
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.Kind (Type)
-import Effects.Notify.Internal.Data.Note (Note)
-import Effects.Notify.Internal.Data.Note qualified as Note
-import Effects.Notify.Internal.Data.NotifyEnv (NotifyEnv)
-import Effects.Notify.Internal.Data.NotifyEnv qualified as NotifyEnv
+import Effects.Notify.Internal.Data.Note
+  ( Note,
+    getBody,
+    getSummary,
+    getTimeout,
+    getTitle,
+    getUrgency,
+    mkNote,
+    setBody,
+    setSummary,
+    setTimeout,
+    setTitle,
+    setUrgency,
+  )
+import Effects.Notify.Internal.Data.NotifyEnv (NotifyEnv, notifyEnvToSystemOs)
 import Effects.Notify.Internal.Data.NotifyException
   ( NotifyException (MkNotifyException, exception, fatal, note, notifySystem),
   )
@@ -89,16 +100,23 @@ import Effects.Notify.Internal.Data.NotifySystem
         NotifySystemWindows
       ),
     NotifySystemOs,
+    defaultNotifySystem,
+    defaultNotifySystemOs,
+    notifySystemFromOs,
+    notifySystemToOs,
   )
 import Effects.Notify.Internal.Data.NotifySystem qualified as NotifySystem
 import Effects.Notify.Internal.Data.NotifyTimeout
   ( NotifyTimeout (NotifyTimeoutMillis, NotifyTimeoutNever),
+    _NotifyTimeoutMillis,
+    _NotifyTimeoutNever,
   )
-import Effects.Notify.Internal.Data.NotifyTimeout qualified as NotifyTimeout
 import Effects.Notify.Internal.Data.NotifyUrgency
   ( NotifyUrgency (NotifyUrgencyCritical, NotifyUrgencyLow, NotifyUrgencyNormal),
+    _NotifyUrgencyCritical,
+    _NotifyUrgencyLow,
+    _NotifyUrgencyNormal,
   )
-import Effects.Notify.Internal.Data.NotifyUrgency qualified as NotifyUrgency
 import Effects.Notify.Internal.Os (Os (Linux, Osx, Windows))
 #if LINUX
 import Effects.Notify.Internal.Os.Linux qualified as Os
@@ -243,9 +261,9 @@ tryNonFatalNotify_ env = void . tryNonFatalNotify env
 --
 -- -- send notification
 -- let note =
---       'Note.mkNote' "A summary"
---         & 'Note.setBody' "Some notification"
---         & 'Note.setTitle' "My Application"
+--       'mkNote' "A summary"
+--         & 'setBody' "Some notification"
+--         & 'setTitle' "My Application"
 --
 -- 'notify' notifyEnv note
 -- @
@@ -255,7 +273,7 @@ tryNonFatalNotify_ env = void . tryNonFatalNotify env
 -- and pass it to init:
 --
 -- @
--- -- linux example
+-- -- The NotifySystemOsDBus constructor is only available on linux.
 -- let systemOs :: 'NotifySystemOs'
 --     systemOs = NotifySystemOsDBus
 --
@@ -264,19 +282,21 @@ tryNonFatalNotify_ env = void . tryNonFatalNotify env
 -- @
 --
 -- If we need to work on several platforms, we can instead use 'NotifySystem',
--- which includes every possibly notification system. We then pass it to
--- 'Note.notifySystemToOs', which -- if successful -- will return the
--- 'NotifySystemOs' and we can continue as normal.
+-- which includes every possible notification system and is available on all
+-- platforms. We then pass it to 'notifySystemToOs', which -- if successful --
+-- will return the 'NotifySystemOs' and we can continue as normal.
 --
 -- @
--- -- system dynamically chosen e.g. from text configuration
+-- -- All NotifySystem constructors are available on all platforms.
 -- let system :: 'NotifySystem'
 --     system = ...
 --
--- systemOs <- 'Note.notifySystemToOs'
+-- systemOs <- 'notifySystemToOs' system \>\>= \\case
+--   Left ex -> throwM ex
+--   Right s -> pure s
 -- notifyEnv <- 'initNotifyEnv' systemOs
 -- ...
 -- @
 --
 -- If a system is chosen that is unavailable on the current platform,
--- a 'NotifyParseException' will be thrown.
+-- a 'NotifyParseException' will be returned.

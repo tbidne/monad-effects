@@ -33,7 +33,7 @@ data NotifyEnv
   = NotifyEnvDBus Client
   | NotifyEnvNotifySend
 
--- | @since 0.1`
+-- | @since 0.1
 instance Show NotifyEnv where
   show (NotifyEnvDBus _) = "NotifyEnvDBus"
   show NotifyEnvNotifySend = "NotifyEnvNotifySend"

@@ -21,7 +21,7 @@ where
 {- ORMOLU_ENABLE -}
 
 import Control.DeepSeq (NFData)
-import Control.Monad.Catch (Exception (displayException), MonadThrow (throwM))
+import Control.Monad.Catch (Exception (displayException))
 import Data.List qualified as L
 import Data.Text qualified as T
 import Data.Text.Builder.Linear qualified as TBL
@@ -29,7 +29,6 @@ import Data.Text.Display (Display (displayBuilder))
 import Effects.Notify.Internal.Os (Os)
 import Effects.Notify.Internal.Os qualified as Os
 import GHC.Generics (Generic)
-import GHC.Stack (HasCallStack)
 import Optics.Core (A_Lens, LabelOptic (labelOptic), (^.))
 import Optics.Core qualified as O
 
@@ -62,13 +61,7 @@ instance Display NotifySystem where
 -- platform without cpp.
 --
 -- @since 0.1
-notifySystemToOs ::
-  ( HasCallStack,
-    MonadThrow m
-  ) =>
-  NotifySystem ->
-  m NotifySystemOs
-{-# INLINEABLE notifySystemToOs #-}
+notifySystemToOs :: NotifySystem -> Either NotifyParseException NotifySystemOs
 
 -- | Inverse 'notifySystemToOs'.
 --
@@ -81,83 +74,9 @@ defaultNotifySystem :: NotifySystem
 -- | @since 0.1
 defaultNotifySystemOs :: NotifySystemOs
 
-#if LINUX
-
-notifySystemToOs = \case
-  NotifySystemDBus -> pure NotifySystemOsDBus
-  NotifySystemNotifySend -> pure NotifySystemOsNotifySend
-  other -> throwM $ MkNotifyParseException Os.Linux other
-
-notifySystemFromOs = \case
-  NotifySystemOsDBus -> NotifySystemDBus
-  NotifySystemOsNotifySend -> NotifySystemNotifySend
-
-defaultNotifySystem = NotifySystemDBus
-
-defaultNotifySystemOs = NotifySystemOsDBus
-
--- | Notification system. Options are platform specific.
---
--- @since 0.1
-data NotifySystemOs
-  = NotifySystemOsDBus
-  | NotifySystemOsNotifySend
-  deriving stock (Bounded, Enum, Eq, Generic, Ord, Show)
-  deriving anyclass (NFData)
-
 -- | @since 0.1
 instance Display NotifySystemOs where
   displayBuilder = displayBuilder . notifySystemFromOs
-
-#elif OSX
-
-notifySystemToOs = \case
-  NotifySystemAppleScript -> pure NotifySystemOsAppleScript
-  other -> throwM $ MkNotifyParseException Os.Osx other
-
-notifySystemFromOs = \case
-  NotifySystemOsAppleScript -> NotifySystemAppleScript
-
-defaultNotifySystem = NotifySystemAppleScript
-
-defaultNotifySystemOs = NotifySystemOsAppleScript
-
--- | Notification system. Options are platform specific.
---
--- @since 0.1
-data NotifySystemOs = NotifySystemOsAppleScript
-  deriving stock (Bounded, Enum, Eq, Generic, Ord, Show)
-  deriving anyclass (NFData)
-
--- | @since 0.1
-instance Display NotifySystemOs where
-  displayBuilder = displayBuilder . notifySystemFromOs
-
-#else
-
-notifySystemToOs = \case
-  NotifySystemWindows -> pure NotifySystemOsWindows
-  other -> throwM $ MkNotifyParseException Os.Windows other
-
-notifySystemFromOs = \case
-  NotifySystemOsWindows -> NotifySystemWindows
-
-defaultNotifySystem = NotifySystemWindows
-
-defaultNotifySystemOs = NotifySystemOsWindows
-
--- | Notification system. Options are platform specific.
---
--- @since 0.1
-data NotifySystemOs = NotifySystemOsWindows
-  deriving stock (Bounded, Enum, Eq, Generic, Ord, Show)
-  deriving anyclass (NFData)
-
--- | @since 0.1
-instance Display NotifySystemOs where
-  displayBuilder = displayBuilder . notifySystemFromOs
-
-#endif
 
 -- | Exceptions thrown when parsing 'NotifySystem' to 'NotifySystemOs'.
 --
@@ -208,3 +127,69 @@ instance
   labelOptic = O.lensVL $ \f (MkNotifyParseException a1 a2) ->
     fmap (\b -> MkNotifyParseException a1 b) (f a2)
   {-# INLINE labelOptic #-}
+
+#if LINUX
+
+notifySystemToOs = \case
+  NotifySystemDBus -> pure NotifySystemOsDBus
+  NotifySystemNotifySend -> pure NotifySystemOsNotifySend
+  other -> Left $ MkNotifyParseException Os.Linux other
+
+notifySystemFromOs = \case
+  NotifySystemOsDBus -> NotifySystemDBus
+  NotifySystemOsNotifySend -> NotifySystemNotifySend
+
+defaultNotifySystem = NotifySystemDBus
+
+defaultNotifySystemOs = NotifySystemOsDBus
+
+-- | Notification system. Options are platform specific.
+--
+-- @since 0.1
+data NotifySystemOs
+  = NotifySystemOsDBus
+  | NotifySystemOsNotifySend
+  deriving stock (Bounded, Enum, Eq, Generic, Ord, Show)
+  deriving anyclass (NFData)
+
+#elif OSX
+
+notifySystemToOs = \case
+  NotifySystemAppleScript -> pure NotifySystemOsAppleScript
+  other -> Left $ MkNotifyParseException Os.Osx other
+
+notifySystemFromOs = \case
+  NotifySystemOsAppleScript -> NotifySystemAppleScript
+
+defaultNotifySystem = NotifySystemAppleScript
+
+defaultNotifySystemOs = NotifySystemOsAppleScript
+
+-- | Notification system. Options are platform specific.
+--
+-- @since 0.1
+data NotifySystemOs = NotifySystemOsAppleScript
+  deriving stock (Bounded, Enum, Eq, Generic, Ord, Show)
+  deriving anyclass (NFData)
+
+#else
+
+notifySystemToOs = \case
+  NotifySystemWindows -> pure NotifySystemOsWindows
+  other -> Left $ MkNotifyParseException Os.Windows other
+
+notifySystemFromOs = \case
+  NotifySystemOsWindows -> NotifySystemWindows
+
+defaultNotifySystem = NotifySystemWindows
+
+defaultNotifySystemOs = NotifySystemOsWindows
+
+-- | Notification system. Options are platform specific.
+--
+-- @since 0.1
+data NotifySystemOs = NotifySystemOsWindows
+  deriving stock (Bounded, Enum, Eq, Generic, Ord, Show)
+  deriving anyclass (NFData)
+
+#endif
