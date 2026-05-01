@@ -1,0 +1,437 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- | Provides an effect for desktop notifications.</span><span>
+</span><span id="line-4"></span><span class="hs-comment">--</span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-6"></span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Effects.Notify.html"><span class="hs-identifier">Effects.Notify</span></a></span><span>
+</span><span id="line-7"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Description</span></span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><span class="hs-comment">-- $desc</span></span><span>
+</span><span id="line-9"></span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Effect</span></span><span>
+</span><span id="line-11"></span><span>    </span><span class="annot"><a href="Effects.Notify.html#MonadNotify"><span class="hs-identifier">MonadNotify</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Errors</span></span><span>
+</span><span id="line-14"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyInitException.html#NotifyInitException"><span class="hs-identifier">NotifyInitException</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-15"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyException.html#NotifyException"><span class="hs-identifier">NotifyException</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-16"></span><span>    </span><span class="annot"><a href="Effects.Notify.html#catchNonFatalNotify"><span class="hs-identifier">catchNonFatalNotify</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-17"></span><span>    </span><span class="annot"><a href="Effects.Notify.html#tryNonFatalNotify"><span class="hs-identifier">tryNonFatalNotify</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-18"></span><span>    </span><span class="annot"><a href="Effects.Notify.html#tryNonFatalNotify_"><span class="hs-identifier">tryNonFatalNotify_</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Types</span></span><span>
+</span><span id="line-21"></span><span>
+</span><span id="line-22"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** System</span></span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span>    </span><span class="annot"><span class="hs-comment">-- *** Platform-specific</span></span><span>
+</span><span id="line-25"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemOs"><span class="hs-identifier">NotifySystem.NotifySystemOs</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-26"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#defaultNotifySystemOs"><span class="hs-identifier">defaultNotifySystemOs</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span>    </span><span class="annot"><span class="hs-comment">-- *** All platforms</span></span><span>
+</span><span id="line-29"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystem"><span class="hs-identifier">NotifySystem</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-30"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#defaultNotifySystem"><span class="hs-identifier">defaultNotifySystem</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-31"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#notifySystemToOs"><span class="hs-identifier">notifySystemToOs</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-32"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#notifySystemFromOs"><span class="hs-identifier">notifySystemFromOs</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-33"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Os.html#Os"><span class="hs-identifier">Os</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-34"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifyParseException"><span class="hs-identifier">NotifyParseException</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Env</span></span><span>
+</span><span id="line-37"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyEnv.html#NotifyEnv"><span class="hs-identifier">NotifyEnv</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-38"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyEnv.html#notifyEnvToSystemOs"><span class="hs-identifier">notifyEnvToSystemOs</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-39"></span><span>
+</span><span id="line-40"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Notes</span></span><span>
+</span><span id="line-41"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#Note"><span class="hs-identifier">Note</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-42"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#mkNote"><span class="hs-identifier">mkNote</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-43"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#setBody"><span class="hs-identifier">setBody</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-44"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#getBody"><span class="hs-identifier">getBody</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-45"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#setSummary"><span class="hs-identifier">setSummary</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-46"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#getSummary"><span class="hs-identifier">getSummary</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-47"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#setTimeout"><span class="hs-identifier">setTimeout</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-48"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#getTimeout"><span class="hs-identifier">getTimeout</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-49"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#setTitle"><span class="hs-identifier">setTitle</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-50"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#getTitle"><span class="hs-identifier">getTitle</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-51"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#setUrgency"><span class="hs-identifier">setUrgency</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-52"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#getUrgency"><span class="hs-identifier">getUrgency</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-53"></span><span>
+</span><span id="line-54"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Timeout</span></span><span>
+</span><span id="line-55"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#NotifyTimeout"><span class="hs-identifier">NotifyTimeout</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-56"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#_NotifyTimeoutMillis"><span class="hs-identifier">_NotifyTimeoutMillis</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-57"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#_NotifyTimeoutNever"><span class="hs-identifier">_NotifyTimeoutNever</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-58"></span><span>
+</span><span id="line-59"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** NotifyUrgency</span></span><span>
+</span><span id="line-60"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyUrgency.html#NotifyUrgency"><span class="hs-identifier">NotifyUrgency</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-61"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyUrgency.html#_NotifyUrgencyLow"><span class="hs-identifier">_NotifyUrgencyLow</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-62"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyUrgency.html#_NotifyUrgencyNormal"><span class="hs-identifier">_NotifyUrgencyNormal</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-63"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyUrgency.html#_NotifyUrgencyCritical"><span class="hs-identifier">_NotifyUrgencyCritical</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-64"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-65"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-66"></span><span>
+</span><span id="line-67"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">void</span></span><span class="hs-special">)</span><span>
+</span><span id="line-68"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Catch</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadCatch</span></span><span class="hs-special">)</span><span>
+</span><span id="line-69"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Catch</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">C</span></span><span>
+</span><span id="line-70"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Class</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadTrans</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">lift</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-71"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Reader</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ReaderT</span></span><span class="hs-special">)</span><span>
+</span><span id="line-72"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Kind</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Type</span></span><span class="hs-special">)</span><span>
+</span><span id="line-73"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html"><span class="hs-identifier">Effects.Notify.Internal.Data.Note</span></a></span><span>
+</span><span id="line-74"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#Note"><span class="hs-identifier">Note</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-75"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#getBody"><span class="hs-identifier">getBody</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-76"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#getSummary"><span class="hs-identifier">getSummary</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-77"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#getTimeout"><span class="hs-identifier">getTimeout</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-78"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#getTitle"><span class="hs-identifier">getTitle</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-79"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#getUrgency"><span class="hs-identifier">getUrgency</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-80"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#mkNote"><span class="hs-identifier">mkNote</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-81"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#setBody"><span class="hs-identifier">setBody</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-82"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#setSummary"><span class="hs-identifier">setSummary</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-83"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#setTimeout"><span class="hs-identifier">setTimeout</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-84"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#setTitle"><span class="hs-identifier">setTitle</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-85"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#setUrgency"><span class="hs-identifier">setUrgency</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-86"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-87"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyEnv.html"><span class="hs-identifier">Effects.Notify.Internal.Data.NotifyEnv</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyEnv.html#NotifyEnv"><span class="hs-identifier">NotifyEnv</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyEnv.html#notifyEnvToSystemOs"><span class="hs-identifier">notifyEnvToSystemOs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-88"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyException.html"><span class="hs-identifier">Effects.Notify.Internal.Data.NotifyException</span></a></span><span>
+</span><span id="line-89"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyException.html#NotifyException"><span class="hs-identifier">NotifyException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyException.html#MkNotifyException"><span class="hs-identifier">MkNotifyException</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyException.html#exception"><span class="hs-identifier">exception</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyException.html#fatal"><span class="hs-identifier">fatal</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyException.html#note"><span class="hs-identifier">note</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyException.html#notifySystem"><span class="hs-identifier">notifySystem</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-90"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-91"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyInitException.html"><span class="hs-identifier">Effects.Notify.Internal.Data.NotifyInitException</span></a></span><span>
+</span><span id="line-92"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyInitException.html#NotifyInitException"><span class="hs-identifier">NotifyInitException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyInitException.html#MkNotifyInitException"><span class="hs-identifier">MkNotifyInitException</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyInitException.html#unNotifyInitException"><span class="hs-identifier">unNotifyInitException</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-93"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-94"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html"><span class="hs-identifier">Effects.Notify.Internal.Data.NotifySystem</span></a></span><span>
+</span><span id="line-95"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifyParseException"><span class="hs-identifier">NotifyParseException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#MkNotifyParseException"><span class="hs-identifier">MkNotifyParseException</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#os"><span class="hs-identifier">os</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#system"><span class="hs-identifier">system</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-96"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystem"><span class="hs-identifier">NotifySystem</span></a></span><span>
+</span><span id="line-97"></span><span>      </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemAppleScript"><span class="hs-identifier">NotifySystemAppleScript</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-98"></span><span>        </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemDBus"><span class="hs-identifier">NotifySystemDBus</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-99"></span><span>        </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemNotifySend"><span class="hs-identifier">NotifySystemNotifySend</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-100"></span><span>        </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemWindows"><span class="hs-identifier">NotifySystemWindows</span></a></span><span>
+</span><span id="line-101"></span><span>      </span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-102"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemOs"><span class="hs-identifier">NotifySystemOs</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-103"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#defaultNotifySystem"><span class="hs-identifier">defaultNotifySystem</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-104"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#defaultNotifySystemOs"><span class="hs-identifier">defaultNotifySystemOs</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-105"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#notifySystemFromOs"><span class="hs-identifier">notifySystemFromOs</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-106"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#notifySystemToOs"><span class="hs-identifier">notifySystemToOs</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-107"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-108"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html"><span class="hs-identifier">Effects.Notify.Internal.Data.NotifySystem</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">NotifySystem</span></span><span>
+</span><span id="line-109"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html"><span class="hs-identifier">Effects.Notify.Internal.Data.NotifyTimeout</span></a></span><span>
+</span><span id="line-110"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#NotifyTimeout"><span class="hs-identifier">NotifyTimeout</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#NotifyTimeoutMillis"><span class="hs-identifier">NotifyTimeoutMillis</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#NotifyTimeoutNever"><span class="hs-identifier">NotifyTimeoutNever</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-111"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#_NotifyTimeoutMillis"><span class="hs-identifier">_NotifyTimeoutMillis</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-112"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#_NotifyTimeoutNever"><span class="hs-identifier">_NotifyTimeoutNever</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-113"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-114"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyUrgency.html"><span class="hs-identifier">Effects.Notify.Internal.Data.NotifyUrgency</span></a></span><span>
+</span><span id="line-115"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyUrgency.html#NotifyUrgency"><span class="hs-identifier">NotifyUrgency</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyUrgency.html#NotifyUrgencyCritical"><span class="hs-identifier">NotifyUrgencyCritical</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyUrgency.html#NotifyUrgencyLow"><span class="hs-identifier">NotifyUrgencyLow</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyUrgency.html#NotifyUrgencyNormal"><span class="hs-identifier">NotifyUrgencyNormal</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-116"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyUrgency.html#_NotifyUrgencyCritical"><span class="hs-identifier">_NotifyUrgencyCritical</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-117"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyUrgency.html#_NotifyUrgencyLow"><span class="hs-identifier">_NotifyUrgencyLow</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-118"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyUrgency.html#_NotifyUrgencyNormal"><span class="hs-identifier">_NotifyUrgencyNormal</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-119"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-120"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Os.html"><span class="hs-identifier">Effects.Notify.Internal.Os</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Effects.Notify.Internal.Os.html#Os"><span class="hs-identifier">Os</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Effects.Notify.Internal.Os.html#Linux"><span class="hs-identifier">Linux</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Os.html#Osx"><span class="hs-identifier">Osx</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Os.html#Windows"><span class="hs-identifier">Windows</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-cpp">
+#if LINUX
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Os.Linux.html"><span class="hs-identifier">Effects.Notify.Internal.Os.Linux</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Os</span></span><span class="hs-cpp">
+#elif OSX
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Effects.Notify.Internal.Os.Osx</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">Os</span><span class="hs-cpp">
+#else
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Effects.Notify.Internal.Os.Windows</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">Os</span><span class="hs-cpp">
+#endif
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Stack</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">HasCallStack</span></span><span class="hs-special">)</span><span>
+</span><span id="line-129"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Core.html"><span class="hs-identifier">Optics.Core</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Operators.html#%5E."><span class="hs-operator">(^.)</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-130"></span><span>
+</span><span id="line-131"></span><span class="hs-comment">-- | Effect for sending desktop notifications.</span><span>
+</span><span id="line-132"></span><span class="hs-comment">--</span><span>
+</span><span id="line-133"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-134"></span><span class="hs-keyword">class</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Monad</span></span><span> </span><span class="annot"><a href="#local-6989586621679138246"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span id="MonadNotify"><span class="annot"><a href="Effects.Notify.html#MonadNotify"><span class="hs-identifier hs-var">MonadNotify</span></a></span></span><span> </span><span id="local-6989586621679138246"><span class="annot"><a href="#local-6989586621679138246"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-135"></span><span>  </span><span class="hs-comment">-- | Notification environment.</span><span>
+</span><span id="line-136"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-137"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-138"></span><span>  </span><span class="hs-keyword">type</span><span> </span><span id="NotifyEnvF"><span class="annot"><a href="Effects.Notify.html#NotifyEnvF"><span class="hs-identifier hs-var">NotifyEnvF</span></a></span></span><span> </span><span id="local-6989586621679138246"><span class="annot"><a href="#local-6989586621679138246"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-139"></span><span>
+</span><span id="line-140"></span><span>  </span><span class="hs-comment">-- | Initialize the notification environment.</span><span>
+</span><span id="line-141"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-142"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-143"></span><span>  </span><span id="initNotifyEnv"><span class="annot"><a href="Effects.Notify.html#initNotifyEnv"><span class="hs-identifier hs-type">initNotifyEnv</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemOs"><span class="hs-identifier hs-type">NotifySystemOs</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679138246"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Effects.Notify.html#NotifyEnvF"><span class="hs-identifier hs-type">NotifyEnvF</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679138246"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-144"></span><span>
+</span><span id="line-145"></span><span>  </span><span class="hs-comment">-- | Send a notification.</span><span>
+</span><span id="line-146"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-147"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-148"></span><span>  </span><span id="notify"><span class="annot"><a href="Effects.Notify.html#notify"><span class="hs-identifier hs-type">notify</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Effects.Notify.html#NotifyEnvF"><span class="hs-identifier hs-type">NotifyEnvF</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679138246"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#Note"><span class="hs-identifier hs-type">Note</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679138246"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-149"></span><span>
+</span><span id="line-150"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-151"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Effects.Notify.html#MonadNotify"><span class="hs-identifier hs-type">MonadNotify</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-152"></span><span>  </span><span class="hs-keyword">type</span><span> </span><span id="NotifyEnvF"><span class="annot"><a href="Effects.Notify.html#NotifyEnvF"><span class="hs-identifier hs-var">NotifyEnvF</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyEnv.html#NotifyEnv"><span class="hs-identifier hs-type">NotifyEnv</span></a></span><span>
+</span><span id="line-153"></span><span>
+</span><span id="line-154"></span><span>  </span><span id="local-6989586621679138392"><span class="annot"><span class="annottext">initNotifyEnv :: HasCallStack =&gt; NotifySystemOs -&gt; IO (NotifyEnvF IO)
+</span><a href="Effects.Notify.html#initNotifyEnv"><span class="hs-identifier hs-var hs-var hs-var">initNotifyEnv</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">HasCallStack =&gt; NotifySystemOs -&gt; IO NotifyEnv
+NotifySystemOs -&gt; IO NotifyEnv
+NotifySystemOs -&gt; IO (NotifyEnvF IO)
+</span><a href="Effects.Notify.Internal.Os.Linux.html#initNotifyEnv"><span class="hs-identifier hs-var">Os.initNotifyEnv</span></a></span><span>
+</span><span id="line-155"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Notify.html#initNotifyEnv"><span class="hs-pragma hs-type">initNotifyEnv</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-156"></span><span>
+</span><span id="line-157"></span><span>  </span><span id="local-6989586621679138395"><span class="annot"><span class="annottext">notify :: HasCallStack =&gt; NotifyEnvF IO -&gt; Note -&gt; IO ()
+</span><a href="Effects.Notify.html#notify"><span class="hs-identifier hs-var hs-var hs-var">notify</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">NotifyEnv -&gt; Note -&gt; IO ()
+NotifyEnvF IO -&gt; Note -&gt; IO ()
+</span><a href="Effects.Notify.Internal.Os.Linux.html#notify"><span class="hs-identifier hs-var">Os.notify</span></a></span><span>
+</span><span id="line-158"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Notify.html#notify"><span class="hs-pragma hs-type">notify</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-159"></span><span>
+</span><span id="line-160"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-161"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679138258"><span id="local-6989586621679138259"><span class="hs-special">(</span><span class="annot"><a href="Effects.Notify.html#MonadNotify"><span class="hs-identifier hs-type">MonadNotify</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679138258"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Effects.Notify.html#MonadNotify"><span class="hs-identifier hs-type">MonadNotify</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ReaderT</span></span><span> </span><span class="annot"><a href="#local-6989586621679138259"><span class="hs-identifier hs-type">env</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679138258"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-162"></span><span>  </span><span class="hs-keyword">type</span><span> </span><span id="NotifyEnvF"><span class="annot"><a href="Effects.Notify.html#NotifyEnvF"><span class="hs-identifier hs-var">NotifyEnvF</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ReaderT</span></span><span> </span><span class="annot"><a href="#local-6989586621679138259"><span class="hs-identifier hs-type">env</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679138258"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Effects.Notify.html#NotifyEnvF"><span class="hs-identifier hs-type">NotifyEnvF</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679138258"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-163"></span><span>
+</span><span id="line-164"></span><span>  </span><span id="local-6989586621679138412"><span class="annot"><span class="annottext">initNotifyEnv :: HasCallStack =&gt;
+NotifySystemOs -&gt; ReaderT env m (NotifyEnvF (ReaderT env m))
+</span><a href="Effects.Notify.html#initNotifyEnv"><span class="hs-identifier hs-var hs-var hs-var">initNotifyEnv</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m (NotifyEnvF m) -&gt; ReaderT env m (NotifyEnvF m)
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m (NotifyEnvF m) -&gt; ReaderT env m (NotifyEnvF m))
+-&gt; (NotifySystemOs -&gt; m (NotifyEnvF m))
+-&gt; NotifySystemOs
+-&gt; ReaderT env m (NotifyEnvF m)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">NotifySystemOs -&gt; m (NotifyEnvF m)
+forall (m :: * -&gt; *).
+(MonadNotify m, HasCallStack) =&gt;
+NotifySystemOs -&gt; m (NotifyEnvF m)
+</span><a href="Effects.Notify.html#initNotifyEnv"><span class="hs-identifier hs-var">initNotifyEnv</span></a></span><span>
+</span><span id="line-165"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Notify.html#initNotifyEnv"><span class="hs-pragma hs-type">initNotifyEnv</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-166"></span><span>
+</span><span id="line-167"></span><span>  </span><span id="local-6989586621679138420"><span class="annot"><span class="annottext">notify :: HasCallStack =&gt;
+NotifyEnvF (ReaderT env m) -&gt; Note -&gt; ReaderT env m ()
+</span><a href="Effects.Notify.html#notify"><span class="hs-identifier hs-var hs-var hs-var">notify</span></a></span></span><span> </span><span id="local-6989586621679138421"><span class="annot"><span class="annottext">NotifyEnvF (ReaderT env m)
+</span><a href="#local-6989586621679138421"><span class="hs-identifier hs-var">env</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m () -&gt; ReaderT env m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT env m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; ReaderT env m ())
+-&gt; (Note -&gt; m ()) -&gt; Note -&gt; ReaderT env m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">NotifyEnvF m -&gt; Note -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadNotify m, HasCallStack) =&gt;
+NotifyEnvF m -&gt; Note -&gt; m ()
+</span><a href="Effects.Notify.html#notify"><span class="hs-identifier hs-var">notify</span></a></span><span> </span><span class="annot"><span class="annottext">NotifyEnvF m
+NotifyEnvF (ReaderT env m)
+</span><a href="#local-6989586621679138421"><span class="hs-identifier hs-var">env</span></a></span><span>
+</span><span id="line-168"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Notify.html#notify"><span class="hs-pragma hs-type">notify</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-169"></span><span>
+</span><span id="line-170"></span><span class="hs-comment">-- | Runs 'notify' and runs the handler on any non-fatal 'NotifyException's.</span><span>
+</span><span id="line-171"></span><span class="hs-comment">-- Any other exceptions are rethrown.</span><span>
+</span><span id="line-172"></span><span class="hs-comment">--</span><span>
+</span><span id="line-173"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-174"></span><span class="annot"><a href="Effects.Notify.html#catchNonFatalNotify"><span class="hs-identifier hs-type">catchNonFatalNotify</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-175"></span><span>  </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679138268"><span class="annot"><a href="#local-6989586621679138268"><span class="hs-identifier hs-type">m</span></a></span></span><span class="hs-operator">.</span><span>
+</span><span id="line-176"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span>
+</span><span id="line-177"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">MonadCatch</span></span><span> </span><span class="annot"><a href="#local-6989586621679138268"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-178"></span><span>    </span><span class="annot"><a href="Effects.Notify.html#MonadNotify"><span class="hs-identifier hs-type">MonadNotify</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679138268"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-179"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-180"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Env.</span></span><span>
+</span><span id="line-181"></span><span>  </span><span class="annot"><a href="Effects.Notify.html#NotifyEnvF"><span class="hs-identifier hs-type">NotifyEnvF</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679138268"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-182"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Note.</span></span><span>
+</span><span id="line-183"></span><span>  </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#Note"><span class="hs-identifier hs-type">Note</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-184"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Handler.</span></span><span>
+</span><span id="line-185"></span><span>  </span><span class="hs-special">(</span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyException.html#NotifyException"><span class="hs-identifier hs-type">NotifyException</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679138268"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-186"></span><span>  </span><span class="annot"><a href="#local-6989586621679138268"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-187"></span><span id="catchNonFatalNotify"><span class="annot"><span class="annottext">catchNonFatalNotify :: forall (m :: * -&gt; *).
+(HasCallStack, MonadCatch m, MonadNotify m) =&gt;
+NotifyEnvF m -&gt; Note -&gt; (NotifyException -&gt; m ()) -&gt; m ()
+</span><a href="Effects.Notify.html#catchNonFatalNotify"><span class="hs-identifier hs-var hs-var">catchNonFatalNotify</span></a></span></span><span> </span><span id="local-6989586621679138449"><span class="annot"><span class="annottext">NotifyEnvF m
+</span><a href="#local-6989586621679138449"><span class="hs-identifier hs-var">env</span></a></span></span><span> </span><span id="local-6989586621679138450"><span class="annot"><span class="annottext">Note
+</span><a href="#local-6989586621679138450"><span class="hs-identifier hs-var">note</span></a></span></span><span> </span><span id="local-6989586621679138451"><span class="annot"><span class="annottext">NotifyException -&gt; m ()
+</span><a href="#local-6989586621679138451"><span class="hs-identifier hs-var">handler</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-188"></span><span>  </span><span class="annot"><span class="annottext">NotifyEnvF m -&gt; Note -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadNotify m, HasCallStack) =&gt;
+NotifyEnvF m -&gt; Note -&gt; m ()
+</span><a href="Effects.Notify.html#notify"><span class="hs-identifier hs-var">notify</span></a></span><span> </span><span class="annot"><span class="annottext">NotifyEnvF m
+</span><a href="#local-6989586621679138449"><span class="hs-identifier hs-var">env</span></a></span><span> </span><span class="annot"><span class="annottext">Note
+</span><a href="#local-6989586621679138450"><span class="hs-identifier hs-var">note</span></a></span><span> </span><span class="annot"><span class="annottext">m () -&gt; (NotifyException -&gt; m ()) -&gt; m ()
+forall e a. (HasCallStack, Exception e) =&gt; m a -&gt; (e -&gt; m a) -&gt; m a
+forall (m :: * -&gt; *) e a.
+(MonadCatch m, HasCallStack, Exception e) =&gt;
+m a -&gt; (e -&gt; m a) -&gt; m a
+</span><span class="hs-operator hs-var">`C.catch`</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679138453"><span class="annot"><span class="annottext">NotifyException
+</span><a href="#local-6989586621679138453"><span class="hs-identifier hs-var">ne</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-189"></span><span>    </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">NotifyException
+</span><a href="#local-6989586621679138453"><span class="hs-identifier hs-var">ne</span></a></span><span> </span><span class="annot"><span class="annottext">NotifyException -&gt; Optic' A_Lens NoIx NotifyException Bool -&gt; Bool
+forall k s (is :: IxList) a.
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic' A_Lens NoIx NotifyException Bool
+</span><span class="">#fatal</span></span><span>
+</span><span id="line-190"></span><span>      </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">NotifyException -&gt; m ()
+forall e a. (HasCallStack, Exception e) =&gt; e -&gt; m a
+forall (m :: * -&gt; *) e a.
+(MonadThrow m, HasCallStack, Exception e) =&gt;
+e -&gt; m a
+</span><span class="hs-identifier hs-var">C.throwM</span></span><span> </span><span class="annot"><span class="annottext">NotifyException
+</span><a href="#local-6989586621679138453"><span class="hs-identifier hs-var">ne</span></a></span><span>
+</span><span id="line-191"></span><span>      </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">NotifyException -&gt; m ()
+</span><a href="#local-6989586621679138451"><span class="hs-identifier hs-var">handler</span></a></span><span> </span><span class="annot"><span class="annottext">NotifyException
+</span><a href="#local-6989586621679138453"><span class="hs-identifier hs-var">ne</span></a></span><span>
+</span><span id="line-192"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Notify.html#catchNonFatalNotify"><span class="hs-pragma hs-type">catchNonFatalNotify</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-193"></span><span>
+</span><span id="line-194"></span><span class="hs-comment">-- | Like 'notify', but catches non-fatal 'NotifyException'.</span><span>
+</span><span id="line-195"></span><span class="hs-comment">--</span><span>
+</span><span id="line-196"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-197"></span><span class="annot"><a href="Effects.Notify.html#tryNonFatalNotify"><span class="hs-identifier hs-type">tryNonFatalNotify</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-198"></span><span>  </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679138306"><span class="annot"><a href="#local-6989586621679138306"><span class="hs-identifier hs-type">m</span></a></span></span><span class="hs-operator">.</span><span>
+</span><span id="line-199"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span>
+</span><span id="line-200"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">MonadCatch</span></span><span> </span><span class="annot"><a href="#local-6989586621679138306"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-201"></span><span>    </span><span class="annot"><a href="Effects.Notify.html#MonadNotify"><span class="hs-identifier hs-type">MonadNotify</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679138306"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-202"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-203"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Env.</span></span><span>
+</span><span id="line-204"></span><span>  </span><span class="annot"><a href="Effects.Notify.html#NotifyEnvF"><span class="hs-identifier hs-type">NotifyEnvF</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679138306"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-205"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Note.</span></span><span>
+</span><span id="line-206"></span><span>  </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#Note"><span class="hs-identifier hs-type">Note</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-207"></span><span>  </span><span class="annot"><a href="#local-6989586621679138306"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyException.html#NotifyException"><span class="hs-identifier hs-type">NotifyException</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-208"></span><span id="tryNonFatalNotify"><span class="annot"><span class="annottext">tryNonFatalNotify :: forall (m :: * -&gt; *).
+(HasCallStack, MonadCatch m, MonadNotify m) =&gt;
+NotifyEnvF m -&gt; Note -&gt; m (Maybe NotifyException)
+</span><a href="Effects.Notify.html#tryNonFatalNotify"><span class="hs-identifier hs-var hs-var">tryNonFatalNotify</span></a></span></span><span> </span><span id="local-6989586621679138483"><span class="annot"><span class="annottext">NotifyEnvF m
+</span><a href="#local-6989586621679138483"><span class="hs-identifier hs-var">env</span></a></span></span><span> </span><span id="local-6989586621679138484"><span class="annot"><span class="annottext">Note
+</span><a href="#local-6989586621679138484"><span class="hs-identifier hs-var">note</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-209"></span><span>  </span><span class="annot"><span class="annottext">m () -&gt; m (Either NotifyException ())
+forall (m :: * -&gt; *) e a.
+(HasCallStack, MonadCatch m, Exception e) =&gt;
+m a -&gt; m (Either e a)
+</span><span class="hs-identifier hs-var">C.try</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">NotifyEnvF m -&gt; Note -&gt; m ()
+forall (m :: * -&gt; *).
+(MonadNotify m, HasCallStack) =&gt;
+NotifyEnvF m -&gt; Note -&gt; m ()
+</span><a href="Effects.Notify.html#notify"><span class="hs-identifier hs-var">notify</span></a></span><span> </span><span class="annot"><span class="annottext">NotifyEnvF m
+</span><a href="#local-6989586621679138483"><span class="hs-identifier hs-var">env</span></a></span><span> </span><span class="annot"><span class="annottext">Note
+</span><a href="#local-6989586621679138484"><span class="hs-identifier hs-var">note</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">m (Either NotifyException ())
+-&gt; (Either NotifyException () -&gt; m (Maybe NotifyException))
+-&gt; m (Maybe NotifyException)
+forall a b. m a -&gt; (a -&gt; m b) -&gt; m b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-210"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679138486"><span class="annot"><span class="annottext">NotifyException
+</span><a href="#local-6989586621679138486"><span class="hs-identifier hs-var">ex</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-211"></span><span>      </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">NotifyException
+</span><a href="#local-6989586621679138486"><span class="hs-identifier hs-var">ex</span></a></span><span> </span><span class="annot"><span class="annottext">NotifyException -&gt; Optic' A_Lens NoIx NotifyException Bool -&gt; Bool
+forall k s (is :: IxList) a.
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic' A_Lens NoIx NotifyException Bool
+</span><span class="">#fatal</span></span><span>
+</span><span id="line-212"></span><span>        </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">NotifyException -&gt; m (Maybe NotifyException)
+forall e a. (HasCallStack, Exception e) =&gt; e -&gt; m a
+forall (m :: * -&gt; *) e a.
+(MonadThrow m, HasCallStack, Exception e) =&gt;
+e -&gt; m a
+</span><span class="hs-identifier hs-var">C.throwM</span></span><span> </span><span class="annot"><span class="annottext">NotifyException
+</span><a href="#local-6989586621679138486"><span class="hs-identifier hs-var">ex</span></a></span><span>
+</span><span id="line-213"></span><span>        </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Maybe NotifyException -&gt; m (Maybe NotifyException)
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">(Maybe NotifyException -&gt; m (Maybe NotifyException))
+-&gt; Maybe NotifyException -&gt; m (Maybe NotifyException)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">NotifyException -&gt; Maybe NotifyException
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">NotifyException
+</span><a href="#local-6989586621679138486"><span class="hs-identifier hs-var">ex</span></a></span><span>
+</span><span id="line-214"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span class="annot"><span class="annottext">()
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe NotifyException -&gt; m (Maybe NotifyException)
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">Maybe NotifyException
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-215"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Notify.html#tryNonFatalNotify"><span class="hs-pragma hs-type">tryNonFatalNotify</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-216"></span><span>
+</span><span id="line-217"></span><span class="hs-comment">-- | Like 'tryNonFatalNotify', but catches and discards the exception.</span><span>
+</span><span id="line-218"></span><span class="hs-comment">--</span><span>
+</span><span id="line-219"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-220"></span><span class="annot"><a href="Effects.Notify.html#tryNonFatalNotify_"><span class="hs-identifier hs-type">tryNonFatalNotify_</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-221"></span><span>  </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679138320"><span class="annot"><a href="#local-6989586621679138320"><span class="hs-identifier hs-type">m</span></a></span></span><span class="hs-operator">.</span><span>
+</span><span id="line-222"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span>
+</span><span id="line-223"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">MonadCatch</span></span><span> </span><span class="annot"><a href="#local-6989586621679138320"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-224"></span><span>    </span><span class="annot"><a href="Effects.Notify.html#MonadNotify"><span class="hs-identifier hs-type">MonadNotify</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679138320"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-225"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-226"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Env.</span></span><span>
+</span><span id="line-227"></span><span>  </span><span class="annot"><a href="Effects.Notify.html#NotifyEnvF"><span class="hs-identifier hs-type">NotifyEnvF</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679138320"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-228"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Note.</span></span><span>
+</span><span id="line-229"></span><span>  </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#Note"><span class="hs-identifier hs-type">Note</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-230"></span><span>  </span><span class="annot"><a href="#local-6989586621679138320"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-231"></span><span id="tryNonFatalNotify_"><span class="annot"><span class="annottext">tryNonFatalNotify_ :: forall (m :: * -&gt; *).
+(HasCallStack, MonadCatch m, MonadNotify m) =&gt;
+NotifyEnvF m -&gt; Note -&gt; m ()
+</span><a href="Effects.Notify.html#tryNonFatalNotify_"><span class="hs-identifier hs-var hs-var">tryNonFatalNotify_</span></a></span></span><span> </span><span id="local-6989586621679138499"><span class="annot"><span class="annottext">NotifyEnvF m
+</span><a href="#local-6989586621679138499"><span class="hs-identifier hs-var">env</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m (Maybe NotifyException) -&gt; m ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="annot"><span class="annottext">(m (Maybe NotifyException) -&gt; m ())
+-&gt; (Note -&gt; m (Maybe NotifyException)) -&gt; Note -&gt; m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">NotifyEnvF m -&gt; Note -&gt; m (Maybe NotifyException)
+forall (m :: * -&gt; *).
+(HasCallStack, MonadCatch m, MonadNotify m) =&gt;
+NotifyEnvF m -&gt; Note -&gt; m (Maybe NotifyException)
+</span><a href="Effects.Notify.html#tryNonFatalNotify"><span class="hs-identifier hs-var">tryNonFatalNotify</span></a></span><span> </span><span class="annot"><span class="annottext">NotifyEnvF m
+</span><a href="#local-6989586621679138499"><span class="hs-identifier hs-var">env</span></a></span><span>
+</span><span id="line-232"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Notify.html#tryNonFatalNotify_"><span class="hs-pragma hs-type">tryNonFatalNotify_</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-233"></span><span>
+</span><span id="line-234"></span><span class="hs-comment">-- $desc</span><span>
+</span><span id="line-235"></span><span class="hs-comment">--</span><span>
+</span><span id="line-236"></span><span class="hs-comment">-- @effects-notify@ is a library for implementing cross-platform desktop</span><span>
+</span><span id="line-237"></span><span class="hs-comment">-- notifications. Currently supports:</span><span>
+</span><span id="line-238"></span><span class="hs-comment">--</span><span>
+</span><span id="line-239"></span><span class="hs-comment">-- - Linux: Supports @dbus@ and @notify-send@. That is, if there is a</span><span>
+</span><span id="line-240"></span><span class="hs-comment">--   running dbus notification server, it can be used directly.</span><span>
+</span><span id="line-241"></span><span class="hs-comment">--   @notify-send (libnotify)@ can also be used, though it also requires a</span><span>
+</span><span id="line-242"></span><span class="hs-comment">--   running dbus server.</span><span>
+</span><span id="line-243"></span><span class="hs-comment">--</span><span>
+</span><span id="line-244"></span><span class="hs-comment">-- - Osx: Supports built-in @apple-script@ i.e. @osascript@.</span><span>
+</span><span id="line-245"></span><span class="hs-comment">--</span><span>
+</span><span id="line-246"></span><span class="hs-comment">-- - Windows: Unsupported. Functions are mere stubs that will compile</span><span>
+</span><span id="line-247"></span><span class="hs-comment">--   (with a warning) and do nothing at runtime.</span><span>
+</span><span id="line-248"></span><span class="hs-comment">--</span><span>
+</span><span id="line-249"></span><span class="hs-comment">-- ==== Usage</span><span>
+</span><span id="line-250"></span><span class="hs-comment">--</span><span>
+</span><span id="line-251"></span><span class="hs-comment">-- General usage involves choosing the notification system and using that</span><span>
+</span><span id="line-252"></span><span class="hs-comment">-- to initialize the environment:</span><span>
+</span><span id="line-253"></span><span class="hs-comment">--</span><span>
+</span><span id="line-254"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-255"></span><span class="hs-comment">-- -- choose system</span><span>
+</span><span id="line-256"></span><span class="hs-comment">-- let systemOs :: 'NotifySystemOs'</span><span>
+</span><span id="line-257"></span><span class="hs-comment">--     systemOs = ...</span><span>
+</span><span id="line-258"></span><span class="hs-comment">--</span><span>
+</span><span id="line-259"></span><span class="hs-comment">-- -- prepare environment</span><span>
+</span><span id="line-260"></span><span class="hs-comment">-- notifyEnv &lt;- 'initNotifyEnv' systemOs</span><span>
+</span><span id="line-261"></span><span class="hs-comment">--</span><span>
+</span><span id="line-262"></span><span class="hs-comment">-- -- send notification</span><span>
+</span><span id="line-263"></span><span class="hs-comment">-- let note =</span><span>
+</span><span id="line-264"></span><span class="hs-comment">--       'mkNote' &quot;A summary&quot;</span><span>
+</span><span id="line-265"></span><span class="hs-comment">--         &amp; 'setBody' &quot;Some notification&quot;</span><span>
+</span><span id="line-266"></span><span class="hs-comment">--         &amp; 'setTitle' &quot;My Application&quot;</span><span>
+</span><span id="line-267"></span><span class="hs-comment">--</span><span>
+</span><span id="line-268"></span><span class="hs-comment">-- 'notify' notifyEnv note</span><span>
+</span><span id="line-269"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-270"></span><span class="hs-comment">--</span><span>
+</span><span id="line-271"></span><span class="hs-comment">-- Choosing the system is more interesting. If we do not care about being</span><span>
+</span><span id="line-272"></span><span class="hs-comment">-- cross-platform, we can simply choose a 'NotifySystemOs' directly</span><span>
+</span><span id="line-273"></span><span class="hs-comment">-- and pass it to init:</span><span>
+</span><span id="line-274"></span><span class="hs-comment">--</span><span>
+</span><span id="line-275"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-276"></span><span class="hs-comment">-- -- The NotifySystemOsDBus constructor is only available on linux.</span><span>
+</span><span id="line-277"></span><span class="hs-comment">-- let systemOs :: 'NotifySystemOs'</span><span>
+</span><span id="line-278"></span><span class="hs-comment">--     systemOs = NotifySystemOsDBus</span><span>
+</span><span id="line-279"></span><span class="hs-comment">--</span><span>
+</span><span id="line-280"></span><span class="hs-comment">-- notifyEnv &lt;- 'initNotifyEnv' systemOs</span><span>
+</span><span id="line-281"></span><span class="hs-comment">-- ...</span><span>
+</span><span id="line-282"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-283"></span><span class="hs-comment">--</span><span>
+</span><span id="line-284"></span><span class="hs-comment">-- If we need to work on several platforms, we can instead use 'NotifySystem',</span><span>
+</span><span id="line-285"></span><span class="hs-comment">-- which includes every possible notification system and is available on all</span><span>
+</span><span id="line-286"></span><span class="hs-comment">-- platforms. We then pass it to 'notifySystemToOs', which -- if successful --</span><span>
+</span><span id="line-287"></span><span class="hs-comment">-- will return the 'NotifySystemOs' and we can continue as normal.</span><span>
+</span><span id="line-288"></span><span class="hs-comment">--</span><span>
+</span><span id="line-289"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-290"></span><span class="hs-comment">-- -- All NotifySystem constructors are available on all platforms.</span><span>
+</span><span id="line-291"></span><span class="hs-comment">-- let system :: 'NotifySystem'</span><span>
+</span><span id="line-292"></span><span class="hs-comment">--     system = ...</span><span>
+</span><span id="line-293"></span><span class="hs-comment">--</span><span>
+</span><span id="line-294"></span><span class="hs-comment">-- systemOs &lt;- 'notifySystemToOs' system \&gt;\&gt;= \\case</span><span>
+</span><span id="line-295"></span><span class="hs-comment">--   Left ex -&gt; throwM ex</span><span>
+</span><span id="line-296"></span><span class="hs-comment">--   Right s -&gt; pure s</span><span>
+</span><span id="line-297"></span><span class="hs-comment">-- notifyEnv &lt;- 'initNotifyEnv' systemOs</span><span>
+</span><span id="line-298"></span><span class="hs-comment">-- ...</span><span>
+</span><span id="line-299"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-300"></span><span class="hs-comment">--</span><span>
+</span><span id="line-301"></span><span class="hs-comment">-- If a system is chosen that is unavailable on the current platform,</span><span>
+</span><span id="line-302"></span><span class="hs-comment">-- a 'NotifyParseException' will be returned.</span><span>
+</span><span id="line-303"></span></pre></body></html>

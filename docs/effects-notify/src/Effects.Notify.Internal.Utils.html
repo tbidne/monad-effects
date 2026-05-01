@@ -1,0 +1,349 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Utils.html"><span class="hs-identifier">Effects.Notify.Internal.Utils</span></a></span><span>
+</span><span id="line-2"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Text</span></span><span>
+</span><span id="line-3"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Utils.html#maybeStr"><span class="hs-identifier">maybeStr</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-4"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Utils.html#showt"><span class="hs-identifier">showt</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Process</span></span><span>
+</span><span id="line-7"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Utils.html#runProcessIO"><span class="hs-identifier">runProcessIO</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Int conversions</span></span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Utils.html#unsafeConvertIntegral"><span class="hs-identifier">unsafeConvertIntegral</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Misc</span></span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Utils.html#mkProcessText"><span class="hs-identifier">mkProcessText</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-14"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Utils.html#mkProcessTextQuote"><span class="hs-identifier">mkProcessTextQuote</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-15"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-16"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Exception</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">throwIO</span></span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Bits</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Bits</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">toIntegralSized</span></span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Char</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Ch</span></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.String</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">IsString</span></span><span class="hs-special">)</span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Text</span></span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">T</span></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Lazy</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">TL</span></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Lazy.Builder</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Builder</span></span><span class="hs-special">)</span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Lazy.Builder</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">TLB</span></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Typeable</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Typeable</span></span><span class="hs-special">)</span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Typeable</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Typeable</span></span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.12.2/effects-process-0.1/doc/html/effects-process/src/Effects.System.Process.html"><span class="hs-identifier">Effects.System.Process</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">P</span></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.IO.Exception</span></span><span>
+</span><span id="line-31"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">IOErrorType</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">SystemError</span></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-32"></span><span>    </span><span class="annot"><span class="hs-identifier">IOException</span></span><span>
+</span><span id="line-33"></span><span>      </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">IOError</span></span><span class="hs-special">,</span><span>
+</span><span id="line-34"></span><span>        </span><span class="annot"><span class="hs-identifier">ioe_description</span></span><span class="hs-special">,</span><span>
+</span><span id="line-35"></span><span>        </span><span class="annot"><span class="hs-identifier">ioe_errno</span></span><span class="hs-special">,</span><span>
+</span><span id="line-36"></span><span>        </span><span class="annot"><span class="hs-identifier">ioe_filename</span></span><span class="hs-special">,</span><span>
+</span><span id="line-37"></span><span>        </span><span class="annot"><span class="hs-identifier">ioe_handle</span></span><span class="hs-special">,</span><span>
+</span><span id="line-38"></span><span>        </span><span class="annot"><span class="hs-identifier">ioe_location</span></span><span class="hs-special">,</span><span>
+</span><span id="line-39"></span><span>        </span><span class="annot"><span class="hs-identifier">ioe_type</span></span><span>
+</span><span id="line-40"></span><span>      </span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-41"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-42"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Stack</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">HasCallStack</span></span><span class="hs-special">)</span><span>
+</span><span id="line-43"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.Exit</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ExitCode</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ExitFailure</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">ExitSuccess</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-44"></span><span>
+</span><span id="line-45"></span><span class="annot"><span class="hs-comment">-- | Showable to Text.</span></span><span>
+</span><span id="line-46"></span><span id="local-6989586621679137613"><span class="annot"><a href="Effects.Notify.Internal.Utils.html#showt"><span class="hs-identifier hs-type">showt</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="#local-6989586621679137613"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679137613"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span></span><span>
+</span><span id="line-47"></span><span id="showt"><span class="annot"><span class="annottext">showt :: forall a. Show a =&gt; a -&gt; Text
+</span><a href="Effects.Notify.Internal.Utils.html#showt"><span class="hs-identifier hs-var hs-var">showt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Text
+</span><span class="hs-identifier hs-var">T.pack</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Text) -&gt; (a -&gt; String) -&gt; a -&gt; Text
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span id="local-6989586621679137619"><span id="local-6989586621679137620"><span class="annot"><a href="Effects.Notify.Internal.Utils.html#maybeStr"><span class="hs-identifier hs-type">maybeStr</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">IsString</span></span><span> </span><span class="annot"><a href="#local-6989586621679137619"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679137620"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679137619"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679137620"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679137619"><span class="hs-identifier hs-type">s</span></a></span></span></span><span>
+</span><span id="line-50"></span><span id="maybeStr"><span class="annot"><span class="annottext">maybeStr :: forall s a. IsString s =&gt; (a -&gt; s) -&gt; Maybe a -&gt; s
+</span><a href="Effects.Notify.Internal.Utils.html#maybeStr"><span class="hs-identifier hs-var hs-var">maybeStr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">s -&gt; (a -&gt; s) -&gt; Maybe a -&gt; s
+forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
+</span><span class="hs-identifier hs-var">maybe</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-51"></span><span>
+</span><span id="line-52"></span><span class="annot"><span class="hs-comment">-- | Runs the string as a shell command, throwing error as exceptions.</span></span><span>
+</span><span id="line-53"></span><span class="annot"><a href="Effects.Notify.Internal.Utils.html#runProcessIO"><span class="hs-identifier hs-type">runProcessIO</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-54"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-55"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-56"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-57"></span><span id="runProcessIO"><span class="annot"><span class="annottext">runProcessIO :: HasCallStack =&gt; String -&gt; IO ()
+</span><a href="Effects.Notify.Internal.Utils.html#runProcessIO"><span class="hs-identifier hs-var hs-var">runProcessIO</span></a></span></span><span> </span><span id="local-6989586621679137745"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679137745"><span class="hs-identifier hs-var">cmdStr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-58"></span><span>  </span><span class="hs-special">(</span><span id="local-6989586621679137746"><span class="annot"><a href="#local-6989586621679137746"><span class="hs-identifier hs-var">ec</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679137747"><span class="annot"><a href="#local-6989586621679137747"><span class="hs-identifier hs-var">out</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679137748"><span class="annot"><a href="#local-6989586621679137748"><span class="hs-identifier hs-var">err</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">CreateProcess -&gt; String -&gt; IO (ExitCode, String, String)
+forall (m :: * -&gt; *).
+(MonadProcess m, HasCallStack) =&gt;
+CreateProcess -&gt; String -&gt; m (ExitCode, String, String)
+</span><a href="file:///home/tommy/Dev/tommy/github/monad-effects/dist-newstyle/build/x86_64-linux/ghc-9.12.2/effects-process-0.1/doc/html/effects-process/src/Effects.System.Process.html#readCreateProcessWithExitCode"><span class="hs-identifier hs-var">P.readCreateProcessWithExitCode</span></a></span><span> </span><span class="annot"><span class="annottext">CreateProcess
+</span><a href="#local-6989586621679137750"><span class="hs-identifier hs-var">pr</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-59"></span><span>  </span><span class="hs-keyword">case</span><span> </span><span class="annot"><a href="#local-6989586621679137746"><span class="hs-identifier hs-type">ec</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-60"></span><span>    </span><span class="annot"><span class="annottext">ExitCode
+</span><span class="hs-identifier hs-var">ExitSuccess</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">() -&gt; IO ()
+forall a. a -&gt; IO a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-61"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">ExitFailure</span></span><span> </span><span id="local-6989586621679137751"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679137751"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-62"></span><span>      </span><span class="annot"><span class="annottext">IOException -&gt; IO ()
+forall e a. (HasCallStack, Exception e) =&gt; e -&gt; IO a
+</span><span class="hs-identifier hs-var">throwIO</span></span><span> </span><span class="annot"><span class="annottext">(IOException -&gt; IO ()) -&gt; IOException -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span id="line-63"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">IOError</span></span><span>
+</span><span id="line-64"></span><span>          </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">ioe_handle :: Maybe Handle
+</span><span class="hs-identifier hs-var">ioe_handle</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Handle
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">,</span><span>
+</span><span id="line-65"></span><span>            </span><span class="annot"><span class="annottext">ioe_type :: IOErrorType
+</span><span class="hs-identifier hs-var">ioe_type</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IOErrorType
+</span><span class="hs-identifier hs-var">SystemError</span></span><span class="hs-special">,</span><span>
+</span><span id="line-66"></span><span>            </span><span class="annot"><span class="annottext">ioe_location :: String
+</span><span class="hs-identifier hs-var">ioe_location</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;runProcessIO&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-67"></span><span>            </span><span class="annot"><span class="annottext">ioe_description :: String
+</span><span class="hs-identifier hs-var">ioe_description</span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-68"></span><span>              </span><span class="annot"><span class="annottext">[String] -&gt; String
+forall a. Monoid a =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">mconcat</span></span><span>
+</span><span id="line-69"></span><span>                </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Running command '&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-70"></span><span>                  </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679137745"><span class="hs-identifier hs-var">cmdStr</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-71"></span><span>                  </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;' failed. Out: '&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-72"></span><span>                  </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679137747"><span class="hs-identifier hs-var">out</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-73"></span><span>                  </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;'; Err: '&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-74"></span><span>                  </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679137748"><span class="hs-identifier hs-var">err</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-75"></span><span>                  </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;'.&quot;</span></span><span>
+</span><span id="line-76"></span><span>                </span><span class="hs-special">]</span><span class="hs-special">,</span><span>
+</span><span id="line-77"></span><span>            </span><span class="annot"><span class="annottext">ioe_errno :: Maybe CInt
+</span><span class="hs-identifier hs-var">ioe_errno</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CInt -&gt; Maybe CInt
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">(CInt -&gt; Maybe CInt) -&gt; CInt -&gt; Maybe CInt
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; CInt
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679137751"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-78"></span><span>            </span><span class="annot"><span class="annottext">ioe_filename :: Maybe String
+</span><span class="hs-identifier hs-var">ioe_filename</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe String
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-79"></span><span>          </span><span class="hs-special">}</span><span>
+</span><span id="line-80"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-81"></span><span>    </span><span id="local-6989586621679137750"><span class="annot"><span class="annottext">pr :: CreateProcess
+</span><a href="#local-6989586621679137750"><span class="hs-identifier hs-var hs-var">pr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; CreateProcess
+</span><span class="hs-identifier hs-var">P.shell</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679137745"><span class="hs-identifier hs-var">cmdStr</span></a></span><span>
+</span><span id="line-82"></span><span>
+</span><span id="line-83"></span><span class="hs-comment">-- | Escapes text so it is acceptable for sending to the shell. If the text</span><span>
+</span><span id="line-84"></span><span class="hs-comment">-- is non-empty:</span><span>
+</span><span id="line-85"></span><span class="hs-comment">--</span><span>
+</span><span id="line-86"></span><span class="hs-comment">-- - Escapes double quotes e.g. &quot; -&gt; \\\&quot;</span><span>
+</span><span id="line-87"></span><span class="hs-comment">-- - If there is any whitespace, surrounds text in non-escaped double quotes.</span><span>
+</span><span id="line-88"></span><span class="hs-comment">-- - Surrounds text with whitespace.</span><span>
+</span><span id="line-89"></span><span class="annot"><a href="Effects.Notify.Internal.Utils.html#mkProcessText"><span class="hs-identifier hs-type">mkProcessText</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-90"></span><span id="mkProcessText"><span class="annot"><span class="annottext">mkProcessText :: Text -&gt; Text
+</span><a href="Effects.Notify.Internal.Utils.html#mkProcessText"><span class="hs-identifier hs-var hs-var">mkProcessText</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Text -&gt; Text
+</span><a href="Effects.Notify.Internal.Utils.html#mkProcessTextQuote"><span class="hs-identifier hs-var">mkProcessTextQuote</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-91"></span><span>
+</span><span id="line-92"></span><span class="hs-comment">-- | Escapes text so it is acceptable for sending to the shell. If the text</span><span>
+</span><span id="line-93"></span><span class="hs-comment">-- is non-empty:</span><span>
+</span><span id="line-94"></span><span class="hs-comment">--</span><span>
+</span><span id="line-95"></span><span class="hs-comment">-- - Escapes double quotes e.g. &quot; -&gt; \\\&quot;</span><span>
+</span><span id="line-96"></span><span class="hs-comment">-- - If there is any whitespace, surrounds text in non-escaped double quotes.</span><span>
+</span><span id="line-97"></span><span class="hs-comment">-- - Surrounds text with whitespace.</span><span>
+</span><span id="line-98"></span><span class="annot"><a href="Effects.Notify.Internal.Utils.html#mkProcessTextQuote"><span class="hs-identifier hs-type">mkProcessTextQuote</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-99"></span><span id="mkProcessTextQuote"><span class="annot"><span class="annottext">mkProcessTextQuote :: Bool -&gt; Text -&gt; Text
+</span><a href="Effects.Notify.Internal.Utils.html#mkProcessTextQuote"><span class="hs-identifier hs-var hs-var">mkProcessTextQuote</span></a></span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-100"></span><span class="annot"><a href="Effects.Notify.Internal.Utils.html#mkProcessTextQuote"><span class="hs-identifier hs-var">mkProcessTextQuote</span></a></span><span> </span><span id="local-6989586621679137753"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679137753"><span class="hs-identifier hs-var">shouldQuote</span></a></span></span><span> </span><span id="local-6989586621679137754"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679137754"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-101"></span><span>  </span><span class="annot"><span class="annottext">LazyText -&gt; Text
+</span><span class="hs-identifier hs-var">TL.toStrict</span></span><span>
+</span><span id="line-102"></span><span>    </span><span class="annot"><span class="annottext">(LazyText -&gt; Text) -&gt; (Builder -&gt; LazyText) -&gt; Builder -&gt; Text
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Builder -&gt; LazyText
+</span><span class="hs-identifier hs-var">TLB.toLazyText</span></span><span>
+</span><span id="line-103"></span><span>    </span><span class="annot"><span class="annottext">(Builder -&gt; LazyText)
+-&gt; (Builder -&gt; Builder) -&gt; Builder -&gt; LazyText
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Builder -&gt; Builder
+</span><a href="#local-6989586621679137757"><span class="hs-identifier hs-var">addDQuotes</span></a></span><span>
+</span><span id="line-104"></span><span>    </span><span class="annot"><span class="annottext">(Builder -&gt; Text) -&gt; Builder -&gt; Text
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Builder
+</span><a href="#local-6989586621679137758"><span class="hs-identifier hs-var">builder</span></a></span><span>
+</span><span id="line-105"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-106"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679137758"><span class="annot"><span class="annottext">Builder
+</span><a href="#local-6989586621679137758"><span class="hs-identifier hs-var">builder</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679137759"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679137759"><span class="hs-identifier hs-var">foundWs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">((Builder, Bool) -&gt; Char -&gt; (Builder, Bool))
+-&gt; (Builder, Bool) -&gt; Text -&gt; (Builder, Bool)
+forall a. (a -&gt; Char -&gt; a) -&gt; a -&gt; Text -&gt; a
+</span><span class="hs-identifier hs-var">T.foldl'</span></span><span> </span><span class="annot"><span class="annottext">(Builder, Bool) -&gt; Char -&gt; (Builder, Bool)
+</span><a href="#local-6989586621679137761"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679137754"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><span id="line-107"></span><span>
+</span><span id="line-108"></span><span>    </span><span class="hs-comment">-- Adds quotes if necessary and whitespace unconditionally. We could</span><span>
+</span><span id="line-109"></span><span>    </span><span class="hs-comment">-- use cons/unsnoc (0(1) each) to conditionally add whitespace when</span><span>
+</span><span id="line-110"></span><span>    </span><span class="hs-comment">-- leading/trailing does not already exist, but this is simpler and</span><span>
+</span><span id="line-111"></span><span>    </span><span class="hs-comment">-- harmless.</span><span>
+</span><span id="line-112"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-113"></span><span>    </span><span class="hs-comment">-- Also, always quote if the arg is true.</span><span>
+</span><span id="line-114"></span><span>    </span><span id="local-6989586621679137757"><span class="annot"><span class="annottext">addDQuotes :: Builder -&gt; Builder
+</span><a href="#local-6989586621679137757"><span class="hs-identifier hs-var hs-var">addDQuotes</span></a></span></span><span> </span><span id="local-6989586621679137762"><span class="annot"><span class="annottext">Builder
+</span><a href="#local-6989586621679137762"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-115"></span><span>      </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679137753"><span class="hs-identifier hs-var">shouldQuote</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679137759"><span class="hs-identifier hs-var">foundWs</span></a></span><span>
+</span><span id="line-116"></span><span>        </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot; \&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">Builder -&gt; Builder -&gt; Builder
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Builder
+</span><a href="#local-6989586621679137762"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="annot"><span class="annottext">Builder -&gt; Builder -&gt; Builder
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;\&quot; &quot;</span></span><span>
+</span><span id="line-117"></span><span>        </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot; &quot;</span></span><span> </span><span class="annot"><span class="annottext">Builder -&gt; Builder -&gt; Builder
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Builder
+</span><a href="#local-6989586621679137762"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="annot"><span class="annottext">Builder -&gt; Builder -&gt; Builder
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot; &quot;</span></span><span>
+</span><span id="line-118"></span><span>
+</span><span id="line-119"></span><span>    </span><span class="annot"><a href="#local-6989586621679137761"><span class="hs-identifier hs-type">go</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Builder</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Builder</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">)</span><span>
+</span><span id="line-120"></span><span>    </span><span id="local-6989586621679137761"><span class="annot"><span class="annottext">go :: (Builder, Bool) -&gt; Char -&gt; (Builder, Bool)
+</span><a href="#local-6989586621679137761"><span class="hs-identifier hs-var hs-var">go</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679137764"><span class="annot"><span class="annottext">Builder
+</span><a href="#local-6989586621679137764"><span class="hs-identifier hs-var">acc</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679137765"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679137765"><span class="hs-identifier hs-var">ws</span></a></span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'&quot;'</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Builder
+</span><a href="#local-6989586621679137764"><span class="hs-identifier hs-var">acc</span></a></span><span> </span><span class="annot"><span class="annottext">Builder -&gt; Builder -&gt; Builder
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;\\\&quot;&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679137765"><span class="hs-identifier hs-var">ws</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-121"></span><span>    </span><span class="annot"><a href="#local-6989586621679137761"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679137766"><span class="annot"><span class="annottext">Builder
+</span><a href="#local-6989586621679137766"><span class="hs-identifier hs-var">acc</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679137767"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679137767"><span class="hs-identifier hs-var">ws</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679137768"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679137768"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Builder
+</span><a href="#local-6989586621679137766"><span class="hs-identifier hs-var">acc</span></a></span><span> </span><span class="annot"><span class="annottext">Builder -&gt; Builder -&gt; Builder
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Builder
+</span><span class="hs-identifier hs-var">TLB.singleton</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679137768"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><span class="hs-identifier hs-var">Ch.isSpace</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679137768"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679137767"><span class="hs-identifier hs-var">ws</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-122"></span><span>
+</span><span id="line-123"></span><span class="annot"><a href="Effects.Notify.Internal.Utils.html#unsafeConvertIntegral"><span class="hs-identifier hs-type">unsafeConvertIntegral</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-124"></span><span>  </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679137656"><span class="annot"><a href="#local-6989586621679137656"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span id="local-6989586621679137658"><span class="annot"><a href="#local-6989586621679137658"><span class="hs-identifier hs-type">b</span></a></span></span><span class="hs-operator">.</span><span>
+</span><span id="line-125"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bits</span></span><span> </span><span class="annot"><a href="#local-6989586621679137656"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-126"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Bits</span></span><span> </span><span class="annot"><a href="#local-6989586621679137658"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-127"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span>
+</span><span id="line-128"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Integral</span></span><span> </span><span class="annot"><a href="#local-6989586621679137656"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-129"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Integral</span></span><span> </span><span class="annot"><a href="#local-6989586621679137658"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-130"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="#local-6989586621679137656"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-131"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Typeable</span></span><span> </span><span class="annot"><a href="#local-6989586621679137656"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-132"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Typeable</span></span><span> </span><span class="annot"><a href="#local-6989586621679137658"><span class="hs-identifier hs-type">b</span></a></span><span>
+</span><span id="line-133"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-134"></span><span>  </span><span class="annot"><a href="#local-6989586621679137656"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-135"></span><span>  </span><span class="annot"><a href="#local-6989586621679137658"><span class="hs-identifier hs-type">b</span></a></span><span>
+</span><span id="line-136"></span><span id="unsafeConvertIntegral"><span class="annot"><span class="annottext">unsafeConvertIntegral :: forall a b.
+(Bits a, Bits b, HasCallStack, Integral a, Integral b, Show a,
+ Typeable a, Typeable b) =&gt;
+a -&gt; b
+</span><a href="Effects.Notify.Internal.Utils.html#unsafeConvertIntegral"><span class="hs-identifier hs-var hs-var">unsafeConvertIntegral</span></a></span></span><span> </span><span id="local-6989586621679137788"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679137788"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">a -&gt; Either String b
+forall a b.
+(Bits a, Bits b, Integral a, Integral b, Show a, Typeable a,
+ Typeable b) =&gt;
+a -&gt; Either String b
+</span><a href="Effects.Notify.Internal.Utils.html#convertIntegral"><span class="hs-identifier hs-var">convertIntegral</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679137788"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-137"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679137790"><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679137790"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679137790"><span class="hs-identifier hs-var">y</span></a></span><span>
+</span><span id="line-138"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679137791"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679137791"><span class="hs-identifier hs-var">err</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; b
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679137791"><span class="hs-identifier hs-var">err</span></a></span><span>
+</span><span id="line-139"></span><span>
+</span><span id="line-140"></span><span class="annot"><span class="hs-comment">-- | Like 'fromIntegral', except the conversion is only between integral types.</span></span><span>
+</span><span id="line-141"></span><span class="annot"><a href="Effects.Notify.Internal.Utils.html#convertIntegral"><span class="hs-identifier hs-type">convertIntegral</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-142"></span><span>  </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679137661"><span class="annot"><a href="#local-6989586621679137661"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span id="local-6989586621679137662"><span class="annot"><a href="#local-6989586621679137662"><span class="hs-identifier hs-type">b</span></a></span></span><span class="hs-operator">.</span><span>
+</span><span id="line-143"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bits</span></span><span> </span><span class="annot"><a href="#local-6989586621679137661"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-144"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Bits</span></span><span> </span><span class="annot"><a href="#local-6989586621679137662"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-145"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Integral</span></span><span> </span><span class="annot"><a href="#local-6989586621679137661"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-146"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Integral</span></span><span> </span><span class="annot"><a href="#local-6989586621679137662"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-147"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="#local-6989586621679137661"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-148"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Typeable</span></span><span> </span><span class="annot"><a href="#local-6989586621679137661"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-149"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Typeable</span></span><span> </span><span class="annot"><a href="#local-6989586621679137662"><span class="hs-identifier hs-type">b</span></a></span><span>
+</span><span id="line-150"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-151"></span><span>  </span><span class="annot"><a href="#local-6989586621679137661"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-152"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="#local-6989586621679137662"><span class="hs-identifier hs-type">b</span></a></span><span>
+</span><span id="line-153"></span><span id="convertIntegral"><span class="annot"><span class="annottext">convertIntegral :: forall a b.
+(Bits a, Bits b, Integral a, Integral b, Show a, Typeable a,
+ Typeable b) =&gt;
+a -&gt; Either String b
+</span><a href="Effects.Notify.Internal.Utils.html#convertIntegral"><span class="hs-identifier hs-var hs-var">convertIntegral</span></a></span></span><span> </span><span id="local-6989586621679137813"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679137813"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">a -&gt; Maybe b
+forall a b.
+(Integral a, Integral b, Bits a, Bits b) =&gt;
+a -&gt; Maybe b
+</span><span class="hs-identifier hs-var">toIntegralSized</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679137813"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-154"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679137814"><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679137814"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">b -&gt; Either String b
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679137814"><span class="hs-identifier hs-var">y</span></a></span><span>
+</span><span id="line-155"></span><span>  </span><span class="annot"><span class="annottext">Maybe b
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-156"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Either String b
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Either String b) -&gt; String -&gt; Either String b
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span id="line-157"></span><span>      </span><span class="annot"><span class="annottext">[String] -&gt; String
+forall a. Monoid a =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">mconcat</span></span><span>
+</span><span id="line-158"></span><span>        </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;convertIntegral: Failed converting &quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-159"></span><span>          </span><span class="annot"><span class="annottext">a -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679137813"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-160"></span><span>          </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; from &quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-161"></span><span>          </span><span class="annot"><span class="annottext">TypeRep -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; TypeRep
+forall a. Typeable a =&gt; a -&gt; TypeRep
+</span><span class="hs-identifier hs-var">Typeable.typeOf</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679137813"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-162"></span><span>          </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; to &quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-163"></span><span>          </span><span class="annot"><span class="annottext">TypeRep -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">(TypeRep -&gt; String) -&gt; TypeRep -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">b -&gt; TypeRep
+forall a. Typeable a =&gt; a -&gt; TypeRep
+</span><span class="hs-identifier hs-var">Typeable.typeOf</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">b
+forall a. HasCallStack =&gt; a
+</span><span class="hs-identifier hs-var">undefined</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679137662"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-164"></span><span>        </span><span class="hs-special">]</span><span>
+</span><span id="line-165"></span></pre></body></html>

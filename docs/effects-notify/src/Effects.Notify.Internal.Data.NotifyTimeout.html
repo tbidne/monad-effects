@@ -1,0 +1,164 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html"><span class="hs-identifier">Effects.Notify.Internal.Data.NotifyTimeout</span></a></span><span>
+</span><span id="line-2"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#NotifyTimeout"><span class="hs-identifier">NotifyTimeout</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-3"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#_NotifyTimeoutMillis"><span class="hs-identifier">_NotifyTimeoutMillis</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-4"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#_NotifyTimeoutNever"><span class="hs-identifier">_NotifyTimeoutNever</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-5"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-6"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.DeepSeq</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">NFData</span></span><span class="hs-special">)</span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/text-display-1.0.0.0-f4bf5d104a82ddcfdbb816571cc639e3f9aa127cd38dc01f017f79f176e9fd55/share/doc/html/src/Data.Text.Display.html"><span class="hs-identifier">Data.Text.Display</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/text-display-1.0.0.0-f4bf5d104a82ddcfdbb816571cc639e3f9aa127cd38dc01f017f79f176e9fd55/share/doc/html/src/Data.Text.Display.Core.html#Display"><span class="hs-identifier">Display</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/text-display-1.0.0.0-f4bf5d104a82ddcfdbb816571cc639e3f9aa127cd38dc01f017f79f176e9fd55/share/doc/html/src/Data.Text.Display.Core.html#displayBuilder"><span class="hs-identifier">displayBuilder</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Generics</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Generic</span></span><span class="hs-special">)</span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Core.html"><span class="hs-identifier">Optics.Core</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Prism.html#Prism%27"><span class="hs-identifier">Prism'</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Prism.html#prism"><span class="hs-identifier">prism</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- | Notification timeout, in milliseconds.</span><span>
+</span><span id="line-14"></span><span class="hs-comment">--</span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-16"></span><span class="hs-keyword">data</span><span> </span><span id="NotifyTimeout"><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#NotifyTimeout"><span class="hs-identifier hs-var">NotifyTimeout</span></a></span></span><span>
+</span><span id="line-17"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="NotifyTimeoutNever"><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#NotifyTimeoutNever"><span class="hs-identifier hs-var">NotifyTimeoutNever</span></a></span></span><span>
+</span><span id="line-18"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="NotifyTimeoutMillis"><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#NotifyTimeoutMillis"><span class="hs-identifier hs-var">NotifyTimeoutMillis</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-19"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679135773"><span id="local-6989586621679135780"><span class="annot"><span class="annottext">NotifyTimeout -&gt; NotifyTimeout -&gt; Bool
+(NotifyTimeout -&gt; NotifyTimeout -&gt; Bool)
+-&gt; (NotifyTimeout -&gt; NotifyTimeout -&gt; Bool) -&gt; Eq NotifyTimeout
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: NotifyTimeout -&gt; NotifyTimeout -&gt; Bool
+== :: NotifyTimeout -&gt; NotifyTimeout -&gt; Bool
+$c/= :: NotifyTimeout -&gt; NotifyTimeout -&gt; Bool
+/= :: NotifyTimeout -&gt; NotifyTimeout -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679135785"><span id="local-6989586621679135787"><span class="annot"><span class="annottext">(forall x. NotifyTimeout -&gt; Rep NotifyTimeout x)
+-&gt; (forall x. Rep NotifyTimeout x -&gt; NotifyTimeout)
+-&gt; Generic NotifyTimeout
+forall x. Rep NotifyTimeout x -&gt; NotifyTimeout
+forall x. NotifyTimeout -&gt; Rep NotifyTimeout x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. NotifyTimeout -&gt; Rep NotifyTimeout x
+from :: forall x. NotifyTimeout -&gt; Rep NotifyTimeout x
+$cto :: forall x. Rep NotifyTimeout x -&gt; NotifyTimeout
+to :: forall x. Rep NotifyTimeout x -&gt; NotifyTimeout
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679135795"><span id="local-6989586621679135799"><span id="local-6989586621679135802"><span id="local-6989586621679135806"><span id="local-6989586621679135809"><span id="local-6989586621679135812"><span id="local-6989586621679135815"><span class="annot"><span class="annottext">Eq NotifyTimeout
+Eq NotifyTimeout =&gt;
+(NotifyTimeout -&gt; NotifyTimeout -&gt; Ordering)
+-&gt; (NotifyTimeout -&gt; NotifyTimeout -&gt; Bool)
+-&gt; (NotifyTimeout -&gt; NotifyTimeout -&gt; Bool)
+-&gt; (NotifyTimeout -&gt; NotifyTimeout -&gt; Bool)
+-&gt; (NotifyTimeout -&gt; NotifyTimeout -&gt; Bool)
+-&gt; (NotifyTimeout -&gt; NotifyTimeout -&gt; NotifyTimeout)
+-&gt; (NotifyTimeout -&gt; NotifyTimeout -&gt; NotifyTimeout)
+-&gt; Ord NotifyTimeout
+NotifyTimeout -&gt; NotifyTimeout -&gt; Bool
+NotifyTimeout -&gt; NotifyTimeout -&gt; Ordering
+NotifyTimeout -&gt; NotifyTimeout -&gt; NotifyTimeout
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: NotifyTimeout -&gt; NotifyTimeout -&gt; Ordering
+compare :: NotifyTimeout -&gt; NotifyTimeout -&gt; Ordering
+$c&lt; :: NotifyTimeout -&gt; NotifyTimeout -&gt; Bool
+&lt; :: NotifyTimeout -&gt; NotifyTimeout -&gt; Bool
+$c&lt;= :: NotifyTimeout -&gt; NotifyTimeout -&gt; Bool
+&lt;= :: NotifyTimeout -&gt; NotifyTimeout -&gt; Bool
+$c&gt; :: NotifyTimeout -&gt; NotifyTimeout -&gt; Bool
+&gt; :: NotifyTimeout -&gt; NotifyTimeout -&gt; Bool
+$c&gt;= :: NotifyTimeout -&gt; NotifyTimeout -&gt; Bool
+&gt;= :: NotifyTimeout -&gt; NotifyTimeout -&gt; Bool
+$cmax :: NotifyTimeout -&gt; NotifyTimeout -&gt; NotifyTimeout
+max :: NotifyTimeout -&gt; NotifyTimeout -&gt; NotifyTimeout
+$cmin :: NotifyTimeout -&gt; NotifyTimeout -&gt; NotifyTimeout
+min :: NotifyTimeout -&gt; NotifyTimeout -&gt; NotifyTimeout
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679135823"><span id="local-6989586621679135828"><span id="local-6989586621679135832"><span class="annot"><span class="annottext">Int -&gt; NotifyTimeout -&gt; ShowS
+[NotifyTimeout] -&gt; ShowS
+NotifyTimeout -&gt; String
+(Int -&gt; NotifyTimeout -&gt; ShowS)
+-&gt; (NotifyTimeout -&gt; String)
+-&gt; ([NotifyTimeout] -&gt; ShowS)
+-&gt; Show NotifyTimeout
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; NotifyTimeout -&gt; ShowS
+showsPrec :: Int -&gt; NotifyTimeout -&gt; ShowS
+$cshow :: NotifyTimeout -&gt; String
+show :: NotifyTimeout -&gt; String
+$cshowList :: [NotifyTimeout] -&gt; ShowS
+showList :: [NotifyTimeout] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679135837"><span class="annot"><span class="annottext">NotifyTimeout -&gt; ()
+(NotifyTimeout -&gt; ()) -&gt; NFData NotifyTimeout
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: NotifyTimeout -&gt; ()
+rnf :: NotifyTimeout -&gt; ()
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span>
+</span><span id="line-22"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679135858"><span id="local-6989586621679135862"><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/text-display-1.0.0.0-f4bf5d104a82ddcfdbb816571cc639e3f9aa127cd38dc01f017f79f176e9fd55/share/doc/html/src/Data.Text.Display.Core.html#Display"><span class="hs-identifier hs-type">Display</span></a></span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#NotifyTimeout"><span class="hs-identifier hs-type">NotifyTimeout</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-24"></span><span>  </span><span id="local-6989586621679135872"><span class="annot"><span class="annottext">displayBuilder :: NotifyTimeout -&gt; Builder
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/text-display-1.0.0.0-f4bf5d104a82ddcfdbb816571cc639e3f9aa127cd38dc01f017f79f176e9fd55/share/doc/html/src/Data.Text.Display.Core.html#displayBuilder"><span class="hs-identifier hs-var hs-var hs-var">displayBuilder</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-25"></span><span>    </span><span class="annot"><span class="annottext">NotifyTimeout
+</span><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#NotifyTimeoutNever"><span class="hs-identifier hs-var">NotifyTimeoutNever</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;never&quot;</span></span><span>
+</span><span id="line-26"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#NotifyTimeoutMillis"><span class="hs-identifier hs-type">NotifyTimeoutMillis</span></a></span><span> </span><span id="local-6989586621679135873"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679135873"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Builder
+forall a. Display a =&gt; a -&gt; Builder
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/text-display-1.0.0.0-f4bf5d104a82ddcfdbb816571cc639e3f9aa127cd38dc01f017f79f176e9fd55/share/doc/html/src/Data.Text.Display.Core.html#displayBuilder"><span class="hs-identifier hs-var">displayBuilder</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679135873"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">Builder -&gt; Builder -&gt; Builder
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot; ms&quot;</span></span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-29"></span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#_NotifyTimeoutMillis"><span class="hs-identifier hs-type">_NotifyTimeoutMillis</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Prism.html#Prism%27"><span class="hs-identifier hs-type">Prism'</span></a></span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#NotifyTimeout"><span class="hs-identifier hs-type">NotifyTimeout</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-30"></span><span id="_NotifyTimeoutMillis"><span class="annot"><span class="annottext">_NotifyTimeoutMillis :: Prism' NotifyTimeout Int
+</span><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#_NotifyTimeoutMillis"><span class="hs-identifier hs-var hs-var">_NotifyTimeoutMillis</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-31"></span><span>  </span><span class="annot"><span class="annottext">(Int -&gt; NotifyTimeout)
+-&gt; (NotifyTimeout -&gt; Either NotifyTimeout Int)
+-&gt; Prism' NotifyTimeout Int
+forall b t s a. (b -&gt; t) -&gt; (s -&gt; Either t a) -&gt; Prism s t a b
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Prism.html#prism"><span class="hs-identifier hs-var">prism</span></a></span><span>
+</span><span id="line-32"></span><span>    </span><span class="annot"><span class="annottext">Int -&gt; NotifyTimeout
+</span><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#NotifyTimeoutMillis"><span class="hs-identifier hs-var">NotifyTimeoutMillis</span></a></span><span>
+</span><span id="line-33"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-34"></span><span>        </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#NotifyTimeoutMillis"><span class="hs-identifier hs-type">NotifyTimeoutMillis</span></a></span><span> </span><span id="local-6989586621679135874"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679135874"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Either NotifyTimeout Int
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679135874"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-35"></span><span>        </span><span id="local-6989586621679135875"><span class="annot"><span class="annottext">NotifyTimeout
+</span><a href="#local-6989586621679135875"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">NotifyTimeout -&gt; Either NotifyTimeout Int
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">NotifyTimeout
+</span><a href="#local-6989586621679135875"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-36"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-37"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#_NotifyTimeoutMillis"><span class="hs-pragma hs-type">_NotifyTimeoutMillis</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-40"></span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#_NotifyTimeoutNever"><span class="hs-identifier hs-type">_NotifyTimeoutNever</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Prism.html#Prism%27"><span class="hs-identifier hs-type">Prism'</span></a></span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#NotifyTimeout"><span class="hs-identifier hs-type">NotifyTimeout</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-41"></span><span id="_NotifyTimeoutNever"><span class="annot"><span class="annottext">_NotifyTimeoutNever :: Prism' NotifyTimeout ()
+</span><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#_NotifyTimeoutNever"><span class="hs-identifier hs-var hs-var">_NotifyTimeoutNever</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-42"></span><span>  </span><span class="annot"><span class="annottext">(() -&gt; NotifyTimeout)
+-&gt; (NotifyTimeout -&gt; Either NotifyTimeout ())
+-&gt; Prism' NotifyTimeout ()
+forall b t s a. (b -&gt; t) -&gt; (s -&gt; Either t a) -&gt; Prism s t a b
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Prism.html#prism"><span class="hs-identifier hs-var">prism</span></a></span><span>
+</span><span id="line-43"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">NotifyTimeout -&gt; () -&gt; NotifyTimeout
+forall a b. a -&gt; b -&gt; a
+</span><span class="hs-identifier hs-var">const</span></span><span> </span><span class="annot"><span class="annottext">NotifyTimeout
+</span><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#NotifyTimeoutNever"><span class="hs-identifier hs-var">NotifyTimeoutNever</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-44"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-45"></span><span>        </span><span class="annot"><span class="annottext">NotifyTimeout
+</span><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#NotifyTimeoutNever"><span class="hs-identifier hs-var">NotifyTimeoutNever</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">() -&gt; Either NotifyTimeout ()
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-46"></span><span>        </span><span id="local-6989586621679135877"><span class="annot"><span class="annottext">NotifyTimeout
+</span><a href="#local-6989586621679135877"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">NotifyTimeout -&gt; Either NotifyTimeout ()
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">NotifyTimeout
+</span><a href="#local-6989586621679135877"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-47"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-48"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#_NotifyTimeoutNever"><span class="hs-pragma hs-type">_NotifyTimeoutNever</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-49"></span></pre></body></html>

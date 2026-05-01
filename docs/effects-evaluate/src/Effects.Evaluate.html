@@ -1,0 +1,47 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- | Provides the 'MonadEvaluate' class.</span><span>
+</span><span id="line-2"></span><span class="hs-comment">--</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Effects.Evaluate.html"><span class="hs-identifier">Effects.Evaluate</span></a></span><span>
+</span><span id="line-5"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Effect</span></span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><a href="Effects.Evaluate.html#MonadEvaluate"><span class="hs-identifier">MonadEvaluate</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-7"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-8"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-9"></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Exception</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Ex</span></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Class</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadTrans</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">lift</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.Reader</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ReaderT</span></span><span class="hs-special">)</span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Stack</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">HasCallStack</span></span><span class="hs-special">)</span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- | 'Evaluate' effect.</span><span>
+</span><span id="line-16"></span><span class="hs-comment">--</span><span>
+</span><span id="line-17"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-18"></span><span class="hs-keyword">class</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Monad</span></span><span> </span><span class="annot"><a href="#local-6989586621679027490"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span id="MonadEvaluate"><span class="annot"><a href="Effects.Evaluate.html#MonadEvaluate"><span class="hs-identifier hs-var">MonadEvaluate</span></a></span></span><span> </span><span id="local-6989586621679027490"><span class="annot"><a href="#local-6989586621679027490"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-19"></span><span>  </span><span class="hs-comment">-- | Lifted 'Ex.evaluate'.</span><span>
+</span><span id="line-20"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-21"></span><span>  </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-22"></span><span>  </span><span id="evaluate"><span class="annot"><a href="Effects.Evaluate.html#evaluate"><span class="hs-identifier hs-type">evaluate</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span id="local-6989586621679027493"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679027493"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679027490"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679027493"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Effects.Evaluate.html#MonadEvaluate"><span class="hs-identifier hs-type">MonadEvaluate</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-26"></span><span>  </span><span id="local-6989586621679027522"><span class="annot"><span class="annottext">evaluate :: forall a. HasCallStack =&gt; a -&gt; IO a
+</span><a href="Effects.Evaluate.html#evaluate"><span class="hs-identifier hs-var hs-var hs-var">evaluate</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; IO a
+forall a. a -&gt; IO a
+</span><span class="hs-identifier hs-var">Ex.evaluate</span></span><span>
+</span><span id="line-27"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Evaluate.html#evaluate"><span class="hs-pragma hs-type">evaluate</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-28"></span><span>
+</span><span id="line-29"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679027501"><span id="local-6989586621679027502"><span class="hs-special">(</span><span class="annot"><a href="Effects.Evaluate.html#MonadEvaluate"><span class="hs-identifier hs-type">MonadEvaluate</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679027501"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Effects.Evaluate.html#MonadEvaluate"><span class="hs-identifier hs-type">MonadEvaluate</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ReaderT</span></span><span> </span><span class="annot"><a href="#local-6989586621679027502"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679027501"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-31"></span><span>  </span><span id="local-6989586621679027538"><span class="annot"><span class="annottext">evaluate :: forall a. HasCallStack =&gt; a -&gt; ReaderT e m a
+</span><a href="Effects.Evaluate.html#evaluate"><span class="hs-identifier hs-var hs-var hs-var">evaluate</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m a -&gt; ReaderT e m a
+forall (m :: * -&gt; *) a. Monad m =&gt; m a -&gt; ReaderT e m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span><span class="hs-identifier hs-var">lift</span></span><span> </span><span class="annot"><span class="annottext">(m a -&gt; ReaderT e m a) -&gt; (a -&gt; m a) -&gt; a -&gt; ReaderT e m a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; m a
+forall a. HasCallStack =&gt; a -&gt; m a
+forall (m :: * -&gt; *) a. (MonadEvaluate m, HasCallStack) =&gt; a -&gt; m a
+</span><a href="Effects.Evaluate.html#evaluate"><span class="hs-identifier hs-var">evaluate</span></a></span><span>
+</span><span id="line-32"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Effects.Evaluate.html#evaluate"><span class="hs-pragma hs-type">evaluate</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-33"></span></pre></body></html>

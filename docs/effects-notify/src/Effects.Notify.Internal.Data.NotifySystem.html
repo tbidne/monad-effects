@@ -1,0 +1,617 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span id="local-6989586621679136842"><span id="local-6989586621679136843"><span id="local-6989586621679136844"><span id="local-6989586621679136845"></span></span></span></span><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE UndecidableInstances #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# OPTIONS_GHC -Wno-redundant-constraints #-}</span><span>
+</span><span id="line-4"></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html"><span class="hs-identifier">Effects.Notify.Internal.Data.NotifySystem</span></a></span><span>
+</span><span id="line-6"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Platform-specific systems</span></span><span>
+</span><span id="line-7"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemOs"><span class="hs-identifier">NotifySystemOs</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#defaultNotifySystemOs"><span class="hs-identifier">defaultNotifySystemOs</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><span class="hs-comment">-- * All systems</span></span><span>
+</span><span id="line-11"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystem"><span class="hs-identifier">NotifySystem</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#defaultNotifySystem"><span class="hs-identifier">defaultNotifySystem</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#notifySystemToOs"><span class="hs-identifier">notifySystemToOs</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-14"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#notifySystemFromOs"><span class="hs-identifier">notifySystemFromOs</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Exceptions</span></span><span>
+</span><span id="line-17"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifyParseException"><span class="hs-identifier">NotifyParseException</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-18"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span class="hs-comment">{- ORMOLU_ENABLE -}</span><span>
+</span><span id="line-22"></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.DeepSeq</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">NFData</span></span><span class="hs-special">)</span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Catch</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Exception</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">displayException</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.List</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">L</span></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">T</span></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/text-builder-linear-0.1.3-1734be2aeed09a761418209e27548a478126389f446c7f8b7225b85ef23d9bef/share/doc/html/src/Data.Text.Builder.Linear.html"><span class="hs-identifier">Data.Text.Builder.Linear</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">TBL</span></span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/text-display-1.0.0.0-f4bf5d104a82ddcfdbb816571cc639e3f9aa127cd38dc01f017f79f176e9fd55/share/doc/html/src/Data.Text.Display.html"><span class="hs-identifier">Data.Text.Display</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/text-display-1.0.0.0-f4bf5d104a82ddcfdbb816571cc639e3f9aa127cd38dc01f017f79f176e9fd55/share/doc/html/src/Data.Text.Display.Core.html#Display"><span class="hs-identifier">Display</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/text-display-1.0.0.0-f4bf5d104a82ddcfdbb816571cc639e3f9aa127cd38dc01f017f79f176e9fd55/share/doc/html/src/Data.Text.Display.Core.html#displayBuilder"><span class="hs-identifier">displayBuilder</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Os.html"><span class="hs-identifier">Effects.Notify.Internal.Os</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Effects.Notify.Internal.Os.html#Os"><span class="hs-identifier">Os</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Os.html"><span class="hs-identifier">Effects.Notify.Internal.Os</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Os</span></span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Generics</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Generic</span></span><span class="hs-special">)</span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Core.html"><span class="hs-identifier">Optics.Core</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Internal.Optic.Types.html#A_Lens"><span class="hs-identifier">A_Lens</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Label.html#LabelOptic"><span class="hs-identifier">LabelOptic</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Label.html#labelOptic"><span class="hs-identifier">labelOptic</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Operators.html#%5E."><span class="hs-operator">(^.)</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-33"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Core.html"><span class="hs-identifier">Optics.Core</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">O</span></span><span>
+</span><span id="line-34"></span><span>
+</span><span id="line-35"></span><span class="hs-comment">-- NOTE: No need for any abstraction here as the only expected changes</span><span>
+</span><span id="line-36"></span><span class="hs-comment">-- (new system) would require a major bump anyway.</span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span class="hs-comment">-- | Represents all possible notification systems. This is useful for when</span><span>
+</span><span id="line-39"></span><span class="hs-comment">-- we want to choose the system in some way that works across multiple</span><span>
+</span><span id="line-40"></span><span class="hs-comment">-- platforms without requiring cpp.</span><span>
+</span><span id="line-41"></span><span class="hs-comment">--</span><span>
+</span><span id="line-42"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-43"></span><span class="hs-keyword">data</span><span> </span><span id="NotifySystem"><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystem"><span class="hs-identifier hs-var">NotifySystem</span></a></span></span><span>
+</span><span id="line-44"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="NotifySystemAppleScript"><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemAppleScript"><span class="hs-identifier hs-var">NotifySystemAppleScript</span></a></span></span><span>
+</span><span id="line-45"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="NotifySystemDBus"><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemDBus"><span class="hs-identifier hs-var">NotifySystemDBus</span></a></span></span><span>
+</span><span id="line-46"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="NotifySystemNotifySend"><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemNotifySend"><span class="hs-identifier hs-var">NotifySystemNotifySend</span></a></span></span><span>
+</span><span id="line-47"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="NotifySystemWindows"><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemWindows"><span class="hs-identifier hs-var">NotifySystemWindows</span></a></span></span><span>
+</span><span id="line-48"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679136862"><span id="local-6989586621679136864"><span class="annot"><span class="annottext">NotifySystem
+NotifySystem -&gt; NotifySystem -&gt; Bounded NotifySystem
+forall a. a -&gt; a -&gt; Bounded a
+$cminBound :: NotifySystem
+minBound :: NotifySystem
+$cmaxBound :: NotifySystem
+maxBound :: NotifySystem
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Bounded</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679136870"><span id="local-6989586621679136878"><span id="local-6989586621679136883"><span id="local-6989586621679136889"><span id="local-6989586621679136892"><span id="local-6989586621679136897"><span id="local-6989586621679136904"><span id="local-6989586621679136908"><span class="annot"><span class="annottext">Int -&gt; NotifySystem
+NotifySystem -&gt; Int
+NotifySystem -&gt; [NotifySystem]
+NotifySystem -&gt; NotifySystem
+NotifySystem -&gt; NotifySystem -&gt; [NotifySystem]
+NotifySystem -&gt; NotifySystem -&gt; NotifySystem -&gt; [NotifySystem]
+(NotifySystem -&gt; NotifySystem)
+-&gt; (NotifySystem -&gt; NotifySystem)
+-&gt; (Int -&gt; NotifySystem)
+-&gt; (NotifySystem -&gt; Int)
+-&gt; (NotifySystem -&gt; [NotifySystem])
+-&gt; (NotifySystem -&gt; NotifySystem -&gt; [NotifySystem])
+-&gt; (NotifySystem -&gt; NotifySystem -&gt; [NotifySystem])
+-&gt; (NotifySystem -&gt; NotifySystem -&gt; NotifySystem -&gt; [NotifySystem])
+-&gt; Enum NotifySystem
+forall a.
+(a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Int -&gt; a)
+-&gt; (a -&gt; Int)
+-&gt; (a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; a -&gt; [a])
+-&gt; Enum a
+$csucc :: NotifySystem -&gt; NotifySystem
+succ :: NotifySystem -&gt; NotifySystem
+$cpred :: NotifySystem -&gt; NotifySystem
+pred :: NotifySystem -&gt; NotifySystem
+$ctoEnum :: Int -&gt; NotifySystem
+toEnum :: Int -&gt; NotifySystem
+$cfromEnum :: NotifySystem -&gt; Int
+fromEnum :: NotifySystem -&gt; Int
+$cenumFrom :: NotifySystem -&gt; [NotifySystem]
+enumFrom :: NotifySystem -&gt; [NotifySystem]
+$cenumFromThen :: NotifySystem -&gt; NotifySystem -&gt; [NotifySystem]
+enumFromThen :: NotifySystem -&gt; NotifySystem -&gt; [NotifySystem]
+$cenumFromTo :: NotifySystem -&gt; NotifySystem -&gt; [NotifySystem]
+enumFromTo :: NotifySystem -&gt; NotifySystem -&gt; [NotifySystem]
+$cenumFromThenTo :: NotifySystem -&gt; NotifySystem -&gt; NotifySystem -&gt; [NotifySystem]
+enumFromThenTo :: NotifySystem -&gt; NotifySystem -&gt; NotifySystem -&gt; [NotifySystem]
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Enum</span></span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679136916"><span id="local-6989586621679136920"><span class="annot"><span class="annottext">NotifySystem -&gt; NotifySystem -&gt; Bool
+(NotifySystem -&gt; NotifySystem -&gt; Bool)
+-&gt; (NotifySystem -&gt; NotifySystem -&gt; Bool) -&gt; Eq NotifySystem
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: NotifySystem -&gt; NotifySystem -&gt; Bool
+== :: NotifySystem -&gt; NotifySystem -&gt; Bool
+$c/= :: NotifySystem -&gt; NotifySystem -&gt; Bool
+/= :: NotifySystem -&gt; NotifySystem -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679136925"><span id="local-6989586621679136927"><span class="annot"><span class="annottext">(forall x. NotifySystem -&gt; Rep NotifySystem x)
+-&gt; (forall x. Rep NotifySystem x -&gt; NotifySystem)
+-&gt; Generic NotifySystem
+forall x. Rep NotifySystem x -&gt; NotifySystem
+forall x. NotifySystem -&gt; Rep NotifySystem x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. NotifySystem -&gt; Rep NotifySystem x
+from :: forall x. NotifySystem -&gt; Rep NotifySystem x
+$cto :: forall x. Rep NotifySystem x -&gt; NotifySystem
+to :: forall x. Rep NotifySystem x -&gt; NotifySystem
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679136935"><span id="local-6989586621679136939"><span id="local-6989586621679136943"><span id="local-6989586621679136947"><span id="local-6989586621679136950"><span id="local-6989586621679136953"><span id="local-6989586621679136956"><span class="annot"><span class="annottext">Eq NotifySystem
+Eq NotifySystem =&gt;
+(NotifySystem -&gt; NotifySystem -&gt; Ordering)
+-&gt; (NotifySystem -&gt; NotifySystem -&gt; Bool)
+-&gt; (NotifySystem -&gt; NotifySystem -&gt; Bool)
+-&gt; (NotifySystem -&gt; NotifySystem -&gt; Bool)
+-&gt; (NotifySystem -&gt; NotifySystem -&gt; Bool)
+-&gt; (NotifySystem -&gt; NotifySystem -&gt; NotifySystem)
+-&gt; (NotifySystem -&gt; NotifySystem -&gt; NotifySystem)
+-&gt; Ord NotifySystem
+NotifySystem -&gt; NotifySystem -&gt; Bool
+NotifySystem -&gt; NotifySystem -&gt; Ordering
+NotifySystem -&gt; NotifySystem -&gt; NotifySystem
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: NotifySystem -&gt; NotifySystem -&gt; Ordering
+compare :: NotifySystem -&gt; NotifySystem -&gt; Ordering
+$c&lt; :: NotifySystem -&gt; NotifySystem -&gt; Bool
+&lt; :: NotifySystem -&gt; NotifySystem -&gt; Bool
+$c&lt;= :: NotifySystem -&gt; NotifySystem -&gt; Bool
+&lt;= :: NotifySystem -&gt; NotifySystem -&gt; Bool
+$c&gt; :: NotifySystem -&gt; NotifySystem -&gt; Bool
+&gt; :: NotifySystem -&gt; NotifySystem -&gt; Bool
+$c&gt;= :: NotifySystem -&gt; NotifySystem -&gt; Bool
+&gt;= :: NotifySystem -&gt; NotifySystem -&gt; Bool
+$cmax :: NotifySystem -&gt; NotifySystem -&gt; NotifySystem
+max :: NotifySystem -&gt; NotifySystem -&gt; NotifySystem
+$cmin :: NotifySystem -&gt; NotifySystem -&gt; NotifySystem
+min :: NotifySystem -&gt; NotifySystem -&gt; NotifySystem
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679136964"><span id="local-6989586621679136966"><span id="local-6989586621679136970"><span class="annot"><span class="annottext">Int -&gt; NotifySystem -&gt; ShowS
+[NotifySystem] -&gt; ShowS
+NotifySystem -&gt; String
+(Int -&gt; NotifySystem -&gt; ShowS)
+-&gt; (NotifySystem -&gt; String)
+-&gt; ([NotifySystem] -&gt; ShowS)
+-&gt; Show NotifySystem
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; NotifySystem -&gt; ShowS
+showsPrec :: Int -&gt; NotifySystem -&gt; ShowS
+$cshow :: NotifySystem -&gt; String
+show :: NotifySystem -&gt; String
+$cshowList :: [NotifySystem] -&gt; ShowS
+showList :: [NotifySystem] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-49"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679136975"><span class="annot"><span class="annottext">NotifySystem -&gt; ()
+(NotifySystem -&gt; ()) -&gt; NFData NotifySystem
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: NotifySystem -&gt; ()
+rnf :: NotifySystem -&gt; ()
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-50"></span><span>
+</span><span id="line-51"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-52"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679136995"><span id="local-6989586621679136999"><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/text-display-1.0.0.0-f4bf5d104a82ddcfdbb816571cc639e3f9aa127cd38dc01f017f79f176e9fd55/share/doc/html/src/Data.Text.Display.Core.html#Display"><span class="hs-identifier hs-type">Display</span></a></span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystem"><span class="hs-identifier hs-type">NotifySystem</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-53"></span><span>  </span><span id="local-6989586621679137007"><span class="annot"><span class="annottext">displayBuilder :: NotifySystem -&gt; Builder
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/text-display-1.0.0.0-f4bf5d104a82ddcfdbb816571cc639e3f9aa127cd38dc01f017f79f176e9fd55/share/doc/html/src/Data.Text.Display.Core.html#displayBuilder"><span class="hs-identifier hs-var hs-var hs-var">displayBuilder</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-54"></span><span>    </span><span class="annot"><span class="annottext">NotifySystem
+</span><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemAppleScript"><span class="hs-identifier hs-var">NotifySystemAppleScript</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;apple-script&quot;</span></span><span>
+</span><span id="line-55"></span><span>    </span><span class="annot"><span class="annottext">NotifySystem
+</span><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemDBus"><span class="hs-identifier hs-var">NotifySystemDBus</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;dbus&quot;</span></span><span>
+</span><span id="line-56"></span><span>    </span><span class="annot"><span class="annottext">NotifySystem
+</span><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemNotifySend"><span class="hs-identifier hs-var">NotifySystemNotifySend</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;notify-send&quot;</span></span><span>
+</span><span id="line-57"></span><span>    </span><span class="annot"><span class="annottext">NotifySystem
+</span><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemWindows"><span class="hs-identifier hs-var">NotifySystemWindows</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;windows&quot;</span></span><span>
+</span><span id="line-58"></span><span>
+</span><span id="line-59"></span><span class="hs-comment">-- | Converts platform-agnostic 'NotifySystem' to platform-specific</span><span>
+</span><span id="line-60"></span><span class="hs-comment">-- 'NotifySystemOs'. Useful for obtaining a valid system for the current</span><span>
+</span><span id="line-61"></span><span class="hs-comment">-- platform without cpp.</span><span>
+</span><span id="line-62"></span><span class="hs-comment">--</span><span>
+</span><span id="line-63"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-64"></span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#notifySystemToOs"><span class="hs-identifier hs-type">notifySystemToOs</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystem"><span class="hs-identifier hs-type">NotifySystem</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifyParseException"><span class="hs-identifier hs-type">NotifyParseException</span></a></span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemOs"><span class="hs-identifier hs-type">NotifySystemOs</span></a></span><span>
+</span><span id="line-65"></span><span>
+</span><span id="line-66"></span><span class="hs-comment">-- | Inverse 'notifySystemToOs'.</span><span>
+</span><span id="line-67"></span><span class="hs-comment">--</span><span>
+</span><span id="line-68"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-69"></span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#notifySystemFromOs"><span class="hs-identifier hs-type">notifySystemFromOs</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemOs"><span class="hs-identifier hs-type">NotifySystemOs</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystem"><span class="hs-identifier hs-type">NotifySystem</span></a></span><span>
+</span><span id="line-70"></span><span>
+</span><span id="line-71"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-72"></span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#defaultNotifySystem"><span class="hs-identifier hs-type">defaultNotifySystem</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystem"><span class="hs-identifier hs-type">NotifySystem</span></a></span><span>
+</span><span id="line-73"></span><span>
+</span><span id="line-74"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-75"></span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#defaultNotifySystemOs"><span class="hs-identifier hs-type">defaultNotifySystemOs</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemOs"><span class="hs-identifier hs-type">NotifySystemOs</span></a></span><span>
+</span><span id="line-76"></span><span>
+</span><span id="line-77"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-78"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679137010"><span id="local-6989586621679137014"><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/text-display-1.0.0.0-f4bf5d104a82ddcfdbb816571cc639e3f9aa127cd38dc01f017f79f176e9fd55/share/doc/html/src/Data.Text.Display.Core.html#Display"><span class="hs-identifier hs-type">Display</span></a></span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemOs"><span class="hs-identifier hs-type">NotifySystemOs</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-79"></span><span>  </span><span id="local-6989586621679137017"><span class="annot"><span class="annottext">displayBuilder :: NotifySystemOs -&gt; Builder
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/text-display-1.0.0.0-f4bf5d104a82ddcfdbb816571cc639e3f9aa127cd38dc01f017f79f176e9fd55/share/doc/html/src/Data.Text.Display.Core.html#displayBuilder"><span class="hs-identifier hs-var hs-var hs-var">displayBuilder</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">NotifySystem -&gt; Builder
+forall a. Display a =&gt; a -&gt; Builder
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/text-display-1.0.0.0-f4bf5d104a82ddcfdbb816571cc639e3f9aa127cd38dc01f017f79f176e9fd55/share/doc/html/src/Data.Text.Display.Core.html#displayBuilder"><span class="hs-identifier hs-var">displayBuilder</span></a></span><span> </span><span class="annot"><span class="annottext">(NotifySystem -&gt; Builder)
+-&gt; (NotifySystemOs -&gt; NotifySystem) -&gt; NotifySystemOs -&gt; Builder
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">NotifySystemOs -&gt; NotifySystem
+</span><a href="Effects.Notify.Internal.Data.NotifySystem.html#notifySystemFromOs"><span class="hs-identifier hs-var">notifySystemFromOs</span></a></span><span>
+</span><span id="line-80"></span><span>
+</span><span id="line-81"></span><span class="hs-comment">-- | Exceptions thrown when parsing 'NotifySystem' to 'NotifySystemOs'.</span><span>
+</span><span id="line-82"></span><span class="hs-comment">--</span><span>
+</span><span id="line-83"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-84"></span><span class="hs-keyword">data</span><span> </span><span id="NotifyParseException"><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifyParseException"><span class="hs-identifier hs-var">NotifyParseException</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkNotifyParseException"><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#MkNotifyParseException"><span class="hs-identifier hs-var">MkNotifyParseException</span></a></span></span><span>
+</span><span id="line-85"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="hs-comment">-- | The current 'Os'.</span></span><span>
+</span><span id="line-86"></span><span>    </span><span id="os"><span class="annot"><span class="annottext">NotifyParseException -&gt; Os
+</span><a href="Effects.Notify.Internal.Data.NotifySystem.html#os"><span class="hs-identifier hs-var hs-var">os</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Os.html#Os"><span class="hs-identifier hs-type">Os</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-87"></span><span>    </span><span class="annot"><span class="hs-comment">-- | The 'NotifySystem' we attempted to use.</span></span><span>
+</span><span id="line-88"></span><span>    </span><span id="system"><span class="annot"><span class="annottext">NotifyParseException -&gt; NotifySystem
+</span><a href="Effects.Notify.Internal.Data.NotifySystem.html#system"><span class="hs-identifier hs-var hs-var">system</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystem"><span class="hs-identifier hs-type">NotifySystem</span></a></span><span>
+</span><span id="line-89"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-90"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679137023"><span id="local-6989586621679137029"><span id="local-6989586621679137033"><span class="annot"><span class="annottext">Int -&gt; NotifyParseException -&gt; ShowS
+[NotifyParseException] -&gt; ShowS
+NotifyParseException -&gt; String
+(Int -&gt; NotifyParseException -&gt; ShowS)
+-&gt; (NotifyParseException -&gt; String)
+-&gt; ([NotifyParseException] -&gt; ShowS)
+-&gt; Show NotifyParseException
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; NotifyParseException -&gt; ShowS
+showsPrec :: Int -&gt; NotifyParseException -&gt; ShowS
+$cshow :: NotifyParseException -&gt; String
+show :: NotifyParseException -&gt; String
+$cshowList :: [NotifyParseException] -&gt; ShowS
+showList :: [NotifyParseException] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-91"></span><span>
+</span><span id="line-92"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-93"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679137040"><span id="local-6989586621679137044"><span id="local-6989586621679137048"><span class="annot"><span class="hs-identifier hs-type">Exception</span></span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifyParseException"><span class="hs-identifier hs-type">NotifyParseException</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-94"></span><span>  </span><span id="local-6989586621679137078"><span class="annot"><span class="annottext">displayException :: NotifyParseException -&gt; String
+</span><span class="hs-identifier hs-var hs-var hs-var">displayException</span></span></span><span> </span><span id="local-6989586621679137079"><span class="annot"><span class="annottext">NotifyParseException
+</span><a href="#local-6989586621679137079"><span class="hs-identifier hs-var">ex</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-95"></span><span>    </span><span class="annot"><span class="annottext">Text -&gt; String
+</span><span class="hs-identifier hs-var">T.unpack</span></span><span>
+</span><span id="line-96"></span><span>      </span><span class="annot"><span class="annottext">(Text -&gt; String) -&gt; ([Builder] -&gt; Text) -&gt; [Builder] -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Builder -&gt; Text
+Builder -&gt; Text
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/text-builder-linear-0.1.3-1734be2aeed09a761418209e27548a478126389f446c7f8b7225b85ef23d9bef/share/doc/html/src/Data.Text.Builder.Linear.html#runBuilder"><span class="hs-identifier hs-var">TBL.runBuilder</span></a></span><span>
+</span><span id="line-97"></span><span>      </span><span class="annot"><span class="annottext">(Builder -&gt; Text) -&gt; ([Builder] -&gt; Builder) -&gt; [Builder] -&gt; Text
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">[Builder] -&gt; Builder
+forall a. Monoid a =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">mconcat</span></span><span>
+</span><span id="line-98"></span><span>      </span><span class="annot"><span class="annottext">([Builder] -&gt; String) -&gt; [Builder] -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;Notification system '&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-99"></span><span>          </span><span class="annot"><span class="annottext">NotifySystem -&gt; Builder
+forall a. Display a =&gt; a -&gt; Builder
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/text-display-1.0.0.0-f4bf5d104a82ddcfdbb816571cc639e3f9aa127cd38dc01f017f79f176e9fd55/share/doc/html/src/Data.Text.Display.Core.html#displayBuilder"><span class="hs-identifier hs-var">displayBuilder</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">NotifyParseException
+</span><a href="#local-6989586621679137079"><span class="hs-identifier hs-var">ex</span></a></span><span> </span><span class="annot"><span class="annottext">NotifyParseException
+-&gt; Optic' A_Lens NoIx NotifyParseException NotifySystem
+-&gt; NotifySystem
+forall k s (is :: IxList) a.
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic' A_Lens NoIx NotifyParseException NotifySystem
+</span><span class="">#system</span></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-100"></span><span>          </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;' is unavailable on os &quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-101"></span><span>          </span><span class="annot"><span class="annottext">Os -&gt; Builder
+forall a. Display a =&gt; a -&gt; Builder
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/text-display-1.0.0.0-f4bf5d104a82ddcfdbb816571cc639e3f9aa127cd38dc01f017f79f176e9fd55/share/doc/html/src/Data.Text.Display.Core.html#displayBuilder"><span class="hs-identifier hs-var">displayBuilder</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">NotifyParseException
+</span><a href="#local-6989586621679137079"><span class="hs-identifier hs-var">ex</span></a></span><span> </span><span class="annot"><span class="annottext">NotifyParseException
+-&gt; Optic' A_Lens NoIx NotifyParseException Os -&gt; Os
+forall k s (is :: IxList) a.
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic' A_Lens NoIx NotifyParseException Os
+</span><span class="">#os</span></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-102"></span><span>          </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;. Available systems: &quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-103"></span><span>          </span><span class="annot"><span class="annottext">Builder
+</span><a href="#local-6989586621679137082"><span class="hs-identifier hs-var">availSystems</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-104"></span><span>          </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;.&quot;</span></span><span>
+</span><span id="line-105"></span><span>        </span><span class="hs-special">]</span><span>
+</span><span id="line-106"></span><span>    </span><span class="hs-keyword">where</span><span>
+</span><span id="line-107"></span><span>      </span><span id="local-6989586621679137082"><span class="annot"><span class="annottext">availSystems :: Builder
+</span><a href="#local-6989586621679137082"><span class="hs-identifier hs-var hs-var">availSystems</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-108"></span><span>        </span><span class="annot"><span class="annottext">[Builder] -&gt; Builder
+forall a. Monoid a =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">mconcat</span></span><span>
+</span><span id="line-109"></span><span>          </span><span class="annot"><span class="annottext">([Builder] -&gt; Builder)
+-&gt; ([NotifySystemOs] -&gt; [Builder]) -&gt; [NotifySystemOs] -&gt; Builder
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Builder -&gt; [Builder] -&gt; [Builder]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">L.intersperse</span></span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;, &quot;</span></span><span>
+</span><span id="line-110"></span><span>          </span><span class="annot"><span class="annottext">([Builder] -&gt; [Builder])
+-&gt; ([NotifySystemOs] -&gt; [Builder]) -&gt; [NotifySystemOs] -&gt; [Builder]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(NotifySystemOs -&gt; Builder) -&gt; [NotifySystemOs] -&gt; [Builder]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="annot"><span class="annottext">NotifySystemOs -&gt; Builder
+forall a. Display a =&gt; a -&gt; Builder
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/text-display-1.0.0.0-f4bf5d104a82ddcfdbb816571cc639e3f9aa127cd38dc01f017f79f176e9fd55/share/doc/html/src/Data.Text.Display.Core.html#displayBuilder"><span class="hs-identifier hs-var">displayBuilder</span></a></span><span>
+</span><span id="line-111"></span><span>          </span><span class="annot"><span class="annottext">([NotifySystemOs] -&gt; Builder) -&gt; [NotifySystemOs] -&gt; Builder
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">NotifySystemOs
+forall a. Bounded a =&gt; a
+</span><span class="hs-identifier hs-var">minBound</span></span><span> </span><span class="hs-glyph">..</span><span> </span><span class="annot"><span class="annottext">NotifySystemOs
+forall a. Bounded a =&gt; a
+</span><span class="hs-identifier hs-var">maxBound</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemOs"><span class="hs-identifier hs-type">NotifySystemOs</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-112"></span><span>
+</span><span id="line-113"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-114"></span><span class="hs-keyword">instance</span><span>
+</span><span id="line-115"></span><span>  </span><span id="local-6989586621679136797"><span id="local-6989586621679136798"><span id="local-6989586621679136799"><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679136797"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Internal.Optic.Types.html#A_Lens"><span class="hs-identifier hs-type">A_Lens</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679136798"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Os.html#Os"><span class="hs-identifier hs-type">Os</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679136799"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Os.html#Os"><span class="hs-identifier hs-type">Os</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-116"></span><span>  </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Label.html#LabelOptic"><span class="hs-identifier hs-type">LabelOptic</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;os&quot;</span></span><span> </span><span class="annot"><a href="#local-6989586621679136797"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifyParseException"><span class="hs-identifier hs-type">NotifyParseException</span></a></span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifyParseException"><span class="hs-identifier hs-type">NotifyParseException</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679136798"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679136799"><span class="hs-identifier hs-type">b</span></a></span></span></span></span><span>
+</span><span id="line-117"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-118"></span><span>  </span><span id="local-6989586621679137102"><span class="annot"><span class="annottext">labelOptic :: Optic k NoIx NotifyParseException NotifyParseException a b
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Label.html#labelOptic"><span class="hs-identifier hs-var hs-var hs-var">labelOptic</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LensVL NotifyParseException NotifyParseException a b
+-&gt; Lens NotifyParseException NotifyParseException a b
+forall s t a b. LensVL s t a b -&gt; Lens s t a b
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Lens.html#lensVL"><span class="hs-identifier hs-var">O.lensVL</span></a></span><span> </span><span class="annot"><span class="annottext">(LensVL NotifyParseException NotifyParseException a b
+ -&gt; Lens NotifyParseException NotifyParseException a b)
+-&gt; LensVL NotifyParseException NotifyParseException a b
+-&gt; Lens NotifyParseException NotifyParseException a b
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679137106"><span class="annot"><span class="annottext">a -&gt; f b
+</span><a href="#local-6989586621679137106"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#MkNotifyParseException"><span class="hs-identifier hs-type">MkNotifyParseException</span></a></span><span> </span><span id="local-6989586621679137107"><span class="annot"><span class="annottext">Os
+</span><a href="#local-6989586621679137107"><span class="hs-identifier hs-var">a1</span></a></span></span><span> </span><span id="local-6989586621679137108"><span class="annot"><span class="annottext">NotifySystem
+</span><a href="#local-6989586621679137108"><span class="hs-identifier hs-var">a2</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-119"></span><span>    </span><span class="annot"><span class="annottext">(Os -&gt; NotifyParseException) -&gt; f Os -&gt; f NotifyParseException
+forall a b. (a -&gt; b) -&gt; f a -&gt; f b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679137109"><span class="annot"><span class="annottext">Os
+</span><a href="#local-6989586621679137109"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Os -&gt; NotifySystem -&gt; NotifyParseException
+</span><a href="Effects.Notify.Internal.Data.NotifySystem.html#MkNotifyParseException"><span class="hs-identifier hs-var">MkNotifyParseException</span></a></span><span> </span><span class="annot"><span class="annottext">Os
+</span><a href="#local-6989586621679137109"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="annot"><span class="annottext">NotifySystem
+</span><a href="#local-6989586621679137108"><span class="hs-identifier hs-var">a2</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; f b
+</span><a href="#local-6989586621679137106"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+Os
+</span><a href="#local-6989586621679137107"><span class="hs-identifier hs-var">a1</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-120"></span><span>  </span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Label.html#labelOptic"><span class="hs-pragma hs-type">labelOptic</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-121"></span><span>
+</span><span id="line-122"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-123"></span><span class="hs-keyword">instance</span><span>
+</span><span id="line-124"></span><span>  </span><span id="local-6989586621679136800"><span id="local-6989586621679136801"><span id="local-6989586621679136802"><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679136800"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Internal.Optic.Types.html#A_Lens"><span class="hs-identifier hs-type">A_Lens</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679136801"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystem"><span class="hs-identifier hs-type">NotifySystem</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679136802"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystem"><span class="hs-identifier hs-type">NotifySystem</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-125"></span><span>  </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Label.html#LabelOptic"><span class="hs-identifier hs-type">LabelOptic</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;system&quot;</span></span><span> </span><span class="annot"><a href="#local-6989586621679136800"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifyParseException"><span class="hs-identifier hs-type">NotifyParseException</span></a></span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifyParseException"><span class="hs-identifier hs-type">NotifyParseException</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679136801"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679136802"><span class="hs-identifier hs-type">b</span></a></span></span></span></span><span>
+</span><span id="line-126"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-127"></span><span>  </span><span id="local-6989586621679137117"><span class="annot"><span class="annottext">labelOptic :: Optic k NoIx NotifyParseException NotifyParseException a b
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Label.html#labelOptic"><span class="hs-identifier hs-var hs-var hs-var">labelOptic</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LensVL NotifyParseException NotifyParseException a b
+-&gt; Lens NotifyParseException NotifyParseException a b
+forall s t a b. LensVL s t a b -&gt; Lens s t a b
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Lens.html#lensVL"><span class="hs-identifier hs-var">O.lensVL</span></a></span><span> </span><span class="annot"><span class="annottext">(LensVL NotifyParseException NotifyParseException a b
+ -&gt; Lens NotifyParseException NotifyParseException a b)
+-&gt; LensVL NotifyParseException NotifyParseException a b
+-&gt; Lens NotifyParseException NotifyParseException a b
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679137120"><span class="annot"><span class="annottext">a -&gt; f b
+</span><a href="#local-6989586621679137120"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#MkNotifyParseException"><span class="hs-identifier hs-type">MkNotifyParseException</span></a></span><span> </span><span id="local-6989586621679137121"><span class="annot"><span class="annottext">Os
+</span><a href="#local-6989586621679137121"><span class="hs-identifier hs-var">a1</span></a></span></span><span> </span><span id="local-6989586621679137122"><span class="annot"><span class="annottext">NotifySystem
+</span><a href="#local-6989586621679137122"><span class="hs-identifier hs-var">a2</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-128"></span><span>    </span><span class="annot"><span class="annottext">(NotifySystem -&gt; NotifyParseException)
+-&gt; f NotifySystem -&gt; f NotifyParseException
+forall a b. (a -&gt; b) -&gt; f a -&gt; f b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679137123"><span class="annot"><span class="annottext">NotifySystem
+</span><a href="#local-6989586621679137123"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Os -&gt; NotifySystem -&gt; NotifyParseException
+</span><a href="Effects.Notify.Internal.Data.NotifySystem.html#MkNotifyParseException"><span class="hs-identifier hs-var">MkNotifyParseException</span></a></span><span> </span><span class="annot"><span class="annottext">Os
+</span><a href="#local-6989586621679137121"><span class="hs-identifier hs-var">a1</span></a></span><span> </span><span class="annot"><span class="annottext">NotifySystem
+</span><a href="#local-6989586621679137123"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; f b
+</span><a href="#local-6989586621679137120"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+NotifySystem
+</span><a href="#local-6989586621679137122"><span class="hs-identifier hs-var">a2</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-129"></span><span>  </span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Label.html#labelOptic"><span class="hs-pragma hs-type">labelOptic</span></a></span><span> </span><span class="hs-pragma">#-}</span><span class="hs-cpp">
+
+#if LINUX
+</span><span>
+</span><span id="line-133"></span><span id="notifySystemToOs"><span class="annot"><span class="annottext">notifySystemToOs :: NotifySystem -&gt; Either NotifyParseException NotifySystemOs
+</span><a href="Effects.Notify.Internal.Data.NotifySystem.html#notifySystemToOs"><span class="hs-identifier hs-var hs-var">notifySystemToOs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-134"></span><span>  </span><span class="annot"><span class="annottext">NotifySystem
+</span><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemDBus"><span class="hs-identifier hs-var">NotifySystemDBus</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">NotifySystemOs -&gt; Either NotifyParseException NotifySystemOs
+forall a. a -&gt; Either NotifyParseException a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">NotifySystemOs
+</span><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemOsDBus"><span class="hs-identifier hs-var">NotifySystemOsDBus</span></a></span><span>
+</span><span id="line-135"></span><span>  </span><span class="annot"><span class="annottext">NotifySystem
+</span><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemNotifySend"><span class="hs-identifier hs-var">NotifySystemNotifySend</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">NotifySystemOs -&gt; Either NotifyParseException NotifySystemOs
+forall a. a -&gt; Either NotifyParseException a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">NotifySystemOs
+</span><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemOsNotifySend"><span class="hs-identifier hs-var">NotifySystemOsNotifySend</span></a></span><span>
+</span><span id="line-136"></span><span>  </span><span id="local-6989586621679137126"><span class="annot"><span class="annottext">NotifySystem
+</span><a href="#local-6989586621679137126"><span class="hs-identifier hs-var">other</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">NotifyParseException -&gt; Either NotifyParseException NotifySystemOs
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">(NotifyParseException
+ -&gt; Either NotifyParseException NotifySystemOs)
+-&gt; NotifyParseException
+-&gt; Either NotifyParseException NotifySystemOs
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Os -&gt; NotifySystem -&gt; NotifyParseException
+</span><a href="Effects.Notify.Internal.Data.NotifySystem.html#MkNotifyParseException"><span class="hs-identifier hs-var">MkNotifyParseException</span></a></span><span> </span><span class="annot"><span class="annottext">Os
+</span><a href="Effects.Notify.Internal.Os.html#Linux"><span class="hs-identifier hs-var">Os.Linux</span></a></span><span> </span><span class="annot"><span class="annottext">NotifySystem
+</span><a href="#local-6989586621679137126"><span class="hs-identifier hs-var">other</span></a></span><span>
+</span><span id="line-137"></span><span>
+</span><span id="line-138"></span><span id="notifySystemFromOs"><span class="annot"><span class="annottext">notifySystemFromOs :: NotifySystemOs -&gt; NotifySystem
+</span><a href="Effects.Notify.Internal.Data.NotifySystem.html#notifySystemFromOs"><span class="hs-identifier hs-var hs-var">notifySystemFromOs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-139"></span><span>  </span><span class="annot"><span class="annottext">NotifySystemOs
+</span><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemOsDBus"><span class="hs-identifier hs-var">NotifySystemOsDBus</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">NotifySystem
+</span><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemDBus"><span class="hs-identifier hs-var">NotifySystemDBus</span></a></span><span>
+</span><span id="line-140"></span><span>  </span><span class="annot"><span class="annottext">NotifySystemOs
+</span><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemOsNotifySend"><span class="hs-identifier hs-var">NotifySystemOsNotifySend</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">NotifySystem
+</span><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemNotifySend"><span class="hs-identifier hs-var">NotifySystemNotifySend</span></a></span><span>
+</span><span id="line-141"></span><span>
+</span><span id="line-142"></span><span id="defaultNotifySystem"><span class="annot"><span class="annottext">defaultNotifySystem :: NotifySystem
+</span><a href="Effects.Notify.Internal.Data.NotifySystem.html#defaultNotifySystem"><span class="hs-identifier hs-var hs-var">defaultNotifySystem</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">NotifySystem
+</span><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemDBus"><span class="hs-identifier hs-var">NotifySystemDBus</span></a></span><span>
+</span><span id="line-143"></span><span>
+</span><span id="line-144"></span><span id="defaultNotifySystemOs"><span class="annot"><span class="annottext">defaultNotifySystemOs :: NotifySystemOs
+</span><a href="Effects.Notify.Internal.Data.NotifySystem.html#defaultNotifySystemOs"><span class="hs-identifier hs-var hs-var">defaultNotifySystemOs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">NotifySystemOs
+</span><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemOsDBus"><span class="hs-identifier hs-var">NotifySystemOsDBus</span></a></span><span>
+</span><span id="line-145"></span><span>
+</span><span id="line-146"></span><span class="hs-comment">-- | Notification system. Options are platform specific.</span><span>
+</span><span id="line-147"></span><span class="hs-comment">--</span><span>
+</span><span id="line-148"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-149"></span><span class="hs-keyword">data</span><span> </span><span id="NotifySystemOs"><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemOs"><span class="hs-identifier hs-var">NotifySystemOs</span></a></span></span><span>
+</span><span id="line-150"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="NotifySystemOsDBus"><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemOsDBus"><span class="hs-identifier hs-var">NotifySystemOsDBus</span></a></span></span><span>
+</span><span id="line-151"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="NotifySystemOsNotifySend"><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemOsNotifySend"><span class="hs-identifier hs-var">NotifySystemOsNotifySend</span></a></span></span><span>
+</span><span id="line-152"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679137129"><span id="local-6989586621679137131"><span class="annot"><span class="annottext">NotifySystemOs
+NotifySystemOs -&gt; NotifySystemOs -&gt; Bounded NotifySystemOs
+forall a. a -&gt; a -&gt; Bounded a
+$cminBound :: NotifySystemOs
+minBound :: NotifySystemOs
+$cmaxBound :: NotifySystemOs
+maxBound :: NotifySystemOs
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Bounded</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679137133"><span id="local-6989586621679137138"><span id="local-6989586621679137143"><span id="local-6989586621679137147"><span id="local-6989586621679137150"><span id="local-6989586621679137154"><span id="local-6989586621679137160"><span id="local-6989586621679137163"><span class="annot"><span class="annottext">Int -&gt; NotifySystemOs
+NotifySystemOs -&gt; Int
+NotifySystemOs -&gt; [NotifySystemOs]
+NotifySystemOs -&gt; NotifySystemOs
+NotifySystemOs -&gt; NotifySystemOs -&gt; [NotifySystemOs]
+NotifySystemOs
+-&gt; NotifySystemOs -&gt; NotifySystemOs -&gt; [NotifySystemOs]
+(NotifySystemOs -&gt; NotifySystemOs)
+-&gt; (NotifySystemOs -&gt; NotifySystemOs)
+-&gt; (Int -&gt; NotifySystemOs)
+-&gt; (NotifySystemOs -&gt; Int)
+-&gt; (NotifySystemOs -&gt; [NotifySystemOs])
+-&gt; (NotifySystemOs -&gt; NotifySystemOs -&gt; [NotifySystemOs])
+-&gt; (NotifySystemOs -&gt; NotifySystemOs -&gt; [NotifySystemOs])
+-&gt; (NotifySystemOs
+    -&gt; NotifySystemOs -&gt; NotifySystemOs -&gt; [NotifySystemOs])
+-&gt; Enum NotifySystemOs
+forall a.
+(a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Int -&gt; a)
+-&gt; (a -&gt; Int)
+-&gt; (a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; a -&gt; [a])
+-&gt; Enum a
+$csucc :: NotifySystemOs -&gt; NotifySystemOs
+succ :: NotifySystemOs -&gt; NotifySystemOs
+$cpred :: NotifySystemOs -&gt; NotifySystemOs
+pred :: NotifySystemOs -&gt; NotifySystemOs
+$ctoEnum :: Int -&gt; NotifySystemOs
+toEnum :: Int -&gt; NotifySystemOs
+$cfromEnum :: NotifySystemOs -&gt; Int
+fromEnum :: NotifySystemOs -&gt; Int
+$cenumFrom :: NotifySystemOs -&gt; [NotifySystemOs]
+enumFrom :: NotifySystemOs -&gt; [NotifySystemOs]
+$cenumFromThen :: NotifySystemOs -&gt; NotifySystemOs -&gt; [NotifySystemOs]
+enumFromThen :: NotifySystemOs -&gt; NotifySystemOs -&gt; [NotifySystemOs]
+$cenumFromTo :: NotifySystemOs -&gt; NotifySystemOs -&gt; [NotifySystemOs]
+enumFromTo :: NotifySystemOs -&gt; NotifySystemOs -&gt; [NotifySystemOs]
+$cenumFromThenTo :: NotifySystemOs
+-&gt; NotifySystemOs -&gt; NotifySystemOs -&gt; [NotifySystemOs]
+enumFromThenTo :: NotifySystemOs
+-&gt; NotifySystemOs -&gt; NotifySystemOs -&gt; [NotifySystemOs]
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Enum</span></span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679137166"><span id="local-6989586621679137170"><span class="annot"><span class="annottext">NotifySystemOs -&gt; NotifySystemOs -&gt; Bool
+(NotifySystemOs -&gt; NotifySystemOs -&gt; Bool)
+-&gt; (NotifySystemOs -&gt; NotifySystemOs -&gt; Bool) -&gt; Eq NotifySystemOs
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: NotifySystemOs -&gt; NotifySystemOs -&gt; Bool
+== :: NotifySystemOs -&gt; NotifySystemOs -&gt; Bool
+$c/= :: NotifySystemOs -&gt; NotifySystemOs -&gt; Bool
+/= :: NotifySystemOs -&gt; NotifySystemOs -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679137174"><span id="local-6989586621679137176"><span class="annot"><span class="annottext">(forall x. NotifySystemOs -&gt; Rep NotifySystemOs x)
+-&gt; (forall x. Rep NotifySystemOs x -&gt; NotifySystemOs)
+-&gt; Generic NotifySystemOs
+forall x. Rep NotifySystemOs x -&gt; NotifySystemOs
+forall x. NotifySystemOs -&gt; Rep NotifySystemOs x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. NotifySystemOs -&gt; Rep NotifySystemOs x
+from :: forall x. NotifySystemOs -&gt; Rep NotifySystemOs x
+$cto :: forall x. Rep NotifySystemOs x -&gt; NotifySystemOs
+to :: forall x. Rep NotifySystemOs x -&gt; NotifySystemOs
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679137181"><span id="local-6989586621679137183"><span id="local-6989586621679137185"><span id="local-6989586621679137189"><span id="local-6989586621679137192"><span id="local-6989586621679137195"><span id="local-6989586621679137198"><span class="annot"><span class="annottext">Eq NotifySystemOs
+Eq NotifySystemOs =&gt;
+(NotifySystemOs -&gt; NotifySystemOs -&gt; Ordering)
+-&gt; (NotifySystemOs -&gt; NotifySystemOs -&gt; Bool)
+-&gt; (NotifySystemOs -&gt; NotifySystemOs -&gt; Bool)
+-&gt; (NotifySystemOs -&gt; NotifySystemOs -&gt; Bool)
+-&gt; (NotifySystemOs -&gt; NotifySystemOs -&gt; Bool)
+-&gt; (NotifySystemOs -&gt; NotifySystemOs -&gt; NotifySystemOs)
+-&gt; (NotifySystemOs -&gt; NotifySystemOs -&gt; NotifySystemOs)
+-&gt; Ord NotifySystemOs
+NotifySystemOs -&gt; NotifySystemOs -&gt; Bool
+NotifySystemOs -&gt; NotifySystemOs -&gt; Ordering
+NotifySystemOs -&gt; NotifySystemOs -&gt; NotifySystemOs
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: NotifySystemOs -&gt; NotifySystemOs -&gt; Ordering
+compare :: NotifySystemOs -&gt; NotifySystemOs -&gt; Ordering
+$c&lt; :: NotifySystemOs -&gt; NotifySystemOs -&gt; Bool
+&lt; :: NotifySystemOs -&gt; NotifySystemOs -&gt; Bool
+$c&lt;= :: NotifySystemOs -&gt; NotifySystemOs -&gt; Bool
+&lt;= :: NotifySystemOs -&gt; NotifySystemOs -&gt; Bool
+$c&gt; :: NotifySystemOs -&gt; NotifySystemOs -&gt; Bool
+&gt; :: NotifySystemOs -&gt; NotifySystemOs -&gt; Bool
+$c&gt;= :: NotifySystemOs -&gt; NotifySystemOs -&gt; Bool
+&gt;= :: NotifySystemOs -&gt; NotifySystemOs -&gt; Bool
+$cmax :: NotifySystemOs -&gt; NotifySystemOs -&gt; NotifySystemOs
+max :: NotifySystemOs -&gt; NotifySystemOs -&gt; NotifySystemOs
+$cmin :: NotifySystemOs -&gt; NotifySystemOs -&gt; NotifySystemOs
+min :: NotifySystemOs -&gt; NotifySystemOs -&gt; NotifySystemOs
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679137201"><span id="local-6989586621679137203"><span id="local-6989586621679137207"><span class="annot"><span class="annottext">Int -&gt; NotifySystemOs -&gt; ShowS
+[NotifySystemOs] -&gt; ShowS
+NotifySystemOs -&gt; String
+(Int -&gt; NotifySystemOs -&gt; ShowS)
+-&gt; (NotifySystemOs -&gt; String)
+-&gt; ([NotifySystemOs] -&gt; ShowS)
+-&gt; Show NotifySystemOs
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; NotifySystemOs -&gt; ShowS
+showsPrec :: Int -&gt; NotifySystemOs -&gt; ShowS
+$cshow :: NotifySystemOs -&gt; String
+show :: NotifySystemOs -&gt; String
+$cshowList :: [NotifySystemOs] -&gt; ShowS
+showList :: [NotifySystemOs] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-153"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679137210"><span class="annot"><span class="annottext">NotifySystemOs -&gt; ()
+(NotifySystemOs -&gt; ()) -&gt; NFData NotifySystemOs
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: NotifySystemOs -&gt; ()
+rnf :: NotifySystemOs -&gt; ()
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></span></span><span class="hs-special">)</span><span class="hs-cpp">
+
+#elif OSX
+</span><span>
+</span><span id="line-157"></span><span class="hs-identifier">notifySystemToOs</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-158"></span><span>  </span><span class="hs-identifier">NotifySystemAppleScript</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">pure</span><span> </span><span class="hs-identifier">NotifySystemOsAppleScript</span><span>
+</span><span id="line-159"></span><span>  </span><span class="hs-identifier">other</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">Left</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">MkNotifyParseException</span><span> </span><span class="hs-identifier">Os.Osx</span><span> </span><span class="hs-identifier">other</span><span>
+</span><span id="line-160"></span><span>
+</span><span id="line-161"></span><span class="hs-identifier">notifySystemFromOs</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-162"></span><span>  </span><span class="hs-identifier">NotifySystemOsAppleScript</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">NotifySystemAppleScript</span><span>
+</span><span id="line-163"></span><span>
+</span><span id="line-164"></span><span class="hs-identifier">defaultNotifySystem</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">NotifySystemAppleScript</span><span>
+</span><span id="line-165"></span><span>
+</span><span id="line-166"></span><span class="hs-identifier">defaultNotifySystemOs</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">NotifySystemOsAppleScript</span><span>
+</span><span id="line-167"></span><span>
+</span><span id="line-168"></span><span class="hs-comment">-- | Notification system. Options are platform specific.</span><span>
+</span><span id="line-169"></span><span class="hs-comment">--</span><span>
+</span><span id="line-170"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-171"></span><span class="hs-keyword">data</span><span> </span><span class="hs-identifier">NotifySystemOs</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">NotifySystemOsAppleScript</span><span>
+</span><span id="line-172"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-keyword">stock</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">Bounded</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">Enum</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">Eq</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">Generic</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">Ord</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">Show</span><span class="hs-special">)</span><span>
+</span><span id="line-173"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-keyword">anyclass</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">NFData</span><span class="hs-special">)</span><span class="hs-cpp">
+
+#else
+</span><span>
+</span><span id="line-177"></span><span class="hs-identifier">notifySystemToOs</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-178"></span><span>  </span><span class="hs-identifier">NotifySystemWindows</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">pure</span><span> </span><span class="hs-identifier">NotifySystemOsWindows</span><span>
+</span><span id="line-179"></span><span>  </span><span class="hs-identifier">other</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">Left</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">MkNotifyParseException</span><span> </span><span class="hs-identifier">Os.Windows</span><span> </span><span class="hs-identifier">other</span><span>
+</span><span id="line-180"></span><span>
+</span><span id="line-181"></span><span class="hs-identifier">notifySystemFromOs</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-182"></span><span>  </span><span class="hs-identifier">NotifySystemOsWindows</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">NotifySystemWindows</span><span>
+</span><span id="line-183"></span><span>
+</span><span id="line-184"></span><span class="hs-identifier">defaultNotifySystem</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">NotifySystemWindows</span><span>
+</span><span id="line-185"></span><span>
+</span><span id="line-186"></span><span class="hs-identifier">defaultNotifySystemOs</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">NotifySystemOsWindows</span><span>
+</span><span id="line-187"></span><span>
+</span><span id="line-188"></span><span class="hs-comment">-- | Notification system. Options are platform specific.</span><span>
+</span><span id="line-189"></span><span class="hs-comment">--</span><span>
+</span><span id="line-190"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-191"></span><span class="hs-keyword">data</span><span> </span><span class="hs-identifier">NotifySystemOs</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">NotifySystemOsWindows</span><span>
+</span><span id="line-192"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-keyword">stock</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">Bounded</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">Enum</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">Eq</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">Generic</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">Ord</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">Show</span><span class="hs-special">)</span><span>
+</span><span id="line-193"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-keyword">anyclass</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">NFData</span><span class="hs-special">)</span><span class="hs-cpp">
+
+#endif
+</span></pre></body></html>

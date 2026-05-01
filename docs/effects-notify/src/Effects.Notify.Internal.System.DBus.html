@@ -1,0 +1,243 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# OPTIONS_GHC -Wno-redundant-constraints #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- | DBus notification data.</span><span>
+</span><span id="line-5"></span><span class="hs-comment">--</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-7"></span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.System.DBus.html"><span class="hs-identifier">Effects.Notify.Internal.System.DBus</span></a></span><span>
+</span><span id="line-8"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Notifications</span></span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.System.DBus.html#initNotifyEnv"><span class="hs-identifier">initNotifyEnv</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><a href="Effects.Notify.Internal.System.DBus.html#notify"><span class="hs-identifier">notify</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Re-exports</span></span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Errors</span></span><span>
+</span><span id="line-15"></span><span>    </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/dbus-1.4.2-d30c680babf7ce616c2c9aa839590f3e1f28543a0b97d5c26c0140d66858646c/share/doc/html/src/DBus.Client.html#ClientError"><span class="hs-identifier">ClientError</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-16"></span><span>    </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/dbus-1.4.2-d30c680babf7ce616c2c9aa839590f3e1f28543a0b97d5c26c0140d66858646c/share/doc/html/src/DBus.Client.html#clientError"><span class="hs-identifier">Client.clientError</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-17"></span><span>    </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/dbus-1.4.2-d30c680babf7ce616c2c9aa839590f3e1f28543a0b97d5c26c0140d66858646c/share/doc/html/src/DBus.Client.html#clientErrorMessage"><span class="hs-identifier">Client.clientErrorMessage</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-18"></span><span>    </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/dbus-1.4.2-d30c680babf7ce616c2c9aa839590f3e1f28543a0b97d5c26c0140d66858646c/share/doc/html/src/DBus.Client.html#clientErrorFatal"><span class="hs-identifier">Client.clientErrorFatal</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-19"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-21"></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Exception</span></span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">Exception</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">toException</span></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-24"></span><span>    </span><span class="annot"><span class="hs-identifier">SomeException</span></span><span class="hs-special">,</span><span>
+</span><span id="line-25"></span><span>    </span><span class="annot"><span class="hs-identifier">catch</span></span><span class="hs-special">,</span><span>
+</span><span id="line-26"></span><span>    </span><span class="annot"><span class="hs-identifier">throwIO</span></span><span class="hs-special">,</span><span>
+</span><span id="line-27"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/exception-utils-0.1-39b22cd5cdf2091d0b31f17004dbee80369b7d0ceff528c71900576aefbebe45/share/doc/html/src/Control.Exception.Utils.html"><span class="hs-identifier">Control.Exception.Utils</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Ex.Utils</span></span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">void</span></span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/dbus-1.4.2-d30c680babf7ce616c2c9aa839590f3e1f28543a0b97d5c26c0140d66858646c/share/doc/html/src/DBus.Client.html"><span class="hs-identifier">DBus.Client</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/dbus-1.4.2-d30c680babf7ce616c2c9aa839590f3e1f28543a0b97d5c26c0140d66858646c/share/doc/html/src/DBus.Client.html#Client"><span class="hs-identifier">Client</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/dbus-1.4.2-d30c680babf7ce616c2c9aa839590f3e1f28543a0b97d5c26c0140d66858646c/share/doc/html/src/DBus.Client.html#ClientError"><span class="hs-identifier">ClientError</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/dbus-1.4.2-d30c680babf7ce616c2c9aa839590f3e1f28543a0b97d5c26c0140d66858646c/share/doc/html/src/DBus.Client.html"><span class="hs-identifier">DBus.Client</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Client</span></span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/fdo-notify-0.3.1-e57eee6105a9d47049a5834dea21fc568e3a08720deeba857507af722efe07a1/share/doc/html/src/DBus.Notify.html"><span class="hs-identifier">DBus.Notify</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">DBusN</span></span><span>
+</span><span id="line-33"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Int</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Int32</span></span><span class="hs-special">)</span><span>
+</span><span id="line-34"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">T</span></span><span>
+</span><span id="line-35"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html"><span class="hs-identifier">Effects.Notify.Internal.Data.Note</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#Note"><span class="hs-identifier">Note</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-36"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyException.html"><span class="hs-identifier">Effects.Notify.Internal.Data.NotifyException</span></a></span><span>
+</span><span id="line-37"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyException.html#NotifyException"><span class="hs-identifier">NotifyException</span></a></span><span>
+</span><span id="line-38"></span><span>      </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyException.html#MkNotifyException"><span class="hs-identifier">MkNotifyException</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-39"></span><span>        </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyException.html#exception"><span class="hs-identifier">exception</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-40"></span><span>        </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyException.html#fatal"><span class="hs-identifier">fatal</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-41"></span><span>        </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyException.html#note"><span class="hs-identifier">note</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-42"></span><span>        </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyException.html#notifySystem"><span class="hs-identifier">notifySystem</span></a></span><span>
+</span><span id="line-43"></span><span>      </span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-44"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-45"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyInitException.html"><span class="hs-identifier">Effects.Notify.Internal.Data.NotifyInitException</span></a></span><span>
+</span><span id="line-46"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyInitException.html#NotifyInitException"><span class="hs-identifier">NotifyInitException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyInitException.html#MkNotifyInitException"><span class="hs-identifier">MkNotifyInitException</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-47"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-48"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html"><span class="hs-identifier">Effects.Notify.Internal.Data.NotifySystem</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystem"><span class="hs-identifier">NotifySystem</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemDBus"><span class="hs-identifier">NotifySystemDBus</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-49"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html"><span class="hs-identifier">Effects.Notify.Internal.Data.NotifyTimeout</span></a></span><span>
+</span><span id="line-50"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#NotifyTimeout"><span class="hs-identifier">NotifyTimeout</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#NotifyTimeoutMillis"><span class="hs-identifier">NotifyTimeoutMillis</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#NotifyTimeoutNever"><span class="hs-identifier">NotifyTimeoutNever</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-51"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-52"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Utils.html"><span class="hs-identifier">Effects.Notify.Internal.Utils</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/scientific-0.3.8.1-8de63ab787a0c6373fca07e0d7ac87d7d20fd8c1914f26f5bd8c4623956009a6/share/doc/html/src/Utils.html"><span class="hs-identifier">Utils</span></a></span><span>
+</span><span id="line-53"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Stack</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">HasCallStack</span></span><span class="hs-special">)</span><span>
+</span><span id="line-54"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Core.html"><span class="hs-identifier">Optics.Core</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Operators.html#%5E."><span class="hs-operator">(^.)</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-55"></span><span>
+</span><span id="line-56"></span><span class="hs-comment">-- | Initializes a dbus connections.</span><span>
+</span><span id="line-57"></span><span class="hs-comment">--</span><span>
+</span><span id="line-58"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-59"></span><span class="annot"><a href="Effects.Notify.Internal.System.DBus.html#initNotifyEnv"><span class="hs-identifier hs-type">initNotifyEnv</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/dbus-1.4.2-d30c680babf7ce616c2c9aa839590f3e1f28543a0b97d5c26c0140d66858646c/share/doc/html/src/DBus.Client.html#Client"><span class="hs-identifier hs-type">Client</span></a></span><span>
+</span><span id="line-60"></span><span id="initNotifyEnv"><span class="annot"><span class="annottext">initNotifyEnv :: HasCallStack =&gt; IO Client
+</span><a href="Effects.Notify.Internal.System.DBus.html#initNotifyEnv"><span class="hs-identifier hs-var hs-var">initNotifyEnv</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-61"></span><span>  </span><span class="annot"><span class="annottext">IO Client
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/dbus-1.4.2-d30c680babf7ce616c2c9aa839590f3e1f28543a0b97d5c26c0140d66858646c/share/doc/html/src/DBus.Client.html#connectSession"><span class="hs-identifier hs-var">DBusN.connectSession</span></a></span><span>
+</span><span id="line-62"></span><span>    </span><span class="annot"><span class="annottext">IO Client -&gt; (SomeException -&gt; IO Client) -&gt; IO Client
+forall (m :: * -&gt; *) a.
+(HasCallStack, MonadCatch m) =&gt;
+m a -&gt; (SomeException -&gt; m a) -&gt; m a
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/exception-utils-0.1-39b22cd5cdf2091d0b31f17004dbee80369b7d0ceff528c71900576aefbebe45/share/doc/html/src/Control.Exception.Utils.html#catchSync"><span class="hs-operator hs-var">`Ex.Utils.catchSync`</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">NotifyInitException -&gt; IO Client
+forall e a. (HasCallStack, Exception e) =&gt; e -&gt; IO a
+</span><span class="hs-identifier hs-var">throwIO</span></span><span> </span><span class="annot"><span class="annottext">(NotifyInitException -&gt; IO Client)
+-&gt; (SomeException -&gt; NotifyInitException)
+-&gt; SomeException
+-&gt; IO Client
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">SomeException -&gt; NotifyInitException
+</span><a href="Effects.Notify.Internal.Data.NotifyInitException.html#MkNotifyInitException"><span class="hs-identifier hs-var">MkNotifyInitException</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span><span class="hs-comment">-- | Sends a notification via dbus.</span><span>
+</span><span id="line-65"></span><span class="hs-comment">--</span><span>
+</span><span id="line-66"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-67"></span><span class="annot"><a href="Effects.Notify.Internal.System.DBus.html#notify"><span class="hs-identifier hs-type">notify</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/dbus-1.4.2-d30c680babf7ce616c2c9aa839590f3e1f28543a0b97d5c26c0140d66858646c/share/doc/html/src/DBus.Client.html#Client"><span class="hs-identifier hs-type">Client</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#Note"><span class="hs-identifier hs-type">Note</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-68"></span><span id="notify"><span class="annot"><span class="annottext">notify :: HasCallStack =&gt; Client -&gt; Note -&gt; IO ()
+</span><a href="Effects.Notify.Internal.System.DBus.html#notify"><span class="hs-identifier hs-var hs-var">notify</span></a></span></span><span> </span><span id="local-6989586621679138179"><span class="annot"><span class="annottext">Client
+</span><a href="#local-6989586621679138179"><span class="hs-identifier hs-var">client</span></a></span></span><span> </span><span id="local-6989586621679138180"><span class="annot"><span class="annottext">Note
+</span><a href="#local-6989586621679138180"><span class="hs-identifier hs-var">note</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-69"></span><span>  </span><span class="annot"><span class="annottext">Note -&gt; IO ()
+</span><a href="#local-6989586621679138181"><span class="hs-identifier hs-var">sendNote</span></a></span><span> </span><span class="annot"><span class="annottext">Note
+</span><a href="#local-6989586621679138180"><span class="hs-identifier hs-var">note</span></a></span><span>
+</span><span id="line-70"></span><span>    </span><span class="annot"><span class="annottext">IO () -&gt; (ClientError -&gt; IO ()) -&gt; IO ()
+forall e a. Exception e =&gt; IO a -&gt; (e -&gt; IO a) -&gt; IO a
+</span><span class="hs-operator hs-var">`catch`</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679138182"><span class="annot"><span class="annottext">ClientError
+</span><a href="#local-6989586621679138182"><span class="hs-identifier hs-var">ex</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-71"></span><span>      </span><span class="hs-comment">-- According to the docs, toException drops the exception context,</span><span>
+</span><span id="line-72"></span><span>      </span><span class="hs-comment">-- but we should be okay here since 'catch' annotates our new exception</span><span>
+</span><span id="line-73"></span><span>      </span><span class="hs-comment">-- with the context (WhileHandling origEx), so the context should</span><span>
+</span><span id="line-74"></span><span>      </span><span class="hs-comment">-- have the original stacktrace, while our NotifyInitException will</span><span>
+</span><span id="line-75"></span><span>      </span><span class="hs-comment">-- wrap an contextless SomeException, which is fine.</span><span>
+</span><span id="line-76"></span><span>      </span><span class="hs-comment">--</span><span>
+</span><span id="line-77"></span><span>      </span><span class="hs-comment">-- Alternatively, we could use toExceptionWithBacktrace, but I think</span><span>
+</span><span id="line-78"></span><span>      </span><span class="hs-comment">-- that would be redundant? It would be nice to check this.</span><span>
+</span><span id="line-79"></span><span>      </span><span class="annot"><span class="annottext">Bool -&gt; SomeException -&gt; IO ()
+</span><a href="#local-6989586621679138183"><span class="hs-identifier hs-var">throwEx</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ClientError -&gt; Bool
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/dbus-1.4.2-d30c680babf7ce616c2c9aa839590f3e1f28543a0b97d5c26c0140d66858646c/share/doc/html/src/DBus.Client.html#clientErrorFatal"><span class="hs-identifier hs-var">Client.clientErrorFatal</span></a></span><span> </span><span class="annot"><span class="annottext">ClientError
+</span><a href="#local-6989586621679138182"><span class="hs-identifier hs-var">ex</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ClientError -&gt; SomeException
+forall e. Exception e =&gt; e -&gt; SomeException
+</span><span class="hs-identifier hs-var">toException</span></span><span> </span><span class="annot"><span class="annottext">ClientError
+</span><a href="#local-6989586621679138182"><span class="hs-identifier hs-var">ex</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-80"></span><span>        </span><span class="annot"><span class="annottext">IO () -&gt; (SomeException -&gt; IO ()) -&gt; IO ()
+forall (m :: * -&gt; *) a.
+(HasCallStack, MonadCatch m) =&gt;
+m a -&gt; (SomeException -&gt; m a) -&gt; m a
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/exception-utils-0.1-39b22cd5cdf2091d0b31f17004dbee80369b7d0ceff528c71900576aefbebe45/share/doc/html/src/Control.Exception.Utils.html#catchSync"><span class="hs-operator hs-var">`Ex.Utils.catchSync`</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679138184"><span class="annot"><span class="annottext">SomeException
+</span><a href="#local-6989586621679138184"><span class="hs-identifier hs-var">someEx</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; SomeException -&gt; IO ()
+</span><a href="#local-6989586621679138183"><span class="hs-identifier hs-var">throwEx</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">SomeException
+</span><a href="#local-6989586621679138184"><span class="hs-identifier hs-var">someEx</span></a></span><span>
+</span><span id="line-81"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-82"></span><span>    </span><span id="local-6989586621679138181"><span class="annot"><span class="annottext">sendNote :: Note -&gt; IO ()
+</span><a href="#local-6989586621679138181"><span class="hs-identifier hs-var hs-var">sendNote</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO Notification -&gt; IO ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="annot"><span class="annottext">(IO Notification -&gt; IO ())
+-&gt; (Note -&gt; IO Notification) -&gt; Note -&gt; IO ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Client -&gt; Note -&gt; IO Notification
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/fdo-notify-0.3.1-e57eee6105a9d47049a5834dea21fc568e3a08720deeba857507af722efe07a1/share/doc/html/src/DBus.Notify.html#notify"><span class="hs-identifier hs-var">DBusN.notify</span></a></span><span> </span><span class="annot"><span class="annottext">Client
+</span><a href="#local-6989586621679138179"><span class="hs-identifier hs-var">client</span></a></span><span> </span><span class="annot"><span class="annottext">(Note -&gt; IO Notification)
+-&gt; (Note -&gt; Note) -&gt; Note -&gt; IO Notification
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Note -&gt; Note
+</span><a href="Effects.Notify.Internal.System.DBus.html#noteToDbus"><span class="hs-identifier hs-var">noteToDbus</span></a></span><span>
+</span><span id="line-83"></span><span>
+</span><span id="line-84"></span><span>    </span><span class="annot"><a href="#local-6989586621679138183"><span class="hs-identifier hs-type">throwEx</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">SomeException</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-85"></span><span>    </span><span id="local-6989586621679138183"><span class="annot"><span class="annottext">throwEx :: Bool -&gt; SomeException -&gt; IO ()
+</span><a href="#local-6989586621679138183"><span class="hs-identifier hs-var hs-var">throwEx</span></a></span></span><span> </span><span id="local-6989586621679138187"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679138187"><span class="hs-identifier hs-var">fatal</span></a></span></span><span> </span><span id="local-6989586621679138188"><span class="annot"><span class="annottext">SomeException
+</span><a href="#local-6989586621679138188"><span class="hs-identifier hs-var">ex</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-86"></span><span>      </span><span class="annot"><span class="annottext">NotifyException -&gt; IO ()
+forall e a. (HasCallStack, Exception e) =&gt; e -&gt; IO a
+</span><span class="hs-identifier hs-var">throwIO</span></span><span> </span><span class="annot"><span class="annottext">(NotifyException -&gt; IO ()) -&gt; NotifyException -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span id="line-87"></span><span>        </span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyException.html#MkNotifyException"><span class="hs-identifier hs-type">MkNotifyException</span></a></span><span>
+</span><span id="line-88"></span><span>          </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">exception :: SomeException
+</span><a href="Effects.Notify.Internal.Data.NotifyException.html#exception"><span class="hs-identifier hs-var">exception</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SomeException -&gt; SomeException
+forall e. Exception e =&gt; e -&gt; SomeException
+</span><span class="hs-identifier hs-var">toException</span></span><span> </span><span class="annot"><span class="annottext">SomeException
+</span><a href="#local-6989586621679138188"><span class="hs-identifier hs-var">ex</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-89"></span><span>            </span><span class="annot"><span class="annottext">Bool
+fatal :: Bool
+fatal :: Bool
+</span><a href="Effects.Notify.Internal.Data.NotifyException.html#fatal"><span class="hs-identifier hs-var hs-var">fatal</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-90"></span><span>            </span><span class="annot"><span class="annottext">Note
+note :: Note
+note :: Note
+</span><a href="Effects.Notify.Internal.Data.NotifyException.html#note"><span class="hs-identifier hs-var hs-var">note</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-91"></span><span>            </span><span class="annot"><span class="annottext">notifySystem :: NotifySystem
+</span><a href="Effects.Notify.Internal.Data.NotifyException.html#notifySystem"><span class="hs-identifier hs-var">notifySystem</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">NotifySystem
+</span><a href="Effects.Notify.Internal.Data.NotifySystem.html#NotifySystemDBus"><span class="hs-identifier hs-var">NotifySystemDBus</span></a></span><span>
+</span><span id="line-92"></span><span>          </span><span class="hs-special">}</span><span>
+</span><span id="line-93"></span><span>
+</span><span id="line-94"></span><span class="annot"><a href="Effects.Notify.Internal.System.DBus.html#noteToDbus"><span class="hs-identifier hs-type">noteToDbus</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Data.Note.html#Note"><span class="hs-identifier hs-type">Note</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/fdo-notify-0.3.1-e57eee6105a9d47049a5834dea21fc568e3a08720deeba857507af722efe07a1/share/doc/html/src/DBus.Notify.html#Note"><span class="hs-identifier hs-type">DBusN.Note</span></a></span><span>
+</span><span id="line-95"></span><span id="noteToDbus"><span class="annot"><span class="annottext">noteToDbus :: Note -&gt; Note
+</span><a href="Effects.Notify.Internal.System.DBus.html#noteToDbus"><span class="hs-identifier hs-var hs-var">noteToDbus</span></a></span></span><span> </span><span id="local-6989586621679138189"><span class="annot"><span class="annottext">Note
+</span><a href="#local-6989586621679138189"><span class="hs-identifier hs-var">note</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-96"></span><span>  </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/fdo-notify-0.3.1-e57eee6105a9d47049a5834dea21fc568e3a08720deeba857507af722efe07a1/share/doc/html/src/DBus.Notify.html#Note"><span class="hs-identifier hs-type">DBusN.Note</span></a></span><span>
+</span><span id="line-97"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">appName :: String
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/fdo-notify-0.3.1-e57eee6105a9d47049a5834dea21fc568e3a08720deeba857507af722efe07a1/share/doc/html/src/DBus.Notify.html#appName"><span class="hs-identifier hs-var">DBusN.appName</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (Text -&gt; String) -&gt; Maybe Text -&gt; String
+forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
+</span><span class="hs-identifier hs-var">maybe</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; String
+</span><span class="hs-identifier hs-var">T.unpack</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Note
+</span><a href="#local-6989586621679138189"><span class="hs-identifier hs-var">note</span></a></span><span> </span><span class="annot"><span class="annottext">Note -&gt; Optic' A_Lens NoIx Note (Maybe Text) -&gt; Maybe Text
+forall k s (is :: IxList) a.
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic' A_Lens NoIx Note (Maybe Text)
+</span><span class="">#title</span></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-98"></span><span>      </span><span class="annot"><span class="annottext">body :: Maybe Body
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/fdo-notify-0.3.1-e57eee6105a9d47049a5834dea21fc568e3a08720deeba857507af722efe07a1/share/doc/html/src/DBus.Notify.html#body"><span class="hs-identifier hs-var">DBusN.body</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Body
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/fdo-notify-0.3.1-e57eee6105a9d47049a5834dea21fc568e3a08720deeba857507af722efe07a1/share/doc/html/src/DBus.Notify.html#Text"><span class="hs-identifier hs-var">DBusN.Text</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Body) -&gt; (Text -&gt; String) -&gt; Text -&gt; Body
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; String
+</span><span class="hs-identifier hs-var">T.unpack</span></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; Body) -&gt; Maybe Text -&gt; Maybe Body
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Note
+</span><a href="#local-6989586621679138189"><span class="hs-identifier hs-var">note</span></a></span><span> </span><span class="annot"><span class="annottext">Note -&gt; Optic' A_Lens NoIx Note (Maybe Text) -&gt; Maybe Text
+forall k s (is :: IxList) a.
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic' A_Lens NoIx Note (Maybe Text)
+</span><span class="">#body</span></span><span class="hs-special">,</span><span>
+</span><span id="line-99"></span><span>      </span><span class="annot"><span class="annottext">summary :: String
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/fdo-notify-0.3.1-e57eee6105a9d47049a5834dea21fc568e3a08720deeba857507af722efe07a1/share/doc/html/src/DBus.Notify.html#summary"><span class="hs-identifier hs-var">DBusN.summary</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; String
+</span><span class="hs-identifier hs-var">T.unpack</span></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; String) -&gt; Text -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Note
+</span><a href="#local-6989586621679138189"><span class="hs-identifier hs-var">note</span></a></span><span> </span><span class="annot"><span class="annottext">Note -&gt; Optic' A_Lens NoIx Note Text -&gt; Text
+forall k s (is :: IxList) a.
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic' A_Lens NoIx Note Text
+</span><span class="">#summary</span></span><span class="hs-special">,</span><span>
+</span><span id="line-100"></span><span>      </span><span class="annot"><span class="annottext">appImage :: Maybe Icon
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/fdo-notify-0.3.1-e57eee6105a9d47049a5834dea21fc568e3a08720deeba857507af722efe07a1/share/doc/html/src/DBus.Notify.html#appImage"><span class="hs-identifier hs-var">DBusN.appImage</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Icon
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">,</span><span>
+</span><span id="line-101"></span><span>      </span><span class="annot"><span class="annottext">hints :: [Hint]
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/fdo-notify-0.3.1-e57eee6105a9d47049a5834dea21fc568e3a08720deeba857507af722efe07a1/share/doc/html/src/DBus.Notify.html#hints"><span class="hs-identifier hs-var">DBusN.hints</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">,</span><span>
+</span><span id="line-102"></span><span>      </span><span class="annot"><span class="annottext">Timeout
+expiry :: Timeout
+expiry :: Timeout
+</span><a href="#local-6989586621679138200"><span class="hs-identifier hs-var hs-var">DBusN.expiry</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-103"></span><span>      </span><span class="annot"><span class="annottext">actions :: [(Action, String)]
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/fdo-notify-0.3.1-e57eee6105a9d47049a5834dea21fc568e3a08720deeba857507af722efe07a1/share/doc/html/src/DBus.Notify.html#actions"><span class="hs-identifier hs-var">DBusN.actions</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-104"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-105"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-106"></span><span>    </span><span id="local-6989586621679138200"><span class="annot"><span class="annottext">expiry :: Timeout
+</span><a href="#local-6989586621679138200"><span class="hs-identifier hs-var hs-var">expiry</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Note
+</span><a href="#local-6989586621679138189"><span class="hs-identifier hs-var">note</span></a></span><span> </span><span class="annot"><span class="annottext">Note
+-&gt; Optic' A_Lens NoIx Note (Maybe NotifyTimeout)
+-&gt; Maybe NotifyTimeout
+forall k s (is :: IxList) a.
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/optics-core-0.4.2-dc4f94488ce782135ebc82c5dfda676088c371d7cd55b59c3d691da9f331a6d4/share/doc/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic' A_Lens NoIx Note (Maybe NotifyTimeout)
+</span><span class="">#timeout</span></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-107"></span><span>      </span><span class="hs-comment">-- I think this is the default?</span><span>
+</span><span id="line-108"></span><span>      </span><span class="annot"><span class="annottext">Maybe NotifyTimeout
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Timeout
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/fdo-notify-0.3.1-e57eee6105a9d47049a5834dea21fc568e3a08720deeba857507af722efe07a1/share/doc/html/src/DBus.Notify.html#Dependent"><span class="hs-identifier hs-var">DBusN.Dependent</span></a></span><span>
+</span><span id="line-109"></span><span>      </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span class="annot"><span class="annottext">NotifyTimeout
+</span><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#NotifyTimeoutNever"><span class="hs-identifier hs-var">NotifyTimeoutNever</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Timeout
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/fdo-notify-0.3.1-e57eee6105a9d47049a5834dea21fc568e3a08720deeba857507af722efe07a1/share/doc/html/src/DBus.Notify.html#Never"><span class="hs-identifier hs-var">DBusN.Never</span></a></span><span>
+</span><span id="line-110"></span><span>      </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Effects.Notify.Internal.Data.NotifyTimeout.html#NotifyTimeoutMillis"><span class="hs-identifier hs-type">NotifyTimeoutMillis</span></a></span><span> </span><span id="local-6989586621679138205"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679138205"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-111"></span><span>        </span><span class="annot"><span class="annottext">Int32 -&gt; Timeout
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/fdo-notify-0.3.1-e57eee6105a9d47049a5834dea21fc568e3a08720deeba857507af722efe07a1/share/doc/html/src/DBus.Notify.html#Milliseconds"><span class="hs-identifier hs-var">DBusN.Milliseconds</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">forall a b.
+(Bits a, Bits b, HasCallStack, Integral a, Integral b, Show a,
+ Typeable a, Typeable b) =&gt;
+a -&gt; b
+</span><a href="Effects.Notify.Internal.Utils.html#unsafeConvertIntegral"><span class="hs-identifier hs-var">Utils.unsafeConvertIntegral</span></a></span><span> </span><span class="hs-glyph">@</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">@</span><span class="annot"><span class="hs-identifier hs-type">Int32</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679138205"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-112"></span></pre></body></html>

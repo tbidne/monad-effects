@@ -1,0 +1,60 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Os.html"><span class="hs-identifier">Effects.Notify.Internal.Os</span></a></span><span>
+</span><span id="line-2"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Os.html#Os"><span class="hs-identifier">Os</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-3"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-4"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/text-display-1.0.0.0-f4bf5d104a82ddcfdbb816571cc639e3f9aa127cd38dc01f017f79f176e9fd55/share/doc/html/src/Data.Text.Display.html"><span class="hs-identifier">Data.Text.Display</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/text-display-1.0.0.0-f4bf5d104a82ddcfdbb816571cc639e3f9aa127cd38dc01f017f79f176e9fd55/share/doc/html/src/Data.Text.Display.Core.html#Display"><span class="hs-identifier">Display</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/text-display-1.0.0.0-f4bf5d104a82ddcfdbb816571cc639e3f9aa127cd38dc01f017f79f176e9fd55/share/doc/html/src/Data.Text.Display.Core.html#displayBuilder"><span class="hs-identifier">displayBuilder</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- | Os types.</span><span>
+</span><span id="line-9"></span><span class="hs-comment">--</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-11"></span><span class="hs-keyword">data</span><span> </span><span id="Os"><span class="annot"><a href="Effects.Notify.Internal.Os.html#Os"><span class="hs-identifier hs-var">Os</span></a></span></span><span>
+</span><span id="line-12"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-13"></span><span>    </span><span id="Linux"><span class="annot"><a href="Effects.Notify.Internal.Os.html#Linux"><span class="hs-identifier hs-var">Linux</span></a></span></span><span>
+</span><span id="line-14"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-15"></span><span>    </span><span id="Osx"><span class="annot"><a href="Effects.Notify.Internal.Os.html#Osx"><span class="hs-identifier hs-var">Osx</span></a></span></span><span>
+</span><span id="line-16"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-17"></span><span>    </span><span id="Windows"><span class="annot"><a href="Effects.Notify.Internal.Os.html#Windows"><span class="hs-identifier hs-var">Windows</span></a></span></span><span>
+</span><span id="line-18"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679136687"><span id="local-6989586621679136689"><span class="annot"><span class="annottext">Os
+Os -&gt; Os -&gt; Bounded Os
+forall a. a -&gt; a -&gt; Bounded a
+$cminBound :: Os
+minBound :: Os
+$cmaxBound :: Os
+maxBound :: Os
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Bounded</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679136695"><span id="local-6989586621679136700"><span class="annot"><span class="annottext">Os -&gt; Os -&gt; Bool
+(Os -&gt; Os -&gt; Bool) -&gt; (Os -&gt; Os -&gt; Bool) -&gt; Eq Os
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: Os -&gt; Os -&gt; Bool
+== :: Os -&gt; Os -&gt; Bool
+$c/= :: Os -&gt; Os -&gt; Bool
+/= :: Os -&gt; Os -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679136705"><span id="local-6989586621679136707"><span id="local-6989586621679136711"><span class="annot"><span class="annottext">Int -&gt; Os -&gt; ShowS
+[Os] -&gt; ShowS
+Os -&gt; String
+(Int -&gt; Os -&gt; ShowS)
+-&gt; (Os -&gt; String) -&gt; ([Os] -&gt; ShowS) -&gt; Show Os
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; Os -&gt; ShowS
+showsPrec :: Int -&gt; Os -&gt; ShowS
+$cshow :: Os -&gt; String
+show :: Os -&gt; String
+$cshowList :: [Os] -&gt; ShowS
+showList :: [Os] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679136717"><span id="local-6989586621679136721"><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/text-display-1.0.0.0-f4bf5d104a82ddcfdbb816571cc639e3f9aa127cd38dc01f017f79f176e9fd55/share/doc/html/src/Data.Text.Display.Core.html#Display"><span class="hs-identifier hs-type">Display</span></a></span><span> </span><span class="annot"><a href="Effects.Notify.Internal.Os.html#Os"><span class="hs-identifier hs-type">Os</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-22"></span><span>  </span><span id="local-6989586621679136728"><span class="annot"><span class="annottext">displayBuilder :: Os -&gt; Builder
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.2-2902/text-display-1.0.0.0-f4bf5d104a82ddcfdbb816571cc639e3f9aa127cd38dc01f017f79f176e9fd55/share/doc/html/src/Data.Text.Display.Core.html#displayBuilder"><span class="hs-identifier hs-var hs-var hs-var">displayBuilder</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-23"></span><span>    </span><span class="annot"><span class="annottext">Os
+</span><a href="Effects.Notify.Internal.Os.html#Linux"><span class="hs-identifier hs-var">Linux</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;linux&quot;</span></span><span>
+</span><span id="line-24"></span><span>    </span><span class="annot"><span class="annottext">Os
+</span><a href="Effects.Notify.Internal.Os.html#Osx"><span class="hs-identifier hs-var">Osx</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;osx&quot;</span></span><span>
+</span><span id="line-25"></span><span>    </span><span class="annot"><span class="annottext">Os
+</span><a href="Effects.Notify.Internal.Os.html#Windows"><span class="hs-identifier hs-var">Windows</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;windows&quot;</span></span><span>
+</span><span id="line-26"></span></pre></body></html>
