@@ -5,10 +5,14 @@ module Effects.Optparse
   ( -- * Effect
     MonadOptparse (..),
 
-    -- * Misc
+    -- * OsPath
     OsPath,
     osPath,
     validOsPath,
+
+    -- * OsString
+    OsString,
+    osString,
   )
 where
 
@@ -16,6 +20,8 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT)
 import FileSystem.OsPath (OsPath)
 import FileSystem.OsPath qualified as FS.OsPath
+import FileSystem.OsString (OsString)
+import FileSystem.OsString qualified as FS.OsString
 import GHC.Stack (HasCallStack)
 import Options.Applicative (ParserInfo, ParserPrefs, ParserResult, ReadM)
 import Options.Applicative qualified as OA
@@ -73,3 +79,9 @@ osPath = OA.str >>= FS.OsPath.encodeFail
 -- @since 0.1
 validOsPath :: ReadM OsPath
 validOsPath = OA.str >>= FS.OsPath.encodeValidFail
+
+-- | 'OsString' 'OA.Option' reader.
+--
+-- @since 0.1
+osString :: ReadM OsString
+osString = OA.str >>= FS.OsString.encodeFail
