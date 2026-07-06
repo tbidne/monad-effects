@@ -40,7 +40,7 @@ library
     Effects.System.Posix.Signals
 
   build-depends:
-    , base          >=4.16.0.0 && <4.22
+    , base          >=4.16.0.0 && <4.23
     , exceptions    ^>=0.10.4
     , fs-utils      ^>=0.1
     , os-string     ^>=2.0.0

@@ -35,7 +35,7 @@ library
     Effects.Optparse.Completer
 
   build-depends:
-    , base                  >=4.16.0.0 && <4.22
+    , base                  >=4.16.0.0 && <4.23
     , directory             ^>=1.3.8.0
     , exceptions            ^>=0.10.4
     , fs-utils              ^>=0.1

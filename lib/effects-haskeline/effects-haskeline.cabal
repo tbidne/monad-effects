@@ -32,7 +32,7 @@ library
   import:          common-lang
   exposed-modules: Effects.Haskeline
   build-depends:
-    , base        >=4.16.0.0 && <4.22
+    , base        >=4.16.0.0 && <4.23
     , exceptions  ^>=0.10.4
     , haskeline   ^>=0.8.4.0
     , mtl         >=2.2.1    && <2.4

@@ -33,7 +33,7 @@ library
   exposed-modules: Effects.Concurrent.Async
   build-depends:
     , async           ^>=2.2.2
-    , base            >=4.16.0.0 && <4.22
+    , base            >=4.16.0.0 && <4.23
     , effects-thread  ^>=0.1
     , exceptions      ^>=0.10.4
     , smart-math      ^>=0.1

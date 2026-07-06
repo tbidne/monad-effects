@@ -61,12 +61,12 @@ program-options
 source-repository-package
     type: git
     location: https://github.com/tbidne/algebra-simple.git
-    tag: 37ec7127fbd0f591d4539e4bf72a0badd7569181
+    tag: 6c5b93bdbde9a5e1f92c9bb19d750227d079f114
 
 source-repository-package
     type: git
     location: https://github.com/tbidne/bounds.git
-    tag: b7ca541cfdd8564bcebe5d38456fe7abf77885b8
+    tag: 9acfd0f6b5c93ffc01df5a32352ee4f72e6661dd
 
 source-repository-package
     type: git
@@ -81,6 +81,6 @@ source-repository-package
 source-repository-package
     type: git
     location: https://github.com/tbidne/smart-math.git
-    tag: 4e10a4134f825ba825113955bb97be7f7e28ad6e
+    tag: b151022c0d806366ccb514434a14c84890ec753b
 
 test-show-details: direct
