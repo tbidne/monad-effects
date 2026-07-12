@@ -6,6 +6,7 @@ if os(windows)
     ./lib/effects-evaluate
     ./lib/effects-fs
     ./lib/effects-haskeline
+    ./lib/effects-http-client
     ./lib/effects-ioref
     ./lib/effects-logger
     ./lib/effects-notify
@@ -25,6 +26,7 @@ else
     ./lib/effects-evaluate
     ./lib/effects-fs
     ./lib/effects-haskeline
+    ./lib/effects-http-client
     ./lib/effects-ioref
     ./lib/effects-logger
     ./lib/effects-notify
@@ -71,7 +73,7 @@ source-repository-package
 source-repository-package
     type: git
     location: https://github.com/tbidne/exception-utils.git
-    tag: 61a9e06a26adcca70d565105a1508a16022435a2
+    tag: a427d344663e8d9e64d56d576ebd53bf2240b9bd
 
 source-repository-package
     type: git

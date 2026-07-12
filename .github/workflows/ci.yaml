@@ -75,6 +75,9 @@ jobs:
       - name: Build effects-haskeline
         run: cabal build effects-haskeline
 
+      - name: Build effects-http-client
+        run: cabal build effects-http-client
+
       - name: Build effects-ioref
         run: cabal build effects-ioref
 
@@ -181,6 +184,9 @@ jobs:
 
       - name: Build effects-haskeline
         run: nix build -Lv .#effects-haskeline
+
+      - name: Build effects-http-client
+        run: nix build -Lv .#effects-http-client
 
       - name: Build effects-ioref
         run: nix build -Lv .#effects-ioref

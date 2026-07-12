@@ -17,6 +17,7 @@
   - [effects-evaluate](#effects-evaluate)
   - [effects-fs](#effects-fs)
   - [effects-haskeline](#effects-haskeline)
+  - [effects-http-client](#effects-http-client)
   - [effects-ioref](#effects-ioref)
   - [effects-logger](#effects-logger)
   - [effects-notify](#effects-notify)
@@ -128,6 +129,17 @@ Filesystem effects. In particular:
 ### Description
 
 Effects for the `haskeline` library.
+
+## effects-http-client
+
+### Library: `http-client`, `http-client-tls`
+
+### Modules
+* `Effects.HTTP.Client`
+
+### Description
+
+Effects for the `http-client` library.
 
 ## effects-ioref
 
