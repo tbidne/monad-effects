@@ -22,6 +22,9 @@ cradle:
     - path: "./lib/effects-haskeline/src"
       component: "lib:effects-haskeline"
 
+    - path: "./lib/effects-http-client/src"
+      component: "lib:effects-http-client"
+
     - path: "./lib/effects-ioref/src"
       component: "lib:effects-ioref"
 

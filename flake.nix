@@ -83,6 +83,7 @@
                 effects-evaluate = ./lib/effects-evaluate;
                 effects-fs = ./lib/effects-fs;
                 effects-haskeline = ./lib/effects-haskeline;
+                effects-http-client = ./lib/effects-http-client;
                 effects-ioref = ./lib/effects-ioref;
                 effects-logger = ./lib/effects-logger;
                 effects-optparse = ./lib/effects-optparse;
@@ -103,6 +104,7 @@
             p.effects-evaluate
             p.effects-fs
             p.effects-haskeline
+            p.effects-http-client
             p.effects-ioref
             p.effects-logger
             p.effects-optparse
@@ -133,6 +135,7 @@
             effects-ioref = ./lib/effects-ioref;
           };
           packages.effects-haskeline = mkPkg "effects-haskeline" ./lib/effects-haskeline { };
+          packages.effects-http-client = mkPkg "effects-http-client" ./lib/effects-http-client { };
           packages.effects-ioref = mkPkg "effects-ioref" ./lib/effects-ioref { };
           packages.effects-logger = mkPkg "effects-logger" ./lib/effects-logger {
             effects-thread = ./lib/effects-thread;
