@@ -66,11 +66,13 @@ class (Monad m) => MonadNetwork m where
   -- | @since 0.1
   newTlsManager ::
     (HasCallStack) =>
+    -- | .
     m Manager
 
   -- | @since 0.1
   newTlsManagerWith ::
     (HasCallStack) =>
+    -- | .
     ManagerSettings ->
     m Manager
 
@@ -163,7 +165,7 @@ instance (MonadNetwork m) => MonadNetwork (ReaderT env m) where
   withResponseHistory r m k = withUnlift $ \unlift ->
     withResponseHistory r m (unlift . k . fmap lift)
   {-# INLINEABLE withResponseHistory #-}
-  brRead br = ask >>= \env -> lift $ brRead (runReaderT br env)
+  brRead br = withUnlift $ \unlift -> brRead (unlift br)
   {-# INLINEABLE brRead #-}
   brReadSome br n = withUnlift $ \unlift -> brReadSome (unlift br) n
   {-# INLINEABLE brReadSome #-}
