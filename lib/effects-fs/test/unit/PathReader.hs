@@ -5,6 +5,7 @@ module PathReader (tests) where
 
 import Control.Exception.Utils (trySync)
 import Data.List qualified as L
+import Data.Set qualified as Set
 import Effects.FileSystem.PathReader
   ( PathType
       ( PathTypeDirectory,
@@ -39,22 +40,30 @@ listDirectoryTests getTmpDir =
 testListDirectoryRecursive :: TestTree
 testListDirectoryRecursive = testCase "Recursively lists sub-files/dirs" $ do
   (files, dirs) <- PR.listDirectoryRecursive [osp|src|]
-  let (files', dirs') = (L.sort files, L.sort dirs)
+  let (files', dirs') = (Set.fromList files, Set.fromList dirs)
   expectedFiles @=? files'
   expectedDirs @=? dirs'
   where
+    -- Sets because order is not consistent between OS's e.g.
+    -- '/' < 'A' < '\'
     expectedFiles =
-      [ prefix </> [osp|FileReader.hs|],
-        prefix </> [osp|FileWriter.hs|],
-        prefix </> [osp|HandleReader.hs|],
-        prefix </> [osp|HandleWriter.hs|],
-        prefix </> [osp|PathReader.hs|],
-        prefix </> [osp|PathWriter.hs|]
-      ]
+      Set.fromList
+        [ prefix </> [osp|FileReader.hs|],
+          prefix </> [osp|FileWriter.hs|],
+          prefix </> [osp|Handle.hs|],
+          prefix </> [osp|Handle|] </> [osp|Internal.hs|],
+          prefix </> [osp|HandleRW.hs|],
+          prefix </> [osp|HandleReader.hs|],
+          prefix </> [osp|HandleWriter.hs|],
+          prefix </> [osp|PathReader.hs|],
+          prefix </> [osp|PathWriter.hs|]
+        ]
     expectedDirs =
-      [ [osp|Effects|],
-        prefix
-      ]
+      Set.fromList
+        [ [osp|Effects|],
+          prefix,
+          prefix </> [osp|Handle|]
+        ]
 
     prefix = [osp|Effects|] </> [osp|FileSystem|]
 

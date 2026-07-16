@@ -34,6 +34,7 @@ common common-lang
     LambdaCase
     OverloadedLabels
     OverloadedStrings
+    TypeFamilies
 
   default-language:   GHC2021
 
@@ -48,11 +49,14 @@ library
   exposed-modules:
     Effects.FileSystem.FileReader
     Effects.FileSystem.FileWriter
+    Effects.FileSystem.Handle
     Effects.FileSystem.HandleReader
+    Effects.FileSystem.HandleRW
     Effects.FileSystem.HandleWriter
     Effects.FileSystem.PathReader
     Effects.FileSystem.PathWriter
 
+  other-modules:      Effects.FileSystem.Handle.Internal
   reexported-modules:
     , fs-utils:FileSystem.IO as FileSystem.IO
     , fs-utils:FileSystem.OsPath as FileSystem.OsPath
@@ -92,6 +96,7 @@ test-suite unit
   build-depends:
     , base
     , bytestring
+    , containers       >=0.6.3.1 && <0.9
     , effects-fs
     , effects-ioref
     , env-guard        ^>=0.2
