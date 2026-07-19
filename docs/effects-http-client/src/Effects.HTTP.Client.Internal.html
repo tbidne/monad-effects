@@ -1,0 +1,404 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Effects.HTTP.Client.Internal.html"><span class="hs-identifier">Effects.HTTP.Client.Internal</span></a></span><span>
+</span><span id="line-2"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Exceptions,</span></span><span>
+</span><span id="line-3"></span><span>    </span><span class="annot"><a href="Effects.HTTP.Client.Internal.html#NetworkStatusE"><span class="hs-identifier">NetworkStatusE</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-4"></span><span>    </span><span class="annot"><a href="Effects.HTTP.Client.Internal.html#NetworkReadBodyE"><span class="hs-identifier">NetworkReadBodyE</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-5"></span><span>    </span><span class="annot"><a href="Effects.HTTP.Client.Internal.html#NetworkDecodeUtf8E"><span class="hs-identifier">NetworkDecodeUtf8E</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><a href="Effects.HTTP.Client.Internal.html#NetworkDecodeJsonE"><span class="hs-identifier">NetworkDecodeJsonE</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Readers</span></span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="Effects.HTTP.Client.Internal.html#readResponse"><span class="hs-identifier">readResponse</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Decoders</span></span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><a href="Effects.HTTP.Client.Internal.html#decodeJson"><span class="hs-identifier">decodeJson</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><a href="Effects.HTTP.Client.Internal.html#decodeUtf8"><span class="hs-identifier">decodeUtf8</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Misc</span></span><span>
+</span><span id="line-16"></span><span>    </span><span class="annot"><a href="Effects.HTTP.Client.Internal.html#getStatusCode"><span class="hs-identifier">getStatusCode</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-17"></span><span>    </span><span class="annot"><a href="Effects.HTTP.Client.Internal.html#mapThrowLeft"><span class="hs-identifier">mapThrowLeft</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-18"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Exception</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Exception</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">SomeException</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">displayException</span></span><span class="hs-special">)</span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.3-2625/exception-utils-0.1-d67a5d32da235495b559a168825b01aa427536573ca45e939cbf34daf336de3e/share/doc/html/src/Control.Exception.Utils.html"><span class="hs-identifier">Control.Exception.Utils</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadCatch</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">MonadThrow</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">throwM</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.3-2625/exception-utils-0.1-d67a5d32da235495b559a168825b01aa427536573ca45e939cbf34daf336de3e/share/doc/html/src/Control.Exception.Utils.html#trySync"><span class="hs-identifier">trySync</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">when</span></span><span class="hs-special">)</span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.3-2625/aeson-2.2.5.0-dd005e17eb1998655fefdada9af60dc095ee4a764cd09c97979ac60a18b8f39a/share/doc/html/src/Data.Aeson.html"><span class="hs-identifier">Data.Aeson</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.3-2625/aeson-2.2.5.0-dd005e17eb1998655fefdada9af60dc095ee4a764cd09c97979ac60a18b8f39a/share/doc/html/src/Data.Aeson.Types.FromJSON.html#FromJSON"><span class="hs-identifier">FromJSON</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.3-2625/aeson-2.2.5.0-dd005e17eb1998655fefdada9af60dc095ee4a764cd09c97979ac60a18b8f39a/share/doc/html/src/Data.Aeson.html"><span class="hs-identifier">Data.Aeson</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Asn</span></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Bifunctor</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Bifunctor</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">first</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ByteString</span></span><span class="hs-special">)</span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Text</span></span><span class="hs-special">)</span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Encoding</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">TEnc</span></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Encoding.Error</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">UnicodeException</span></span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Stack.Types</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">HasCallStack</span></span><span class="hs-special">)</span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.3-2625/http-client-0.7.19-e7bcb07061e94c348118c3ef03d8df88fe0c93f2ff22924691dc1aa6fcee13f3/share/doc/html/src/Network.HTTP.Client.html"><span class="hs-identifier">Network.HTTP.Client</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.3-2625/http-client-0.7.19-e7bcb07061e94c348118c3ef03d8df88fe0c93f2ff22924691dc1aa6fcee13f3/share/doc/html/src/Network.HTTP.Client.Types.html#Response"><span class="hs-identifier">Response</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-33"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.3-2625/http-client-0.7.19-e7bcb07061e94c348118c3ef03d8df88fe0c93f2ff22924691dc1aa6fcee13f3/share/doc/html/src/Network.HTTP.Client.html"><span class="hs-identifier">Network.HTTP.Client</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">HttpClient</span></span><span>
+</span><span id="line-34"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.3-2625/http-types-0.12.5-15712bcc6181b6812a74f9b5dd0ab5866fcc97206efb14397847cfe0cdc49492/share/doc/html/src/Network.HTTP.Types.Status.html"><span class="hs-identifier">Network.HTTP.Types.Status</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.3-2625/http-types-0.12.5-15712bcc6181b6812a74f9b5dd0ab5866fcc97206efb14397847cfe0cdc49492/share/doc/html/src/Network.HTTP.Types.Status.html#Status"><span class="hs-identifier">Status</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-35"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.3-2625/http-types-0.12.5-15712bcc6181b6812a74f9b5dd0ab5866fcc97206efb14397847cfe0cdc49492/share/doc/html/src/Network.HTTP.Types.Status.html"><span class="hs-identifier">Network.HTTP.Types.Status</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Status</span></span><span>
+</span><span id="line-36"></span><span>
+</span><span id="line-37"></span><span class="hs-comment">-- | Helper for reading a response, checking for status 200 and exceptions</span><span>
+</span><span id="line-38"></span><span class="hs-comment">-- thrown by the consumer.</span><span>
+</span><span id="line-39"></span><span class="hs-comment">--</span><span>
+</span><span id="line-40"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-41"></span><span id="local-6989586621679113238"><span id="local-6989586621679113240"><span id="local-6989586621679113242"><span class="annot"><a href="Effects.HTTP.Client.Internal.html#readResponse"><span class="hs-identifier hs-type">readResponse</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-42"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span>
+</span><span id="line-43"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">MonadCatch</span></span><span> </span><span class="annot"><a href="#local-6989586621679113238"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-44"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-45"></span><span>  </span><span class="annot"><span class="hs-comment">-- | String url.</span></span><span>
+</span><span id="line-46"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-47"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Response.</span></span><span>
+</span><span id="line-48"></span><span>  </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.3-2625/http-client-0.7.19-e7bcb07061e94c348118c3ef03d8df88fe0c93f2ff22924691dc1aa6fcee13f3/share/doc/html/src/Network.HTTP.Client.Types.html#Response"><span class="hs-identifier hs-type">Response</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679113240"><span class="hs-identifier hs-type">br</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-49"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Consumer.</span></span><span>
+</span><span id="line-50"></span><span>  </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679113240"><span class="hs-identifier hs-type">br</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679113238"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679113242"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-51"></span><span>  </span><span class="annot"><a href="#local-6989586621679113238"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679113242"><span class="hs-identifier hs-type">a</span></a></span></span></span></span><span>
+</span><span id="line-52"></span><span id="readResponse"><span class="annot"><span class="annottext">readResponse :: forall (m :: * -&gt; *) br a.
+(HasCallStack, MonadCatch m) =&gt;
+String -&gt; Response br -&gt; (br -&gt; m a) -&gt; m a
+</span><a href="Effects.HTTP.Client.Internal.html#readResponse"><span class="hs-identifier hs-var hs-var">readResponse</span></a></span></span><span> </span><span id="local-6989586621679113358"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679113358"><span class="hs-identifier hs-var">url</span></a></span></span><span> </span><span id="local-6989586621679113359"><span class="annot"><span class="annottext">Response br
+</span><a href="#local-6989586621679113359"><span class="hs-identifier hs-var">res</span></a></span></span><span> </span><span id="local-6989586621679113360"><span class="annot"><span class="annottext">br -&gt; m a
+</span><a href="#local-6989586621679113360"><span class="hs-identifier hs-var">consumer</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-53"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679113361"><span class="annot"><span class="annottext">bodyReader :: br
+</span><a href="#local-6989586621679113361"><span class="hs-identifier hs-var hs-var hs-var">bodyReader</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Response br -&gt; br
+forall body. Response body -&gt; body
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.3-2625/http-client-0.7.19-e7bcb07061e94c348118c3ef03d8df88fe0c93f2ff22924691dc1aa6fcee13f3/share/doc/html/src/Network.HTTP.Client.Types.html#responseBody"><span class="hs-identifier hs-var">HttpClient.responseBody</span></a></span><span> </span><span class="annot"><span class="annottext">Response br
+</span><a href="#local-6989586621679113359"><span class="hs-identifier hs-var">res</span></a></span><span>
+</span><span id="line-54"></span><span>      </span><span id="local-6989586621679113363"><span class="annot"><span class="annottext">status :: Status
+</span><a href="#local-6989586621679113363"><span class="hs-identifier hs-var hs-var hs-var">status</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Response br -&gt; Status
+forall body. Response body -&gt; Status
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.3-2625/http-client-0.7.19-e7bcb07061e94c348118c3ef03d8df88fe0c93f2ff22924691dc1aa6fcee13f3/share/doc/html/src/Network.HTTP.Client.Types.html#responseStatus"><span class="hs-identifier hs-var">HttpClient.responseStatus</span></a></span><span> </span><span class="annot"><span class="annottext">Response br
+</span><a href="#local-6989586621679113359"><span class="hs-identifier hs-var">res</span></a></span><span>
+</span><span id="line-55"></span><span>      </span><span id="local-6989586621679113365"><span class="annot"><span class="annottext">statusCode :: Int
+</span><a href="#local-6989586621679113365"><span class="hs-identifier hs-var hs-var hs-var">statusCode</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Response br -&gt; Int
+forall body. Response body -&gt; Int
+</span><a href="Effects.HTTP.Client.Internal.html#getStatusCode"><span class="hs-identifier hs-var">getStatusCode</span></a></span><span> </span><span class="annot"><span class="annottext">Response br
+</span><a href="#local-6989586621679113359"><span class="hs-identifier hs-var">res</span></a></span><span>
+</span><span id="line-56"></span><span>
+</span><span id="line-57"></span><span>  </span><span class="annot"><span class="annottext">Bool -&gt; m () -&gt; m ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span><span class="hs-identifier hs-var">when</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679113365"><span class="hs-identifier hs-var">statusCode</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">200</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(m () -&gt; m ()) -&gt; m () -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span id="line-58"></span><span>    </span><span class="annot"><span class="annottext">NetworkStatusE -&gt; m ()
+forall e a. (HasCallStack, Exception e) =&gt; e -&gt; m a
+forall (m :: * -&gt; *) e a.
+(MonadThrow m, HasCallStack, Exception e) =&gt;
+e -&gt; m a
+</span><span class="hs-identifier hs-var">throwM</span></span><span> </span><span class="annot"><span class="annottext">(NetworkStatusE -&gt; m ()) -&gt; NetworkStatusE -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span id="line-59"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Status -&gt; NetworkStatusE
+</span><a href="Effects.HTTP.Client.Internal.html#MkNetworkStatusE"><span class="hs-identifier hs-var">MkNetworkStatusE</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679113358"><span class="hs-identifier hs-var">url</span></a></span><span> </span><span class="annot"><span class="annottext">Status
+</span><a href="#local-6989586621679113363"><span class="hs-identifier hs-var">status</span></a></span><span>
+</span><span id="line-60"></span><span>
+</span><span id="line-61"></span><span>  </span><span class="annot"><span class="annottext">(SomeException -&gt; NetworkReadBodyE)
+-&gt; Either SomeException a -&gt; m a
+forall e2 (m :: * -&gt; *) e1 a.
+(Exception e2, MonadThrow m) =&gt;
+(e1 -&gt; e2) -&gt; Either e1 a -&gt; m a
+</span><a href="Effects.HTTP.Client.Internal.html#mapThrowLeft"><span class="hs-identifier hs-var">mapThrowLeft</span></a></span><span>
+</span><span id="line-62"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; SomeException -&gt; NetworkReadBodyE
+</span><a href="Effects.HTTP.Client.Internal.html#MkNetworkReadBodyE"><span class="hs-identifier hs-var">MkNetworkReadBodyE</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679113358"><span class="hs-identifier hs-var">url</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-63"></span><span>    </span><span class="annot"><span class="annottext">(Either SomeException a -&gt; m a)
+-&gt; m (Either SomeException a) -&gt; m a
+forall (m :: * -&gt; *) a b. Monad m =&gt; (a -&gt; m b) -&gt; m a -&gt; m b
+</span><span class="hs-operator hs-var">=&lt;&lt;</span></span><span> </span><span class="annot"><span class="annottext">m a -&gt; m (Either SomeException a)
+forall (m :: * -&gt; *) a.
+(HasCallStack, MonadCatch m) =&gt;
+m a -&gt; m (Either SomeException a)
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.3-2625/exception-utils-0.1-d67a5d32da235495b559a168825b01aa427536573ca45e939cbf34daf336de3e/share/doc/html/src/Control.Exception.Utils.html#trySync"><span class="hs-identifier hs-var">trySync</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">br -&gt; m a
+</span><a href="#local-6989586621679113360"><span class="hs-identifier hs-var">consumer</span></a></span><span> </span><span class="annot"><span class="annottext">br
+</span><a href="#local-6989586621679113361"><span class="hs-identifier hs-var">bodyReader</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-64"></span><span>
+</span><span id="line-65"></span><span id="local-6989586621679113276"><span id="local-6989586621679113278"><span class="annot"><a href="Effects.HTTP.Client.Internal.html#decodeJson"><span class="hs-identifier hs-type">decodeJson</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-66"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.3-2625/aeson-2.2.5.0-dd005e17eb1998655fefdada9af60dc095ee4a764cd09c97979ac60a18b8f39a/share/doc/html/src/Data.Aeson.Types.FromJSON.html#FromJSON"><span class="hs-identifier hs-type">FromJSON</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679113276"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-67"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">MonadThrow</span></span><span> </span><span class="annot"><a href="#local-6989586621679113278"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-68"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-69"></span><span>  </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">ByteString</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-70"></span><span>  </span><span class="annot"><a href="#local-6989586621679113278"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679113276"><span class="hs-identifier hs-type">a</span></a></span></span></span><span>
+</span><span id="line-71"></span><span id="decodeJson"><span class="annot"><span class="annottext">decodeJson :: forall a (m :: * -&gt; *).
+(FromJSON a, MonadThrow m) =&gt;
+[ByteString] -&gt; m a
+</span><a href="Effects.HTTP.Client.Internal.html#decodeJson"><span class="hs-identifier hs-var hs-var">decodeJson</span></a></span></span><span> </span><span id="local-6989586621679113378"><span class="annot"><span class="annottext">[ByteString]
+</span><a href="#local-6989586621679113378"><span class="hs-identifier hs-var">bodyBs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-72"></span><span>  </span><span class="annot"><span class="annottext">(String -&gt; NetworkDecodeJsonE) -&gt; Either String a -&gt; m a
+forall e2 (m :: * -&gt; *) e1 a.
+(Exception e2, MonadThrow m) =&gt;
+(e1 -&gt; e2) -&gt; Either e1 a -&gt; m a
+</span><a href="Effects.HTTP.Client.Internal.html#mapThrowLeft"><span class="hs-identifier hs-var">mapThrowLeft</span></a></span><span>
+</span><span id="line-73"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ByteString -&gt; String -&gt; NetworkDecodeJsonE
+</span><a href="Effects.HTTP.Client.Internal.html#MkNetworkDecodeJsonE"><span class="hs-identifier hs-var">MkNetworkDecodeJsonE</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679113380"><span class="hs-identifier hs-var">bs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-74"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ByteString -&gt; Either String a
+forall a. FromJSON a =&gt; ByteString -&gt; Either String a
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.3-2625/aeson-2.2.5.0-dd005e17eb1998655fefdada9af60dc095ee4a764cd09c97979ac60a18b8f39a/share/doc/html/src/Data.Aeson.Decoding.html#eitherDecodeStrict"><span class="hs-identifier hs-var">Asn.eitherDecodeStrict</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679113380"><span class="hs-identifier hs-var">bs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-75"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-76"></span><span>    </span><span id="local-6989586621679113380"><span class="annot"><span class="annottext">bs :: ByteString
+</span><a href="#local-6989586621679113380"><span class="hs-identifier hs-var hs-var">bs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[ByteString] -&gt; ByteString
+forall a. Monoid a =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">mconcat</span></span><span> </span><span class="annot"><span class="annottext">[ByteString]
+</span><a href="#local-6989586621679113378"><span class="hs-identifier hs-var">bodyBs</span></a></span><span>
+</span><span id="line-77"></span><span>
+</span><span id="line-78"></span><span id="local-6989586621679113284"><span class="annot"><a href="Effects.HTTP.Client.Internal.html#decodeUtf8"><span class="hs-identifier hs-type">decodeUtf8</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-79"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadThrow</span></span><span> </span><span class="annot"><a href="#local-6989586621679113284"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-80"></span><span>  </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">ByteString</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-81"></span><span>  </span><span class="annot"><a href="#local-6989586621679113284"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span></span><span>
+</span><span id="line-82"></span><span id="decodeUtf8"><span class="annot"><span class="annottext">decodeUtf8 :: forall (m :: * -&gt; *). MonadThrow m =&gt; [ByteString] -&gt; m Text
+</span><a href="Effects.HTTP.Client.Internal.html#decodeUtf8"><span class="hs-identifier hs-var hs-var">decodeUtf8</span></a></span></span><span> </span><span id="local-6989586621679113387"><span class="annot"><span class="annottext">[ByteString]
+</span><a href="#local-6989586621679113387"><span class="hs-identifier hs-var">bodyBs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-83"></span><span>  </span><span class="annot"><span class="annottext">(UnicodeException -&gt; NetworkDecodeUtf8E)
+-&gt; Either UnicodeException Text -&gt; m Text
+forall e2 (m :: * -&gt; *) e1 a.
+(Exception e2, MonadThrow m) =&gt;
+(e1 -&gt; e2) -&gt; Either e1 a -&gt; m a
+</span><a href="Effects.HTTP.Client.Internal.html#mapThrowLeft"><span class="hs-identifier hs-var">mapThrowLeft</span></a></span><span>
+</span><span id="line-84"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ByteString -&gt; UnicodeException -&gt; NetworkDecodeUtf8E
+</span><a href="Effects.HTTP.Client.Internal.html#MkNetworkDecodeUtf8E"><span class="hs-identifier hs-var">MkNetworkDecodeUtf8E</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679113389"><span class="hs-identifier hs-var">bs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-85"></span><span>    </span><span class="annot"><span class="annottext">(Either UnicodeException Text -&gt; m Text)
+-&gt; Either UnicodeException Text -&gt; m Text
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Either UnicodeException Text
+</span><span class="hs-identifier hs-var">TEnc.decodeUtf8'</span></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679113389"><span class="hs-identifier hs-var">bs</span></a></span><span>
+</span><span id="line-86"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-87"></span><span>    </span><span id="local-6989586621679113389"><span class="annot"><span class="annottext">bs :: ByteString
+</span><a href="#local-6989586621679113389"><span class="hs-identifier hs-var hs-var">bs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[ByteString] -&gt; ByteString
+forall a. Monoid a =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">mconcat</span></span><span> </span><span class="annot"><span class="annottext">[ByteString]
+</span><a href="#local-6989586621679113387"><span class="hs-identifier hs-var">bodyBs</span></a></span><span>
+</span><span id="line-88"></span><span>
+</span><span id="line-89"></span><span class="hs-keyword">data</span><span> </span><span id="NetworkStatusE"><span class="annot"><a href="Effects.HTTP.Client.Internal.html#NetworkStatusE"><span class="hs-identifier hs-var">NetworkStatusE</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkNetworkStatusE"><span class="annot"><a href="Effects.HTTP.Client.Internal.html#MkNetworkStatusE"><span class="hs-identifier hs-var">MkNetworkStatusE</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.3-2625/http-types-0.12.5-15712bcc6181b6812a74f9b5dd0ab5866fcc97206efb14397847cfe0cdc49492/share/doc/html/src/Network.HTTP.Types.Status.html#Status"><span class="hs-identifier hs-type">Status</span></a></span><span>
+</span><span id="line-90"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679113392"><span id="local-6989586621679113401"><span id="local-6989586621679113405"><span class="annot"><span class="annottext">Int -&gt; NetworkStatusE -&gt; ShowS
+[NetworkStatusE] -&gt; ShowS
+NetworkStatusE -&gt; String
+(Int -&gt; NetworkStatusE -&gt; ShowS)
+-&gt; (NetworkStatusE -&gt; String)
+-&gt; ([NetworkStatusE] -&gt; ShowS)
+-&gt; Show NetworkStatusE
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; NetworkStatusE -&gt; ShowS
+showsPrec :: Int -&gt; NetworkStatusE -&gt; ShowS
+$cshow :: NetworkStatusE -&gt; String
+show :: NetworkStatusE -&gt; String
+$cshowList :: [NetworkStatusE] -&gt; ShowS
+showList :: [NetworkStatusE] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-91"></span><span>
+</span><span id="line-92"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679113415"><span id="local-6989586621679113418"><span id="local-6989586621679113422"><span class="annot"><span class="hs-identifier hs-type">Exception</span></span><span> </span><span class="annot"><a href="Effects.HTTP.Client.Internal.html#NetworkStatusE"><span class="hs-identifier hs-type">NetworkStatusE</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-93"></span><span>  </span><span id="local-6989586621679113431"><span class="annot"><span class="annottext">displayException :: NetworkStatusE -&gt; String
+</span><span class="hs-identifier hs-var hs-var hs-var">displayException</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Effects.HTTP.Client.Internal.html#MkNetworkStatusE"><span class="hs-identifier hs-type">MkNetworkStatusE</span></a></span><span> </span><span id="local-6989586621679113432"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679113432"><span class="hs-identifier hs-var">url</span></a></span></span><span> </span><span id="local-6989586621679113433"><span class="annot"><span class="annottext">Status
+</span><a href="#local-6989586621679113433"><span class="hs-identifier hs-var">status</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-94"></span><span>    </span><span class="annot"><span class="annottext">[String] -&gt; String
+forall a. Monoid a =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">mconcat</span></span><span>
+</span><span id="line-95"></span><span>      </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Received &quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-96"></span><span>        </span><span class="annot"><span class="annottext">Int -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">(Int -&gt; String) -&gt; Int -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Status -&gt; Int
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.3-2625/http-types-0.12.5-15712bcc6181b6812a74f9b5dd0ab5866fcc97206efb14397847cfe0cdc49492/share/doc/html/src/Network.HTTP.Types.Status.html#statusCode"><span class="hs-identifier hs-var">Status.statusCode</span></a></span><span> </span><span class="annot"><span class="annottext">Status
+</span><a href="#local-6989586621679113433"><span class="hs-identifier hs-var">status</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-97"></span><span>        </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; for url '&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-98"></span><span>        </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679113432"><span class="hs-identifier hs-var">url</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-99"></span><span>        </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;': &quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-100"></span><span>        </span><span class="annot"><span class="annottext">Status -&gt; String
+</span><a href="Effects.HTTP.Client.Internal.html#statusMessage"><span class="hs-identifier hs-var">statusMessage</span></a></span><span> </span><span class="annot"><span class="annottext">Status
+</span><a href="#local-6989586621679113433"><span class="hs-identifier hs-var">status</span></a></span><span>
+</span><span id="line-101"></span><span>      </span><span class="hs-special">]</span><span>
+</span><span id="line-102"></span><span>
+</span><span id="line-103"></span><span class="hs-keyword">data</span><span> </span><span id="NetworkReadBodyE"><span class="annot"><a href="Effects.HTTP.Client.Internal.html#NetworkReadBodyE"><span class="hs-identifier hs-var">NetworkReadBodyE</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkNetworkReadBodyE"><span class="annot"><a href="Effects.HTTP.Client.Internal.html#MkNetworkReadBodyE"><span class="hs-identifier hs-var">MkNetworkReadBodyE</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">SomeException</span></span><span>
+</span><span id="line-104"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679113438"><span id="local-6989586621679113445"><span id="local-6989586621679113449"><span class="annot"><span class="annottext">Int -&gt; NetworkReadBodyE -&gt; ShowS
+[NetworkReadBodyE] -&gt; ShowS
+NetworkReadBodyE -&gt; String
+(Int -&gt; NetworkReadBodyE -&gt; ShowS)
+-&gt; (NetworkReadBodyE -&gt; String)
+-&gt; ([NetworkReadBodyE] -&gt; ShowS)
+-&gt; Show NetworkReadBodyE
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; NetworkReadBodyE -&gt; ShowS
+showsPrec :: Int -&gt; NetworkReadBodyE -&gt; ShowS
+$cshow :: NetworkReadBodyE -&gt; String
+show :: NetworkReadBodyE -&gt; String
+$cshowList :: [NetworkReadBodyE] -&gt; ShowS
+showList :: [NetworkReadBodyE] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-105"></span><span>
+</span><span id="line-106"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679113456"><span id="local-6989586621679113459"><span id="local-6989586621679113463"><span class="annot"><span class="hs-identifier hs-type">Exception</span></span><span> </span><span class="annot"><a href="Effects.HTTP.Client.Internal.html#NetworkReadBodyE"><span class="hs-identifier hs-type">NetworkReadBodyE</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-107"></span><span>  </span><span id="local-6989586621679113470"><span class="annot"><span class="annottext">displayException :: NetworkReadBodyE -&gt; String
+</span><span class="hs-identifier hs-var hs-var hs-var">displayException</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Effects.HTTP.Client.Internal.html#MkNetworkReadBodyE"><span class="hs-identifier hs-type">MkNetworkReadBodyE</span></a></span><span> </span><span id="local-6989586621679113471"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679113471"><span class="hs-identifier hs-var">url</span></a></span></span><span> </span><span id="local-6989586621679113472"><span class="annot"><span class="annottext">SomeException
+</span><a href="#local-6989586621679113472"><span class="hs-identifier hs-var">ex</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-108"></span><span>    </span><span class="annot"><span class="annottext">[String] -&gt; String
+forall a. Monoid a =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">mconcat</span></span><span>
+</span><span id="line-109"></span><span>      </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Exception reading body for url '&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-110"></span><span>        </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679113471"><span class="hs-identifier hs-var">url</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-111"></span><span>        </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;':\n\n&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-112"></span><span>        </span><span class="annot"><span class="annottext">SomeException -&gt; String
+forall e. Exception e =&gt; e -&gt; String
+</span><span class="hs-identifier hs-var">displayException</span></span><span> </span><span class="annot"><span class="annottext">SomeException
+</span><a href="#local-6989586621679113472"><span class="hs-identifier hs-var">ex</span></a></span><span>
+</span><span id="line-113"></span><span>      </span><span class="hs-special">]</span><span>
+</span><span id="line-114"></span><span>
+</span><span id="line-115"></span><span class="hs-keyword">data</span><span> </span><span id="NetworkDecodeUtf8E"><span class="annot"><a href="Effects.HTTP.Client.Internal.html#NetworkDecodeUtf8E"><span class="hs-identifier hs-var">NetworkDecodeUtf8E</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkNetworkDecodeUtf8E"><span class="annot"><a href="Effects.HTTP.Client.Internal.html#MkNetworkDecodeUtf8E"><span class="hs-identifier hs-var">MkNetworkDecodeUtf8E</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">ByteString</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">UnicodeException</span></span><span>
+</span><span id="line-116"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679113474"><span id="local-6989586621679113480"><span id="local-6989586621679113484"><span class="annot"><span class="annottext">Int -&gt; NetworkDecodeUtf8E -&gt; ShowS
+[NetworkDecodeUtf8E] -&gt; ShowS
+NetworkDecodeUtf8E -&gt; String
+(Int -&gt; NetworkDecodeUtf8E -&gt; ShowS)
+-&gt; (NetworkDecodeUtf8E -&gt; String)
+-&gt; ([NetworkDecodeUtf8E] -&gt; ShowS)
+-&gt; Show NetworkDecodeUtf8E
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; NetworkDecodeUtf8E -&gt; ShowS
+showsPrec :: Int -&gt; NetworkDecodeUtf8E -&gt; ShowS
+$cshow :: NetworkDecodeUtf8E -&gt; String
+show :: NetworkDecodeUtf8E -&gt; String
+$cshowList :: [NetworkDecodeUtf8E] -&gt; ShowS
+showList :: [NetworkDecodeUtf8E] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-117"></span><span>
+</span><span id="line-118"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679113491"><span id="local-6989586621679113494"><span id="local-6989586621679113498"><span class="annot"><span class="hs-identifier hs-type">Exception</span></span><span> </span><span class="annot"><a href="Effects.HTTP.Client.Internal.html#NetworkDecodeUtf8E"><span class="hs-identifier hs-type">NetworkDecodeUtf8E</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-119"></span><span>  </span><span id="local-6989586621679113506"><span class="annot"><span class="annottext">displayException :: NetworkDecodeUtf8E -&gt; String
+</span><span class="hs-identifier hs-var hs-var hs-var">displayException</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Effects.HTTP.Client.Internal.html#MkNetworkDecodeUtf8E"><span class="hs-identifier hs-type">MkNetworkDecodeUtf8E</span></a></span><span> </span><span id="local-6989586621679113507"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679113507"><span class="hs-identifier hs-var">bs</span></a></span></span><span> </span><span id="local-6989586621679113508"><span class="annot"><span class="annottext">UnicodeException
+</span><a href="#local-6989586621679113508"><span class="hs-identifier hs-var">err</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-120"></span><span>    </span><span class="annot"><span class="annottext">[String] -&gt; String
+forall a. Monoid a =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">mconcat</span></span><span>
+</span><span id="line-121"></span><span>      </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Could not decode UTF-8: &quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-122"></span><span>        </span><span class="annot"><span class="annottext">UnicodeException -&gt; String
+forall e. Exception e =&gt; e -&gt; String
+</span><span class="hs-identifier hs-var">displayException</span></span><span> </span><span class="annot"><span class="annottext">UnicodeException
+</span><a href="#local-6989586621679113508"><span class="hs-identifier hs-var">err</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-123"></span><span>        </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;. Bytes: &quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-124"></span><span>        </span><span class="annot"><span class="annottext">ByteString -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679113507"><span class="hs-identifier hs-var">bs</span></a></span><span>
+</span><span id="line-125"></span><span>      </span><span class="hs-special">]</span><span>
+</span><span id="line-126"></span><span>
+</span><span id="line-127"></span><span class="hs-keyword">data</span><span> </span><span id="NetworkDecodeJsonE"><span class="annot"><a href="Effects.HTTP.Client.Internal.html#NetworkDecodeJsonE"><span class="hs-identifier hs-var">NetworkDecodeJsonE</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkNetworkDecodeJsonE"><span class="annot"><a href="Effects.HTTP.Client.Internal.html#MkNetworkDecodeJsonE"><span class="hs-identifier hs-var">MkNetworkDecodeJsonE</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">ByteString</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-128"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679113510"><span id="local-6989586621679113516"><span id="local-6989586621679113520"><span class="annot"><span class="annottext">Int -&gt; NetworkDecodeJsonE -&gt; ShowS
+[NetworkDecodeJsonE] -&gt; ShowS
+NetworkDecodeJsonE -&gt; String
+(Int -&gt; NetworkDecodeJsonE -&gt; ShowS)
+-&gt; (NetworkDecodeJsonE -&gt; String)
+-&gt; ([NetworkDecodeJsonE] -&gt; ShowS)
+-&gt; Show NetworkDecodeJsonE
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; NetworkDecodeJsonE -&gt; ShowS
+showsPrec :: Int -&gt; NetworkDecodeJsonE -&gt; ShowS
+$cshow :: NetworkDecodeJsonE -&gt; String
+show :: NetworkDecodeJsonE -&gt; String
+$cshowList :: [NetworkDecodeJsonE] -&gt; ShowS
+showList :: [NetworkDecodeJsonE] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-129"></span><span>
+</span><span id="line-130"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679113527"><span id="local-6989586621679113530"><span id="local-6989586621679113534"><span class="annot"><span class="hs-identifier hs-type">Exception</span></span><span> </span><span class="annot"><a href="Effects.HTTP.Client.Internal.html#NetworkDecodeJsonE"><span class="hs-identifier hs-type">NetworkDecodeJsonE</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-131"></span><span>  </span><span id="local-6989586621679113540"><span class="annot"><span class="annottext">displayException :: NetworkDecodeJsonE -&gt; String
+</span><span class="hs-identifier hs-var hs-var hs-var">displayException</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Effects.HTTP.Client.Internal.html#MkNetworkDecodeJsonE"><span class="hs-identifier hs-type">MkNetworkDecodeJsonE</span></a></span><span> </span><span id="local-6989586621679113541"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679113541"><span class="hs-identifier hs-var">jsonBs</span></a></span></span><span> </span><span id="local-6989586621679113542"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679113542"><span class="hs-identifier hs-var">err</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-132"></span><span>    </span><span class="annot"><span class="annottext">[String] -&gt; String
+forall a. Monoid a =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">mconcat</span></span><span>
+</span><span id="line-133"></span><span>      </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Could not decode JSON: &quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-134"></span><span>        </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679113542"><span class="hs-identifier hs-var">err</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-135"></span><span>        </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;. Bytes: &quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-136"></span><span>        </span><span class="annot"><span class="annottext">ByteString -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679113541"><span class="hs-identifier hs-var">jsonBs</span></a></span><span>
+</span><span id="line-137"></span><span>      </span><span class="hs-special">]</span><span>
+</span><span id="line-138"></span><span>
+</span><span id="line-139"></span><span class="annot"><a href="Effects.HTTP.Client.Internal.html#statusMessage"><span class="hs-identifier hs-type">statusMessage</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.3-2625/http-types-0.12.5-15712bcc6181b6812a74f9b5dd0ab5866fcc97206efb14397847cfe0cdc49492/share/doc/html/src/Network.HTTP.Types.Status.html#Status"><span class="hs-identifier hs-type">Status</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-140"></span><span id="statusMessage"><span class="annot"><span class="annottext">statusMessage :: Status -&gt; String
+</span><a href="Effects.HTTP.Client.Internal.html#statusMessage"><span class="hs-identifier hs-var hs-var">statusMessage</span></a></span></span><span> </span><span id="local-6989586621679113543"><span class="annot"><span class="annottext">Status
+</span><a href="#local-6989586621679113543"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-141"></span><span>  </span><span class="annot"><span class="annottext">[String] -&gt; String
+forall a. Monoid a =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">mconcat</span></span><span>
+</span><span id="line-142"></span><span>    </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Status message: &quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-143"></span><span>      </span><span class="annot"><span class="annottext">ByteString -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; String) -&gt; ByteString -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Status -&gt; ByteString
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.3-2625/http-types-0.12.5-15712bcc6181b6812a74f9b5dd0ab5866fcc97206efb14397847cfe0cdc49492/share/doc/html/src/Network.HTTP.Types.Status.html#statusMessage"><span class="hs-identifier hs-var">Status.statusMessage</span></a></span><span> </span><span class="annot"><span class="annottext">Status
+</span><a href="#local-6989586621679113543"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-144"></span><span>    </span><span class="hs-special">]</span><span>
+</span><span id="line-145"></span><span>
+</span><span id="line-146"></span><span id="local-6989586621679113256"><span class="annot"><a href="Effects.HTTP.Client.Internal.html#getStatusCode"><span class="hs-identifier hs-type">getStatusCode</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.3-2625/http-client-0.7.19-e7bcb07061e94c348118c3ef03d8df88fe0c93f2ff22924691dc1aa6fcee13f3/share/doc/html/src/Network.HTTP.Client.Types.html#Response"><span class="hs-identifier hs-type">Response</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679113256"><span class="hs-identifier hs-type">body</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span></span><span>
+</span><span id="line-147"></span><span id="getStatusCode"><span class="annot"><span class="annottext">getStatusCode :: forall body. Response body -&gt; Int
+</span><a href="Effects.HTTP.Client.Internal.html#getStatusCode"><span class="hs-identifier hs-var hs-var">getStatusCode</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Status -&gt; Int
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.3-2625/http-types-0.12.5-15712bcc6181b6812a74f9b5dd0ab5866fcc97206efb14397847cfe0cdc49492/share/doc/html/src/Network.HTTP.Types.Status.html#statusCode"><span class="hs-identifier hs-var">Status.statusCode</span></a></span><span> </span><span class="annot"><span class="annottext">(Status -&gt; Int)
+-&gt; (Response body -&gt; Status) -&gt; Response body -&gt; Int
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Response body -&gt; Status
+forall body. Response body -&gt; Status
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.12.3-2625/http-client-0.7.19-e7bcb07061e94c348118c3ef03d8df88fe0c93f2ff22924691dc1aa6fcee13f3/share/doc/html/src/Network.HTTP.Client.Types.html#responseStatus"><span class="hs-identifier hs-var">HttpClient.responseStatus</span></a></span><span>
+</span><span id="line-148"></span><span>
+</span><span id="line-149"></span><span id="local-6989586621679113267"><span id="local-6989586621679113268"><span id="local-6989586621679113269"><span id="local-6989586621679113270"><span class="annot"><a href="Effects.HTTP.Client.Internal.html#mapThrowLeft"><span class="hs-identifier hs-type">mapThrowLeft</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Exception</span></span><span> </span><span class="annot"><a href="#local-6989586621679113267"><span class="hs-identifier hs-type">e2</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadThrow</span></span><span> </span><span class="annot"><a href="#local-6989586621679113268"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679113269"><span class="hs-identifier hs-type">e1</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679113267"><span class="hs-identifier hs-type">e2</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621679113269"><span class="hs-identifier hs-type">e1</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679113270"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679113268"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679113270"><span class="hs-identifier hs-type">a</span></a></span></span></span></span></span><span>
+</span><span id="line-150"></span><span id="mapThrowLeft"><span class="annot"><span class="annottext">mapThrowLeft :: forall e2 (m :: * -&gt; *) e1 a.
+(Exception e2, MonadThrow m) =&gt;
+(e1 -&gt; e2) -&gt; Either e1 a -&gt; m a
+</span><a href="Effects.HTTP.Client.Internal.html#mapThrowLeft"><span class="hs-identifier hs-var hs-var">mapThrowLeft</span></a></span></span><span> </span><span id="local-6989586621679113552"><span class="annot"><span class="annottext">e1 -&gt; e2
+</span><a href="#local-6989586621679113552"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Either e2 a -&gt; m a
+forall e (m :: * -&gt; *) a.
+(Exception e, MonadThrow m) =&gt;
+Either e a -&gt; m a
+</span><a href="Effects.HTTP.Client.Internal.html#throwLeft"><span class="hs-identifier hs-var">throwLeft</span></a></span><span> </span><span class="annot"><span class="annottext">(Either e2 a -&gt; m a)
+-&gt; (Either e1 a -&gt; Either e2 a) -&gt; Either e1 a -&gt; m a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(e1 -&gt; e2) -&gt; Either e1 a -&gt; Either e2 a
+forall a b c. (a -&gt; b) -&gt; Either a c -&gt; Either b c
+forall (p :: * -&gt; * -&gt; *) a b c.
+Bifunctor p =&gt;
+(a -&gt; b) -&gt; p a c -&gt; p b c
+</span><span class="hs-identifier hs-var">first</span></span><span> </span><span class="annot"><span class="annottext">e1 -&gt; e2
+</span><a href="#local-6989586621679113552"><span class="hs-identifier hs-var">f</span></a></span><span>
+</span><span id="line-151"></span><span>
+</span><span id="line-152"></span><span id="local-6989586621679113303"><span id="local-6989586621679113304"><span id="local-6989586621679113305"><span class="annot"><a href="Effects.HTTP.Client.Internal.html#throwLeft"><span class="hs-identifier hs-type">throwLeft</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Exception</span></span><span> </span><span class="annot"><a href="#local-6989586621679113303"><span class="hs-identifier hs-type">e</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadThrow</span></span><span> </span><span class="annot"><a href="#local-6989586621679113304"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621679113303"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679113305"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679113304"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679113305"><span class="hs-identifier hs-type">a</span></a></span></span></span></span><span>
+</span><span id="line-153"></span><span id="throwLeft"><span class="annot"><span class="annottext">throwLeft :: forall e (m :: * -&gt; *) a.
+(Exception e, MonadThrow m) =&gt;
+Either e a -&gt; m a
+</span><a href="Effects.HTTP.Client.Internal.html#throwLeft"><span class="hs-identifier hs-var hs-var">throwLeft</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679113563"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679113563"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; m a
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679113563"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-154"></span><span class="annot"><a href="Effects.HTTP.Client.Internal.html#throwLeft"><span class="hs-identifier hs-var">throwLeft</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679113564"><span class="annot"><span class="annottext">e
+</span><a href="#local-6989586621679113564"><span class="hs-identifier hs-var">e</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">e -&gt; m a
+forall e a. (HasCallStack, Exception e) =&gt; e -&gt; m a
+forall (m :: * -&gt; *) e a.
+(MonadThrow m, HasCallStack, Exception e) =&gt;
+e -&gt; m a
+</span><span class="hs-identifier hs-var">throwM</span></span><span> </span><span class="annot"><span class="annottext">e
+</span><a href="#local-6989586621679113564"><span class="hs-identifier hs-var">e</span></a></span><span>
+</span><span id="line-155"></span></pre></body></html>
