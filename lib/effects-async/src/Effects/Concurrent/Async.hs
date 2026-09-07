@@ -2,6 +2,8 @@
 {-# LANGUAGE PostfixOperators #-}
 {-# OPTIONS_GHC -Wno-duplicate-exports #-}
 
+{- ORMOLU_DISABLE -}
+
 -- | Provides the 'MonadAsync' typeclass for async effects. We first present
 -- the class, then the async API implemented via the typeclass.
 --
@@ -105,6 +107,20 @@ module Effects.Concurrent.Async
     pooledReplicateConcurrentlyN_,
     pooledReplicateConcurrently_,
 
+#if MIN_VERSION_async(2, 2, 6)
+
+    -- * Warden
+    Warden.Warden,
+    withWarden,
+    create,
+    shutdown,
+    spawn,
+    spawn_,
+    spawnMask,
+    Warden.WardenException,
+
+#endif
+
     -- * Reexports
     SomeException,
     MonadThread,
@@ -119,6 +135,8 @@ module Effects.Concurrent.Async
   )
 where
 
+{- ORMOLU_ENABLE -}
+
 #if MIN_VERSION_base(4, 18, 0)
 import Control.Applicative (Alternative (empty, (<|>)))
 #else
@@ -126,6 +144,9 @@ import Control.Applicative (Alternative (empty, (<|>)), Applicative (liftA2))
 #endif
 import Control.Concurrent.Async (Async)
 import Control.Concurrent.Async qualified as Async
+#if MIN_VERSION_async(2, 2, 6)
+import Control.Concurrent.Async.Warden qualified as Warden
+#endif
 import Control.Monad (forever, replicateM)
 import Control.Monad.Catch (Exception, SomeException)
 import Control.Monad.Trans.Class (MonadTrans (lift))
@@ -394,6 +415,45 @@ class (Monad m) => MonadAsync m where
     f a ->
     m ()
 
+#if MIN_VERSION_async(2, 2, 6)
+
+  -- | Lifted 'Warden.withWarden'.
+  --
+  -- @since 0.1
+  withWarden :: (HasCallStack) => (Warden.Warden -> m a) -> m a
+
+  -- | Lifted 'Warden.withWarden'.
+  --
+  -- @since 0.1
+  create :: (HasCallStack) => m Warden.Warden
+
+  -- | Lifted 'Warden.shutdown'.
+  --
+  -- @since 0.1
+  shutdown :: (HasCallStack) => Warden.Warden -> m ()
+
+  -- | Lifted 'Warden.spawn'.
+  --
+  -- @since 0.1
+  spawn :: (HasCallStack) => Warden.Warden -> m a -> m (Async a)
+
+  -- | Lifted 'Warden.spawn_'.
+  --
+  -- @since 0.1
+  spawn_ :: (HasCallStack) => Warden.Warden -> m () -> m ()
+
+  -- | Lifted 'Warden.spawnMask'.
+  --
+  -- @since 0.1
+  spawnMask ::
+    (HasCallStack) =>
+    -- | .
+    Warden.Warden ->
+    ((forall b. m b -> m b) -> m a) ->
+    m (Async a)
+
+#endif
+
 -- | @since 0.1
 instance MonadAsync IO where
   withAsync = Async.withAsync
@@ -472,6 +532,20 @@ instance MonadAsync IO where
   {-# INLINEABLE pooledMapConcurrentlyN_ #-}
   pooledMapConcurrently_ = UAsync.pooledMapConcurrently_
   {-# INLINEABLE pooledMapConcurrently_ #-}
+#if MIN_VERSION_async(2, 2, 6)
+  withWarden = Warden.withWarden
+  {-# INLINEABLE withWarden #-}
+  create = Warden.create
+  {-# INLINEABLE create #-}
+  shutdown = Warden.shutdown
+  {-# INLINEABLE shutdown #-}
+  spawn = Warden.spawn
+  {-# INLINEABLE spawn #-}
+  spawn_ = Warden.spawn_
+  {-# INLINEABLE spawn_ #-}
+  spawnMask = Warden.spawnMask
+  {-# INLINEABLE spawnMask #-}
+#endif
 
 -- | @since 0.1
 instance (MonadAsync m) => MonadAsync (ReaderT env m) where
@@ -592,6 +666,22 @@ instance (MonadAsync m) => MonadAsync (ReaderT env m) where
     ask >>= \e ->
       lift $ pooledMapConcurrently_ (usingReaderT e . f) xs
   {-# INLINEABLE pooledMapConcurrently_ #-}
+#if MIN_VERSION_async(2, 2, 6)
+  withWarden k = ask >>= \e -> lift $ withWarden (usingReaderT e . k)
+  {-# INLINEABLE withWarden #-}
+  create = lift create
+  {-# INLINEABLE create #-}
+  shutdown = lift . shutdown
+  {-# INLINEABLE shutdown #-}
+  spawn w m = ask >>= \e -> lift $ spawn w (runReaderT m e)
+  {-# INLINEABLE spawn #-}
+  spawn_ w m = ask >>= \e -> lift $ spawn_ w (runReaderT m e)
+  {-# INLINEABLE spawn_ #-}
+  spawnMask w k = ask >>= \e ->
+    lift $ spawnMask w $ \unmask ->
+      usingReaderT e $ k (lift . unmask . usingReaderT e)
+  {-# INLINEABLE spawnMask #-}
+#endif
 
 usingReaderT :: forall m env a. env -> ReaderT env m a -> m a
 usingReaderT = flip runReaderT
