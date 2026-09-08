@@ -119,6 +119,15 @@ module Effects.Concurrent.Async
     spawnMask,
     Warden.WardenException,
 
+    -- * Stream
+    stream,
+    streamBound,
+    streamWithInput,
+    streamWithOutput,
+    streamWithInputOutput,
+    mapConcurrentlyBounded,
+    forConcurrentlyBounded,
+
 #endif
 
     -- * Reexports
@@ -146,6 +155,7 @@ import Control.Concurrent.Async (Async)
 import Control.Concurrent.Async qualified as Async
 #if MIN_VERSION_async(2, 2, 6)
 import Control.Concurrent.Async.Warden qualified as Warden
+import Control.Concurrent.Stream qualified as Stream
 #endif
 import Control.Monad (forever, replicateM)
 import Control.Monad.Catch (Exception, SomeException)
@@ -365,7 +375,7 @@ class (Monad m) => MonadAsync m where
   -- @since 0.1
   link2Only :: (HasCallStack) => (SomeException -> Bool) -> Async a -> Async b -> m ()
 
-  -- | Lifted 'Async.pooledMapConcurrentlyN'.
+  -- | Lifted 'UAsync.pooledMapConcurrentlyN'.
   --
   -- @since 0.1
   pooledMapConcurrentlyN ::
@@ -378,7 +388,7 @@ class (Monad m) => MonadAsync m where
     t a ->
     m (t b)
 
-  -- | Lifted 'Async.pooledMapConcurrently'.
+  -- | Lifted 'UAsync.pooledMapConcurrently'.
   --
   -- @since 0.1
   pooledMapConcurrently ::
@@ -390,7 +400,7 @@ class (Monad m) => MonadAsync m where
     t a ->
     m (t b)
 
-  -- | Lifted 'Async.pooledMapConcurrentlyN_'.
+  -- | Lifted 'UAsync.pooledMapConcurrentlyN_'.
   --
   -- @since 0.1
   pooledMapConcurrentlyN_ ::
@@ -403,7 +413,7 @@ class (Monad m) => MonadAsync m where
     f a ->
     m ()
 
-  -- | Lifted 'Async.pooledMapConcurrently_'.
+  -- | Lifted 'UAsync.pooledMapConcurrently_'.
   --
   -- @since 0.1
   pooledMapConcurrently_ ::
@@ -451,6 +461,76 @@ class (Monad m) => MonadAsync m where
     Warden.Warden ->
     ((forall b. m b -> m b) -> m a) ->
     m (Async a)
+
+  -- | Lifted 'Stream.stream'.
+  --
+  -- @since 0.1
+  stream ::
+    (HasCallStack) =>
+    Int ->
+    ((a -> m ()) -> m ()) ->
+    (a -> m ()) ->
+    m ()
+
+  -- | Lifted 'Stream.streamBound'.
+  --
+  -- @since 0.1
+  streamBound ::
+    (HasCallStack) =>
+    Int ->
+    ((a -> m ()) -> m ()) ->
+    (a -> m ()) ->
+    m ()
+
+  -- | Lifted 'Stream.streamWithInput'.
+  --
+  -- @since 0.1
+  streamWithInput ::
+    (HasCallStack) =>
+    ((a -> m ()) -> m ()) ->
+    [b] ->
+    (b -> a -> m ()) ->
+    m ()
+
+  -- | Lifted 'Stream.streamWithOutput'.
+  --
+  -- @since 0.1
+  streamWithOutput ::
+    (HasCallStack) =>
+    Int ->
+    ((a -> m ()) -> m ()) ->
+    (a -> m c) ->
+    m [c]
+
+  -- | Lifted 'Stream.streamWithInputOutput'.
+  --
+  -- @since 0.1
+  streamWithInputOutput ::
+    (HasCallStack) =>
+    ((a -> m ()) -> m ()) ->
+    [b] ->
+    (b -> a -> m c) ->
+    m [c]
+
+  -- | Lifted 'Stream.mapConcurrentlyBounded'.
+  --
+  -- @since 0.1
+  mapConcurrentlyBounded ::
+    (HasCallStack) =>
+    Int ->
+    (a -> m b) ->
+    [a] ->
+    m [b]
+
+  -- | Lifted 'Stream.forConcurrentlyBounded'.
+  --
+  -- @since 0.1
+  forConcurrentlyBounded ::
+    (HasCallStack) =>
+    Int ->
+    [a] ->
+    (a -> m b) ->
+    m [b]
 
 #endif
 
@@ -545,6 +625,20 @@ instance MonadAsync IO where
   {-# INLINEABLE spawn_ #-}
   spawnMask = Warden.spawnMask
   {-# INLINEABLE spawnMask #-}
+  stream = Stream.stream
+  {-# INLINEABLE stream #-}
+  streamBound = Stream.streamBound
+  {-# INLINEABLE streamBound #-}
+  streamWithInput = Stream.streamWithInput
+  {-# INLINEABLE streamWithInput #-}
+  streamWithOutput = Stream.streamWithOutput
+  {-# INLINEABLE streamWithOutput #-}
+  streamWithInputOutput = Stream.streamWithInputOutput
+  {-# INLINEABLE streamWithInputOutput #-}
+  mapConcurrentlyBounded = Stream.mapConcurrentlyBounded
+  {-# INLINEABLE mapConcurrentlyBounded #-}
+  forConcurrentlyBounded = Stream.forConcurrentlyBounded
+  {-# INLINEABLE forConcurrentlyBounded #-}
 #endif
 
 -- | @since 0.1
@@ -681,6 +775,55 @@ instance (MonadAsync m) => MonadAsync (ReaderT env m) where
     lift $ spawnMask w $ \unmask ->
       usingReaderT e $ k (lift . unmask . usingReaderT e)
   {-# INLINEABLE spawnMask #-}
+  stream i p w = ask >>= \e ->
+    lift $
+      stream
+        i
+        (\k -> usingReaderT e $ p (lift . k))
+        (usingReaderT e . w)
+  {-# INLINEABLE stream #-}
+  streamBound i p w = ask >>= \e ->
+    lift $
+      streamBound
+        i
+        (\k -> usingReaderT e $ p (lift . k))
+        (usingReaderT e . w)
+  {-# INLINEABLE streamBound #-}
+  streamWithInput p s w = ask >>= \e ->
+    lift $
+      streamWithInput
+        (\k -> usingReaderT e $ p (lift . k))
+        s
+        (\b a -> usingReaderT e $ w b a)
+  {-# INLINEABLE streamWithInput #-}
+  streamWithOutput i p w = ask >>= \e ->
+    lift $
+      streamWithOutput
+        i
+        (\k -> usingReaderT e $ p (lift . k))
+        (usingReaderT e . w)
+  {-# INLINEABLE streamWithOutput #-}
+  streamWithInputOutput p is w = ask >>= \e ->
+    lift $
+      streamWithInputOutput
+        (\k -> usingReaderT e $ p (lift . k))
+        is
+        (\b a -> usingReaderT e $ w b a)
+  {-# INLINEABLE streamWithInputOutput #-}
+  mapConcurrentlyBounded m k is = ask >>= \e ->
+    lift $
+      mapConcurrentlyBounded
+        m
+        (usingReaderT e . k)
+        is
+  {-# INLINEABLE mapConcurrentlyBounded #-}
+  forConcurrentlyBounded m is k = ask >>= \e ->
+    lift $
+      forConcurrentlyBounded
+        m
+        is
+        (usingReaderT e . k)
+  {-# INLINEABLE forConcurrentlyBounded #-}
 #endif
 
 usingReaderT :: forall m env a. env -> ReaderT env m a -> m a
