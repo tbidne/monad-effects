@@ -5,8 +5,9 @@ module Effects.System.Posix.Signals
     -- * Handler
     Handler (..),
     mapHandler,
-    handlerToPosix,
-    handlerFromPosix,
+    PosixHandler,
+    mapHandlerToPosix,
+    mapHandlerFromPosix,
 
     -- * Re-exports
     Signal,
@@ -80,7 +81,8 @@ instance MonadPosixSignals IO where
   {-# INLINEABLE signalProcessGroup #-}
 
   installHandler s h =
-    fmap handlerFromPosix . Signals.installHandler s (handlerToPosix h)
+    fmap (mapHandlerFromPosix id)
+      . Signals.installHandler s (mapHandlerToPosix id h)
   {-# INLINEABLE installHandler #-}
 
   getSignalMask = Signals.getSignalMask
@@ -159,6 +161,11 @@ instance (MonadPosixSignals m) => MonadPosixSignals (ReaderT e m) where
   queryStoppedChildFlag = lift queryStoppedChildFlag
   {-# INLINEABLE queryStoppedChildFlag #-}
 
+-- | Alias for unix's 'Signals.Handler'.
+--
+-- @since 0.1
+type PosixHandler = Signals.Handler
+
 -- | @since 0.1
 data Handler m
   = Default
@@ -176,21 +183,24 @@ mapHandler f = \case
   CatchOnce x -> CatchOnce $ f x
   CatchInfo x -> CatchInfo $ f . x
   CatchInfoOnce x -> CatchInfoOnce $ f . x
+{-# INLINEABLE mapHandler #-}
 
-handlerToPosix :: Handler IO -> Signals.Handler
-handlerToPosix = \case
+mapHandlerToPosix :: (forall x. m x -> IO x) -> Handler m -> PosixHandler
+mapHandlerToPosix f = \case
   Default -> Signals.Default
   Ignore -> Signals.Ignore
-  Catch x -> Signals.Catch x
-  CatchOnce x -> Signals.CatchOnce x
-  CatchInfo x -> Signals.CatchInfo x
-  CatchInfoOnce x -> Signals.CatchInfoOnce x
+  Catch x -> Signals.Catch $ f x
+  CatchOnce x -> Signals.CatchOnce $ f x
+  CatchInfo x -> Signals.CatchInfo $ f . x
+  CatchInfoOnce x -> Signals.CatchInfoOnce $ f . x
+{-# INLINEABLE mapHandlerToPosix #-}
 
-handlerFromPosix :: Signals.Handler -> Handler IO
-handlerFromPosix = \case
+mapHandlerFromPosix :: (forall x. IO x -> m x) -> PosixHandler -> Handler m
+mapHandlerFromPosix f = \case
   Signals.Default -> Default
   Signals.Ignore -> Ignore
-  Signals.Catch x -> Catch x
-  Signals.CatchOnce x -> CatchOnce x
-  Signals.CatchInfo x -> CatchInfo x
-  Signals.CatchInfoOnce x -> CatchInfoOnce x
+  Signals.Catch x -> Catch $ f x
+  Signals.CatchOnce x -> CatchOnce $ f x
+  Signals.CatchInfo x -> CatchInfo $ f . x
+  Signals.CatchInfoOnce x -> CatchInfoOnce $ f . x
+{-# INLINEABLE mapHandlerFromPosix #-}
