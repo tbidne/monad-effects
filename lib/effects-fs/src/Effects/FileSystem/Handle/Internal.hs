@@ -91,9 +91,9 @@ type family CanRead hm where
 type CanWrite :: HandleMode -> Constraint
 type family CanWrite hm where
 #if MIN_VERSION_GLASGOW_HASKELL(9, 8, 1, 0)
-  CanWrite HandleModeRead = TE.Unsatisfiable (TE.Text "HandleModeRead does not have Read permission.")
+  CanWrite HandleModeRead = TE.Unsatisfiable (TE.Text "HandleModeRead does not have Write permission.")
 #else
-  CanWrite HandleModeRead = TE.TypeError (TE.Text "HandleModeRead does not have Read permission.")
+  CanWrite HandleModeRead = TE.TypeError (TE.Text "HandleModeRead does not have Write permission.")
 #endif
   CanWrite HandleModeWrite = ()
   CanWrite HandleModeReadWrite = ()
