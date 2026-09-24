@@ -1,0 +1,132 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- | Typed file handles.</span><span>
+</span><span id="line-2"></span><span class="hs-comment">--</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.html"><span class="hs-identifier">Effects.FileSystem.Handle</span></a></span><span>
+</span><span id="line-5"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Typed handle</span></span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#Handle"><span class="hs-identifier">Handle</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-7"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#unHandle"><span class="hs-identifier">unHandle</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.Handle.html#unsafeHandle"><span class="hs-identifier">unsafeHandle</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#HandleMode"><span class="hs-identifier">HandleMode</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** IO handles</span></span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.Handle.html#stdin"><span class="hs-identifier">stdin</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.Handle.html#stdout"><span class="hs-identifier">stdout</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-14"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.Handle.html#stderr"><span class="hs-identifier">stderr</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Type families</span></span><span>
+</span><span id="line-17"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#CanRead"><span class="hs-identifier">CanRead</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-18"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#CanWrite"><span class="hs-identifier">CanWrite</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Aliases</span></span><span>
+</span><span id="line-21"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.Handle.html#HandleIO"><span class="hs-identifier">HandleIO</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-22"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.Handle.html#HandleM"><span class="hs-identifier">HandleM</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-23"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.Handle.html#HandleR"><span class="hs-identifier">HandleR</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-24"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.Handle.html#HandleW"><span class="hs-identifier">HandleW</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-25"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.Handle.html#HandleRW"><span class="hs-identifier">HandleRW</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Locks</span></span><span>
+</span><span id="line-28"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#LockedHandle"><span class="hs-identifier">LockedHandle</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-29"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#unLockedHandle"><span class="hs-identifier">Internal.unLockedHandle</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-30"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.Handle.html#unsafeLockedHandle"><span class="hs-identifier">unsafeLockedHandle</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-31"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#liftLocked"><span class="hs-identifier">Internal.liftLocked</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-32"></span><span>
+</span><span id="line-33"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Aliases</span></span><span>
+</span><span id="line-34"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.Handle.html#LockedHandleR"><span class="hs-identifier">LockedHandleR</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-35"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.Handle.html#LockedHandleW"><span class="hs-identifier">LockedHandleW</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-36"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.Handle.html#LockedHandleRW"><span class="hs-identifier">LockedHandleRW</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-37"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-38"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-39"></span><span>
+</span><span id="line-40"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html"><span class="hs-identifier">Effects.FileSystem.Handle.Internal</span></a></span><span>
+</span><span id="line-41"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#CanRead"><span class="hs-identifier">CanRead</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-42"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#CanWrite"><span class="hs-identifier">CanWrite</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-43"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#Handle"><span class="hs-identifier">Handle</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#MkHandle"><span class="hs-identifier">MkHandle</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-44"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#HandleMode"><span class="hs-identifier">HandleMode</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#HandleModeRead"><span class="hs-identifier">HandleModeRead</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#HandleModeReadWrite"><span class="hs-identifier">HandleModeReadWrite</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#HandleModeWrite"><span class="hs-identifier">HandleModeWrite</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-45"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#LockedHandle"><span class="hs-identifier">LockedHandle</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#MkLockedHandle"><span class="hs-identifier">MkLockedHandle</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-46"></span><span>    </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#unHandle"><span class="hs-identifier">unHandle</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-47"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-48"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html"><span class="hs-identifier">Effects.FileSystem.Handle.Internal</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Internal</span></span><span>
+</span><span id="line-49"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.IO</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">IO</span></span><span>
+</span><span id="line-50"></span><span>
+</span><span id="line-51"></span><span class="hs-comment">-- | Alias for base's System.IO.Handle.</span><span>
+</span><span id="line-52"></span><span class="hs-comment">--</span><span>
+</span><span id="line-53"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-54"></span><span class="hs-keyword">type</span><span> </span><span id="HandleIO"><span class="annot"><a href="Effects.FileSystem.Handle.html#HandleIO"><span class="hs-identifier hs-var">HandleIO</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO.Handle</span></span><span>
+</span><span id="line-55"></span><span>
+</span><span id="line-56"></span><span class="hs-comment">-- | Alias for typed Handle.</span><span>
+</span><span id="line-57"></span><span class="hs-comment">--</span><span>
+</span><span id="line-58"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-59"></span><span class="hs-keyword">type</span><span> </span><span id="HandleM"><span class="annot"><a href="Effects.FileSystem.Handle.html#HandleM"><span class="hs-identifier hs-var">HandleM</span></a></span></span><span> </span><span id="local-6989586621679103155"><span class="annot"><a href="#local-6989586621679103155"><span class="hs-identifier hs-type">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#Handle"><span class="hs-identifier hs-type">Handle</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679103155"><span class="hs-identifier hs-type">p</span></a></span><span>
+</span><span id="line-60"></span><span>
+</span><span id="line-61"></span><span class="hs-comment">-- | Readable handle.</span><span>
+</span><span id="line-62"></span><span class="hs-comment">--</span><span>
+</span><span id="line-63"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-64"></span><span class="hs-keyword">type</span><span> </span><span id="HandleR"><span class="annot"><a href="Effects.FileSystem.Handle.html#HandleR"><span class="hs-identifier hs-var">HandleR</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#Handle"><span class="hs-identifier hs-type">Handle</span></a></span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#HandleModeRead"><span class="hs-identifier hs-type">HandleModeRead</span></a></span><span>
+</span><span id="line-65"></span><span>
+</span><span id="line-66"></span><span class="hs-comment">-- | Writable handle.</span><span>
+</span><span id="line-67"></span><span class="hs-comment">--</span><span>
+</span><span id="line-68"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-69"></span><span class="hs-keyword">type</span><span> </span><span id="HandleW"><span class="annot"><a href="Effects.FileSystem.Handle.html#HandleW"><span class="hs-identifier hs-var">HandleW</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#Handle"><span class="hs-identifier hs-type">Handle</span></a></span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#HandleModeWrite"><span class="hs-identifier hs-type">HandleModeWrite</span></a></span><span>
+</span><span id="line-70"></span><span>
+</span><span id="line-71"></span><span class="hs-comment">-- | Readable and writable handle.</span><span>
+</span><span id="line-72"></span><span class="hs-comment">--</span><span>
+</span><span id="line-73"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-74"></span><span class="hs-keyword">type</span><span> </span><span id="HandleRW"><span class="annot"><a href="Effects.FileSystem.Handle.html#HandleRW"><span class="hs-identifier hs-var">HandleRW</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#Handle"><span class="hs-identifier hs-type">Handle</span></a></span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#HandleModeReadWrite"><span class="hs-identifier hs-type">HandleModeReadWrite</span></a></span><span>
+</span><span id="line-75"></span><span>
+</span><span id="line-76"></span><span class="hs-comment">-- | Makes a handle with any permissions. Useful for pseudo handles.</span><span>
+</span><span id="line-77"></span><span class="hs-comment">--</span><span>
+</span><span id="line-78"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-79"></span><span id="local-6989586621679103126"><span class="annot"><a href="Effects.FileSystem.Handle.html#unsafeHandle"><span class="hs-identifier hs-type">unsafeHandle</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO.Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#Handle"><span class="hs-identifier hs-type">Handle</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679103126"><span class="hs-identifier hs-type">p</span></a></span></span><span>
+</span><span id="line-80"></span><span id="unsafeHandle"><span class="annot"><span class="annottext">unsafeHandle :: forall (p :: HandleMode). Handle -&gt; Handle p
+</span><a href="Effects.FileSystem.Handle.html#unsafeHandle"><span class="hs-identifier hs-var hs-var">unsafeHandle</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; Handle p
+forall (p :: HandleMode). Handle -&gt; Handle p
+</span><a href="Effects.FileSystem.Handle.Internal.html#MkHandle"><span class="hs-identifier hs-var">MkHandle</span></a></span><span>
+</span><span id="line-81"></span><span>
+</span><span id="line-82"></span><span class="hs-comment">-- | Makes a LockedHandle without performing any locking.</span><span>
+</span><span id="line-83"></span><span class="hs-comment">--</span><span>
+</span><span id="line-84"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-85"></span><span id="local-6989586621679103129"><span class="annot"><a href="Effects.FileSystem.Handle.html#unsafeLockedHandle"><span class="hs-identifier hs-type">unsafeLockedHandle</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#Handle"><span class="hs-identifier hs-type">Handle</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679103129"><span class="hs-identifier hs-type">p</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#LockedHandle"><span class="hs-identifier hs-type">LockedHandle</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679103129"><span class="hs-identifier hs-type">p</span></a></span></span><span>
+</span><span id="line-86"></span><span id="unsafeLockedHandle"><span class="annot"><span class="annottext">unsafeLockedHandle :: forall (p :: HandleMode). Handle p -&gt; LockedHandle p
+</span><a href="Effects.FileSystem.Handle.html#unsafeLockedHandle"><span class="hs-identifier hs-var hs-var">unsafeLockedHandle</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Handle p -&gt; LockedHandle p
+forall (p :: HandleMode). Handle p -&gt; LockedHandle p
+</span><a href="Effects.FileSystem.Handle.Internal.html#MkLockedHandle"><span class="hs-identifier hs-var">MkLockedHandle</span></a></span><span>
+</span><span id="line-87"></span><span>
+</span><span id="line-88"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-89"></span><span class="annot"><a href="Effects.FileSystem.Handle.html#stdin"><span class="hs-identifier hs-type">stdin</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#Handle"><span class="hs-identifier hs-type">Handle</span></a></span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#HandleModeReadWrite"><span class="hs-identifier hs-type">HandleModeReadWrite</span></a></span><span>
+</span><span id="line-90"></span><span id="stdin"><span class="annot"><span class="annottext">stdin :: Handle 'HandleModeReadWrite
+</span><a href="Effects.FileSystem.Handle.html#stdin"><span class="hs-identifier hs-var hs-var">stdin</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; Handle 'HandleModeReadWrite
+forall (p :: HandleMode). Handle -&gt; Handle p
+</span><a href="Effects.FileSystem.Handle.Internal.html#MkHandle"><span class="hs-identifier hs-var">MkHandle</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><span class="hs-identifier hs-var">IO.stdin</span></span><span>
+</span><span id="line-91"></span><span>
+</span><span id="line-92"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-93"></span><span class="annot"><a href="Effects.FileSystem.Handle.html#stdout"><span class="hs-identifier hs-type">stdout</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#Handle"><span class="hs-identifier hs-type">Handle</span></a></span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#HandleModeReadWrite"><span class="hs-identifier hs-type">HandleModeReadWrite</span></a></span><span>
+</span><span id="line-94"></span><span id="stdout"><span class="annot"><span class="annottext">stdout :: Handle 'HandleModeReadWrite
+</span><a href="Effects.FileSystem.Handle.html#stdout"><span class="hs-identifier hs-var hs-var">stdout</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; Handle 'HandleModeReadWrite
+forall (p :: HandleMode). Handle -&gt; Handle p
+</span><a href="Effects.FileSystem.Handle.Internal.html#MkHandle"><span class="hs-identifier hs-var">MkHandle</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><span class="hs-identifier hs-var">IO.stdout</span></span><span>
+</span><span id="line-95"></span><span>
+</span><span id="line-96"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-97"></span><span class="annot"><a href="Effects.FileSystem.Handle.html#stderr"><span class="hs-identifier hs-type">stderr</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#Handle"><span class="hs-identifier hs-type">Handle</span></a></span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#HandleModeReadWrite"><span class="hs-identifier hs-type">HandleModeReadWrite</span></a></span><span>
+</span><span id="line-98"></span><span id="stderr"><span class="annot"><span class="annottext">stderr :: Handle 'HandleModeReadWrite
+</span><a href="Effects.FileSystem.Handle.html#stderr"><span class="hs-identifier hs-var hs-var">stderr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; Handle 'HandleModeReadWrite
+forall (p :: HandleMode). Handle -&gt; Handle p
+</span><a href="Effects.FileSystem.Handle.Internal.html#MkHandle"><span class="hs-identifier hs-var">MkHandle</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><span class="hs-identifier hs-var">IO.stderr</span></span><span>
+</span><span id="line-99"></span><span>
+</span><span id="line-100"></span><span class="hs-comment">-- | Readable handle.</span><span>
+</span><span id="line-101"></span><span class="hs-comment">--</span><span>
+</span><span id="line-102"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-103"></span><span class="hs-keyword">type</span><span> </span><span id="LockedHandleR"><span class="annot"><a href="Effects.FileSystem.Handle.html#LockedHandleR"><span class="hs-identifier hs-var">LockedHandleR</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#LockedHandle"><span class="hs-identifier hs-type">LockedHandle</span></a></span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#HandleModeRead"><span class="hs-identifier hs-type">HandleModeRead</span></a></span><span>
+</span><span id="line-104"></span><span>
+</span><span id="line-105"></span><span class="hs-comment">-- | Writable handle.</span><span>
+</span><span id="line-106"></span><span class="hs-comment">--</span><span>
+</span><span id="line-107"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-108"></span><span class="hs-keyword">type</span><span> </span><span id="LockedHandleW"><span class="annot"><a href="Effects.FileSystem.Handle.html#LockedHandleW"><span class="hs-identifier hs-var">LockedHandleW</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#LockedHandle"><span class="hs-identifier hs-type">LockedHandle</span></a></span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#HandleModeWrite"><span class="hs-identifier hs-type">HandleModeWrite</span></a></span><span>
+</span><span id="line-109"></span><span>
+</span><span id="line-110"></span><span class="hs-comment">-- | Readable and writable handle.</span><span>
+</span><span id="line-111"></span><span class="hs-comment">--</span><span>
+</span><span id="line-112"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-113"></span><span class="hs-keyword">type</span><span> </span><span id="LockedHandleRW"><span class="annot"><a href="Effects.FileSystem.Handle.html#LockedHandleRW"><span class="hs-identifier hs-var">LockedHandleRW</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#LockedHandle"><span class="hs-identifier hs-type">LockedHandle</span></a></span><span> </span><span class="annot"><a href="Effects.FileSystem.Handle.Internal.html#HandleModeReadWrite"><span class="hs-identifier hs-type">HandleModeReadWrite</span></a></span><span>
+</span><span id="line-114"></span></pre></body></html>
